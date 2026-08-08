@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@electron/packager": "^20.2.0",
-    "electron": "^33.0.0"
+    "electron": "^39.8.10"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
