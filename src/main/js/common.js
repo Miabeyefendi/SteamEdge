@@ -23,6 +23,7 @@
         empty.classList.add('hidden');
         if (designed[tab]) designed[tab].classList.remove('hidden');
         else { empty.classList.remove('hidden'); emptyName.textContent = a.textContent.trim(); }
+        agirListeleriBosalt(tab);
         if (tab === 'genel') loadGenel();
         if (tab === 'kart') loadKart();
         if (tab === 'saat') loadSaat();
@@ -30,8 +31,43 @@
         if (tab === 'gercekci') loadGercekci();
         if (tab === 'basarim') loadBasarim();
         if (tab === 'ayarlar') loadAyarlar();
+        agirListeyiGeriCiz(tab);
       });
     });
+
+    // ---- GÖRÜNMEYEN SEKMELERİN LİSTELERİNİ BELLEKTE TUTMA ----
+    // Kütüphanesi büyük hesaplarda bu listeler binlerce satır demek: 400 oyunluk bir kuyruk
+    // tek başına ~9.600 DOM düğümü. Sekme gizlendiğinde bunlar ekranda değil ama tarayıcı
+    // hepsini bellekte tutmaya devam ediyordu.
+    //
+    // Çözüm: gizlenen sekmenin liste gövdesi boşaltılır, sekmeye dönüldüğünde yeniden çizilir.
+    // VERİ SİLİNMEZ - listeler zaten JS dizilerinden çiziliyor, silinen sadece DOM. Seçimler,
+    // sıralama ve filtreler de JS tarafında durduğu için geri dönüşte hiçbir şey kaybolmaz.
+    // Steam'e tek bir istek daha gitmez.
+    const AGIR_LISTELER = {
+      kart:    { kap: 'kartQueue',    ciz: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
+      env:     { kap: 'envRows',      ciz: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
+      saat:    { kap: 'saatListBody', ciz: () => (typeof renderSaatList === 'function' && typeof saatLoaded !== 'undefined' && saatLoaded) && renderSaatList() },
+      basarim: { kap: 'acBody',       ciz: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
+    };
+    const askidaSekmeler = new Set();
+
+    function agirListeleriBosalt(acilanTab){
+      Object.keys(AGIR_LISTELER).forEach(t => {
+        if (t === acilanTab || askidaSekmeler.has(t)) return;
+        const kap = document.getElementById(AGIR_LISTELER[t].kap);
+        // Hiç doldurulmamış listeyi askıya almanın anlamı yok; ayrıca "yükleniyor" gibi
+        // tek satırlık durum metinlerini silip kullanıcıyı boş ekranla baş başa bırakmayalım.
+        if (!kap || kap.children.length < 2) return;
+        kap.innerHTML = '';
+        askidaSekmeler.add(t);
+      });
+    }
+    function agirListeyiGeriCiz(tab){
+      if (!askidaSekmeler.has(tab)) return;
+      askidaSekmeler.delete(tab);
+      try { AGIR_LISTELER[tab].ciz(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
+    }
 
     // ---- ortak yardımcılar (tüm sayfalar kullanır) ----
     const E = window.imu.engine;
@@ -298,12 +334,29 @@
     // "Arka Planda Topla" (farmSilent) - pencere görünmezken saniyelik arayüz yenilemeleri
     // atlanır; kart toplama/saat yükseltme motoru main tarafında olduğu için etkilenmez.
     // Sayfa JS'lerindeki 1sn'lik render döngüleri bu kapıdan geçer.
+    // G10: pencere gizli/simge durumundayken saniyelik yenilemeler HER ZAMAN atlanır, ayara
+    // bakılmaz. Görünmeyen bir arayüzü saniyede bir yeniden çizmenin kimseye faydası yok;
+    // motor ana süreçte çalıştığı için kart toplama, saat yükseltme ve başarım işleri
+    // etkilenmez - sadece çizim durur. Pencere geri geldiğinde sayfalar bir kez tazelenir,
+    // böylece kullanıcı asla bayat sayaç görmez.
     function uiTickAllowed(){
-      if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent){
-        if (document.hidden) return false;
-      }
-      return true;
+      return !document.hidden;
     }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden){
+        // "Arka Planda Topla" açıkken pencere gizlenince AÇIK sekmenin listesi de bellekten
+        // düşer. Ayarın vaadi buydu ("en az işlemci ve bellek kullanımı"); önceden yalnızca
+        // saniyelik çizimleri atlıyordu, bellek tarafında bir şey yapmıyordu.
+        if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) agirListeleriBosalt(null);
+        return;
+      }
+      // Geri gelindi: askıya alınmış liste varsa çiz, sayaçlar taze değere gelsin.
+      Object.keys(AGIR_LISTELER).forEach(t => {
+        if (designed[t] && !designed[t].classList.contains('hidden')) agirListeyiGeriCiz(t);
+      });
+      try { if (typeof renderActiveBox === 'function' && !designed.saat.classList.contains('hidden')) renderActiveBox(); } catch (_) {}
+      try { if (typeof renderGenelStats === 'function' && !designed.genel.classList.contains('hidden')) renderGenelStats(); } catch (_) {}
+    });
 
     // "Oturum zaman aşımı" - gerçek kullanıcı etkileşimini main'e bildir (sayacı sıfırlar)
     (function wireActivity(){

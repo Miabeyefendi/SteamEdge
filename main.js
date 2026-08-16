@@ -2015,6 +2015,22 @@ ipcMain.handle('guncelleme:goruldu', (_e, surum) => {
   if (surum) { settings.gorulenSurum = String(surum); saveSettings(); }
   return { ok: true };
 });
+// Uygulamanin gercek bellek kullanimi, surec surec. "Ne kadar RAM yiyor" sorusunun
+// cevabi tahmin olmasin diye Ayarlar > Gelismis bunu canli gosteriyor. Electron cok
+// surecli calisir: Gorev Yoneticisi'nde bes ayri SteamEdge satiri gorunur, kullanicinin
+// tek tek toplamasi gerekiyordu.
+ipcMain.handle('app:bellek', () => {
+  const olcumler = app.getAppMetrics();
+  const surecler = olcumler.map((p) => ({
+    tur: p.type,
+    kb: (p.memory && (p.memory.privateBytes || p.memory.workingSetSize)) || 0,
+  }));
+  return {
+    toplamKb: surecler.reduce((t, p) => t + p.kb, 0),
+    surecler,
+    gpuAcik: settings.hwAccel !== false,
+  };
+});
 ipcMain.handle('app:bilgi', () => ({
   surum: app.getVersion(),
   electron: process.versions.electron,

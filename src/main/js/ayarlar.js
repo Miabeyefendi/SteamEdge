@@ -73,6 +73,7 @@
     let currentSetSec = 'general';
     function showSetSection(sec){
       currentSetSec = sec;
+      if (sec === 'advanced' && typeof bellekOku === 'function') bellekOku();
       document.querySelectorAll('#tab-ayarlar .setpanel').forEach(p=>{
         p.style.display = (p.getAttribute('data-sec')===sec) ? '' : 'none';
       });
@@ -261,6 +262,43 @@
       ].join('\n');
       panoyaYaz(satir, 'Tüm kimlik biçimleri');
     };
+
+    // ================= BELLEK GÖSTERGESİ =================
+    // Ölçüm ana süreçten geliyor (app.getAppMetrics), tahmin değil. Yalnızca Ayarlar >
+    // Gelişmiş görünürken ve pencere açıkken güncellenir - göstergenin kendisi bellek
+    // ölçmek uğruna arka planda dönmesin.
+    let memTimer = null;
+    function bellekYaz(d){
+      const t = document.getElementById('memTotal');
+      const b = document.getElementById('memBreak');
+      if (!t) return;
+      if (!d){ t.textContent = '-'; return; }
+      const mb = (kb)=> (kb/1024);
+      t.textContent = mb(d.toplamKb).toFixed(0) + ' MB';
+      // Süreç türleri: Browser = ana süreç, Tab = arayüz, GPU = ekran kartı, Utility = ağ.
+      // Kırılım metni JS'te birleştiği için DOM çevirisine takılmaz; adları burada t() ile
+      // geçiriyoruz. Anahtarlar bilerek uzun: tek kelimelik anahtar sözlükte başka metinleri
+      // de yakalardı.
+      const ad = { Browser:'ana süreç', Tab:'arayüz süreci', GPU:'ekran kartı süreci', Utility:'ağ süreci' };
+      const cev = (s)=> (typeof t === 'function' ? t(s) : s);
+      const parcalar = (d.surecler||[])
+        .map(p => cev(ad[p.tur] || p.tur) + ' ' + mb(p.kb).toFixed(0))
+        .join(' · ');
+      b.textContent = parcalar ? (parcalar + '  (MB)') : 'Tüm SteamEdge süreçlerinin toplamı';
+    }
+    async function bellekOku(){
+      if (document.hidden) return;
+      if (typeof currentSetSec === 'string' && currentSetSec !== 'advanced') return;
+      if (designed.ayarlar.classList.contains('hidden')) return;
+      const d = await window.imu.appBellek().catch(()=>null);
+      bellekYaz(d);
+    }
+    function bellekIzlemeKur(){
+      if (memTimer) return;
+      memTimer = setInterval(bellekOku, 4000);
+      bellekOku();
+    }
+    bellekIzlemeKur();
 
     // ================= GÜNCELLEME =================
     // Sadece bakar. İndirme, kurulum veya kendini değiştirme YOK - bulunan sürüm gösterilir,

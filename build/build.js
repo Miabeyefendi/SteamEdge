@@ -106,14 +106,53 @@ async function main() {
   for (const d of ['settings', 'cache']) {
     fs.mkdirSync(path.join(HEDEF, d), { recursive: true });
   }
+  const kirpilan = localeKirp(HEDEF);
   yaz(HEDEF);
   changelogYaz(HEDEF);
 
   const boyut = klasorBoyutu(HEDEF);
   console.log('\nBITTI.');
   console.log('  klasor : ' + HEDEF);
-  console.log('  boyut  : ' + (boyut / 1024 / 1024).toFixed(1) + ' MB');
+  console.log('  boyut  : ' + (boyut / 1024 / 1024).toFixed(1) + ' MB'
+    + (kirpilan.kazanc ? '  (locale kirpmasiyla ' + (kirpilan.kazanc / 1024 / 1024).toFixed(1) + ' MB az)' : ''));
   console.log('  exe    : ' + pkg.productName + '.exe');
+}
+
+// Electron 55 dil dosyasi birakiyor (locales/*.pak, ~44 MB). Bunlar Chromium'un KENDI
+// arayuz metinleri: sag tik menusu, dosya secme penceresi, form hata baloncuklari. Bizim
+// sozlugumuzle (src/main/js/i18n.js) ilgisi yok. Uygulama bes dil sunuyor, dolayisiyla
+// geri kalan elli dosya indirilip diskte duran olu agirlik.
+//
+// en-US LISTEDEN CIKARILAMAZ: Chromium istenen dili bulamazsa ona duser, yoksa acilista
+// "Unable to load locale pak" ile olur.
+const TUTULAN_DILLER = [
+  'en-US',    // yedek - her zaman kalir
+  'tr',       // arayuz dilleri (i18n.js ile ayni kume)
+  'de',
+  'es',
+  'zh-TW',
+];
+function localeKirp(hedef) {
+  const dizin = path.join(hedef, 'locales');
+  if (!fs.existsSync(dizin)) return { silinen: 0, kazanc: 0 };
+  const tut = new Set(TUTULAN_DILLER.map((d) => d + '.pak'));
+  let silinen = 0;
+  let kazanc = 0;
+  for (const ad of fs.readdirSync(dizin)) {
+    if (tut.has(ad)) continue;
+    const p = path.join(dizin, ad);
+    kazanc += fs.statSync(p).size;
+    fs.unlinkSync(p);
+    silinen++;
+  }
+  const kalan = fs.readdirSync(dizin);
+  // Yedek dil gitmisse paket calismaz. Sessizce sevk etmektense derlemeyi durdur.
+  if (!kalan.includes('en-US.pak')) {
+    throw new Error('locales/en-US.pak silinmis - paket acilmaz, kirpma listesi bozuk');
+  }
+  console.log('  locale   : ' + silinen + ' dosya silindi (' + (kazanc / 1024 / 1024).toFixed(1)
+    + ' MB), kalan: ' + kalan.join(', '));
+  return { silinen, kazanc };
 }
 
 function klasorBoyutu(d) {

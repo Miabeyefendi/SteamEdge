@@ -1,4 +1,4 @@
-    // ================= ÇOK DİLLİLİK =================
+﻿    // ================= ÇOK DİLLİLİK =================
     // Kaynak dil Türkçe. Arayüzdeki metinler HTML sayfalarında ve sayfa JS'lerinde doğrudan
     // Türkçe yazılı olduğu için, her çağrı yerini t() ile sarmak yerine ÇEVİRİ DOM ÜZERİNDE
     // yapılıyor: sayfa çizildikten sonra metin düğümleri ve placeholder/title/data-tip
@@ -2191,6 +2191,68 @@
       },
     };
     Object.keys(I18N_G9).forEach((dil) => { Object.assign(I18N[dil], I18N_G9[dil]); });
+
+    // ---- G10 EKİ: bellek göstergesi ve değişen açıklamalar ----
+    // "Arka Planda Topla" ile donanım hızlandırma açıklamaları bu turda davranış değiştirdiği
+    // için yeniden yazıldı; eski karşılıkları sözlükte duruyor ama artık eşleşmiyor.
+    const HWACCEL_TIP = 'Arayüz ekran kartıyla çizilir. Kapatmak ekran kartı sürecini küçültür ve '
+      + 'ölçümlerimizde bellek kullanımını yaklaşık 45 MB düşürür; karşılığında çizim işlemciye biner. '
+      + 'Görüntü bozulması veya donma yaşıyorsan da kapat ve uygulamayı yeniden başlat.';
+    const ARKA_PLAN = 'Pencere gizliyken listeler bellekten düşer, geri gelince yeniden çizilir';
+    const I18N_G10 = {
+      en: {
+        'Bellek': 'Memory',
+        'Kullanılan bellek': 'Memory in use',
+        'Tüm SteamEdge süreçlerinin toplamı': 'Total across every SteamEdge process',
+        'ana süreç': 'main process',
+        'arayüz süreci': 'interface process',
+        'ekran kartı süreci': 'graphics process',
+        'ağ süreci': 'network process',
+        [ARKA_PLAN]: 'While the window is hidden the lists are dropped from memory and redrawn when it returns',
+        [HWACCEL_TIP]: 'The interface is drawn by the graphics card. Turning this off shrinks the graphics '
+          + 'process and cut memory use by roughly 45 MB in our measurements, at the cost of drawing on the CPU. '
+          + 'Turn it off as well if you see visual glitches or freezing, then restart the app.',
+      },
+      de: {
+        'Bellek': 'Speicher',
+        'Kullanılan bellek': 'Belegter Speicher',
+        'Tüm SteamEdge süreçlerinin toplamı': 'Summe aller SteamEdge-Prozesse',
+        'ana süreç': 'Hauptprozess',
+        'arayüz süreci': 'Oberflaechenprozess',
+        'ekran kartı süreci': 'Grafikprozess',
+        'ağ süreci': 'Netzwerkprozess',
+        [ARKA_PLAN]: 'Ist das Fenster ausgeblendet, werden die Listen aus dem Speicher entfernt und bei der Rueckkehr neu gezeichnet',
+        [HWACCEL_TIP]: 'Die Oberflaeche wird von der Grafikkarte gezeichnet. Abschalten verkleinert den '
+          + 'Grafikprozess und senkte den Speicherbedarf in unseren Messungen um etwa 45 MB, dafuer zeichnet die CPU. '
+          + 'Schalte es auch ab, wenn du Bildfehler oder Haenger siehst, und starte die Anwendung neu.',
+      },
+      es: {
+        'Bellek': 'Memoria',
+        'Kullanılan bellek': 'Memoria en uso',
+        'Tüm SteamEdge süreçlerinin toplamı': 'Suma de todos los procesos de SteamEdge',
+        'ana süreç': 'proceso principal',
+        'arayüz süreci': 'proceso de interfaz',
+        'ekran kartı süreci': 'proceso grafico',
+        'ağ süreci': 'proceso de red',
+        [ARKA_PLAN]: 'Con la ventana oculta las listas se liberan de la memoria y se vuelven a dibujar al regresar',
+        [HWACCEL_TIP]: 'La interfaz la dibuja la tarjeta grafica. Desactivarlo reduce el proceso grafico y '
+          + 'bajo el uso de memoria unos 45 MB en nuestras mediciones, a cambio de dibujar en la CPU. '
+          + 'Desactivalo tambien si ves fallos visuales o bloqueos, y reinicia la aplicacion.',
+      },
+      zh: {
+        'Bellek': '記憶體',
+        'Kullanılan bellek': '已使用記憶體',
+        'Tüm SteamEdge süreçlerinin toplamı': '所有 SteamEdge 程序的總和',
+        'ana süreç': '主程序',
+        'arayüz süreci': '介面程序',
+        'ekran kartı süreci': '顯示卡程序',
+        'ağ süreci': '網路程序',
+        [ARKA_PLAN]: '視窗隱藏時清單會從記憶體中釋放，回到前景時重新繪製',
+        [HWACCEL_TIP]: '介面由顯示卡繪製。關閉後顯示卡程序會縮小，在我們的量測中記憶體用量約減少 45 MB，'
+          + '代價是改由處理器繪製。若出現畫面異常或卡頓也請關閉並重新啟動程式。',
+      },
+    };
+    Object.keys(I18N_G10).forEach((dil) => { Object.assign(I18N[dil], I18N_G10[dil]); });
 
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
