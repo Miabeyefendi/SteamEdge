@@ -1,7 +1,7 @@
 {
   "name": "steamedge",
   "productName": "SteamEdge",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Headless Steam trading card farmer, hour booster, achievement manager and market tool. No Steam client required.",
   "keywords": [
     "steam",
@@ -31,6 +31,7 @@
   "scripts": {
     "start": "electron .",
     "build": "node build/build.js",
+    "dogrula": "node build/dogrula.js",
     "build:win": "node build/build.js --platform=win32",
     "postinstall": "node -e \"console.log('SteamEdge: npm start ile calistirin, npm run build ile paketleyin.')\""
   },

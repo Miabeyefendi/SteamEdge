@@ -400,6 +400,45 @@
       openAyarlar();
     };
 
+    // ---- üst çubuk: sürüm rozeti ve güncelleme uyarısı ----
+    // Sürüm package.json'dan okunur (preload > imu.surum); hiçbir yerde elle yazılmaz.
+    const APP_SURUM = (window.imu && window.imu.surum) || '';
+    (function paintVersion(){
+      const e = document.getElementById('tbVersion');
+      if (e) e.textContent = APP_SURUM ? ('v' + APP_SURUM) : 'v-';
+    })();
+
+    // Günlük sessiz kontrol yeni sürüm bulursa buradaki düğme görünür. Otomatik indirme YOK:
+    // düğme yalnızca Ayarlar > Hakkında bölümünü açar, indirme kararı kullanıcının.
+    let sonGuncellemeDurumu = null;
+    function guncellemeRozetiniGoster(d){
+      sonGuncellemeDurumu = d || null;
+      const btn = document.getElementById('tbUpdate');
+      if (!btn) return;
+      const goster = !!(d && d.ok && d.guncelMi === false && d.rozet !== false);
+      btn.style.display = goster ? 'flex' : 'none';
+      if (goster){
+        const lbl = document.getElementById('tbUpdateLbl');
+        if (lbl) lbl.textContent = 'v' + d.son + ' yayımlandı';
+        btn.title = 'Yeni sürüm var: v' + d.son + ' (kurulu v' + d.kurulu + ')';
+      }
+    }
+    if (window.imu && window.imu.guncelleme){
+      window.imu.guncelleme.onDurum(guncellemeRozetiniGoster);
+      // Uygulama açılırken kontrol henüz yapılmamış olabilir; varsa önceki sonucu göster.
+      window.imu.guncelleme.sonDurum().then(guncellemeRozetiniGoster).catch(()=>{});
+      const ub = document.getElementById('tbUpdate');
+      if (ub) ub.onclick = ()=>{
+        // Rozeti söndür: kullanıcı bu sürümü gördü, her açılışta tekrar dürtmeyelim.
+        if (sonGuncellemeDurumu && sonGuncellemeDurumu.son){
+          window.imu.guncelleme.goruldu(sonGuncellemeDurumu.son).catch(()=>{});
+        }
+        ub.style.display = 'none';
+        document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+        openAyarlar('about');
+      };
+    }
+
     // ---- üst çubuk: Bildirimler + Profil/Hesap akordiyonu (referanslar önce, olay bağlama sonra) ----
     const notifDropdown = document.getElementById('notifDropdown');
     const acctDropdown = document.getElementById('acctDropdown');

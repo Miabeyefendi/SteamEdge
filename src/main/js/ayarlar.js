@@ -170,7 +170,154 @@
       paintFxInfo();
       set('setAcctStatus', appSettings.steamID ? 'Bağlı' : 'Bağlı değil');
       set('setLastSync', appSettings.steamID ? 'Şimdi' : '-');
+      // Sürüm package.json'dan gelir (preload > imu.surum). Elle yazılan sürüm satırı yok.
+      const surum = (window.imu && window.imu.surum) || '';
+      set('setVersion', surum ? ('SteamEdge v' + surum) : 'SteamEdge');
+      set('setVersionSide', surum ? ('v' + surum) : '-');
+      kimlikleriBoya();
       showSetSection(currentSetSec);
+    }
+
+    // ================= HESAP KİMLİĞİ =================
+    // Steam'in yedi biçimi de TEK sayıdan türer: SteamID64. Ağdan hiçbir şey sorulmaz.
+    //   hesap numarası = SteamID64 - 76561197960265728   (evren 1, "individual" hesap tabanı)
+    //   klasik         = STEAM_1:<numaranın son biti>:<numaranın yarısı>
+    //   SteamID3       = [U:1:<hesap numarası>]
+    // Tam sayılar 53 biti aştığı için BigInt kullanılır; Number ile son haneler bozulur.
+    const STEAM64_TABAN = 76561197960265728n;
+    function kimlikBicimleri(steamID64, vanity){
+      const ham = String(steamID64 || '').trim();
+      if (!/^\d{17}$/.test(ham)) return null;
+      let sid;
+      try { sid = BigInt(ham); } catch (_) { return null; }
+      if (sid < STEAM64_TABAN) return null;
+      const hesap = sid - STEAM64_TABAN;
+      const y = hesap % 2n;
+      const z = hesap / 2n;
+      return {
+        idSteam64: ham,
+        idKlasik : 'STEAM_1:' + y + ':' + z,
+        idSteam3 : '[U:1:' + hesap + ']',
+        idHesap  : String(hesap),
+        idHex    : '0x' + sid.toString(16).toUpperCase().padStart(16, '0'),
+        idProfil : 'https://steamcommunity.com/profiles/' + ham,
+        idOzel   : vanity ? ('https://steamcommunity.com/id/' + vanity) : null,
+      };
+    }
+    let kimlikler = null;
+    function kimlikleriBoya(){
+      const vanity = (typeof imuProfile === 'object' && imuProfile && imuProfile.vanity) || null;
+      kimlikler = kimlikBicimleri(appSettings.steamID, vanity);
+      const alanlar = ['idSteam64','idKlasik','idSteam3','idHesap','idHex','idProfil','idOzel'];
+      alanlar.forEach(id=>{
+        const e = document.getElementById(id);
+        if (!e) return;
+        const v = kimlikler ? kimlikler[id] : null;
+        // Bağlı hesap yoksa boş bırakmak yerine SEBEBİNİ yaz - boş tire "bozuk" gibi görünüyor.
+        e.textContent = v || (kimlikler ? 'tanımlı değil' : 'Steam hesabı bağlı değil');
+        e.style.color = v ? '#B9C0D6' : '#656D80';
+      });
+      // Değeri olmayan satırın düğmesi tıklanabilir görünmesin.
+      document.querySelectorAll('#tab-ayarlar [data-kopya],#tab-ayarlar [data-ac]').forEach(b=>{
+        const id = b.getAttribute('data-kopya') || b.getAttribute('data-ac');
+        const var_ = !!(kimlikler && kimlikler[id]);
+        b.disabled = !var_;
+        b.style.opacity = var_ ? '1' : '0.4';
+        b.style.cursor = var_ ? 'pointer' : 'default';
+      });
+      const all = document.getElementById('idCopyAll');
+      if (all){ all.disabled = !kimlikler; all.style.opacity = kimlikler ? '1' : '0.4'; }
+    }
+    function panoyaYaz(metin, etiket){
+      navigator.clipboard.writeText(metin).then(()=>{
+        if (typeof toast === 'function') toast('Kopyalandı').done((etiket||'Değer') + ' panoya kopyalandı.');
+      }).catch(()=>{});
+    }
+    document.querySelectorAll('#tab-ayarlar [data-kopya]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const id = b.getAttribute('data-kopya');
+        if (!kimlikler || !kimlikler[id]) return;
+        panoyaYaz(kimlikler[id], 'Kimlik');
+      });
+    });
+    document.querySelectorAll('#tab-ayarlar [data-ac]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const id = b.getAttribute('data-ac');
+        if (!kimlikler || !kimlikler[id]) return;
+        window.imu.openExternal(kimlikler[id]);
+      });
+    });
+    const copyAllBtn = document.getElementById('idCopyAll');
+    if (copyAllBtn) copyAllBtn.onclick = ()=>{
+      if (!kimlikler) return;
+      const satir = [
+        'SteamID64      : ' + kimlikler.idSteam64,
+        'SteamID        : ' + kimlikler.idKlasik,
+        'SteamID3       : ' + kimlikler.idSteam3,
+        'Hesap numarası : ' + kimlikler.idHesap,
+        'Hex            : ' + kimlikler.idHex,
+        'Profil adresi  : ' + kimlikler.idProfil,
+        'Özel adres     : ' + (kimlikler.idOzel || 'tanımlı değil'),
+      ].join('\n');
+      panoyaYaz(satir, 'Tüm kimlik biçimleri');
+    };
+
+    // ================= GÜNCELLEME =================
+    // Sadece bakar. İndirme, kurulum veya kendini değiştirme YOK - bulunan sürüm gösterilir,
+    // kullanıcı isterse yayın sayfasını açar (bkz src/update/guncelleme.js).
+    function guncellemeBoya(d){
+      const set2 = (id,t)=>{ const e=document.getElementById(id); if(e) e.textContent=t; };
+      const kurulu = (window.imu && window.imu.surum) || '-';
+      set2('updKurulu', 'v' + kurulu);
+      const dot  = document.getElementById('updDot');
+      const msg  = document.getElementById('updMsg');
+      const son  = document.getElementById('updSon');
+      const open = document.getElementById('updOpen');
+      const last = document.getElementById('updLast');
+      if (!d){
+        if (last) last.textContent = 'Son denetim: -';
+        return;
+      }
+      if (last && d.ts){
+        last.textContent = 'Son denetim: ' + new Date(d.ts).toLocaleString('tr-TR');
+      }
+      if (!d.ok){
+        // Çevrimdışı ya da GitHub yanıt vermiyor: kurulu sürüm yine görünür, sadece
+        // karşılaştırma yapılamadığı söylenir. Hata sessizce yutulmaz.
+        if (son){ son.textContent = 'bakılamadı'; son.style.color = '#B37E24'; }
+        if (dot) dot.style.background = '#B37E24';
+        if (msg) msg.textContent = (d.hata || 'Sürüm bilgisi alınamadı.') + ' Kurulu sürümün çalışmaya devam eder.';
+        if (open) open.style.display = 'none';
+        return;
+      }
+      if (son){ son.textContent = 'v' + d.son; son.style.color = d.guncelMi ? '#5FB324' : '#C2AAEE'; }
+      if (dot) dot.style.background = d.guncelMi ? '#5FB324' : '#5624B3';
+      if (msg){
+        msg.textContent = d.guncelMi
+          ? 'En güncel sürümü kullanıyorsun.'
+          : ('Yeni sürüm yayımlandı: v' + d.son + (d.yayinTs ? ' · ' + new Date(d.yayinTs).toLocaleDateString('tr-TR') : '')
+             + '. İndirme uygulama tarafından yapılmaz; yayın sayfasından kendin indirirsin.');
+      }
+      if (open){
+        open.style.display = d.guncelMi ? 'none' : 'inline-flex';
+        open.onclick = ()=> window.imu.openExternal(d.url);
+      }
+    }
+    const updBtn = document.getElementById('updCheck');
+    if (updBtn) updBtn.onclick = async ()=>{
+      updBtn.disabled = true;
+      const eski = updBtn.textContent;
+      updBtn.textContent = 'Denetleniyor...';
+      const d = await window.imu.guncelleme.kontrol().catch(e=>({ ok:false, hata:(e&&e.message)||'Denetim başarısız.' }));
+      updBtn.textContent = eski;
+      updBtn.disabled = false;
+      guncellemeBoya(d);
+      // Kullanıcı elle baktı: aynı sürüm için üst çubuk rozetini bir daha yakma.
+      if (d && d.ok && d.son) window.imu.guncelleme.goruldu(d.son).catch(()=>{});
+    };
+    if (window.imu && window.imu.guncelleme){
+      window.imu.guncelleme.sonDurum().then(guncellemeBoya).catch(()=>{});
+      window.imu.guncelleme.onDurum(guncellemeBoya);
     }
 
     async function loadAyarlar(){

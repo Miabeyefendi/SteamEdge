@@ -38,7 +38,13 @@
       <div style="display:flex;align-items:center;gap:12px">
         <img src="../assets/logo-mark.png" alt="" style="height:26px;width:auto;display:block">
         <span style="font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--e-title)">Steam<span style="color:var(--e-brand)">Edge</span></span>
-        <span style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--e-off);border:1px solid var(--e-bdPassive);border-radius:12px;padding:3px 8px">v1.0.8</span>
+        <!-- Surum package.json'dan gelir (common.js > paintVersion) - burada elle yazilmaz. -->
+        <span id="tbVersion" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--e-off);border:1px solid var(--e-bdPassive);border-radius:12px;padding:3px 8px">v-</span>
+        <!-- Gunluk sessiz kontrol yeni surum bulursa gorunur. Tiklayinca Ayarlar > Hakkinda acilir. -->
+        <button id="tbUpdate" title="Yeni sürüm var" style="display:none;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;background:#1A1030;border:1px solid var(--e-brand);color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">
+          <span style="width:6px;height:6px;border-radius:12px;background:#C2AAEE;flex-shrink:0"></span>
+          <span id="tbUpdateLbl">Güncelleme var</span>
+        </button>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="e-search">

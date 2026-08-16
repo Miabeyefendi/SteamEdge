@@ -2,7 +2,24 @@ const { contextBridge, ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
+// Surum TEK kaynaktan gelir: package.json. Eskiden dort ayri yerde elle yaziliydi ve
+// surum atlarken biri unutuluyordu. Burada senkron okunur cunku main.html'in <script>
+// bloklari hemen calisiyor; ust cubuktaki rozet ilk cizimde dogru degeri gostermeli.
+let PAKET_SURUM = '';
+try { PAKET_SURUM = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version || ''; }
+catch (_) { PAKET_SURUM = ''; }
+
 contextBridge.exposeInMainWorld('imu', {
+  surum: PAKET_SURUM,
+  // Guncelleme: yalnizca BAKAR. Indirme yok, otomatik kurulum yok - arayuz sadece
+  // yayin sayfasina baglanti gosterir.
+  guncelleme: {
+    kontrol: () => ipcRenderer.invoke('guncelleme:kontrol'),
+    sonDurum: () => ipcRenderer.invoke('guncelleme:sonDurum'),
+    goruldu: (surum) => ipcRenderer.invoke('guncelleme:goruldu', surum),
+    onDurum: (cb) => ipcRenderer.on('guncelleme:durum', (_e, d) => cb(d)),
+  },
+  appBilgi: () => ipcRenderer.invoke('app:bilgi'),
   pages: {
     // Sayfa HTML parçalarını senkron okur - main.html'in <script> etiketleri çalışmadan ÖNCE
     // DOM'a enjekte edilmesi gerekir (o script'ler ilgili id'lere anında bağlanıyor).

@@ -336,12 +336,33 @@ class SteamEngine {
     if (!sid) return Promise.reject(new Error('Steam oturumu yok'));
     const personas = () => new Promise((res) => this.user.getPersonas([sid], (err, p) => res(err ? null : (p && p[sid]))));
     const levels = () => new Promise((res) => this.user.getSteamLevels([sid], (err, l) => res(err ? null : (l && l[sid]))));
-    return Promise.all([personas(), levels()]).then(([p, level]) => ({
+    return Promise.all([personas(), levels(), this.getVanityURL()]).then(([p, level, vanity]) => ({
       steamID: sid,
       persona: (p && p.player_name) || this.persona || null,
       avatar: (p && (p.avatar_url_full || p.avatar_url_medium || p.avatar_url_icon)) || null,
       level: (typeof level === 'number') ? level : null,
+      vanity,
     }));
+  }
+
+  // Ozel profil adresi (steamcommunity.com/id/<ad>). Protokol bu bilgiyi vermiyor;
+  // profilin XML ciktisinda <customURL> olarak duruyor. Kullanici bunu hic degistirmez,
+  // o yuzden oturum boyunca bir kez cekilip saklanir. Basarisiz olursa null doner ve
+  // arayuz "tanimli degil" gosterir - hicbir sey kirilmaz.
+  async getVanityURL() {
+    if (this._vanity !== undefined) return this._vanity;
+    this._vanity = null;
+    try {
+      const r = await this._iste(
+        `https://steamcommunity.com/profiles/${this.steamID}/?xml=1`,
+        { deneme: 1, zamanAsimiMs: 8000 },
+        'Steam profili',
+      );
+      const xml = await r.text();
+      const m = xml.match(/<customURL>(?:<!\[CDATA\[)?([^\]<]*)/i);
+      if (m && m[1] && m[1].trim()) this._vanity = m[1].trim();
+    } catch (_) { /* profil gizli veya ag yok - ozel adres gosterilmez, sorun degil */ }
+    return this._vanity;
   }
 
   // JWT embedded in the steamLoginSecure cookie from webLogOn (same token shape ASF uses) - lets
