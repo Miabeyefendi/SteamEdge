@@ -140,8 +140,12 @@
 .e-btn.danger:hover{background:#8F1D42;border-color:#8F1D42}
 .e-btn.ghost{background:transparent}
 .e-card{border:1px solid var(--e-bd);border-radius:var(--e-radius);background:var(--e-s1)}
-.e-toggle{width:38px;height:22px;border-radius:12px;padding:2px;cursor:pointer;flex-shrink:0;border:1px solid var(--e-bd);background:var(--e-s3)}
-.e-toggle .e-knob{width:16px;height:16px;border-radius:12px;background:var(--e-off);transition:margin-left .15s ease}
+/* Anahtar (kaydirmali on/off).
+   DIKKAT: hem .e-toggle hem .e-knob <span> - varsayilan display:inline. Inline kutuda
+   width/height YOK SAYILIR, bu yuzden topuz hic cizilmiyor ve anahtar yalnizca renk
+   degistiren dolu bir kutu gibi gorunuyordu. display'i acikca vermek sart. */
+.e-toggle{display:flex;align-items:center;width:38px;height:22px;border-radius:12px;padding:2px;cursor:pointer;flex-shrink:0;border:1px solid var(--e-bd);background:var(--e-s3);box-sizing:border-box}
+.e-toggle .e-knob{display:block;width:16px;height:16px;border-radius:12px;background:var(--e-off);transition:margin-left .15s ease;flex-shrink:0}
 .e-toggle.on{background:var(--e-brand);border-color:var(--e-brand)}
 .e-toggle.on .e-knob{margin-left:16px;background:var(--e-title)}
 
@@ -260,3 +264,67 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 .toast .tspin{border-color:var(--e-brand)!important;border-right-color:transparent!important}
 .toast .tick{color:var(--e-ok)!important}
 .toast .terr{color:var(--e-bad)!important}
+
+
+/* ================================================================
+   DAR EKRAN UYUMU
+   Sorun: pencere genisleyince icerik yayiliyordu ama DARALINCA hicbir sey
+   kuculmuyordu - sabit genislikli yan paneller (290-320px) ve buyuk sol
+   bosluklar (44px) icerigi sikistirip yatay kaydirmaya zorluyordu.
+   Sayfa olculeri HTML'de inline oldugu icin burada oznitelik secicisiyle
+   eziliyor (body.e-compact ile ayni teknik).
+   ================================================================ */
+
+/* ---- 1280px alti: sol bosluklari kucult ---- */
+@media (max-width: 1280px) {
+  .edge [style*="padding:24px 26px 30px 44px"]{padding:18px 20px 22px 24px!important}
+  .edge [style*="padding:20px 26px 16px 44px"]{padding:16px 20px 12px 24px!important}
+  .edge [style*="padding:18px 22px 18px 44px"]{padding:14px 18px 14px 24px!important}
+  .edge [style*="padding:0 22px 0 44px"]{padding:0 18px 0 24px!important}
+  .edge [style*="padding-left:30px"]{padding-left:18px!important}
+  .edge [style*="padding:12px 26px 20px"]{padding:12px 18px 16px!important}
+  .edge [style*="padding:12px 30px"]{padding:12px 18px!important}
+  /* Yan paneller: sabit genislik yerine daralabilir */
+  .edge [style*="width:290px"]{width:230px!important}
+  .edge [style*="width:320px"]{width:250px!important}
+  .edge [style*="width:280px"]{width:224px!important}
+  .edge [style*="width:300px"]{width:200px!important}   /* ust bardaki arama */
+}
+
+/* ---- 1080px alti: yan panelleri daha da kucult, ust bar sikislsin ---- */
+@media (max-width: 1080px) {
+  .edge [style*="padding:24px 26px 30px 44px"]{padding:14px 14px 18px 16px!important}
+  .edge [style*="padding:20px 26px 16px 44px"]{padding:12px 14px 10px 16px!important}
+  .edge [style*="padding:18px 22px 18px 44px"]{padding:12px 14px 12px 16px!important}
+  .edge [style*="padding:0 22px 0 44px"]{padding:0 14px 0 16px!important}
+  .edge [style*="width:290px"]{width:200px!important}
+  .edge [style*="width:320px"]{width:215px!important}
+  .edge [style*="width:280px"]{width:200px!important}
+  .edge .e-header{padding:0 12px 0 10px;gap:12px}
+  .edge [style*="width:300px"]{width:150px!important}
+  /* Sekme etiketleri: ray kapali olmasa da daralsin */
+  .e-nav-item .e-lbl{width:104px!important}
+}
+
+/* ---- 940px alti: yan panel gizlenir yerine ALTA gecer ---- */
+@media (max-width: 940px) {
+  /* Sag ayar panelleri asagi kayar, icerik tam genislik alir */
+  .edge [style*="border-left:1px solid #1D2432"]{
+    border-left:0!important;border-top:1px solid #1D2432!important;
+    width:100%!important;max-height:none!important;
+  }
+  /* Sayfa govdesi dikey akisa geciyor */
+  .edge [style*="flex:1;min-height:0;display:flex;gap:0"]{flex-direction:column!important;overflow-y:auto!important}
+  .edge [style*="flex:1;min-width:0;min-height:0;display:flex"]{flex-direction:column!important}
+  /* Sol kutuphane listesi sabit yukseklikle kalir, sayfayi bogmasin */
+  .edge [style*="width:290px"],.edge [style*="width:320px"]{
+    width:100%!important;max-height:320px!important;border-right:0!important;
+    border-bottom:1px solid #1D2432!important;
+  }
+  .e-header{flex-wrap:wrap;height:auto;padding:8px 12px}
+  .e-search{width:100%!important;order:3}
+}
+
+/* Sayfa govdesi ASLA yatay kaymaz - tasan icerik kendi kutusunda kayar. */
+.edge .e-main{overflow-x:hidden}
+.edge table,.edge pre{max-width:100%;overflow-x:auto;display:block}

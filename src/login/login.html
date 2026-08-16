@@ -67,7 +67,7 @@
         <div style="display:flex;gap:22px">
           <div style="display:flex;flex-direction:column;gap:4px">
             <span style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)">Sürüm</span>
-            <span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">v1.0.1</span>
+            <span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">v1.0.8</span>
           </div>
           <div style="width:1px;background:var(--e-bdPassive)"></div>
           <div style="display:flex;flex-direction:column;gap:4px">
@@ -130,10 +130,27 @@
         + (i > 0 ? '<div class="panel-remove" data-remove="' + i + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div>' : '')
         + '<p class="panel-tag" style="color:' + c + '">' + (i === 0 ? 'Ana Hesap' : 'Ek Hesap #' + (i + 1)) + '</p>'
         + '<div id="stLogin-' + i + '" style="display:flex;flex-direction:column;gap:16px">'
+          // Giris yontemi secici. QR onerilen yol: parola hic girilmiyor, telefondan onaylaniyor.
+          + '<div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--e-bg);border:1px solid var(--e-bd)">'
+            + '<button data-mode="qr" id="mQr-' + i + '" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--e-muted);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">QR Kod</button>'
+            + '<button data-mode="pw" id="mPw-' + i + '" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--e-muted);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Parola</button>'
+          + '</div>'
+          + '<div id="qrWrap-' + i + '" class="hide" style="display:flex;flex-direction:column;align-items:center;gap:12px">'
+            + '<div id="qrBox-' + i + '" style="width:196px;height:196px;border-radius:12px;border:1px solid var(--e-bd);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden">'
+              + '<div class="spin"></div>'
+            + '</div>'
+            + '<div style="font-size:11px;line-height:1.6;color:var(--e-muted);text-align:center;max-width:30ch">'
+              + 'Steam mobil uygulamasını aç, <b style="color:var(--e-body)">Steam Guard</b> sekmesindeki '
+              + 'tarama simgesine bas ve bu kodu okut.'
+            + '</div>'
+            + '<button id="qrYenile-' + i + '" style="background:transparent;border:0;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Kodu Yenile</button>'
+          + '</div>'
+          + '<div id="pwWrap-' + i + '" class="hide" style="display:flex;flex-direction:column;gap:16px">'
           + '<div class="lgfield"><label>Kullanıcı adı</label><div class="wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg><input id="acc-' + i + '" spellcheck="false" autocomplete="off" placeholder="steam kullanıcı adı"></div></div>'
           + '<div class="lgfield"><label>Parola</label><div class="wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input id="pw-' + i + '" type="password" placeholder="••••••••••"></div></div>'
           + '<div id="guardField-' + i + '" class="lgfield hide"><label id="guardLbl-' + i + '">Steam Guard kodu</label><div class="wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M12 3l8 3v6c0 4.5-3 7.5-8 9-5-1.5-8-4.5-8-9V6z"/></svg><input id="guard-' + i + '" spellcheck="false" autocomplete="off" placeholder="kod" style="text-transform:uppercase"></div></div>'
           + '<button id="go-' + i + '" class="lgbtn" style="background:' + c + ';border-color:' + c + '">Giriş yap</button>'
+          + '</div>'
           + '<div class="status" id="status-' + i + '"></div>'
         + '</div>'
         + '<div id="stPrep-' + i + '" class="hide" style="display:flex;flex-direction:column;align-items:center;gap:12px">'
@@ -162,8 +179,8 @@
       if (addBox.parentNode) slotsRow.insertBefore(card, addBox);
       else slotsRow.appendChild(card);
       wireSlot(i);
+      setMode(i, 'qr');          // QR varsayilan - parola girmeye gerek yok
       resizeWindow();
-      $id('acc-' + i).focus();
     }
 
     function removeSlot(i) {
@@ -181,8 +198,41 @@
       st.textContent = m || '';
     }
 
+    // Hangi kutu hangi yontemde. QR varsayilan: parola hic girilmiyor, en guvenlisi.
+    const slotMode = new Map();
+
+    function setMode(i, mode) {
+      const g = id => $id(id + '-' + i);
+      slotMode.set(i, mode);
+      const qrOn = mode === 'qr';
+      g('qrWrap').classList.toggle('hide', !qrOn);
+      g('pwWrap').classList.toggle('hide', qrOn);
+      g('go').classList.toggle('hide', qrOn);
+      const c = colorFor(i);
+      [['mQr', qrOn], ['mPw', !qrOn]].forEach(([id, on]) => {
+        const b = g(id);
+        if (!b) return;
+        b.style.background = on ? c : 'transparent';
+        b.style.borderColor = on ? c : 'transparent';
+        b.style.color = on ? 'var(--e-title)' : 'var(--e-muted)';
+      });
+      setStatus(i, '');
+      if (qrOn) baslatQR(i);
+      else A.auth.cancel(i);          // QR oturumu acik kaldiysa kapat
+    }
+
+    function baslatQR(i) {
+      const box = $id('qrBox-' + i);
+      if (box) box.innerHTML = '<div class="spin"></div>';
+      setStatus(i, 'QR kodu alınıyor...');
+      A.auth.startQR(i);
+    }
+
     function wireSlot(i) {
       const g = id => $id(id + '-' + i);
+      g('mQr').onclick = () => setMode(i, 'qr');
+      g('mPw').onclick = () => setMode(i, 'pw');
+      g('qrYenile').onclick = () => baslatQR(i);
       g('go').onclick = () => {
         if (!g('guardField').classList.contains('hide')) {
           const c = g('guard').value.trim();
@@ -210,6 +260,13 @@
       if (ok) ok.classList.remove('hide');
     }
 
+    // Motordan gelen QR gorseli (steamAuth > startQR > emit('qr'))
+    A.auth.on('qr', d => {
+      const box = $id('qrBox-' + d.slotId);
+      if (!box || !d.image) return;
+      box.innerHTML = '<img src="' + d.image + '" alt="QR" style="width:100%;height:100%;object-fit:contain">';
+      setStatus(d.slotId, 'Kodu Steam uygulamasıyla okut.');
+    });
     A.auth.on('status', d => setStatus(d.slotId, d.message));
     A.auth.on('error', d => setStatus(d.slotId, d.message, 'err'));
     A.auth.on('guard', d => {

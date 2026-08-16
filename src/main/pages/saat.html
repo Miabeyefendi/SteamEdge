@@ -22,9 +22,6 @@
     </div>
   </div>
 
-  <!-- Saat eşitleme ilerlemesi - yalnız eşitleme çalışırken görünür (saat.js > onBoostSync) -->
-  <div id="saatSyncInfo" style="display:none;align-items:center;gap:9px;margin:0 30px 10px;padding:9px 14px;border:1px solid #24AEB3;border-radius:12px;background:#0D1118"></div>
-
   <div style="flex:1;min-height:0;display:flex;gap:0">
 
     <div style="width:290px;flex-shrink:0;padding-left:30px;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
@@ -57,7 +54,42 @@
 
     <div style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
 
+      <!-- MADDE 4: Saat esitleme ayarlari artik bu sayfada; Ayarlar ekranina gitmeye gerek yok. -->
       <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Saat Eşitleme</span>
+        <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
+            <span style="font-size:12px;color:#B9C0D6">Süreleri eşitle</span>
+            <span class="e-toggle" data-bset="boostSync"><span class="e-knob"></span></span>
+          </div>
+          <div id="saatSyncOpts" style="display:none;flex-direction:column">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6;flex-shrink:0">Hedef</span>
+              <select id="saatSyncMode" class="f-focus" style="height:30px;width:150px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+                <option value="highest">Seçililerin en yükseği</option>
+                <option value="manual">Elle girilen saat</option>
+                <option value="library">Kütüphanedeki en yüksek</option>
+              </select>
+            </div>
+            <div id="saatSyncTargetRow" style="display:none;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6">Hedef saat</span>
+              <input id="saatSyncTarget" type="number" min="1" max="20000" value="100" class="f-focus" style="width:92px;height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;padding:0 8px;outline:none">
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0">
+              <div style="display:flex;align-items:center;gap:7px;min-width:0">
+                <span style="font-size:12px;color:#B9C0D6">Yöntem</span>
+                <span data-tip="Paralel: seçili oyunların hepsi aynı anda çalışır, hedefe ulaşan listeden düşer. Kademeli: oyunlar yol boyunca birbirine eşit tutulur, sırasını bekleyenler süre kazanmaz." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
+              </div>
+              <select id="saatSyncStrategy" class="f-focus" style="height:30px;width:120px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+                <option value="parallel">Paralel (hızlı)</option>
+                <option value="staged">Kademeli</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="saatConcBlock" style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Eşzamanlı Limit</span>
         <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345" id="saatConc">
           <button data-n="2" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">2</button>
@@ -69,7 +101,7 @@
         <input id="saatConcCustom" type="number" min="1" max="32" value="32" style="display:none;width:100%;height:32px;border-radius:12px;background:#0D1118;border:1px solid #7031CC;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 12px;outline:none">
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:10px">
+      <div id="saatDurBlock" style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Yükseltme Süresi</span>
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
@@ -133,6 +165,23 @@
       </div>
 
       <button id="saatSavePreset" class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Preset olarak kaydet</button>
+    </div>
+  </div>
+
+  <!-- MADDE 14: Esitleme durumu SABIT alt bar. Eskiden icerik akisinin icindeydi ve
+       gorundugunde sayfayi asagi itip duzeni bozuyordu. Basarimlar sayfasindaki alt
+       barla ayni desen: position:sticky + bottom:0. -->
+  <div id="saatSyncBar" style="display:none;position:sticky;bottom:0;z-index:20;flex-shrink:0;border-top:1px solid #24AEB3;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:12px 30px;align-items:center;gap:16px;flex-wrap:wrap">
+    <span style="width:7px;height:7px;border-radius:12px;background:#24AEB3;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite"></span>
+    <div id="saatSyncText" style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px"></div>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">
+        <span style="font-size:9.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">Tahmini bitiş</span>
+        <span id="saatSyncEta" style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:#DCE2FA">-</span>
+      </div>
+      <div style="width:150px;height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">
+        <div id="saatSyncBarFill" style="height:100%;width:0%;border-radius:12px;background:#24AEB3;transition:width .4s ease"></div>
+      </div>
     </div>
   </div>
 </div>

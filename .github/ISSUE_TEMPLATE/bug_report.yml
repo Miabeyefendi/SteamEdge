@@ -16,7 +16,7 @@ body:
     attributes:
       label: SteamEdge version
       description: Settings → About
-      placeholder: "1.0.1"
+      placeholder: "1.0.8"
     validations:
       required: true
 

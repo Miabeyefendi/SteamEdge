@@ -1,0 +1,89 @@
+<!-- ================================================================
+     GERÇEKÇİ MOD
+     Tek oyun açık tutulur; seçilen süre boyunca başarımlar genelden nadire
+     doğru, rastgele aralıklarla açılır.
+     Ölçü, renk ve boşluk değerleri inline; :hover ve :focus durumları
+     edge.css icindeki .h-* / .f-* class'larına bağlıdır.
+     Veri: gercekci.js - gerçek kütüphane ve başarım şeması.
+     ================================================================ -->
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+  <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Tek oyun · saat + başarım</span>
+      <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#DCE2FA">Gerçekçi Mod</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Kalan süre</span>
+        <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#DCE2FA;line-height:1" id="grKalan">00<span style="color:#C2AAEE">:</span>00<span style="color:#C2AAEE">:</span>00</span>
+      </div>
+      <div style="width:1px;height:34px;background:#1D2432"></div>
+      <button id="grStart" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Başlat</button>
+      <button id="grStop" class="h-stop" style="height:38px;padding:0 20px;border-radius:999px;background:#B32453;border:1px solid #B32453;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Durdur</button>
+    </div>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex;gap:0">
+
+    <div style="width:320px;flex-shrink:0;padding:18px 18px 18px 30px;border-right:1px solid #1D2432;display:flex;flex-direction:column;gap:16px;background:#090C12;overflow-y:auto">
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun</span>
+        <div style="position:relative">
+          <input id="grGameInput" type="text" placeholder="Oyun ara veya seç..." class="f-focus" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px;outline:none">
+          <div id="grGameList" style="display:none;position:absolute;top:40px;left:0;right:0;max-height:280px;overflow-y:auto;z-index:30;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:6px;box-shadow:0 18px 40px rgba(3,3,5,.7)"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Süre</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input id="grSaat" type="number" min="1" max="500" value="8" class="f-focus" style="width:88px;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:15px;font-weight:700;text-align:center;padding:0 10px;outline:none">
+          <span style="font-size:12px;color:#8B8F9E">saat</span>
+        </div>
+        <div style="display:flex;gap:4px" id="grPresets">
+          <button data-h="2" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">2H</button>
+          <button data-h="8" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">8H</button>
+          <button data-h="24" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">24H</button>
+          <button data-h="72" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">72H</button>
+        </div>
+      </div>
+
+      <div id="grOzet" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:14px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:12px;color:#8B8F9E">Önce bir oyun seç.</span>
+      </div>
+
+      <div style="border:1px solid #1D2432;border-radius:12px;background:#090C12;padding:12px 14px">
+        <span style="font-size:10.5px;line-height:1.6;color:#8B8F9E">
+          Başarımlar <b style="color:#B9C0D6">genelden nadire</b> doğru açılır ve süreye yayılır.
+          Aralıklar her seferinde rastgele hesaplanır, sabit bir ritim oluşmaz.
+          Oyun tarafından korunan başarımlar atlanır.
+        </span>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#030305">
+      <div style="flex-shrink:0;padding:16px 26px 12px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #1D2432">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Açılma Sırası</span>
+        <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="grSayac">0 / 0</span>
+      </div>
+      <div id="grListe" style="flex:1;min-height:0;overflow-y:auto;padding:12px 26px 20px"></div>
+    </div>
+  </div>
+
+  <!-- Çalışırken alt bar: ilerleme, sıradaki başarım ve geri sayım -->
+  <div id="grBar" style="display:none;position:sticky;bottom:0;z-index:20;flex-shrink:0;border-top:1px solid #5624B3;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:12px 30px;align-items:center;gap:16px;flex-wrap:wrap">
+    <span style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite"></span>
+    <div id="grBarText" style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px"></div>
+    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
+      <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">
+        <span style="font-size:9.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">Sıradaki</span>
+        <span id="grBarEta" style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:#DCE2FA">-</span>
+      </div>
+      <div style="width:150px;height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">
+        <div id="grBarFill" style="height:100%;width:0%;border-radius:12px;background:#5624B3;transition:width .4s ease"></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -77,19 +77,38 @@ contextBridge.exposeInMainWorld('imu', {
     achLogGet: (appid) => ipcRenderer.invoke('state:achLogGet', appid),
     clear: () => ipcRenderer.invoke('state:clear'),
   },
+  // G2: Gercekci Mod - tek oyun acik, basarimlar genelden nadire yayilarak acilir
+  gercekci: {
+    plan: (appid, saat) => ipcRenderer.invoke('gercekci:plan', { appid, saat }),
+    start: (appid, saat) => ipcRenderer.invoke('gercekci:start', { appid, saat }),
+    stop: () => ipcRenderer.send('gercekci:stop'),
+    onTick: (cb) => ipcRenderer.on('gercekci:tick', (_e, d) => cb(d)),
+    onAcildi: (cb) => ipcRenderer.on('gercekci:acildi', (_e, d) => cb(d)),
+  },
   engine: {
     connect: () => ipcRenderer.invoke('engine:connect'),
     dropGames: () => ipcRenderer.invoke('engine:dropGames'),
     inventory: () => ipcRenderer.invoke('engine:inventory'),
     pricesFor: (hashNames) => ipcRenderer.invoke('engine:pricesFor', hashNames),
+    // Steam'e istek atmaz, sadece diskteki onbellegi okur (envanter acilisinda kullanilir)
+    pricesForCached: (hashNames) => ipcRenderer.invoke('engine:pricesFor', { hashNames, sadeceOnbellek: true }),
     onPriceOne: (cb) => ipcRenderer.on('price:one', (_e, data) => cb(data)),
     onPriceProgress: (cb) => ipcRenderer.on('price:progress', (_e, data) => cb(data)),
     priceHistory: (hashName) => ipcRenderer.invoke('engine:priceHistory', hashName),
+    // G8: satis gecmisini (ortalama/medyan) TOPLU cek. Fiyat kuyruguyla ayni pazar
+    // kapisindan gecer, Steam limitini asmaz. Ilerleme history:progress ile gelir.
+    historyFor: (hashNames) => ipcRenderer.invoke('engine:historyFor', hashNames),
+    historyForCached: (hashNames) => ipcRenderer.invoke('engine:historyFor', { hashNames, sadeceOnbellek: true }),
+    historyCancel: () => ipcRenderer.send('engine:historyCancel'),
+    onHistoryOne: (cb) => ipcRenderer.on('history:one', (_e, d) => cb(d)),
+    onHistoryProgress: (cb) => ipcRenderer.on('history:progress', (_e, d) => cb(d)),
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
     sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
     ownedGames: () => ipcRenderer.invoke('engine:ownedGames'),
     profile: () => ipcRenderer.invoke('engine:profile'),
-    achievements: (appid) => ipcRenderer.invoke('engine:achievements', appid),
+    // taze=true iken 5 dakikalik sema onbellegi atlanir; toplu islem sonrasi
+    // Steam'in gercekten ne kaydettigini dogrulamak icin kullanilir.
+    achievements: (appid, taze) => ipcRenderer.invoke('engine:achievements', { appid, taze }),
     setAchievements: (appid, changes) => ipcRenderer.invoke('engine:setAchievements', { appid, changes }),
     startFarm: (mode, games, durationMs) => ipcRenderer.send('engine:startFarm', { mode, games, durationMs }),
     stopFarm: () => ipcRenderer.send('engine:stopFarm'),
@@ -98,6 +117,8 @@ contextBridge.exposeInMainWorld('imu', {
     boostStart: (appids, durationMs, games) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games }),
     boostSyncPlan: (games, mode, targetHours) => ipcRenderer.invoke('engine:boostSyncPlan', { games, mode, targetHours }),
     onBoostSync: (cb) => ipcRenderer.on('boost:sync', (_e, d) => cb(d)),
+    // G3: Steam baglanti durumu (bagli | koptu | baglaniyor)
+    onDurum: (cb) => ipcRenderer.on('engine:durum', (_e, d) => cb(d)),
     boostStop: () => ipcRenderer.send('engine:boostStop'),
     onBoostTick: (cb) => ipcRenderer.on('boost:tick', (_e, data) => cb(data)),
     boostStartSeq: (games, durationMs, loop) => ipcRenderer.send('engine:boostStartSeq', { games, durationMs, loop }),

@@ -24,12 +24,74 @@ class SteamEngine {
     this.onChatMessage = null;
     this._autoReply = null;        // { text, cooldownMs } - null ise otomatik yanıt yok
     this._repliedAt = new Map();   // steamID64 -> son otomatik yanıt zamanı
+    // ---- G3: baglanti durumu ----
+    // Eskiden calisma aninda hicbir 'disconnected'/'error' dinleyicisi yoktu. Steam
+    // baglantiyi dusurdugunde uygulama bunu HIC fark etmiyor, arayuz "calisiyor"
+    // gostermeye devam ediyor, oyunlar aslinda kapali oluyordu. Saatlerce sessiz kayip.
+    this.bagli = false;
+    this._refreshToken = null;
+    this._offlineSecenek = false;
+    this._yenidenBaglanTimer = null;
+    this._yenidenBaglanDeneme = 0;
+    this._kapatildi = false;       // logOff() cagrildiysa yeniden baglanma
+    this.onDurum = null;           // (durum) => void   durum: 'bagli'|'koptu'|'baglaniyor'|'vazgecildi'
+    this._nabizTimer = null;
   }
   // Yalnızca cüzdan kuru henüz bilinmiyorken bir tahmin koyar; cüzdan olayı geldiğinde
   // onun değeri kesin kabul edilir ve buradaki değer ezilir.
   setCurrency(code) { if (!this.walletCurrency && code) this._currency = code; }
   // Fiyatların çekildiği ve gösterildiği TEK kur. null = henüz bilinmiyor.
   currencyCode() { return this.walletCurrency || this._currency || null; }
+
+  // ---- ORTAK STEAM ISTEK KATMANI ----
+  // Eskiden her cagri ham `fetch` kullaniyordu. Ag koptugunda kullaniciya `TypeError: fetch
+  // failed` gibi anlamsiz bir metin donuyor, gecici hatalarda da hic yeniden denenmiyordu;
+  // "basarimlar bazen hic yuklenmiyor" sikayetinin kaynagi buydu.
+  // Burada: zaman asimi, gecici hatalarda ustel geri cekilme ve anlasilir hata metni.
+  static hataMetni(e, nerede) {
+    const m = String((e && (e.kod || e.message)) || e || '');
+    if (/abort|timeout|ETIMEDOUT/i.test(m)) return (nerede || 'Steam') + ': istek zaman asimina ugradi. Baglantini kontrol et.';
+    if (/ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(m)) return (nerede || 'Steam') + ': sunucuya ulasilamadi. Internet baglantin kesilmis olabilir.';
+    if (/ECONNRESET|ECONNREFUSED|socket hang up|fetch failed/i.test(m)) return (nerede || 'Steam') + ': baglanti koptu. Birazdan tekrar dene.';
+    if (/HTTP 429/.test(m)) return (nerede || 'Steam') + ': istek limiti asildi. Bir dakika bekleyip tekrar dene.';
+    if (/HTTP 401|HTTP 403/.test(m)) return (nerede || 'Steam') + ': oturum gecersiz. Cikip yeniden giris yap.';
+    if (/HTTP 5\d\d/.test(m)) return (nerede || 'Steam') + ': Steam sunucusu su an cevap veremiyor.';
+    return (nerede ? nerede + ': ' : '') + m;
+  }
+
+  async _iste(url, secenekler = {}, nerede = 'Steam') {
+    const { deneme = 3, zamanAsimiMs = 20000, cerezli = true, ...fetchSec } = secenekler;
+    const basliklar = { 'User-Agent': SteamEngine.UA, ...(fetchSec.headers || {}) };
+    if (cerezli && this.cookies) basliklar.Cookie = this.cookies.join('; ');
+
+    let sonHata = null;
+    for (let i = 0; i < deneme; i++) {
+      const kes = new AbortController();
+      const sayac = setTimeout(() => kes.abort(), zamanAsimiMs);
+      try {
+        const r = await fetch(url, { ...fetchSec, headers: basliklar, signal: kes.signal });
+        clearTimeout(sayac);
+        // 429 ve 5xx gecici kabul edilir, yeniden denenir. Digerleri hemen hata.
+        if (r.status === 429 || r.status >= 500) {
+          sonHata = new Error('HTTP ' + r.status);
+          if (i < deneme - 1) { await new Promise((res) => setTimeout(res, 1500 * Math.pow(2, i))); continue; }
+          throw sonHata;
+        }
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r;
+      } catch (e) {
+        clearTimeout(sayac);
+        sonHata = e;
+        const gecici = /abort|ECONNRESET|ECONNREFUSED|socket hang up|fetch failed|EAI_AGAIN|HTTP 429|HTTP 5\d\d/i
+          .test(String(e && e.message));
+        if (!gecici || i === deneme - 1) break;
+        await new Promise((res) => setTimeout(res, 1500 * Math.pow(2, i)));
+      }
+    }
+    const hata = new Error(SteamEngine.hataMetni(sonHata, nerede));
+    hata.ham = sonHata;
+    throw hata;
+  }
 
   // Hesabın PAZAR para birimini doğrudan Steam Topluluk Pazarı'ndan okur.
   // Neden protokoldeki 'wallet' olayı yetmiyor: o olay yalnızca cüzdanı olan hesaplarda ve
@@ -39,8 +101,7 @@ class SteamEngine {
   async detectMarketCurrency() {
     if (!this.cookies) return null;
     try {
-      const r = await fetch('https://steamcommunity.com/market/', { headers: { Cookie: this.cookies.join('; ') } });
-      if (!r.ok) return null;
+      const r = await this._iste('https://steamcommunity.com/market/', { deneme: 2 }, 'Pazar kuru');
       const html = await r.text();
       const m = html.match(/"wallet_currency"\s*:\s*(\d+)/);
       if (!m) return null;
@@ -108,30 +169,164 @@ class SteamEngine {
       });
       this.user.once('error', reject);
       setTimeout(() => reject(new Error('CM logon zaman aşımı')), 25000);
+    }).then((r) => {
+      // Giris basarili: kalici dinleyicileri kur (bir kez).
+      this._refreshToken = refreshToken;
+      this._offlineSecenek = !!offline;
+      this.bagli = true;
+      this._yenidenBaglanDeneme = 0;
+      this._kopmaDinleyicileriniKur();
+      this._nabziBaslat();
+      this._durumBildir('bagli');
+      return r;
     });
   }
 
+  _durumBildir(durum, ek) {
+    if (this.onDurum) { try { this.onDurum(durum, ek || {}); } catch (_) {} }
+  }
+
+  // Kopma/hata dinleyicileri. logOn her cagrildiginda tekrar eklenmesin diye bayrakli.
+  _kopmaDinleyicileriniKur() {
+    if (this._dinleyiciKuruldu) return;
+    this._dinleyiciKuruldu = true;
+
+    const kopdu = (sebep) => {
+      if (this._kapatildi) return;
+      this.bagli = false;
+      this.cookies = null;             // web oturumu da dustu, yeniden alinacak
+      this._durumBildir('koptu', { sebep: String(sebep || '') });
+      this._yenidenBaglanmayiPlanla();
+    };
+
+    this.user.on('disconnected', (eresult, msg) => kopdu(msg || ('EResult ' + eresult)));
+    this.user.on('error', (e) => kopdu((e && e.message) || 'bilinmeyen hata'));
+
+    // Yeniden baglandiginda web oturumu ve oyunlar KENDILIGINDEN geri gelmez.
+    this.user.on('loggedOn', () => {
+      this.bagli = true;
+      this._yenidenBaglanDeneme = 0;
+      try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
+      try {
+        this.user.setPersona(this._offlineSecenek ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
+      } catch (_) {}
+      try { this.user.webLogOn(); } catch (_) {}
+      // Kopmadan once acik olan oyunlari geri ac - asil kayip buradaydi.
+      if (this._playing && this._playing.length) {
+        try { this.user.gamesPlayed(this._playing); } catch (_) {}
+      }
+      this._durumBildir('bagli', { yenidenBaglandi: true, oyunlar: (this._playing || []).length });
+    });
+    this.user.on('webSession', (_sid, cookies) => { this.cookies = cookies; });
+  }
+
+  _yenidenBaglanmayiPlanla() {
+    if (this._kapatildi || this._yenidenBaglanTimer) return;
+    if (!this._refreshToken) return;
+    this._yenidenBaglanDeneme++;
+    // Ustel geri cekilme, en fazla 5 dakika. Steam tarafi gecici sorunlarda hemen
+    // kabul etmiyor; saniyede bir denemek isi kotulestiriyor.
+    const bekle = Math.min(300000, 5000 * Math.pow(2, Math.min(6, this._yenidenBaglanDeneme - 1)));
+    this._durumBildir('baglaniyor', { deneme: this._yenidenBaglanDeneme, bekleMs: bekle });
+    this._yenidenBaglanTimer = setTimeout(() => {
+      this._yenidenBaglanTimer = null;
+      if (this._kapatildi) return;
+      try { this.user.logOn({ refreshToken: this._refreshToken }); }
+      catch (_) { this._yenidenBaglanmayiPlanla(); }
+    }, bekle);
+  }
+
+  // Nabiz: "bagliyim" diyoruz ama oyunlar gercekten acik mi? steam-user'in kendi
+  // durumu ile bizim beklentimiz ayrisabiliyor (sessiz kopma). 60 saniyede bir bak.
+  _nabziBaslat() {
+    if (this._nabizTimer) return;
+    this._nabizTimer = setInterval(() => {
+      if (this._kapatildi) return;
+      const gercektenBagli = !!(this.user && this.user.steamID);
+      if (this.bagli && !gercektenBagli) {
+        this.bagli = false;
+        this._durumBildir('koptu', { sebep: 'nabiz: oturum yok' });
+        this._yenidenBaglanmayiPlanla();
+        return;
+      }
+      // Oyun acik olmasi gerekirken kapaliysa tekrar gonder (ucuz, yan etkisiz)
+      if (this.bagli && this._playing && this._playing.length) {
+        try { this.user.gamesPlayed(this._playing); } catch (_) {}
+      }
+    }, 60000);
+  }
+
+  _nabziDurdur() {
+    if (this._nabizTimer) { clearInterval(this._nabizTimer); this._nabizTimer = null; }
+    if (this._yenidenBaglanTimer) { clearTimeout(this._yenidenBaglanTimer); this._yenidenBaglanTimer = null; }
+  }
+
+  // Oyun adi rozet sayfasinda JavaScript dizgi kacisiyla gomulu gelir:
+  //   ShowCardDropInfo( &quot;Need for Speed™ Heat&quot;, ... )
+  // Hem HTML varliklarini hem \uXXXX / \" / \\ kaciislarini cozmek gerekiyor, yoksa
+  // arayuzde "Need for Speed™" gibi ham metin gorunuyordu.
+  static decodeOyunAdi(ham) {
+    if (!ham) return '';
+    let s = String(ham);
+    // Sayisal varliklar: &#174; (R) , &#8482; (TM) , &#x2122; ...
+    s = s.replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+    s = s.replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
+    s = s.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    s = s.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+    s = s.replace(/\\r\\n|\\n|\\r/g, ' ').replace(/\\(["'\\/])/g, '$1');
+    return s.replace(/\s+/g, ' ').trim();
+  }
+
   // Scrapes the badges page for games that still have card drops remaining.
+  //
+  // DIKKAT: Steam, var olmayan sayfa numarasi istendiginde BOS sayfa dondurmuyor; son
+  // gecerli sayfayi (ya da 1. sayfayi) tekrar veriyor. Eski kod p=1..20 arasi kor donguyle
+  // gezip sadece "hic badge_row yok" durumunda duruyordu, bu yuzden ayni oyunlar 20 kez
+  // listeye ekleniyordu: 2 oyun -> 40 satir, 5 kart -> 100 kart gibi.
+  // Simdi sayfa sayisi sayfalama kutusundan okunuyor, ayrica ayni appid kumesi tekrar
+  // gelirse dongu kiriliyor ve sonuc appid uzerinden tekillestiriliyor.
   async getDropGames() {
     if (!this.cookies) throw new Error('web oturumu yok');
-    const out = [];
-    for (let p = 1; p <= 20; p++) {
+    const bulunan = new Map();          // appid -> { appid, name, remaining }
+    let sonImza = null;
+    let sonSayfa = 1;
+
+    for (let p = 1; p <= sonSayfa && p <= 50; p++) {
       const url = `https://steamcommunity.com/profiles/${this.steamID}/badges/?l=english&p=${p}`;
-      const r = await fetch(url, { headers: { Cookie: this.cookies.join('; ') } });
+      const r = await this._iste(url, {}, 'Rozet sayfasi');
       const html = await r.text();
+
+      // Ilk sayfada gercek sayfa sayisini ogren: sayfalama baglantilarindaki en buyuk p degeri.
+      if (p === 1) {
+        const sayfalar = [...html.matchAll(/[?&]p=(\d+)/g)].map((m) => +m[1]).filter((n) => n > 0 && n < 1000);
+        if (sayfalar.length) sonSayfa = Math.max(...sayfalar);
+      }
+
       const rows = html.split('class="badge_row');
-      if (rows.length <= 1) break;                 // past the last page
+      if (rows.length <= 1) break;                 // gercekten bos sayfa
+
+      const buSayfa = [];
       for (const row of rows.slice(1)) {
-        const drop = row.match(/(\d+)\s+card drops remaining/i);
-        if (!drop) continue;                        // "No card drops remaining" or none
         const app = row.match(/card_drop_info_gamebadge_(\d+)_/) || row.match(/steam:\/\/run\/(\d+)/);
         if (!app) continue;
-        const nm = row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;/);
-        const name = nm ? nm[1].replace(/&amp;/g, '&').trim() : ('App ' + app[1]);
-        out.push({ appid: +app[1], name, remaining: +drop[1] });
+        buSayfa.push(app[1]);
+        const drop = row.match(/(\d+)\s+card drops remaining/i);
+        if (!drop) continue;                        // "No card drops remaining" veya hic yok
+        const appid = +app[1];
+        if (bulunan.has(appid)) continue;           // ayni oyun ikinci kez sayilmasin
+        const nm = row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;\s*,/)
+          || row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;/);
+        const name = nm ? SteamEngine.decodeOyunAdi(nm[1]) : ('App ' + appid);
+        bulunan.set(appid, { appid, name: name || ('App ' + appid), remaining: +drop[1] });
       }
+
+      // Steam ayni sayfayi tekrar verdiyse dur (sayfalama okunamadigi durumlar icin emniyet).
+      const imza = buSayfa.join(',');
+      if (imza && imza === sonImza) break;
+      sonImza = imza;
     }
-    return out;
+    return [...bulunan.values()];
   }
 
   // Own Steam profile: avatar, display name and account level - straight from the protocol
@@ -168,10 +363,19 @@ class SteamEngine {
     const token = this._accessToken();
     if (!token) throw new Error('steamLoginSecure çerezi yok');
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&include_appinfo=true&include_played_free_games=true&format=json`;
-    const r = await fetch(url, { headers: { Cookie: this.cookies.join('; ') } });
-    if (!r.ok) throw new Error('Oyun listesi alınamadı (HTTP ' + r.status + ')');
+    const r = await this._iste(url, {}, 'Oyun listesi');
     const j = await r.json();
     const games = (j.response && j.response.games) || [];
+    // Steam, profil gizliligi "Oyun ayrintilari: Gizli" ise BOS bir yanit dondurur; eskiden
+    // bu sessizce "0 oyun" olarak gorunuyor, kullanici kutuphanesinin neden bos oldugunu
+    // anlayamiyordu. Ayirt edip acik bir mesaj veriyoruz.
+    if (!games.length) {
+      const say = (j.response && typeof j.response.game_count === 'number') ? j.response.game_count : null;
+      if (say === null || say === 0) {
+        throw new Error('Oyun listesi bos dondu. Steam profilinde Gizlilik > "Oyun ayrintilari" '
+          + 'ayarini Herkese Acik yapman gerekiyor, aksi halde Steam kutuphaneni paylasmiyor.');
+      }
+    }
     return games.map((g) => ({ appid: g.appid, name: g.name, playtimeForever: g.playtime_forever || 0, hasStats: !!g.has_community_visible_stats }))
       .sort((a, b) => a.name.localeCompare(b.name));
   }
@@ -182,8 +386,7 @@ class SteamEngine {
   async getInventory() {
     if (!this.cookies) throw new Error('web oturumu yok');
     const url = `https://steamcommunity.com/inventory/${this.steamID}/753/6?l=english&count=2000`;
-    const r = await fetch(url, { headers: { Cookie: this.cookies.join('; ') } });
-    if (!r.ok) throw new Error('Envanter alınamadı (HTTP ' + r.status + ')');
+    const r = await this._iste(url, {}, 'Envanter');
     const j = await r.json();
     const key = (a) => a.classid + '_' + a.instanceid;
     const descMap = {};
@@ -443,10 +646,15 @@ class SteamEngine {
 
   // Low-level: encode `msgType`→buffer, send EMsg, decode the job-response buffer with `respType`.
   // We do the protobuf encode/decode ourselves because steam-user doesn't map these EMsgs.
-  _sendRecv(emsg, msgType, obj, respType, timeoutMs = 15000) {
+  // Protokol istegi. Steam bazen tek bir istegi hic cevaplamiyor; eskiden bu dogrudan
+  // "Steam stat yanıtı zaman aşımı" olarak yuzeye cikip basarim sayfasini bos birakiyordu.
+  // Artik gecici sayilip bir kez daha deneniyor ve mesaj ne yapilmasi gerektigini soyluyor.
+  _sendRecvTek(emsg, msgType, obj, respType, timeoutMs) {
     return new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error('Steam stat yanıtı zaman aşımı')), timeoutMs);
-      const payload = Buffer.from(msgType.encode(obj).finish());
+      const t = setTimeout(() => reject(new Error('zaman asimi')), timeoutMs);
+      let payload;
+      try { payload = Buffer.from(msgType.encode(obj).finish()); }
+      catch (e) { clearTimeout(t); reject(e); return; }
       this.user._send({ msg: emsg, proto: {} }, payload, (respBuf) => {
         clearTimeout(t);
         try {
@@ -455,6 +663,22 @@ class SteamEngine {
         } catch (e) { reject(e); }
       });
     });
+  }
+  async _sendRecv(emsg, msgType, obj, respType, timeoutMs = 15000) {
+    let son = null;
+    for (let i = 0; i < 2; i++) {
+      try { return await this._sendRecvTek(emsg, msgType, obj, respType, timeoutMs); }
+      catch (e) {
+        son = e;
+        if (!/zaman asimi/i.test(String(e && e.message))) break;
+        if (i === 0) await new Promise((r) => setTimeout(r, 1200));
+      }
+    }
+    if (/zaman asimi/i.test(String(son && son.message))) {
+      throw new Error('Steam bu oyunun basarim verisini zamaninda gondermedi. '
+        + 'Steam yogun olabilir; birkac saniye sonra Yeniden Dene.');
+    }
+    throw son;
   }
 
   // Valve binary KeyValues parser (the achievement schema comes as this blob inside the
@@ -516,7 +740,14 @@ class SteamEngine {
           name: loc(disp.name) || b.name || '?',
           desc: loc(disp.desc) || '',
           icon: disp.icon || null, iconGray: disp.icon_gray || null,
-          hidden: String(b.permission || 0) === '0' ? false : false, // permission!=display-hidden; keep simple
+          // Steam sema alanlari:
+          //   permission bit 0 (1) = gizli basarim (acilana kadar aciklamasi saklanir)
+          //   permission bit 1 (2) = KORUMALI - yalnizca oyun sunucusu yazabilir.
+          // Korumali olanlari istemciden yazmak her zaman EResult 8 (InvalidParam) doner.
+          // Eskiden bu alan tamamen yok sayiliyordu (`? false : false` olu koduydu), bu yuzden
+          // kullanici sebebini anlamadan hata aliyordu.
+          hidden: (+(b.permission || 0) & 1) === 1,
+          korumali: (+(b.permission || 0) & 2) === 2,
         });
       }
     }
@@ -530,8 +761,7 @@ class SteamEngine {
   async getAchievementRarity(appid) {
     try {
       const url = `https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appid}&format=json`;
-      const r = await fetch(url);
-      if (!r.ok) return {};
+      const r = await this._iste(url, { cerezli: false, deneme: 2, zamanAsimiMs: 12000 }, 'Nadirlik');
       const j = await r.json().catch(() => null);
       const list = (j && j.achievementpercentages && j.achievementpercentages.achievements) || [];
       const map = {};
@@ -552,8 +782,7 @@ class SteamEngine {
       const token = this._accessToken();
       if (!token) return {};
       const url = `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&appid=${appid}&format=json`;
-      const r = await fetch(url, { headers: { Cookie: this.cookies.join('; ') } });
-      if (!r.ok) return {};
+      const r = await this._iste(url, { deneme: 2, zamanAsimiMs: 12000 }, 'Acilma tarihleri');
       const j = await r.json().catch(() => null);
       const list = (j && j.playerstats && j.playerstats.achievements) || [];
       const map = {};
@@ -578,6 +807,7 @@ class SteamEngine {
     ]);
     const achievements = raw.defs.map((d) => {
       const val = raw.statValues.get(d.statId >>> 0) || 0;
+      // korumali bayragi arayuze tasinir (asagidaki nesneye ekleniyor)
       const achieved = !!((val >> d.bit) & 1);
       const pct = rarityMap[d.apiName];
       return {
@@ -587,6 +817,10 @@ class SteamEngine {
         // Bazı oyunlarda (ör. CS2) Steam bu uç noktadan yalnızca birkaç başarım döndürür;
         // eşleşmeyenlerde nadirlik bilinmiyor olarak kalır - uydurma değer üretilmez.
         rarityPct: Number.isFinite(pct) ? pct : null,
+        // G4: yalnizca oyun sunucusunun yazabildigi basarim. Arayuz bunu isaretler ve
+        // toplu islemde secilemez yapar; gondermek her zaman EResult 8 donerdi.
+        korumali: !!d.korumali,
+        gizli: !!d.hidden,
       };
     });
     return { gameName: null, logo: null, total: achievements.length, unlocked: achievements.filter((a) => a.achieved).length, achievements };
@@ -609,14 +843,49 @@ class SteamEngine {
     if (this._statsCache) { if (appid == null) this._statsCache.clear(); else this._statsCache.delete(appid); }
   }
 
+  // G5: Steam bazi oyunlarda istatistik yazmayi ancak o oyun "oynaniyor" gorunurken
+  // kabul ediyor. Yazma suresince oyunu acar, isi bitince onceki duruma geri doner.
+  // Kart/saat isi calisiyorsa o listeye EKLENIR, uzerine yazilmaz.
+  async _oyunuAcikTut(appid, isFn) {
+    const oncekiler = (this._playing || []).slice();
+    const zatenAcik = oncekiler.includes(+appid);
+    if (!zatenAcik) {
+      try { this.user.gamesPlayed(oncekiler.concat([+appid])); } catch (_) {}
+      // Steam'in "oynuyor" durumunu islemesi icin kisa bir an gerekiyor
+      await new Promise((r) => setTimeout(r, 1200));
+    }
+    try {
+      return await isFn();
+    } finally {
+      if (!zatenAcik) {
+        try { this.user.gamesPlayed(oncekiler); } catch (_) {}
+      }
+    }
+  }
+
   async setAchievements(appid, changes) {
+    return this._oyunuAcikTut(appid, () => this._setAchievementsIc(appid, changes));
+  }
+
+  async _setAchievementsIc(appid, changes) {
     const raw = await this._statsCached(appid);
     if (!raw) throw new Error('Bu oyunun başarım şeması yok');
     const byName = new Map(raw.defs.map((d) => [d.apiName, d]));
+    // G4: korumali basarimlari gondermeden once ayikla - Steam bunlari zaten reddediyor,
+    // gondermek sadece hata sayacini sisiriyor ve donguyu bosuna mesgul ediyor.
+    const korumaliOlanlar = changes.filter((c) => {
+      const d = byName.get(c.apiName);
+      return d && d.korumali;
+    });
+    if (korumaliOlanlar.length === changes.length && changes.length) {
+      const e = new Error('Bu başarım oyun tarafından korunuyor, dışarıdan açılamaz.');
+      e.korumali = true;
+      throw e;
+    }
     const dirty = new Map(); // statId -> new value
     for (const c of changes) {
       const d = byName.get(c.apiName);
-      if (!d) continue;
+      if (!d || d.korumali) continue;
       let val = dirty.has(d.statId) ? dirty.get(d.statId) : (raw.statValues.get(d.statId >>> 0) || 0);
       val = c.unlock ? (val | (1 << d.bit)) : (val & ~(1 << d.bit));
       dirty.set(d.statId, val >>> 0);
@@ -661,7 +930,13 @@ class SteamEngine {
   play(appids) { this._playing = appids.slice(); this.user.gamesPlayed(appids); this._applyPersona(); }
   stop() { this._playing = []; this.user.gamesPlayed([]); this._applyPersona(); }
   get playing() { return this._playing; }
-  logOff() { try { this.user.logOff(); } catch (_) {} }
+  // Kasitli cikis: yeniden baglanma denemesi YAPILMAZ (G3 dongusuyle carpismasin diye).
+  logOff() {
+    this._kapatildi = true;
+    this.bagli = false;
+    this._nabziDurdur();
+    try { this.user.logOff(); } catch (_) {}
+  }
 }
 
 // Steam'in kendi ECurrencyCode enum'u (steam-user içinde geliyor) - kod<->isim çevirisi

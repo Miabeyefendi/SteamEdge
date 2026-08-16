@@ -3,7 +3,7 @@
     document.getElementById('max').onclick = () => api && api.win.maximize();
     document.getElementById('close').onclick = () => api && api.win.close();
 
-    const designed = { genel: document.getElementById('tab-genel'), kart: document.getElementById('tab-kart'), env: document.getElementById('tab-env'), saat: document.getElementById('tab-saat'), basarim: document.getElementById('tab-basarim'), ayarlar: document.getElementById('tab-ayarlar') };
+    const designed = { genel: document.getElementById('tab-genel'), kart: document.getElementById('tab-kart'), env: document.getElementById('tab-env'), saat: document.getElementById('tab-saat'), gercekci: document.getElementById('tab-gercekci'), basarim: document.getElementById('tab-basarim'), ayarlar: document.getElementById('tab-ayarlar') };
     const empty = document.getElementById('tab-empty');
     const emptyName = document.getElementById('emptyName');
     document.querySelectorAll('.nav a[data-tab]').forEach(a => {
@@ -27,6 +27,7 @@
         if (tab === 'kart') loadKart();
         if (tab === 'saat') loadSaat();
         if (tab === 'env') loadEnv();
+        if (tab === 'gercekci') loadGercekci();
         if (tab === 'basarim') loadBasarim();
         if (tab === 'ayarlar') loadAyarlar();
       });
@@ -348,7 +349,6 @@
         sAv.innerHTML = av ? '<img src="' + esc(av) + '" onerror="this.parentNode.textContent=\'' + initials + '\'">' : initials;
       }
       const setP = document.getElementById('setPersona'); if (setP) setP.textContent = nm;
-      const hero = document.getElementById('genelHello'); if (hero) hero.textContent = 'Hoş geldin, ' + nm + '!';
       const setLevelRow = document.getElementById('setLevel'); if (setLevelRow) setLevelRow.textContent = imuProfile.level!=null ? imuProfile.level : '-';
     }
 
@@ -375,7 +375,7 @@
     const SIDE_COLLAPSE_KEY = 'imu_side_collapsed';
     // Rail sekmesi aktif nav öğesinin hizasında durur: top = 17 + 44*index
     // (nav öğesi 40px + 4px gap = 44px adım). Ayarlar sidebar'da olmadığı için index 5.
-    const RAIL_ORDER = ['genel', 'kart', 'env', 'saat', 'basarim', 'ayarlar'];
+    const RAIL_ORDER = ['genel', 'kart', 'env', 'saat', 'gercekci', 'basarim', 'ayarlar'];
     function setRailTop(tab) {
       const btn = document.getElementById('sideCollapseBtn');
       const i = RAIL_ORDER.indexOf(tab);
@@ -464,19 +464,77 @@
         x.addEventListener('click', (e)=>{ e.stopPropagation(); removeAccount(x.getAttribute('data-x')); });
       });
     }
+    // G3: Steam baglanti durumu seridi. Kopma sessiz kalmasin diye ust barin altinda
+    // kalici bir serit gosterilir; yeniden baglaninca kendiliginden kaybolur.
+    function baglantiSeridi(durum, mesaj){
+      let el = document.getElementById('baglantiSerit');
+      if (durum === 'bagli'){
+        if (el) el.remove();
+        return;
+      }
+      if (!el){
+        el = document.createElement('div');
+        el.id = 'baglantiSerit';
+        el.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 20px;'
+          + 'font-size:12px;font-weight:600;border-bottom:1px solid #B37E24;background:#1A1408;color:#B37E24';
+        const ana = document.querySelector('main') || document.body;
+        ana.parentNode.insertBefore(el, ana);
+      }
+      const renk = durum === 'koptu' ? '#B32453' : '#B37E24';
+      el.style.borderBottomColor = renk; el.style.color = renk;
+      el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+renk+';flex-shrink:0;'
+        + 'animation:e-dotPulse 1.6s ease-in-out infinite"></span><span>'+esc(mesaj||'')+'</span>';
+    }
+    if (window.imu.engine && window.imu.engine.onDurum){
+      window.imu.engine.onDurum((d)=>{
+        if (!d || !d.aktif) return;          // yalnizca ekranda acik olan hesap
+        baglantiSeridi(d.durum, d.mesaj);
+        if (d.durum === 'koptu'){
+          if (typeof setSysStatus === 'function') setSysStatus(false);
+          if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', d.mesaj || 'Koptu.', 'Hata');
+          if (typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
+        } else if (d.durum === 'bagli' && d.yenidenBaglandi){
+          if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', d.mesaj || 'Yeniden bağlandı.', 'Başarılı');
+        }
+      });
+    }
+
     // Hesap değiştirme YENİDEN YÜKLEME YAPMAZ - diğer hesapların kart toplama/saat yükseltme
     // işi arka planda sürdüğü için sayfayı baştan kurmak hem gereksiz hem de o işlerin canlı
     // göstergesini sıfırlardı. Bunun yerine sayfa önbellekleri boşaltılıp aktif sekme yeniden
     // veri çeker.
+    // MADDE 2a: Sadece degiskenleri temizlemek yetmiyordu. Aktif olmayan sekmelerin DOM'u
+    // ekranda kaliyor ve o sekmeye gecildiginde ONCEKI HESABIN oyunlari gorunuyordu; veri
+    // gec gelirse ya da baglanti kurulamazsa sonsuza kadar oyle kaliyordu.
+    // Cozum: hesap degisince tum sekmelerin icerigini bosalt, "yukleniyor" iskeleti koy.
+    function iskeletKoy(){
+      const hedefler = [
+        ['kartRows', 'Oyun listesi yükleniyor...'],
+        ['envRows', 'Envanter yükleniyor...'],
+        ['saatListBody', 'Kütüphane yükleniyor...'],
+        ['activeBoostBox', 'Kuyruk yükleniyor...'],
+        ['acBody', 'Başarımlar yükleniyor...'],
+        ['grListe', 'Yükleniyor...'],
+        ['gFeed', 'Yükleniyor...'],
+      ];
+      hedefler.forEach(([id, metin])=>{
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">'+metin+'</div>';
+      });
+    }
     function resetPageCaches(){
+      iskeletKoy();
       if (typeof kartLoaded !== 'undefined'){ kartLoaded = false; dropGames = []; }
       if (typeof saatLoaded !== 'undefined'){ saatLoaded = false; ownedGames = []; selectedSaat = []; }
       if (typeof envLoaded !== 'undefined'){ envLoaded = false; invMerged = null; invItems = null; detailKey = null; }
       if (typeof priceMap !== 'undefined') priceMap.clear();
       if (typeof selected !== 'undefined') selected.clear();
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
+      if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; }
       if (typeof acCache !== 'undefined') acCache.clear();
       if (typeof genelLoaded !== 'undefined') genelLoaded = false;
+      // Aktivite akisi hesaba ozeldir; eski hesabin gecmisi ekranda kalmasin
+      if (typeof activityFeed !== 'undefined') activityFeed.length = 0;
     }
     function reloadActiveTab(){
       const active = document.querySelector('.nav a.active');
@@ -497,7 +555,20 @@
       renderAcctList();
     }
     async function removeAccount(steamID){
-      if (!confirm('Bu hesabı listeden kaldır?\n\nO hesabın arka planda çalışan kart toplama/saat yükseltme işi de durur.')) return;
+      // MADDE 9: duz confirm() yerine ne silinecegini ACIKCA anlatan onay
+      const ok = await edgeConfirm({
+        tag:'Hesabı Kaldır', danger:true,
+        title:'Bu hesap listeden kaldırılacak',
+        body:'Silinecekler:\n'
+             + '  · Kayıtlı Steam oturumu (giriş anahtarı)\n'
+             + '  · O hesaba ait saat yükseltici listesi, kuyruk sırası ve başarım geçmişi\n'
+             + '  · O hesaba ait istatistikler\n\n'
+             + 'Arka planda çalışan kart toplama ve saat yükseltme işi durdurulur.\n\n'
+             + 'Steam hesabının kendisine hiçbir şey olmaz; istersen tekrar giriş yapabilirsin.',
+        warn:'Bu işlem geri alınamaz.',
+        confirmText:'Hesabı Kaldır', cancelText:'Vazgeç',
+      });
+      if (!ok) return;
       const r = await window.imu.accounts.remove(steamID).catch(()=>null);
       if (!r || !r.ok) { alert('Hesap kaldırılamadı.'); return; }
       if (r.loggedOut) return; // main.js zaten giriş ekranına geçti
@@ -530,7 +601,16 @@
       }
     }).catch(()=>{});
     document.getElementById('acctLogoutBtn').onclick = () => {
-      if (confirm('Bu hesaptan çıkış yapılacak, tekrar giriş yapman gerekecek. Devam edilsin mi?')) window.imu.logout();
+      // MADDE 9: cikis KALICI veriyi silmez, bunu acikca soyle - kullanici tereddut etmesin
+      edgeConfirm({
+        tag:'Çıkış Yap',
+        title:'Bu hesaptan çıkış yapılacak',
+        body:'Oturum kapatılır ve giriş ekranına dönersin.\n\n'
+             + 'Ayarların, saat yükseltici listen, başarım geçmişin ve istatistiklerin SİLİNMEZ; '
+             + 'tekrar giriş yaptığında yerinde olur.',
+        warn:'Çalışan kart toplama ve saat yükseltme işi durur.',
+        confirmText:'Çıkış Yap', cancelText:'Vazgeç',
+      }).then(ok=>{ if (ok) window.imu.logout(); });
     };
     tbProfile.addEventListener('click', (e) => {
       e.stopPropagation();

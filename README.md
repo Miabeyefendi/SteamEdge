@@ -41,7 +41,8 @@ Market data so you can price and sell your cards without leaving the app.
 | **Multiple accounts** | Sign in to several accounts at once. They farm in parallel in the background; the window shows whichever you switch to. |
 | **Hour booster** | Keep up to 32 games open at once. Optional **hour sync** levels different playtimes to the same total, stage by stage. |
 | **Achievements** | Read the real unlock state over the protocol, unlock or lock in bulk, with safe-mode pacing and randomised intervals. |
-| **Inventory & Market** | Real order book (current listings + buy orders) and real sale history. Item value comes from **completed sales**, never from a single inflated listing. |
+| **Realistic Mode** | Run one game while its achievements unlock across the session, ordered from most common to rarest at randomised intervals. Leaves an organic-looking play history instead of a burst of unlocks. |
+| **Inventory & Market** | Bulk average fetching, real order book (current listings + buy orders) and real sale history. Item value comes from **completed sales**, never from a single inflated listing. |
 | **No Steam client** | Everything runs over the Steam network protocol. No game files, no overlay, no injection. |
 | **Portable** | Unzip and run. Settings and cache live next to the executable; nothing is written to the registry. |
 | **5 languages** | English, Türkçe, Deutsch, Español, 繁體中文. |

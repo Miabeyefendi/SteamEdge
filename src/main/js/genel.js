@@ -17,12 +17,32 @@
     };
     const DEFAULT_STATUS_BY_KIND = { hata:'Hata', uyari:'Uyarı' };
 
-    const activityFeed = [];   // {kind, title, text, status, ts} - gerçek uygulama olayları
+    // {kind, title, text, status, ts} - gercek uygulama olaylari.
+    // KALICI: hesap deposunda saklanir, uygulama kapanip acilinca gecmis kaybolmaz.
+    let activityFeed = [];
+    const AKTIVITE_ANAHTARI = 'aktiviteAkisi';
+    let aktiviteYazmaZamani = null;
+
+    async function aktiviteyiYukle(){
+      try {
+        const r = await window.imu.state.get(AKTIVITE_ANAHTARI);
+        if (r && Array.isArray(r.value)) { activityFeed = r.value.slice(0, 30); renderFeed(); }
+      } catch (_) {}
+    }
+    // Diske yazmayi topluyoruz: pes pese olaylarda her seferinde dosyaya gitmesin.
+    function aktiviteyiKaydet(){
+      if (aktiviteYazmaZamani) clearTimeout(aktiviteYazmaZamani);
+      aktiviteYazmaZamani = setTimeout(()=>{
+        aktiviteYazmaZamani = null;
+        try { window.imu.state.set(AKTIVITE_ANAHTARI, activityFeed).catch(()=>{}); } catch (_) {}
+      }, 800);
+    }
     function pushFeed(kind, title, text, status){
       const st = status || DEFAULT_STATUS_BY_KIND[kind] || 'Başarılı';
       activityFeed.unshift({ kind: kind||'saat', title, text, status: st, ts: Date.now() });
       if (activityFeed.length > 30) activityFeed.length = 30;
       renderFeed();
+      aktiviteyiKaydet();
     }
     // Aktivite satırı (grid 3 sütun, 60px, nokta kutusu + durum rozeti)
     function renderFeed(){
@@ -53,7 +73,7 @@
           + '</div>';
       }).join('');
     }
-    document.getElementById('gClearFeed').onclick = ()=>{ activityFeed.length=0; renderFeed(); };
+    document.getElementById('gClearFeed').onclick = ()=>{ activityFeed.length=0; renderFeed(); aktiviteyiKaydet(); };
 
     function fmtSessionDur(ms){
       const s = Math.floor(ms/1000);
@@ -111,6 +131,7 @@
     async function loadGenel(){
       if (!genelLoaded){
         genelLoaded = true;
+        await aktiviteyiYukle();   // kalici aktivite gecmisini geri getir
         // Veri çekme başarısız olsa da (Steam'e bağlanılamadı, IPC hatası) panel yine de
         // çizilmeli - aksi halde await burada patlayıp aşağıdaki render'lar hiç çalışmıyor
         // ve Genel Bakış bomboş kalıyordu.
@@ -235,15 +256,96 @@
       if (typeof setSysStatus === 'function') setSysStatus(running);
     }
 
+    // MADDE 16: Panel eskiden TEK gorev varsayiyordu - kart calisiyorsa saat gorunmuyor,
+    // basarim toplu islemi hic gorunmuyordu ve "Detay" her zaman Kart sekmesine gidiyordu.
+    // Artik calisan her is kendi satirinda, kendi ilerlemesi ve kendi Detay baglantisiyla.
+    function gorevSatiri(g){
+      const yuzde = Math.max(0, Math.min(100, Math.round(g.yuzde || 0)));
+      return '<div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid #101621">'
+        + '<div style="display:flex;align-items:flex-start;gap:12px">'
+          + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;'
+            + 'background:#101621;overflow:hidden;display:flex;align-items:center;justify-content:center">'
+            + (g.appid ? gameThumb(g.appid) : '<span style="font-size:16px">' + (g.ikon || '') + '</span>')
+          + '</div>'
+          + '<div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1">'
+            + '<span style="font-size:14px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
+              + 'text-overflow:ellipsis">' + esc(g.baslik) + '</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'
+              + (g.appid ? ('APP_ID: ' + g.appid) : esc(g.altBilgi || '')) + '</span>'
+            + '<div style="display:flex;gap:6px;margin-top:2px;flex-wrap:wrap">'
+              + (g.rozetler || []).map(chip).join('') + '</div>'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:18px;flex-shrink:0">'
+            + (g.sutunlar || []).map(c=>statCol(c[0], c[1], c[2])).join('')
+            + '<button class="h-bd" data-gorev-tab="' + g.tab + '" style="height:28px;padding:0 12px;'
+              + 'border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;'
+              + 'font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Detay</button>'
+          + '</div>'
+        + '</div>'
+        + '<div style="height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden;flex-shrink:0">'
+          + '<div style="height:100%;width:' + yuzde + '%;border-radius:12px;background:' + (g.renk || '#24AEB3') + '"></div></div>'
+        + '</div>';
+    }
+
     function renderGenelActive(){
       const box = document.getElementById('gActiveBody');
       const qbox = document.getElementById('gQueue');
       if (!box || !qbox) return;
+
+      const gorevler = [];
       const farmOn = lastTick && lastTick.running;
       const boostOn = boostState && boostState.running;
-      setRunPill(farmOn || boostOn);
+      // basarim.js ile ayni genel kapsamda; toplu islem calisiyorsa burada da gorunsun
+      const achOn = (typeof acRunning !== 'undefined') && acRunning;
 
-      if (!farmOn && !boostOn){
+      let heroId = null;
+      if (farmOn){
+        const activeIds = lastTick.activeAppids || [];
+        heroId = lastTick.currentAppid || activeIds[0] || 0;
+        const cur = dropGames.find(g=>g.appid===heroId);
+        const nextDrop = lastTick.durationMs ? fmtSessionDur(Math.max(0, lastTick.durationMs - (lastTick.elapsedMs||0))) : '-';
+        gorevler.push({
+          tab:'kart', appid:heroId, baslik:(cur?cur.name:'Kart Düşürme'),
+          rozetler:[modeLabels[selectedMode]||selectedMode, activeIds.length+' oyun eşzamanlı'],
+          sutunlar:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
+                    ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(farmSessionStart||Date.now())))],
+                    ['Sonraki Düşüş', monoTime(nextDrop)]],
+          yuzde: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
+          renk:'#24AEB3',
+        });
+      }
+      if (boostOn){
+        const ids = boostState.activeAppids || boostState.appids || [];
+        const bId = ids[0] || 0;
+        const g = ownedGames.find(x=>x.appid===bId);
+        const gecen = Date.now()-(boostState.startedAt||Date.now());
+        const left = boostState.durationMs ? fmtSessionDur(Math.max(0, boostState.durationMs-gecen)) : '-';
+        gorevler.push({
+          tab:'saat', appid:bId, baslik:(g?g.name:'Saat Yükseltici'),
+          rozetler:['Saat Yükseltici', ids.length+' oyun eşzamanlı'],
+          sutunlar:[['Aktif Oyun', ids.length, GC.sub],
+                    ['Oturum Süresi', monoTime(fmtSessionDur(gecen))],
+                    ['Kalan', monoTime(left)]],
+          yuzde: boostState.durationMs ? (gecen/boostState.durationMs*100) : 100,
+          renk:'#5624B3',
+        });
+      }
+      if (achOn){
+        const yap = (typeof acRunYapilan !== 'undefined') ? acRunYapilan : 0;
+        const top = (typeof acRunToplam !== 'undefined') ? acRunToplam : 0;
+        gorevler.push({
+          tab:'basarim', appid:(typeof acAppid !== 'undefined' ? acAppid : 0),
+          baslik:'Başarım İşlemi', altBilgi:'toplu aç / kilitle',
+          rozetler:['Başarımlar', (top ? (yap+' / '+top) : 'çalışıyor')],
+          sutunlar:[['İşlenen', yap+' / '+top, GC.ok]],
+          yuzde: top ? (yap/top*100) : 0,
+          renk:'#5FB324', ikon:'★',
+        });
+      }
+
+      setRunPill(gorevler.length > 0);
+
+      if (!gorevler.length){
         box.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">'
           + '<span style="font-size:13px;font-weight:600;color:#DCE2FA">Şu anda çalışan bir işlem yok</span>'
           + '<span style="font-size:11px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>';
@@ -251,57 +353,21 @@
         return;
       }
 
-      if (farmOn){
-        const activeIds = lastTick.activeAppids || [];
-        const heroId = lastTick.currentAppid || activeIds[0] || 0;
-        const cur = dropGames.find(g=>g.appid===heroId);
-        const turnPct = lastTick.durationMs ? Math.min(100, Math.round((lastTick.elapsedMs/lastTick.durationMs)*100)) : 100;
-        const nextDrop = lastTick.durationMs ? fmtSessionDur(Math.max(0, lastTick.durationMs - (lastTick.elapsedMs||0))) : '-';
-        const sessionDur = fmtSessionDur(Date.now() - (farmSessionStart||Date.now()));
-        box.innerHTML = '<div style="display:flex;align-items:flex-start;gap:12px">'
-          + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:#101621;overflow:hidden;display:flex;align-items:center;justify-content:center">'
-            + (heroId?gameThumb(heroId):'')
-          + '</div>'
-          + '<div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1">'
-            + '<span style="font-size:14px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(cur?esc(cur.name):'Kart Düşürme')+'</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">APP_ID: '+(heroId||'-')+'</span>'
-            + '<div style="display:flex;gap:6px;margin-top:2px">'+chip(modeLabels[selectedMode]||selectedMode)+chip(activeIds.length+' oyun eşzamanlı')+'</div>'
-          + '</div>'
-          + '<div style="display:flex;align-items:center;gap:18px;flex-shrink:0">'
-            + statCol('Kalan Kart', (cur?cur.remaining:0), GC.sub)
-            + statCol('Oturum Süresi', monoTime(sessionDur))
-            + statCol('Sonraki Düşüş', monoTime(nextDrop))
-          + '</div></div>'
-          + '<div style="height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden;flex-shrink:0">'
-            + '<div style="height:100%;width:'+turnPct+'%;border-radius:12px;background:#24AEB3"></div></div>';
-        renderQueue(heroId);
-        return;
-      }
+      box.innerHTML = (gorevler.length > 1
+          ? ('<div style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
+             + 'color:#8B8F9E;padding-bottom:2px">' + gorevler.length + ' iş birlikte çalışıyor</div>')
+          : '')
+        + gorevler.map(gorevSatiri).join('');
 
-      // sadece boost çalışıyorsa
-      const ids = boostState.activeAppids || boostState.appids || [];
-      const heroId = ids[0] || 0;
-      const g = ownedGames.find(x=>x.appid===heroId);
-      const elapsed = fmtSessionDur(Date.now()-(boostState.startedAt||Date.now()));
-      const left = boostState.durationMs ? fmtSessionDur(Math.max(0, boostState.durationMs-(Date.now()-(boostState.startedAt||Date.now())))) : '-';
-      const bPct = boostState.durationMs ? Math.min(100, Math.round((Date.now()-(boostState.startedAt||Date.now()))/boostState.durationMs*100)) : 100;
-      box.innerHTML = '<div style="display:flex;align-items:flex-start;gap:12px">'
-        + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:#101621;overflow:hidden;display:flex;align-items:center;justify-content:center">'
-          + (heroId?gameThumb(heroId):'')
-        + '</div>'
-        + '<div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1">'
-          + '<span style="font-size:14px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(g?esc(g.name):'Saat Yükseltici')+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">APP_ID: '+(heroId||'-')+'</span>'
-          + '<div style="display:flex;gap:6px;margin-top:2px">'+chip('Saat Yükseltici')+chip(ids.length+' oyun eşzamanlı')+'</div>'
-        + '</div>'
-        + '<div style="display:flex;align-items:center;gap:18px;flex-shrink:0">'
-          + statCol('Aktif Oyun', ids.length, GC.sub)
-          + statCol('Oturum Süresi', monoTime(elapsed))
-          + statCol('Kalan', monoTime(left))
-        + '</div></div>'
-        + '<div style="height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden;flex-shrink:0">'
-          + '<div style="height:100%;width:'+bPct+'%;border-radius:12px;background:#24AEB3"></div></div>';
-      renderQueue(null);
+      // Her satirin kendi Detay baglantisi kendi sekmesine gider (eskiden hep Kart'a gidiyordu)
+      box.querySelectorAll('[data-gorev-tab]').forEach(b=>{
+        b.onclick = ()=>{
+          const t = b.getAttribute('data-gorev-tab');
+          const nav = document.querySelector('.nav a[data-tab="'+t+'"]') || document.querySelector('[data-tab="'+t+'"]');
+          if (nav) nav.click();
+        };
+      });
+      renderQueue(farmOn ? heroId : null);
     }
 
     // Kuyruk listesi (#sıra · ad · kalan · yüzde)
@@ -390,26 +456,61 @@
       pushFeed('kart', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
     };
 
-    document.getElementById('qaGames').onclick = refreshGamesQuick;
-    document.getElementById('qaInv').onclick = async ()=>{
-      const t = toast('Envanter yenileniyor…');
-      envLoaded=false;
+    // Hizli islem butonlari. HEPSI try/catch icinde: bir hata firlarsa toast'i kapatip
+    // sebebi gostermek zorundayiz, yoksa spinner sonsuza kadar doner ve kullanici
+    // "yenileniyor" yazisina bakip bekler.
+    function hizliIslem(btnId, calisanMetin, isFn){
+      const b = document.getElementById(btnId);
+      if (!b) return;
+      let mesgul = false;
+      b.onclick = async ()=>{
+        if (mesgul) return;                 // cift tiklamada iki istek gitmesin
+        mesgul = true;
+        b.style.opacity = '0.5'; b.style.cursor = 'wait';
+        const t = toast(calisanMetin);
+        try {
+          const sonuc = await isFn();
+          if (sonuc && sonuc.hata) t.fail(sonuc.hata);
+          else t.done((sonuc && sonuc.mesaj) || 'Tamamlandı.');
+        } catch (e) {
+          t.fail((e && e.message) || 'Bilinmeyen hata.');
+          pushFeed('hata', 'Hızlı İşlem', (e && e.message) || 'Bilinmeyen hata.', 'Hata');
+        } finally {
+          mesgul = false;
+          b.style.opacity = '1'; b.style.cursor = 'pointer';
+        }
+      };
+    }
+
+    hizliIslem('qaGames', 'Oyun listesi yenileniyor…', async ()=>{
+      await refreshGamesQuick();
+      return { mesaj: 'Oyun listesi yenilendi.' };
+    });
+
+    hizliIslem('qaInv', 'Envanter yenileniyor…', async ()=>{
+      if (typeof loadEnv !== 'function') return { hata: 'Envanter sayfası hazır değil.' };
+      envLoaded = false;
       await loadEnv();
+      // loadEnv hata durumunda sessizce donuyor; gercekten veri geldi mi kontrol et,
+      // yoksa "yenilendi" deyip kullaniciyi yaniltiyorduk.
+      if (!invMerged || !invMerged.length) return { hata: 'Envanter alınamadı. Envanter sekmesindeki hatayı kontrol et.' };
       renderGenelStats();
       pushFeed('envanter', 'Envanter', 'Envanter Steam\'den yeniden çekildi.', 'Başarılı');
-      t.done('Envanter yenilendi.');
-    };
-    // "Pazarı Yenile" - envanteri değil, market FİYATLARINI tazeler (fiyat önbelleğini atlar).
-    document.getElementById('qaPazar').onclick = async ()=>{
-      if (!invMerged){ toast('Önce envanteri yükle.').fail('Envanter henüz yüklenmedi.'); return; }
-      const t = toast('Pazar fiyatları yenileniyor…');
+      return { mesaj: invMerged.length + ' çeşit öğe yüklendi.' };
+    });
+
+    // "Pazarı Yenile" - envanteri degil, market FIYATLARINI tazeler (onbellegi atlar).
+    hizliIslem('qaPazar', 'Pazar fiyatları yenileniyor…', async ()=>{
+      if (!invMerged || !invMerged.length) return { hata: 'Önce envanteri yükle.' };
+      if (typeof fetchPricesForView !== 'function') return { hata: 'Envanter sayfası hazır değil.' };
       await window.imu.settings.clearPriceCache();
-      priceMap.clear();
-      await requestPrices();
+      if (typeof priceMap !== 'undefined') priceMap.clear();
+      // Eskiden burada tanimsiz bir requestPrices() cagriliyordu.
+      await fetchPricesForView();
       renderGenelStats();
       pushFeed('pazar', 'Pazar', 'Market fiyatları yeniden çekiliyor.', 'Çalışıyor');
-      t.done('Pazar fiyatları yenileniyor.');
-    };
+      return { mesaj: 'Fiyatlar çekiliyor, Envanter sekmesinden ilerlemeyi görebilirsin.' };
+    });
     document.getElementById('qaSettings').onclick = ()=> openAyarlar();
 
     // Genel Bakış açılışta zaten görünür sekme - tıklama olmadan ilk verileri yükle.

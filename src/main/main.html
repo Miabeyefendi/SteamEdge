@@ -38,7 +38,7 @@
       <div style="display:flex;align-items:center;gap:12px">
         <img src="../assets/logo-mark.png" alt="" style="height:26px;width:auto;display:block">
         <span style="font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--e-title)">Steam<span style="color:var(--e-brand)">Edge</span></span>
-        <span style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--e-off);border:1px solid var(--e-bdPassive);border-radius:12px;padding:3px 8px">v1.0.1</span>
+        <span style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--e-off);border:1px solid var(--e-bdPassive);border-radius:12px;padding:3px 8px">v1.0.8</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="e-search">
@@ -111,6 +111,10 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>
               <span class="e-lbl">Saat Yükseltici</span>
             </a>
+            <a data-tab="gercekci" class="e-nav-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+              <span class="e-lbl">Gerçekçi Mod</span>
+            </a>
             <a data-tab="basarim" class="e-nav-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4h8v5a4 4 0 0 1-8 0z"></path><path d="M12 13v4M9 20h6"></path><path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3"></path></svg>
               <span class="e-lbl">Başarımlar</span>
@@ -144,6 +148,7 @@
         <section id="tab-kart" class="hidden"></section>
         <section id="tab-env" class="hidden"></section>
         <section id="tab-saat" class="hidden"></section>
+        <section id="tab-gercekci" class="hidden"></section>
         <section id="tab-basarim" class="hidden"></section>
         <section id="tab-ayarlar" class="hidden"></section>
         <section id="tab-empty" class="hidden">
@@ -163,6 +168,7 @@
     document.getElementById('tab-kart').innerHTML = window.imu.pages.load('kart');
     document.getElementById('tab-env').innerHTML = window.imu.pages.load('env');
     document.getElementById('tab-saat').innerHTML = window.imu.pages.load('saat');
+    document.getElementById('tab-gercekci').innerHTML = window.imu.pages.load('gercekci');
     document.getElementById('tab-basarim').innerHTML = window.imu.pages.load('basarim');
     document.getElementById('tab-ayarlar').innerHTML = window.imu.pages.load('ayarlar');
   </script>
@@ -173,6 +179,7 @@
   <script src="js/saat.js"></script>
   <script src="js/env.js"></script>
   <script src="js/basarim.js"></script>
+  <script src="js/gercekci.js"></script>
   <script src="js/ayarlar.js"></script>
   <script src="js/genel.js"></script>
 </body>

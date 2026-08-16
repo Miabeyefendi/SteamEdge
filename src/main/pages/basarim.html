@@ -126,12 +126,24 @@
         <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Güvenli Mod</span>
         <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5FB324" id="acSafeMode">Açık</span>
       </div>
+      <!-- MADDE 8: toplu islem sirasinda canli durum. Kullanici eskiden butona basip
+           hicbir sey gormuyordu: acildi mi, siradaki ne zaman, hata mi var bilinmiyordu. -->
+      <div id="acRunBox" style="display:none;flex-direction:column;gap:5px;min-width:230px">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-family:Geist Mono,monospace;font-size:15px;font-weight:700;color:#DCE2FA" id="acRunCount">0 / 0</span>
+          <span style="font-size:11px;color:#8B8F9E" id="acRunNote"></span>
+        </div>
+        <div style="width:100%;height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">
+          <div id="acRunFill" style="height:100%;width:0%;border-radius:12px;background:#5FB324;transition:width .25s ease"></div>
+        </div>
+      </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <button id="acSelLocked" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Kilitlileri Seç</button>
       <button id="acSelClear" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Seçimi Temizle</button>
       <button id="acAllLock" class="h-signout" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#B32453;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Seçilenleri Kilitle</button>
       <button id="acAllUnlock" class="h-start" style="height:38px;padding:0 22px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Seçilenleri Aç</button>
+      <button id="acStop" class="h-stop" style="display:none;height:38px;padding:0 22px;border-radius:999px;background:#B32453;border:1px solid #B32453;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Durdur</button>
     </div>
   </div>
 </div>

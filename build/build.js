@@ -5,8 +5,8 @@
  * Ne yapar:
  *   1. @electron/packager ile calistirilabilir bir dagitim uretir (exe + Electron runtime).
  *   2. Uygulama kodunu app.asar icine koyar - Release klasorunde acik kaynak dosya kalmaz.
- *   3. Ciktiyi "Release V<surum>" klasorune tasir ve yaninda bos settings/ + cache/ acar.
- *   4. Kullanici icin KULLANIM.txt / README.txt birakir.
+ *   3. Ciktiyi "SteamEdge-v<surum>-win-x64" klasorune tasir, yaninda bos settings/ + cache/ acar.
+ *   4. Kullanici icin README.txt ve o surume ait CHANGELOG.md birakir.
  *
  * Neden electron-builder degil: kurulum (installer) uretmiyoruz. Kullanici .zip'i acip
  * dogrudan calistiracak; tasinabilir bir klasor dagitimi bu is icin daha uygun ve
@@ -22,7 +22,10 @@ const { packager } = require('@electron/packager');
 const KOK = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(KOK, 'package.json'), 'utf8'));
 const CIKTI_KOK = path.resolve(KOK, '..');                       // "App - SteamEdge"
-const HEDEF = path.join(CIKTI_KOK, 'Release V' + pkg.version);
+// Klasor adi dogrudan arsiv adi olacak sekilde: SteamEdge-v1.0.7-win-x64
+// Boylece sag tik > arsivle dendiginde dosya adini elle duzeltmeye gerek kalmiyor.
+const PAKET_ADI = 'SteamEdge-v' + pkg.version + '-win-x64';
+const HEDEF = path.join(CIKTI_KOK, PAKET_ADI);
 const GECICI = path.join(KOK, 'build', '.out');
 
 const arg = (ad, varsayilan) => {
@@ -104,6 +107,7 @@ async function main() {
     fs.mkdirSync(path.join(HEDEF, d), { recursive: true });
   }
   yaz(HEDEF);
+  changelogYaz(HEDEF);
 
   const boyut = klasorBoyutu(HEDEF);
   console.log('\nBITTI.');
@@ -122,6 +126,19 @@ function klasorBoyutu(d) {
 }
 
 // Release klasorune kullanici notu (kod bilmeyen kisi icin, tek sayfa).
+// O surume ait degisiklik notunu klasore koyar.
+// Kaynak: build/changelog/<surum>.md . Dosya yoksa uyarir ama derlemeyi durdurmaz -
+// surum notu yazmayi unutmak derlemeyi engellememeli, sadece gorunur olmali.
+function changelogYaz(hedef) {
+  const kaynak = path.join(__dirname, 'changelog', pkg.version + '.md');
+  if (!fs.existsSync(kaynak)) {
+    console.log('  UYARI: build/changelog/' + pkg.version + '.md yok, CHANGELOG.md yazilmadi');
+    return;
+  }
+  fs.copyFileSync(kaynak, path.join(hedef, 'CHANGELOG.md'));
+  console.log('  changelog: ' + pkg.version + '.md -> CHANGELOG.md');
+}
+
 function yaz(hedef) {
   fs.writeFileSync(path.join(hedef, 'README.txt'),
 `SteamEdge ${pkg.version}

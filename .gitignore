@@ -286,9 +286,16 @@ cache/
 !build/
 !build/*.js
 build/.out/
+# Paketleme ciktisi. Klasor adi 1.0.8'de "Release V*" yerine arsiv adiyla ayni oldu.
 Release V*/
+SteamEdge-v*-win-x64/
+All Releases/
 *.asar
 *.ico
+
+# Elle olusturulan arsivler
+*.rar
+*.7z
 
 # Steam Guard mobile authenticator files
 *.maFile
