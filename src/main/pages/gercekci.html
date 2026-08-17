@@ -1,22 +1,28 @@
 <!-- ================================================================
      GERÇEKÇİ MOD
-     Tek oyun açık tutulur; seçilen süre boyunca başarımlar genelden nadire
-     doğru, rastgele aralıklarla açılır.
-     Ölçü, renk ve boşluk değerleri inline; :hover ve :focus durumları
-     edge.css icindeki .h-* / .f-* class'larına bağlıdır.
-     Veri: gercekci.js - gerçek kütüphane ve başarım şeması.
+     Tasarım şablondan birebir alındı (Template Steam > App UI rebuilt as component).
+     Şablon bir bileşen dili kullanıyor: {{ değer }} yer tutucuları, sc-if / sc-for
+     blokları, style-hover / style-focus öznitelikleri. Burada karşılıkları:
+       {{ x }}        -> id taşıyan element, içeriği gercekci.js dolduruyor
+       sc-if          -> id'li kap, görünürlüğü JS açıp kapatıyor
+       sc-for         -> JS'in ürettiği satırlar
+       style-hover    -> edge.css'teki h-* sınıfları
+       style-focus    -> edge.css'teki f-* sınıfları
+     Ölçü, renk ve boşluk değerleri şablondaki gibi inline duruyor; hiçbiri
+     yeniden yorumlanmadı.
      ================================================================ -->
 <div style="flex:1;min-height:0;display:flex;flex-direction:column">
 
+  <!-- ÜST ŞERİT: başlık + kalan süre + başlat/durdur -->
   <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
     <div style="display:flex;flex-direction:column;gap:6px">
-      <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Tek oyun · saat + başarım</span>
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Tek Oyun · Saat + Başarım</span>
       <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#DCE2FA">Gerçekçi Mod</h1>
     </div>
     <div style="display:flex;align-items:center;gap:18px">
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Kalan süre</span>
-        <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#DCE2FA;line-height:1" id="grKalan">00<span style="color:#C2AAEE">:</span>00<span style="color:#C2AAEE">:</span>00</span>
+        <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#DCE2FA;line-height:1"><span id="grClockH">00</span><span style="color:#C2AAEE">:</span><span id="grClockM">00</span><span style="color:#C2AAEE">:</span><span id="grClockS">00</span></span>
       </div>
       <div style="width:1px;height:34px;background:#1D2432"></div>
       <button id="grStart" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Başlat</button>
@@ -24,65 +30,288 @@
     </div>
   </div>
 
-  <div style="flex:1;min-height:0;display:flex;gap:0">
-
-    <div style="width:320px;flex-shrink:0;padding:18px 18px 18px 30px;border-right:1px solid #1D2432;display:flex;flex-direction:column;gap:16px;background:#090C12;overflow-y:auto">
-
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun</span>
-        <div style="position:relative">
-          <input id="grGameInput" type="text" placeholder="Oyun ara veya seç..." class="f-focus" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px;outline:none">
-          <div id="grGameList" style="display:none;position:absolute;top:40px;left:0;right:0;max-height:280px;overflow-y:auto;z-index:30;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:6px;box-shadow:0 18px 40px rgba(3,3,5,.7)"></div>
+  <!-- ÖZET ŞERİT: oyun, açılan, ortalama aralık, genel ilerleme -->
+  <div style="flex-shrink:0;padding:16px 26px 16px 44px;border-bottom:1px solid #1D2432;background:#090C12">
+    <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+      <div id="grGameArt" style="width:48px;height:48px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 6px,#101621 6px 12px);overflow:hidden"></div>
+      <div style="display:flex;flex-direction:column;gap:5px;min-width:170px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Oyun</span>
+        <span style="font-size:15px;font-weight:700;color:#DCE2FA" id="grGameName">-</span>
+      </div>
+      <div style="width:1px;height:36px;background:#1D2432"></div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Açılan</span>
+        <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5FB324" id="grOpened">0 / 0</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Ortalama Aralık</span>
+        <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA" id="grAvgGap">-</span>
+      </div>
+      <div style="width:1px;height:36px;background:#1D2432"></div>
+      <div style="flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">Genel ilerleme</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#C2AAEE" id="grPct">%0</span>
+        </div>
+        <div style="height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">
+          <div id="grPctFill" style="height:100%;width:0%;border-radius:12px;background:#24AEB3"></div>
         </div>
       </div>
-
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Süre</span>
-        <div style="display:flex;align-items:center;gap:10px">
-          <input id="grSaat" type="number" min="1" max="500" value="8" class="f-focus" style="width:88px;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:15px;font-weight:700;text-align:center;padding:0 10px;outline:none">
-          <span style="font-size:12px;color:#8B8F9E">saat</span>
-        </div>
-        <div style="display:flex;gap:4px" id="grPresets">
-          <button data-h="2" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">2H</button>
-          <button data-h="8" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">8H</button>
-          <button data-h="24" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">24H</button>
-          <button data-h="72" style="flex:1;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">72H</button>
-        </div>
-      </div>
-
-      <div id="grOzet" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:14px;display:flex;flex-direction:column;gap:10px">
-        <span style="font-size:12px;color:#8B8F9E">Önce bir oyun seç.</span>
-      </div>
-
-      <div style="border:1px solid #1D2432;border-radius:12px;background:#090C12;padding:12px 14px">
-        <span style="font-size:10.5px;line-height:1.6;color:#8B8F9E">
-          Başarımlar <b style="color:#B9C0D6">genelden nadire</b> doğru açılır ve süreye yayılır.
-          Aralıklar her seferinde rastgele hesaplanır, sabit bir ritim oluşmaz.
-          Oyun tarafından korunan başarımlar atlanır.
-        </span>
-      </div>
-    </div>
-
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#030305">
-      <div style="flex-shrink:0;padding:16px 26px 12px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid #1D2432">
-        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Açılma Sırası</span>
-        <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="grSayac">0 / 0</span>
-      </div>
-      <div id="grListe" style="flex:1;min-height:0;overflow-y:auto;padding:12px 26px 20px"></div>
     </div>
   </div>
 
-  <!-- Çalışırken alt bar: ilerleme, sıradaki başarım ve geri sayım -->
-  <div id="grBar" style="display:none;position:sticky;bottom:0;z-index:20;flex-shrink:0;border-top:1px solid #5624B3;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:12px 30px;align-items:center;gap:16px;flex-wrap:wrap">
-    <span style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite"></span>
-    <div id="grBarText" style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px"></div>
-    <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
-      <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">
-        <span style="font-size:9.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">Sıradaki</span>
-        <span id="grBarEta" style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:#DCE2FA">-</span>
+  <div style="flex:1;min-height:0;display:flex;gap:0">
+
+    <!-- SOL: oyun listesi, süre, hedef -->
+    <div style="width:352px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
+      <div style="flex-shrink:0;padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="grLibCount">0 oyun</span>
+        </div>
+        <div style="position:relative;display:flex;align-items:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
+          <input id="grSearch" type="text" placeholder="Oyun ara..." class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 33px;outline:none">
+        </div>
+        <div id="grResultsBox" style="display:none;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:6px;flex-direction:column;gap:2px">
+          <div id="grResults" style="display:flex;flex-direction:column;gap:2px"></div>
+          <span id="grNoResults" style="display:none;font-size:11px;color:#656D80;padding:6px 8px">Sonuç yok</span>
+        </div>
       </div>
-      <div style="width:150px;height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">
-        <div id="grBarFill" style="height:100%;width:0%;border-radius:12px;background:#5624B3;transition:width .4s ease"></div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:10px" id="grLibrary"></div>
+      <div style="flex-shrink:0;padding:14px;border-top:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:flex-end;gap:10px">
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:9px">
+            <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Süre</span>
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 10px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
+              <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
+                <input id="grRH" value="02" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">HRS</span>
+              </div>
+              <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
+              <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
+                <input id="grRM" value="00" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">DK</span>
+              </div>
+              <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
+              <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
+                <input id="grRS" value="00" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SN</span>
+              </div>
+            </div>
+          </div>
+          <div style="width:86px;flex-shrink:0;display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+              <span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B8F9E">Hedef</span>
+              <button id="grAutoTarget" style="height:16px;padding:0 6px;border-radius:999px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:8px;font-weight:700;letter-spacing:0.08em;cursor:pointer">OTO</button>
+            </div>
+            <div id="grTargetBox" style="height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
+              <input id="grTarget" value="0" style="width:70px;height:20px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:17px;font-weight:700;color:#DCE2FA">
+              <span style="font-family:Geist Mono,monospace;font-size:8px;letter-spacing:0.06em;color:#656D80">/ <span id="grTargetTotal">0</span></span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+        </div>
+        <span style="font-size:11px;color:#8B8F9E;line-height:1.6;text-align:center;text-wrap:pretty"><span style="font-family:Geist Mono,monospace;color:#C2AAEE" id="grDurLabel">2 sa</span> süresinde <span style="font-family:Geist Mono,monospace;font-weight:700;color:#DCE2FA" id="grTargetVal">0</span> başarım açılacaktır</span>
+      </div>
+    </div>
+
+    <!-- ORTA: sırada + açılma sırası -->
+    <div style="flex:1;min-width:0;overflow-y:auto;padding:20px 26px 26px 44px;display:flex;flex-direction:column;gap:18px">
+
+      <div id="grNoAch" style="display:none;border:1px solid #B37E24;border-radius:12px;background:#0D1118;padding:16px 18px;align-items:center;gap:14px">
+        <span style="width:7px;height:7px;border-radius:12px;background:#B37E24;flex-shrink:0"></span>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+          <span style="font-size:13px;font-weight:700;color:#DCE2FA">Bu oyunda başarım yok</span>
+          <span style="font-size:11px;color:#8B8F9E;text-wrap:pretty" id="grFallbackNote">-</span>
+        </div>
+      </div>
+
+      <div id="grHasAch" style="display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Sırada</span>
+          <div style="border:1px solid #5624B3;border-radius:12px;background:#0D1118;padding:16px;display:flex;align-items:center;gap:16px">
+            <div style="width:60px;height:60px;flex-shrink:0;border-radius:14px;border:1px solid #5624B3;background:#101621;display:flex;align-items:center;justify-content:center">
+              <span style="width:18px;height:18px;background:#C2AAEE;transform:rotate(45deg)"></span>
+            </div>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:15px;font-weight:700;color:#DCE2FA" id="grNextName">-</span>
+              <span style="font-size:11px;color:#8B8F9E" id="grNextMeta">-</span>
+            </div>
+            <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C2AAEE;border:1px solid #C2AAEE;border-radius:12px;padding:2px 8px;flex-shrink:0" id="grNextPct">-</span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #1D2432;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Açılma Sırası</span>
+            <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="grOpenedCount">0 / 0</span>
+          </div>
+          <div id="grList"></div>
+        </div>
+      </div>
+
+      <div id="grNoAchSummary" style="display:none;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 20px;align-items:center;gap:24px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Sadece Saat</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA" id="grDurLabel2">-</span>
+        </div>
+        <div style="width:1px;height:34px;background:#1D2432"></div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Başarım</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#B37E24">Yok</span>
+        </div>
+        <div style="width:1px;height:34px;background:#1D2432"></div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Davranış</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA" id="grFallbackLabel">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SAĞ: basit / gelişmiş ayarlar -->
+    <div style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;gap:4px;padding:3px;border-radius:999px;background:#0D1118;border:1px solid #2B3345">
+        <button id="grLvlSimple" style="flex:1;height:28px;border-radius:999px;border:1px solid #5624B3;background:#151C28;color:#DCE2FA;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Basit</button>
+        <button id="grLvlAdv" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Gelişmiş</button>
+      </div>
+
+      <div id="grSimpleBox" style="display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun Ne Kadar Sürüyor</span>
+          <select id="grCR" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+            <option value="1.5">Kısa hikaye oyunu</option>
+            <option value="2.0">Orta uzunlukta</option>
+            <option value="2.5">Uzun · açık dünya</option>
+            <option value="4.0">Bitmeyen · sandbox</option>
+            <option value="auto">Kendim saat gireceğim</option>
+          </select>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Başarımlar Ne Kadar Zor</span>
+          <select id="grDiff" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+            <!-- Şablonda bu satırlarda uzun çizgi (em dash) vardı; projenin kuralı gereği
+                 düz çizgiye çevrildi. Görsel dizilim aynı. -->
+            <option value="0.8">Kolay - hikayeyle gelir</option>
+            <option value="1.2">Normal - biraz uğraşır</option>
+            <option value="2.0">Zor - grind gerekir</option>
+            <option value="3.5">Çok zor - ustalık ister</option>
+          </select>
+          <span style="font-size:11px;color:#8B8F9E;line-height:1.6;text-wrap:pretty" id="grSimpleNote">-</span>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Davranış</span>
+        <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
+            <span style="font-size:12px;color:#B9C0D6">Sırayı otomatik başlat</span>
+            <div class="gr-toggle" data-grset="grAuto" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
+            <span style="font-size:12px;color:#B9C0D6">Rastgele aralık</span>
+            <div class="gr-toggle" data-grset="grRandomGap" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
+            <span style="font-size:12px;color:#B9C0D6">Ultra Nadir Başarımları Atla</span>
+            <div class="gr-toggle" data-grset="grSkipUltraRare" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="grAdvBox" style="display:none;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Dağıtım Modeli</span>
+          <select id="grModel" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+            <option value="linear">Doğrusal · eşit aralık</option>
+            <option value="exp">Üstel · önden yüklemeli</option>
+            <option value="pareto">Pareto · 80/20</option>
+          </select>
+          <span style="font-size:11px;color:#8B8F9E;line-height:1.6;text-wrap:pretty" id="grModelNote">-</span>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun Verisi · HLTB</span>
+          <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6">%100 süresi · Tc</span>
+              <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+                <input id="grTc" class="f-brand" style="width:58px;height:26px;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none">
+                <span style="font-size:11px;color:#656D80">sa</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6">Oyun türü · CR</span>
+              <select id="grCR2" class="f-brand" style="width:126px;height:26px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+                <option value="auto">Elle girilen Tc</option>
+                <option value="1.5">Hikaye · 1.5×</option>
+                <option value="2.0">Orta · 2.0×</option>
+                <option value="2.5">Açık dünya · 2.5×</option>
+                <option value="4.0">Sandbox · 4.0×</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6">Mevcut süren · t</span>
+              <span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA" id="grPlaytime">-</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6">Beklenen açılmış · A(t)</span>
+              <span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#5FB324" id="grExpected">-</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0">
+              <span style="font-size:12px;color:#B9C0D6">Başarım hızı</span>
+              <span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA"><span id="grPace">-</span> / sa</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Kalan Başarım Zorluğu</span>
+          <select id="grDiff2" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+            <option value="0.8">Kolay · hikaye · 0.8×</option>
+            <option value="1.2">Orta · yan görev · 1.2×</option>
+            <option value="2.0">Zor · grind · 2.0×</option>
+            <option value="3.5">Ekstrem · no-hit · 3.5×</option>
+          </select>
+          <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
+              <span style="font-size:12px;color:#B9C0D6">Kalan başarım</span>
+              <span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#B37E24" id="grLeft">-</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0">
+              <span style="font-size:12px;color:#B9C0D6">Tahmini süre</span>
+              <span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#C2AAEE" id="grRemainEst">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Başarımı Olmayan Oyunlar</span>
+        <select id="grNoAchMode" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+          <option value="hours">Sadece saat topla</option>
+          <option value="skip">Oyunu atla</option>
+          <option value="stop">Sırayı durdur</option>
+        </select>
+        <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
+            <span style="font-size:12px;color:#B9C0D6">Başarımlar bitince saati sürdür</span>
+            <div class="gr-toggle" data-grset="grKeepHours" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
+            <span style="font-size:12px;color:#B9C0D6">Başarımsız oyunları listede göster</span>
+            <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button id="grSavePreset" class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Preset olarak kaydet</button>
+        <div id="grPresetsBox" style="display:none;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 12px">
+          <div id="grPresets"></div>
+        </div>
       </div>
     </div>
   </div>

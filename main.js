@@ -286,6 +286,21 @@ const DEFAULT_SETTINGS = {
   boostGameIds: [],         // "Oyun listesini hatırla" açıkken seçili oyunlar
   // Başarım açılış aralığı (SANİYE). 1 = en hızlı; gerçek bekleme her açılışta rastgele
   // sapmayla hesaplanır, sabit ritim oluşmaz (basarim.js > acNextDelayMs).
+  // Gerçekçi Mod (G11: sayfa şablona göre yenilendi)
+  grDurationSec: 7200,      // oturum süresi (2 saat)
+  grTargetAuto: true,       // hedef başarım sayısını uygulama seçsin
+  grTarget: 0,              // elle hedef (0 = hepsi)
+  grCR: '2.0',              // oyun uzunluğu çarpanı ('auto' = elle Tc)
+  grDiff: '1.2',            // kalan başarım zorluğu çarpanı
+  grTc: '',                 // %100 süresi (saat) - elle girilen
+  grModel: 'linear',        // dağıtım modeli: linear | exp | pareto
+  grAuto: true,             // sırayı otomatik başlat (kuyruktaki sonraki oyuna geç)
+  grRandomGap: true,        // açılış aralıklarına rastgele sapma
+  grSkipUltraRare: false,   // %5 altı başarımları atla
+  grNoAchMode: 'hours',     // başarımı olmayan oyun: hours | skip | stop
+  grKeepHours: true,        // başarımlar bitince süre sonuna kadar saat topla
+  grShowNoAch: false,       // başarımsız oyunlar oyun listesinde görünsün
+  grLevel: 'simple',        // sağ panel: simple | advanced
   achDelay: '1',
   achOrder: 'default',
   achSafeMode: true,
@@ -687,8 +702,13 @@ const HESAP_DIZINI = path.join(CONFIG_DIR, 'accounts');
 // Renderer tarafi degismesin diye burada ayikliyoruz.
 // 'profil': son bilinen isim/avatar/seviye/ozel adres. Arayuze settings ile birlikte gider,
 // boylece acilista Steam oturumu beklenmeden ekrana yazilabilir.
-const HESAP_AYAR_ANAHTARLARI = ['boostGameIds', 'profil'];
-const VARSAYILAN_HESAP_VERISI = { boostGameIds: [], entries: {}, achLog: [], stats: null, profil: null };
+// 'grQueue' ve 'grPresets': Gercekci Mod'un oyun kuyrugu ve kayitli presetleri. Hesaba
+// ozel, cunku kutuphane ve basarim durumu hesaba gore degisiyor.
+const HESAP_AYAR_ANAHTARLARI = ['boostGameIds', 'profil', 'grQueue', 'grPresets'];
+const VARSAYILAN_HESAP_VERISI = {
+  boostGameIds: [], entries: {}, achLog: [], stats: null, profil: null,
+  grQueue: [], grPresets: [],
+};
 
 const hesapVerileri = new Map();   // steamID -> veri
 
@@ -1577,68 +1597,124 @@ ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games }) => {
 //
 // Neden nadirlik sirasi: gercek oyuncuda da once giris seviyesi basarimlar acilir. Yuzlerce
 // basarimi bir dakikada acmak profilde ve ucuncu parti sitelerde hemen goze carpar.
-let gercekciDurum = null;   // { appid, oyunAdi, kuyruk, indeks, baslangic, bitis, timer, acilan, hata }
+// G11: sayfa sablona gore yenilendi. Motor artik su fazlasini yapiyor:
+//   - OYUN KUYRUGU: birden fazla oyun sirayla islenir ("Sirayi otomatik baslat" kapaliysa
+//     ilk oyundan sonra durur).
+//   - HEDEF SAYI: kullanici "su kadar basarim acilsin" diyebilir; kuyruk basa dogru kirpilir.
+//   - DAGITIM MODELI: acilis zamanlari dogrusal, ustel ya da Pareto egrisine gore yerlesir.
+//   - BASARIMI OLMAYAN OYUN: sadece saat topla / atla / sirayi durdur.
+let gercekciDurum = null;
 
 function gercekciTemizle() {
   if (gercekciDurum && gercekciDurum.timer) clearTimeout(gercekciDurum.timer);
   gercekciDurum = null;
 }
 
+// Modele gore i. acilisin oturum icindeki oransal zamani (0..1).
+// linear : esit aralik
+// exp    : basta sik, sonra seyrek (gercek oyuncu ilk saatlerde daha cok basarim alir)
+// pareto : basarimlarin %80'i surenin %20'sinde - "hepsini bastan sifirla" gorunumu
+function gercekciModelOran(p, model) {
+  const q = Math.min(1, Math.max(0, p));
+  if (model === 'exp') {
+    const k = 2.5;
+    return (1 - Math.exp(-k * q)) / (1 - Math.exp(-k));
+  }
+  if (model === 'pareto') {
+    // 0.8 -> 0.2 eslemesi: q^(ln0.2/ln0.8)
+    return Math.pow(q, Math.log(0.2) / Math.log(0.8));
+  }
+  return q;
+}
+
+// Kuyruga acilis zamanlarini yazar (oturum baslangicina gore ms).
+function gercekciZamanlariYerlestir(kuyruk, sureMs, model) {
+  const n = kuyruk.length;
+  kuyruk.forEach((a, i) => {
+    a.zaman = Math.round(sureMs * gercekciModelOran((i + 1) / n, model));
+  });
+  return kuyruk;
+}
+
+function gercekciAktif() { return gercekciDurum ? gercekciDurum.aktif : null; }
+
 function gercekciBildir(ek) {
   const d = gercekciDurum;
+  const a = gercekciAktif();
   sendRaw('gercekci:tick', Object.assign({
     calisiyor: !!d,
-    appid: d ? d.appid : null,
-    oyunAdi: d ? d.oyunAdi : null,
-    toplam: d ? d.kuyruk.length : 0,
-    acilan: d ? d.acilan : 0,
-    hata: d ? d.hata : 0,
+    appid: a ? a.appid : null,
+    oyunAdi: a ? a.oyunAdi : null,
+    // toplam/acilan TUM oturumu anlatir; kuyrukta birden fazla oyun olabilir.
+    toplam: d ? d.toplamHedef : 0,
+    acilan: d ? d.toplamAcilan : 0,
+    hata: d ? d.toplamHata : 0,
     baslangic: d ? d.baslangic : 0,
     bitis: d ? d.bitis : 0,
-    siradaki: d && d.kuyruk[d.indeks] ? d.kuyruk[d.indeks].name : null,
+    siradaki: a && a.kuyruk[a.indeks] ? a.kuyruk[a.indeks].name : null,
+    siradakiPct: a && a.kuyruk[a.indeks] ? a.kuyruk[a.indeks].rarityPct : null,
     siradakiZaman: d ? d.siradakiZaman : 0,
+    oyunSayisi: d ? d.oyunlar.length : 0,
+    oyunIndeks: d ? d.oyunIndeks : 0,
+    ortalamaAralikMs: d ? d.ortalamaAralikMs : 0,
   }, ek || {}));
 }
 
-// Bir sonraki acilisin ne zaman olacagini hesaplar. Kalan sureyi kalan basarim sayisina
-// boler, uzerine +-%40 rastgele sapma koyar - sabit ritim olusmasin.
+// Bir sonraki acilisin ne zaman olacagini hesaplar. Modelin verdigi hedef zamana gore
+// bekler; "Rastgele aralik" acikken uzerine +-%40 sapma binder - sabit ritim olusmasin.
 function gercekciSonrakiGecikme(d) {
-  const kalanAdet = d.kuyruk.length - d.indeks;
+  const a = d.aktif;
+  const kalanAdet = a.kuyruk.length - a.indeks;
   if (kalanAdet <= 0) return 0;
-  const kalanSure = Math.max(0, d.bitis - Date.now());
-  const ortalama = kalanSure / kalanAdet;
-  const sapma = ortalama * 0.4;
-  const g = ortalama - sapma + Math.random() * sapma * 2;
+  const hedefZaman = a.baslangic + (a.kuyruk[a.indeks].zaman || 0);
+  let g = hedefZaman - Date.now();
+  if (!(g > 0)) {
+    // Model zamani gecmis (baslangicta ya da gecikmede olur): kalan sureyi bol.
+    g = Math.max(0, a.bitis - Date.now()) / kalanAdet;
+  }
+  if (d.secenekler.rastgeleAralik) {
+    const sapma = g * 0.4;
+    g = g - sapma + Math.random() * sapma * 2;
+  }
   return Math.max(3000, Math.round(g));   // en az 3 saniye
 }
 
 async function gercekciAdim() {
   const d = gercekciDurum;
   if (!d || !engineReady || !engine) { gercekciTemizle(); gercekciBildir({ calisiyor: false }); return; }
-  const hedef = d.kuyruk[d.indeks];
+  const a = d.aktif;
+  const hedef = a.kuyruk[a.indeks];
   if (!hedef) {
-    // Kuyruk bitti. Sure dolmadiysa oyun acik kalmaya devam eder (saat kasmayi surdurur).
-    log('info', 'gercekci mod: tum basarimlar acildi, oyun sure sonuna kadar acik kalacak');
+    // Bu oyunun basarimlari bitti. Kuyrukta baska oyun varsa ona gecilir; yoksa "Basarimlar
+    // bitince saati surdur" acikken oyun sure sonuna kadar acik kalir (saat kasmaya devam).
+    log('info', 'gercekci mod: ' + a.oyunAdi + ' basarimlari bitti');
     gercekciBildir({ basarimlarBitti: true });
-    if (Date.now() >= d.bitis) gercekciBitir('sure doldu');
-    else d.timer = setTimeout(() => { if (gercekciDurum) gercekciBitir('sure doldu'); }, d.bitis - Date.now());
+    if (gercekciSonrakiOyun()) return;
+    if (d.secenekler.saatiSurdur && Date.now() < d.bitis) {
+      d.timer = setTimeout(() => { if (gercekciDurum) gercekciBitir('sure doldu'); }, d.bitis - Date.now());
+    } else {
+      gercekciBitir(Date.now() >= d.bitis ? 'sure doldu' : 'tum basarimlar acildi');
+    }
     return;
   }
 
   try {
-    await engine.setAchievements(d.appid, [{ apiName: hedef.apiName, unlock: true }]);
-    d.acilan++;
+    await engine.setAchievements(a.appid, [{ apiName: hedef.apiName, unlock: true }]);
+    a.acilan++; d.toplamAcilan++;
     log('info', 'gercekci mod: acildi -> ' + hedef.name + ' (%' + (hedef.rarityPct != null ? hedef.rarityPct.toFixed(1) : '?') + ')');
-    sendRaw('gercekci:acildi', { appid: d.appid, apiName: hedef.apiName, name: hedef.name, rarityPct: hedef.rarityPct });
+    sendRaw('gercekci:acildi', {
+      appid: a.appid, oyunAdi: a.oyunAdi, apiName: hedef.apiName,
+      name: hedef.name, rarityPct: hedef.rarityPct,
+    });
   } catch (e) {
-    d.hata++;
+    a.hata++; d.toplamHata++;
     log('warn', 'gercekci mod: acilamadi -> ' + hedef.name + ': ' + (e && e.message));
   }
-  d.indeks++;
+  a.indeks++;
 
-  if (Date.now() >= d.bitis && d.indeks < d.kuyruk.length) {
+  if (Date.now() >= d.bitis && a.indeks < a.kuyruk.length) {
     // Sure doldu ama basarim kaldi - kalanlari zorlamiyoruz, kullaniciya soyluyoruz.
-    gercekciBitir('sure doldu, ' + (d.kuyruk.length - d.indeks) + ' basarim acilmadi');
+    gercekciBitir('sure doldu, ' + (a.kuyruk.length - a.indeks) + ' basarim acilmadi');
     return;
   }
   const gecikme = gercekciSonrakiGecikme(d);
@@ -1647,73 +1723,208 @@ async function gercekciAdim() {
   d.timer = setTimeout(gercekciAdim, gecikme);
 }
 
+// Kuyruktaki bir sonraki oyuna gecer. Gecis yapildiysa true doner.
+function gercekciSonrakiOyun() {
+  const d = gercekciDurum;
+  if (!d) return false;
+  if (!d.secenekler.otoSira) return false;             // "Sirayi otomatik baslat" kapali
+  while (d.oyunIndeks + 1 < d.oyunlar.length) {
+    d.oyunIndeks++;
+    const o = d.oyunlar[d.oyunIndeks];
+    const kalanSure = d.bitis - Date.now();
+    if (kalanSure <= 5000) return false;               // sure bitti, gecmenin anlami yok
+    const hazir = d.hazirlanan[o.appid];
+    if (!hazir) continue;
+    if (!hazir.kuyruk.length) {
+      // Bu oyunda acilacak basarim yok. Davranis kullanicinin secimine bagli.
+      if (d.secenekler.basarimsizMod === 'skip') { log('info', 'gercekci mod: ' + o.name + ' atlandi (basarim yok)'); continue; }
+      if (d.secenekler.basarimsizMod === 'stop') { gercekciBitir(o.name + ' basarimsiz, sira durduruldu'); return true; }
+      // 'hours': oyunu acip kalan surenin payini saat olarak topla
+    }
+    // Kalan sureyi kalan oyunlara basarim sayisina gore boluyoruz.
+    const kalanOyunlar = d.oyunlar.slice(d.oyunIndeks);
+    const kalanToplamAdet = kalanOyunlar.reduce((t, x) => t + ((d.hazirlanan[x.appid] || { kuyruk: [] }).kuyruk.length || 1), 0);
+    const buAdet = hazir.kuyruk.length || 1;
+    const pay = Math.max(60000, Math.round(kalanSure * (buAdet / kalanToplamAdet)));
+    const simdi = Date.now();
+    d.aktif = {
+      appid: o.appid, oyunAdi: o.name, kuyruk: gercekciZamanlariYerlestir(hazir.kuyruk, pay, d.secenekler.model),
+      indeks: 0, acilan: 0, hata: 0, baslangic: simdi, bitis: simdi + pay,
+    };
+    try { engine.play([o.appid]); } catch (_) {}
+    log('info', 'gercekci mod: sirada ' + o.name + ' (' + hazir.kuyruk.length + ' basarim, '
+      + (pay / 60000).toFixed(0) + ' dk)');
+    const gecikme = hazir.kuyruk.length ? gercekciSonrakiGecikme(d) : Math.max(0, d.aktif.bitis - Date.now());
+    d.siradakiZaman = Date.now() + gecikme;
+    gercekciBildir({ oyunDegisti: true });
+    d.timer = setTimeout(hazir.kuyruk.length ? gercekciAdim : () => { if (gercekciDurum) gercekciAdim(); }, gecikme);
+    return true;
+  }
+  return false;
+}
+
 function gercekciBitir(sebep) {
   const d = gercekciDurum;
   if (!d) return;
-  const ozet = { acilan: d.acilan, hata: d.hata, toplam: d.kuyruk.length, sebep };
+  const ozet = { acilan: d.toplamAcilan, hata: d.toplamHata, toplam: d.toplamHedef, sebep };
   try { if (engine) engine.stop(); } catch (_) {}
   gercekciTemizle();
   log('info', 'gercekci mod bitti: ' + sebep + ' (' + ozet.acilan + '/' + ozet.toplam + ')');
   sendRaw('gercekci:tick', Object.assign({ calisiyor: false, bitti: true }, ozet));
 }
 
-// Onizleme: baslatmadan once kac basarim, hangi sirada, ne kadar surede acilacak.
-ipcMain.handle('gercekci:plan', async (_e, { appid, saat }) => {
+// Bir oyunun acilabilir basarim kuyrugunu hazirlar (siralama + kirpma).
+// GENELDEN NADIRE: rarityPct BUYUK olan daha yaygin demek, once o acilir.
+async function gercekciKuyrukHazirla(appid, secenekler) {
+  const data = await engine.getAchievements(appid);
+  const hepsi = (data && Array.isArray(data.achievements)) ? data.achievements : null;
+  if (!hepsi) return { ok: false, error: 'Bu oyunun başarım şeması yok.', oyunAdi: null };
+  // Kilitli + korumali olmayanlar. Korumalilar Steam tarafindan reddedilir (bkz G4).
+  let uygun = hepsi.filter((a) => !a.achieved && !a.korumali);
+  const korumali = hepsi.filter((a) => !a.achieved && a.korumali).length;
+  // "Ultra Nadir Basarimlari Atla": %5'in altindakiler profilde en cok dikkat cekenler.
+  let ultraAtlanan = 0;
+  if (secenekler.ultraNadirAtla) {
+    const once = uygun.length;
+    uygun = uygun.filter((a) => !Number.isFinite(a.rarityPct) || a.rarityPct >= 5);
+    ultraAtlanan = once - uygun.length;
+  }
+  uygun.sort((x, y) => {
+    const a = Number.isFinite(x.rarityPct) ? x.rarityPct : -1;
+    const b = Number.isFinite(y.rarityPct) ? y.rarityPct : -1;
+    return b - a;
+  });
+  // Hedef sayi: bastan (en yaygin) itibaren kirpilir.
+  const hedef = +secenekler.hedef || 0;
+  const kirpilan = (hedef > 0 && hedef < uygun.length) ? uygun.slice(0, hedef) : uygun;
+  return {
+    ok: true,
+    oyunAdi: data.gameName || ('App ' + appid),
+    kuyruk: kirpilan.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct })),
+    uygunToplam: uygun.length,
+    korumali,
+    ultraAtlanan,
+    toplamBasarim: hepsi.length,
+    acilmis: hepsi.filter((a) => a.achieved).length,
+  };
+}
+
+// Gelen seceneklerin tamamlanmis hali. Arayuz eksik gonderse de motor tutarli calisir.
+function gercekciSecenekler(s) {
+  const g = s || {};
+  return {
+    hedef: Math.max(0, +g.hedef || 0),                       // 0 = hepsi
+    model: ['linear', 'exp', 'pareto'].includes(g.model) ? g.model : 'linear',
+    rastgeleAralik: g.rastgeleAralik !== false,
+    ultraNadirAtla: !!g.ultraNadirAtla,
+    otoSira: g.otoSira !== false,
+    saatiSurdur: g.saatiSurdur !== false,
+    basarimsizMod: ['hours', 'skip', 'stop'].includes(g.basarimsizMod) ? g.basarimsizMod : 'hours',
+  };
+}
+
+// Onizleme: kac basarim, hangi sirada, hangi dakikada acilacak.
+// sureMs verilmezse saat alani kullanilir (eski cagri bicimi de calisir).
+ipcMain.handle('gercekci:plan', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  const { appid, saat, sureMs } = arg || {};
+  const sec = gercekciSecenekler(arg && arg.secenekler);
+  const sure = Math.max(60000, +sureMs || (Math.max(1, +saat || 1) * 3600000));
   try {
-    const data = await engine.getAchievements(appid);
-    if (!data || !Array.isArray(data.achievements)) return { ok: false, error: 'Bu oyunun başarım şeması yok.' };
-    // Kilitli + korumali olmayanlar. Korumalilar Steam tarafindan reddedilir (bkz G4).
-    const uygun = data.achievements.filter((a) => !a.achieved && !a.korumali);
-    const korumali = data.achievements.filter((a) => !a.achieved && a.korumali).length;
-    // GENELDEN NADIRE: rarityPct BUYUK olan daha yaygin demek, once o acilir.
-    // Nadirligi bilinmeyenler sona konur (uydurma sira uretmiyoruz).
-    uygun.sort((x, y) => {
-      const a = Number.isFinite(x.rarityPct) ? x.rarityPct : -1;
-      const b = Number.isFinite(y.rarityPct) ? y.rarityPct : -1;
-      return b - a;
-    });
-    const sureMs = Math.max(1, +saat || 1) * 3600000;
+    const h = await gercekciKuyrukHazirla(appid, sec);
+    if (!h.ok) return h;
+    gercekciZamanlariYerlestir(h.kuyruk, sure, sec.model);
     return {
       ok: true,
-      toplam: uygun.length,
-      korumali,
-      sureMs,
-      ortalamaAralikMs: uygun.length ? Math.round(sureMs / uygun.length) : 0,
-      ilkler: uygun.slice(0, 5).map((a) => ({ name: a.name, rarityPct: a.rarityPct })),
-      sonlar: uygun.slice(-3).map((a) => ({ name: a.name, rarityPct: a.rarityPct })),
+      appid: +appid,
+      oyunAdi: h.oyunAdi,
+      toplam: h.kuyruk.length,          // acilacak (hedefe gore kirpilmis)
+      uygunToplam: h.uygunToplam,       // acilabilir olanlarin tamami
+      toplamBasarim: h.toplamBasarim,
+      acilmis: h.acilmis,
+      korumali: h.korumali,
+      ultraAtlanan: h.ultraAtlanan,
+      sureMs: sure,
+      model: sec.model,
+      ortalamaAralikMs: h.kuyruk.length ? Math.round(sure / h.kuyruk.length) : 0,
+      // Tam liste: arayuz "Acilma Sirasi" tablosunu bundan ciziyor.
+      kuyruk: h.kuyruk.map((a) => ({ name: a.name, rarityPct: a.rarityPct, zaman: a.zaman })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-ipcMain.handle('gercekci:start', async (_e, { appid, saat }) => {
+// Baslat. oyunlar: [appid, ...] - kuyruk. Tek oyun da ayni yoldan gecer.
+ipcMain.handle('gercekci:start', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   if (gercekciDurum) return { ok: false, error: 'Zaten çalışıyor.' };
+  const { appid, saat, sureMs } = arg || {};
+  const sec = gercekciSecenekler(arg && arg.secenekler);
+  const sure = Math.max(60000, +sureMs || (Math.max(1, +saat || 1) * 3600000));
+  const liste = (Array.isArray(arg && arg.oyunlar) && arg.oyunlar.length)
+    ? arg.oyunlar.map((x) => +x)
+    : [+appid];
+  if (!liste.length || !liste[0]) return { ok: false, error: 'Oyun seçilmedi.' };
   try {
-    const data = await engine.getAchievements(appid);
-    const uygun = (data.achievements || []).filter((a) => !a.achieved && !a.korumali);
-    uygun.sort((x, y) => {
-      const a = Number.isFinite(x.rarityPct) ? x.rarityPct : -1;
-      const b = Number.isFinite(y.rarityPct) ? y.rarityPct : -1;
-      return b - a;
-    });
-    const sureMs = Math.max(1, +saat || 1) * 3600000;
+    // Tum oyunlarin kuyruklari ONCE hazirlanir: sure paylasimi ancak hepsinin basarim
+    // sayisi bilinince dogru yapilabilir, ve ilk oyun baslamadan hata gorulur.
+    const hazirlanan = {};
+    const oyunlar = [];
+    for (const id of liste) {
+      const h = await gercekciKuyrukHazirla(id, sec);
+      if (!h.ok) {
+        if (sec.basarimsizMod === 'stop') return { ok: false, error: h.error };
+        continue;
+      }
+      hazirlanan[id] = h;
+      oyunlar.push({ appid: id, name: h.oyunAdi });
+    }
+    if (!oyunlar.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
+
+    // Basarimi olmayanlar: 'skip' ise kuyruktan cikar, 'stop' ise ilkinde durur.
+    const calisacak = oyunlar.filter((o) => hazirlanan[o.appid].kuyruk.length || sec.basarimsizMod !== 'skip');
+    if (!calisacak.length) return { ok: false, error: 'Seçilen oyunlarda açılabilecek kilitli başarım yok.' };
+
+    const toplamHedef = calisacak.reduce((t, o) => t + hazirlanan[o.appid].kuyruk.length, 0);
+    const toplamAdet = calisacak.reduce((t, o) => t + (hazirlanan[o.appid].kuyruk.length || 1), 0);
+
     // Kart toplama ile ayni anda calisirsa ikisi de ayni oyun listesini yaziyor; carpismasin.
     if (settings.pauseFarmOnBoost && farm) farm.stop();
-    engine.play([+appid]);
+
+    const ilkOyun = calisacak[0];
+    const ilkHazir = hazirlanan[ilkOyun.appid];
+    const ilkPay = Math.max(60000, Math.round(sure * ((ilkHazir.kuyruk.length || 1) / toplamAdet)));
+    const simdi = Date.now();
+    engine.play([ilkOyun.appid]);
     gercekciDurum = {
-      appid: +appid, oyunAdi: (data.gameName || ('App ' + appid)),
-      kuyruk: uygun, indeks: 0, acilan: 0, hata: 0,
-      baslangic: Date.now(), bitis: Date.now() + sureMs,
-      timer: null, siradakiZaman: 0,
+      oyunlar: calisacak,
+      oyunIndeks: 0,
+      hazirlanan,
+      secenekler: sec,
+      toplamHedef,
+      toplamAcilan: 0,
+      toplamHata: 0,
+      ortalamaAralikMs: toplamHedef ? Math.round(sure / toplamHedef) : 0,
+      baslangic: simdi,
+      bitis: simdi + sure,
+      timer: null,
+      siradakiZaman: 0,
+      aktif: {
+        appid: ilkOyun.appid, oyunAdi: ilkOyun.name,
+        kuyruk: gercekciZamanlariYerlestir(ilkHazir.kuyruk, ilkPay, sec.model),
+        indeks: 0, acilan: 0, hata: 0,
+        baslangic: simdi, bitis: simdi + ilkPay,
+      },
     };
-    log('info', 'gercekci mod basladi: ' + gercekciDurum.oyunAdi + ', ' + uygun.length + ' basarim, ' + (sureMs / 3600000).toFixed(1) + ' saat');
+    log('info', 'gercekci mod basladi: ' + calisacak.length + ' oyun, ' + toplamHedef + ' basarim, '
+      + (sure / 3600000).toFixed(2) + ' saat, model=' + sec.model);
     // Ilk acilis hemen degil - oyunu acar acmaz basarim gelmesi gercekci degil.
-    const ilk = gercekciSonrakiGecikme(gercekciDurum);
+    const ilk = ilkHazir.kuyruk.length
+      ? gercekciSonrakiGecikme(gercekciDurum)
+      : Math.max(0, gercekciDurum.aktif.bitis - Date.now());
     gercekciDurum.siradakiZaman = Date.now() + ilk;
     gercekciBildir();
     gercekciDurum.timer = setTimeout(gercekciAdim, ilk);
-    return { ok: true, toplam: uygun.length };
+    return { ok: true, toplam: toplamHedef, oyunSayisi: calisacak.length, oyunAdi: ilkOyun.name };
   } catch (e) { return { ok: false, error: e.message }; }
 });
 

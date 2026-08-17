@@ -96,8 +96,10 @@ contextBridge.exposeInMainWorld('imu', {
   },
   // G2: Gercekci Mod - tek oyun acik, basarimlar genelden nadire yayilarak acilir
   gercekci: {
-    plan: (appid, saat) => ipcRenderer.invoke('gercekci:plan', { appid, saat }),
-    start: (appid, saat) => ipcRenderer.invoke('gercekci:start', { appid, saat }),
+    // G11: sure milisaniye, secenekler = { hedef, model, rastgeleAralik, ultraNadirAtla,
+    // otoSira, saatiSurdur, basarimsizMod }. oyunlar = appid dizisi (kuyruk).
+    plan: (appid, sureMs, secenekler) => ipcRenderer.invoke('gercekci:plan', { appid, sureMs, secenekler }),
+    start: (oyunlar, sureMs, secenekler) => ipcRenderer.invoke('gercekci:start', { oyunlar, sureMs, secenekler }),
     stop: () => ipcRenderer.send('gercekci:stop'),
     onTick: (cb) => ipcRenderer.on('gercekci:tick', (_e, d) => cb(d)),
     onAcildi: (cb) => ipcRenderer.on('gercekci:acildi', (_e, d) => cb(d)),
