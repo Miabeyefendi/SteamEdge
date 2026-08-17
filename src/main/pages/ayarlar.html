@@ -31,7 +31,6 @@
             <button data-secbtn="achs" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Başarımlar</button>
             <button data-secbtn="notif" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Bildirimler</button>
             <button data-secbtn="privacy" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Gizlilik &amp; Güvenlik</button>
-            <button data-secbtn="acct" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Hesap Kimliği</button>
             <button data-secbtn="stats" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">İstatistikler</button>
             <button data-secbtn="advanced" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Gelişmiş &amp; Veri</button>
             <button data-secbtn="about" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Hakkında</button>
@@ -250,93 +249,6 @@
               </div>
             </div>
             </div>
-            <!-- HESAP KİMLİĞİ
-                 Steam aynı hesabı yedi ayrı biçimde yazar; hangi siteye/araca gireceğine göre
-                 farklısı istenir. Hepsi TEK sayıdan (SteamID64) hesaplanır, ağdan bir şey
-                 sorulmaz - sadece özel profil adresi profilden okunur (bkz steamEngine.getVanityURL). -->
-            <div class="setpanel" data-sec="acct">
-            <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118">
-              <div style="height:44px;padding:0 18px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #1D2432;background:#090C12;border-radius:11px 11px 0 0">
-                <span style="width:6px;height:6px;border-radius:12px;background:#C2AAEE;flex-shrink:0"></span>
-                <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Hesap Kimliği - tüm biçimler</span>
-              </div>
-              <div style="padding:14px 18px 4px">
-                <span style="font-size:11px;color:#8B8F9E;line-height:1.6" id="idAcctNote">Aşağıdaki değerler bağlı hesabın kimliğidir. Hepsi aynı hesabı gösterir; ticaret siteleri, başarım araçları ve topluluk sayfaları farklı biçim ister. Satırın sonundaki düğme değeri panoya kopyalar.</span>
-              </div>
-              <div style="padding:6px 18px 16px;display:flex;flex-direction:column" id="idRows">
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">SteamID64</span>
-                    <span style="font-size:10.5px;color:#656D80">En yaygın biçim · 17 hane</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idSteam64">-</span>
-                  <button class="h-brand" data-kopya="idSteam64" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">SteamID (klasik)</span>
-                    <span style="font-size:10.5px;color:#656D80">Eski sunucu ve eklentiler</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idKlasik">-</span>
-                  <button class="h-brand" data-kopya="idKlasik" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">SteamID3</span>
-                    <span style="font-size:10.5px;color:#656D80">Ticaret ve envanter araçları</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idSteam3">-</span>
-                  <button class="h-brand" data-kopya="idSteam3" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">Hesap numarası</span>
-                    <span style="font-size:10.5px;color:#656D80">32 bit · ticaret bağlantısında geçer</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idHesap">-</span>
-                  <button class="h-brand" data-kopya="idHesap" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">Onaltılık (hex)</span>
-                    <span style="font-size:10.5px;color:#656D80">Bazı kayıt ve günlük dosyaları</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idHex">-</span>
-                  <button class="h-brand" data-kopya="idHex" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">Profil adresi</span>
-                    <span style="font-size:10.5px;color:#656D80">Her hesapta çalışır</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idProfil">-</span>
-                  <button class="h-brand" data-ac="idProfil" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Aç</button>
-                  <button class="h-brand" data-kopya="idProfil" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #101621">
-                  <div style="display:flex;flex-direction:column;gap:2px;width:170px;flex-shrink:0">
-                    <span style="font-size:12px;font-weight:600;color:#DCE2FA">Özel adres</span>
-                    <span style="font-size:10.5px;color:#656D80">Profilde tanımlıysa görünür</span>
-                  </div>
-                  <span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="idOzel">-</span>
-                  <button class="h-brand" data-ac="idOzel" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Aç</button>
-                  <button class="h-brand" data-kopya="idOzel" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kopyala</button>
-                </div>
-
-              </div>
-              <div style="padding:12px 18px;border-top:1px solid #1D2432;display:flex;gap:10px;flex-wrap:wrap">
-                <button id="idCopyAll" class="h-brand" style="height:34px;padding:0 15px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Hepsini Kopyala</button>
-                <span style="font-size:10.5px;color:#656D80;align-self:center;line-height:1.5">Bu değerler gizli değildir; profilin herkese açık kimliğidir. Gizli olan tek şey oturum anahtarındır, o da settings klasöründe kalır.</span>
-              </div>
-            </div>
-            </div>
             <div class="setpanel" data-sec="stats">
             <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118">
               <div style="height:44px;padding:0 18px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #1D2432;background:#090C12;border-radius:11px 11px 0 0">
@@ -428,42 +340,6 @@
             </div>
             </div>
             <div class="setpanel" data-sec="about">
-            <!-- GÜNCELLEME
-                 Sadece bakar. Uygulama hiçbir dosya indirmez ve kendini değiştirmez; bulduğu
-                 sürümü yan yana gösterir, indirme kararı kullanıcınındır (bkz src/update/guncelleme.js). -->
-            <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;margin-bottom:14px">
-              <div style="height:44px;padding:0 18px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #1D2432;background:#090C12;border-radius:11px 11px 0 0">
-                <span style="width:6px;height:6px;border-radius:12px;background:#24AEB3;flex-shrink:0" id="updDot"></span>
-                <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Güncelleme</span>
-              </div>
-              <div style="padding:18px;display:flex;flex-direction:column;gap:14px">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-                  <div style="border:1px solid #1D2432;border-radius:12px;background:#090C12;padding:14px;display:flex;flex-direction:column;gap:5px">
-                    <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">Kurulu sürüm</span>
-                    <span style="font-family:Geist Mono,monospace;font-size:17px;font-weight:700;color:#DCE2FA" id="updKurulu">-</span>
-                  </div>
-                  <div style="border:1px solid #1D2432;border-radius:12px;background:#090C12;padding:14px;display:flex;flex-direction:column;gap:5px">
-                    <span style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">Yayımlanan son sürüm</span>
-                    <span style="font-family:Geist Mono,monospace;font-size:17px;font-weight:700;color:#B9C0D6" id="updSon">henüz bakılmadı</span>
-                  </div>
-                </div>
-                <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;border:1px solid #1D2432;background:#101621">
-                  <span style="font-size:12px;color:#B9C0D6;flex:1;min-width:0;line-height:1.55" id="updMsg">Sürüm bilgisi GitHub yayın sayfasından okunur. Uygulama hiçbir dosya indirmez.</span>
-                </div>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                  <button id="updCheck" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Güncellemeleri Denetle</button>
-                  <button id="updOpen" class="h-brand" style="display:none;height:34px;padding:0 16px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Yayın Sayfasını Aç</button>
-                  <span style="font-size:10.5px;color:#656D80" id="updLast">Son denetim: -</span>
-                </div>
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0 0;border-top:1px solid #101621">
-                  <div style="display:flex;align-items:center;gap:8px;min-width:0">
-                    <span style="font-size:13px;font-weight:600;color:#DCE2FA">Günde bir kez kendiliğinden denetle</span>
-                    <span data-tip="Sadece sürüm numarasına bakar, dosya indirmez. Yeni sürüm varsa üst çubukta bir düğme belirir." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
-                  </div>
-                  <div data-set="guncellemeKontrol" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
-                </div>
-              </div>
-            </div>
             <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118">
               <div style="height:44px;padding:0 18px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #1D2432;background:#090C12;border-radius:11px 11px 0 0">
                 <span style="width:6px;height:6px;border-radius:12px;background:#8B8F9E;flex-shrink:0"></span>

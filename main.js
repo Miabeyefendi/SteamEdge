@@ -297,10 +297,6 @@ const DEFAULT_SETTINGS = {
   hideGameName: false,      // oynarken görünmez ol (oyun adı profilde görünmesin)
   twoStepSell: false,       // toplu satışta yazarak ek onay
   logLevel: 'error',
-  // Güncelleme kontrolü - sadece BAKAR, indirmez (bkz src/update/guncelleme.js)
-  guncellemeKontrol: true,  // günde bir sessiz kontrol
-  sonGuncellemeTs: 0,       // son kontrolün zamanı (günde bir kuralı buna bakar)
-  gorulenSurum: '',         // kullanıcının rozeti gördüğü sürüm - aynı sürüm için tekrar rahatsız etme
 };
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -1962,59 +1958,38 @@ ipcMain.handle('settings:wipeAll', () => {
 // ---- guncelleme kontrolu (issue #6) ----
 // Kural: hicbir sey indirilmez, hicbir sey kendiliginden calistirilmaz. Uygulama sadece
 // GitHub'daki en yeni yayin numarasini okur ve kuruluyla karsilastirir. Gerisi kullanicinin.
-// Gunde bir sessiz kontrol yapilir; sonuc yeni surumse ust cubuktaki zil rozeti yanar.
-const GUNDE_BIR_MS = 24 * 60 * 60 * 1000;
-let guncellemeSonDurum = null;    // son kontrolun sonucu (arayuz acildiginda hemen gosterilir)
+//
+// Ne zaman bakilir:
+//   1. Uygulama acilisinda BIR KEZ. Yeni surum varsa ekrana pencere gelir; SURUM GUNCELSE
+//      hicbir sey gosterilmez. Zamanlayici, gunluk tekrar, arka planda dolasan kontrol yok.
+//   2. Kullanici ust cubuktaki dugmeye basarsa. Orada sonuc her turlu soylenir - guncel
+//      oldugunu ogrenmek de bir cevaptir, dugmenin oluye donmemesi gerekir.
+let guncellemeSonDurum = null;    // son kontrolun sonucu
 let guncellemeCalisiyor = false;
-let guncellemeTimer = null;
 
 async function guncellemeKontrolEt(elle) {
-  // Ayni anda iki kontrol calismasin: kullanici butona basarken gunluk kontrol denk gelebilir.
+  // Ayni anda iki kontrol calismasin: acilis kontrolu surerken kullanici dugmeye basabilir.
   if (guncellemeCalisiyor) return guncellemeSonDurum || { ok: false, hata: 'Kontrol zaten suruyor.' };
   guncellemeCalisiyor = true;
   try {
     const sonuc = await guncelleme.kontrolEt(app.getVersion());
     guncellemeSonDurum = { ...sonuc, ts: Date.now(), elle: !!elle };
-    // Basarisiz kontrol zamani ILERLETMEZ: internet yokken gun boyu bir daha denememek
-    // yerine, baglanti gelince bir sonraki firsatta tekrar bakilir.
-    if (sonuc.ok) { settings.sonGuncellemeTs = Date.now(); saveSettings(); }
     log(sonuc.ok ? 'info' : 'warn', 'guncelleme kontrolu: '
       + (sonuc.ok ? (sonuc.guncelMi ? 'guncel (' + sonuc.kurulu + ')' : 'yeni surum ' + sonuc.son) : sonuc.hata));
-    // Rozet yalnizca gercekten yeni surum varken ve kullanici o surumu daha once
-    // gormediyse yanar - her acilista ayni bildirimi tekrarlamak rahatsiz edici.
-    const yeniVar = sonuc.ok && sonuc.guncelMi === false;
-    sendRaw('guncelleme:durum', {
-      ...guncellemeSonDurum,
-      rozet: yeniVar && settings.gorulenSurum !== sonuc.son,
-    });
+    sendRaw('guncelleme:durum', guncellemeSonDurum);
     return guncellemeSonDurum;
   } finally {
     guncellemeCalisiyor = false;
   }
 }
 
-function guncellemeZamanlayiciyiKur() {
-  if (guncellemeTimer) clearInterval(guncellemeTimer);
-  guncellemeTimer = setInterval(() => {
-    if (!settings.guncellemeKontrol) return;
-    if (Date.now() - (settings.sonGuncellemeTs || 0) < GUNDE_BIR_MS) return;
-    guncellemeKontrolEt(false).catch(() => {});
-  }, 60 * 60 * 1000);   // saatte bir bak, gunu dolmussa kontrol et
-  // Acilis kontrolu: pencere ve Steam baglantisi rahat etsin diye 20 saniye gecikmeli.
-  setTimeout(() => {
-    if (!settings.guncellemeKontrol) return;
-    if (Date.now() - (settings.sonGuncellemeTs || 0) < GUNDE_BIR_MS) return;
-    guncellemeKontrolEt(false).catch(() => {});
-  }, 20000);
+// Acilistaki tek kontrol. Pencere ve Steam oturumu rahat etsin diye 15 saniye gecikmeli.
+function acilisGuncellemeKontrolu() {
+  setTimeout(() => { guncellemeKontrolEt(false).catch(() => {}); }, 15000);
 }
 
 ipcMain.handle('guncelleme:kontrol', () => guncellemeKontrolEt(true));
 ipcMain.handle('guncelleme:sonDurum', () => guncellemeSonDurum);
-// Kullanici rozeti gordu: ayni surum icin bir daha yakma.
-ipcMain.handle('guncelleme:goruldu', (_e, surum) => {
-  if (surum) { settings.gorulenSurum = String(surum); saveSettings(); }
-  return { ok: true };
-});
 // Uygulamanin gercek bellek kullanimi, surec surec. "Ne kadar RAM yiyor" sorusunun
 // cevabi tahmin olmasin diye Ayarlar > Gelismis bunu canli gosteriyor. Electron cok
 // surecli calisir: Gorev Yoneticisi'nde bes ayri SteamEdge satiri gorunur, kullanicinin
@@ -2117,7 +2092,7 @@ app.whenReady().then(() => {
   loadSettings(); applySettings(); loadStats(); loadState(); loadPriceCache(); loadHistoryCache();
   createWindow(); ensureTray();
   setTimeout(okumaHatalariniBildir, 1200);
-  guncellemeZamanlayiciyiKur();
+  acilisGuncellemeKontrolu();
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin' && !settings.closeToTray) app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

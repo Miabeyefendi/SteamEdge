@@ -2254,6 +2254,83 @@
     };
     Object.keys(I18N_G10).forEach((dil) => { Object.assign(I18N[dil], I18N_G10[dil]); });
 
+    // ---- G11 EKİ: kimlik hesap menüsüne, güncelleme açılış penceresine taşındı ----
+    // Ayarlar'daki iki bölüm kaldırıldığı için oradaki uzun açıklamalar da düştü; burada
+    // yalnızca yeni yerlerinde görünen metinler var.
+    const GUNCELLEME_UYARI = 'İndirmeyi uygulama yapmaz. Yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ '
+      + 'bir klasöre çıkarır, eski klasördeki settings klasörünü yanına kopyalarsın.';
+    const I18N_G11 = {
+      en: {
+        'Hesap no': 'Account no',
+        'Profil': 'Profile',
+        'Hepsini kopyala': 'Copy all',
+        'Profili aç': 'Open profile',
+        'hesap bağlı değil': 'no account connected',
+        'Hesap kimliği biçimleri': 'Account identity formats',
+        'Güncellemeleri denetle': 'Check for updates',
+        'Yeni sürüm yayımlandı: v#': 'New version released: v#',
+        'Kurulu sürüm v#': 'Installed version v#',
+        'Değişiklikleri yayın sayfasında okuyabilirsin.': 'You can read the changes on the release page.',
+        'Şimdi Değil': 'Not now',
+        'En güncel sürümü kullanıyorsun (v#).': 'You are on the latest version (v#).',
+        'Kurulu sürümün çalışmaya devam eder.': 'Your installed version keeps working.',
+        [GUNCELLEME_UYARI]: 'The app does not download anything. Get it from the release page yourself, extract the '
+          + 'archive into an EMPTY and NEW folder, then copy the settings folder from the old one next to it.',
+      },
+      de: {
+        'Hesap no': 'Kontonummer',
+        'Profil': 'Profil',
+        'Hepsini kopyala': 'Alle kopieren',
+        'Profili aç': 'Profil oeffnen',
+        'hesap bağlı değil': 'kein Konto verbunden',
+        'Hesap kimliği biçimleri': 'Formate der Kontokennung',
+        'Güncellemeleri denetle': 'Nach Updates suchen',
+        'Yeni sürüm yayımlandı: v#': 'Neue Version veroeffentlicht: v#',
+        'Kurulu sürüm v#': 'Installierte Version v#',
+        'Değişiklikleri yayın sayfasında okuyabilirsin.': 'Die Aenderungen stehen auf der Release-Seite.',
+        'Şimdi Değil': 'Jetzt nicht',
+        'En güncel sürümü kullanıyorsun (v#).': 'Du nutzt die neueste Version (v#).',
+        'Kurulu sürümün çalışmaya devam eder.': 'Deine installierte Version laeuft weiter.',
+        [GUNCELLEME_UYARI]: 'Die Anwendung laedt nichts herunter. Hole sie selbst von der Release-Seite, entpacke '
+          + 'das Archiv in einen LEEREN und NEUEN Ordner und kopiere den settings-Ordner aus dem alten daneben.',
+      },
+      es: {
+        'Hesap no': 'N.o de cuenta',
+        'Profil': 'Perfil',
+        'Hepsini kopyala': 'Copiar todo',
+        'Profili aç': 'Abrir perfil',
+        'hesap bağlı değil': 'sin cuenta conectada',
+        'Hesap kimliği biçimleri': 'Formatos de identidad de la cuenta',
+        'Güncellemeleri denetle': 'Buscar actualizaciones',
+        'Yeni sürüm yayımlandı: v#': 'Nueva version publicada: v#',
+        'Kurulu sürüm v#': 'Version instalada v#',
+        'Değişiklikleri yayın sayfasında okuyabilirsin.': 'Puedes leer los cambios en la pagina de versiones.',
+        'Şimdi Değil': 'Ahora no',
+        'En güncel sürümü kullanıyorsun (v#).': 'Estas en la ultima version (v#).',
+        'Kurulu sürümün çalışmaya devam eder.': 'Tu version instalada sigue funcionando.',
+        [GUNCELLEME_UYARI]: 'La aplicacion no descarga nada. Descargala tu mismo desde la pagina de versiones, '
+          + 'extrae el archivo en una carpeta VACIA y NUEVA y copia junto a ella la carpeta settings de la anterior.',
+      },
+      zh: {
+        'Hesap no': '帳號編號',
+        'Profil': '個人檔案',
+        'Hepsini kopyala': '全部複製',
+        'Profili aç': '開啟個人檔案',
+        'hesap bağlı değil': '尚未連線帳號',
+        'Hesap kimliği biçimleri': '帳號識別碼格式',
+        'Güncellemeleri denetle': '檢查更新',
+        'Yeni sürüm yayımlandı: v#': '已發佈新版本：v#',
+        'Kurulu sürüm v#': '已安裝版本 v#',
+        'Değişiklikleri yayın sayfasında okuyabilirsin.': '你可以在發佈頁面閱讀變更內容。',
+        'Şimdi Değil': '暫不',
+        'En güncel sürümü kullanıyorsun (v#).': '你使用的已是最新版本（v#）。',
+        'Kurulu sürümün çalışmaya devam eder.': '你已安裝的版本仍可正常使用。',
+        [GUNCELLEME_UYARI]: '本程式不會下載任何檔案。請自行到發佈頁面下載，將壓縮檔解壓縮到一個「全新且空白」的資料夾，'
+          + '再把舊資料夾中的 settings 複製過去。',
+      },
+    };
+    Object.keys(I18N_G11).forEach((dil) => { Object.assign(I18N[dil], I18N_G11[dil]); });
+
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
 

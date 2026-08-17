@@ -403,6 +403,8 @@
       }
       const setP = document.getElementById('setPersona'); if (setP) setP.textContent = nm;
       const setLevelRow = document.getElementById('setLevel'); if (setLevelRow) setLevelRow.textContent = imuProfile.level!=null ? imuProfile.level : '-';
+      // Kimlik satırları profilden gelen özel adresi de gösteriyor; hesap değişince tazelensin.
+      if (typeof kimlikleriBoya === 'function') kimlikleriBoya();
     }
 
     // ---- kalıcı istatistikler (main.js stats.json) ----
@@ -461,36 +463,161 @@
       if (e) e.textContent = APP_SURUM ? ('v' + APP_SURUM) : 'v-';
     })();
 
-    // Günlük sessiz kontrol yeni sürüm bulursa buradaki düğme görünür. Otomatik indirme YOK:
-    // düğme yalnızca Ayarlar > Hakkında bölümünü açar, indirme kararı kullanıcının.
+    // ---- GÜNCELLEME ----
+    // Uygulama açılışta BİR KEZ bakar. Yeni sürüm varsa pencere açılır; sürüm güncelse
+    // hiçbir şey gösterilmez - kullanıcıyı "her şey yolunda" demek için rahatsız etmenin
+    // anlamı yok. Üst çubuktaki düğme aynı kontrolü istendiği an tekrar yapar; orada sonuç
+    // her durumda söylenir, çünkü düğmeye basan cevap bekler.
+    // İndirme, kurulum veya kendini güncelleme YOK: yalnızca sürüm numarası okunur.
     let sonGuncellemeDurumu = null;
-    function guncellemeRozetiniGoster(d){
-      sonGuncellemeDurumu = d || null;
-      const btn = document.getElementById('tbUpdate');
-      if (!btn) return;
-      const goster = !!(d && d.ok && d.guncelMi === false && d.rozet !== false);
-      btn.style.display = goster ? 'flex' : 'none';
-      if (goster){
-        const lbl = document.getElementById('tbUpdateLbl');
-        if (lbl) lbl.textContent = 'v' + d.son + ' yayımlandı';
-        btn.title = 'Yeni sürüm var: v' + d.son + ' (kurulu v' + d.kurulu + ')';
+    let guncellemePenceresiAcik = false;
+
+    async function guncellemePenceresi(d){
+      if (guncellemePenceresiAcik) return;
+      guncellemePenceresiAcik = true;
+      try {
+        const tarih = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString('tr-TR') : '';
+        const ac = await edgeConfirm({
+          tag: 'Güncelleme',
+          title: 'Yeni sürüm yayımlandı: v' + d.son,
+          body: 'Kurulu sürüm v' + d.kurulu + (tarih ? ('  ·  yayımlanma tarihi ' + tarih) : '')
+                + '\nDeğişiklikleri yayın sayfasında okuyabilirsin.',
+          warn: 'İndirmeyi uygulama yapmaz. Yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ '
+                + 'bir klasöre çıkarır, eski klasördeki settings klasörünü yanına kopyalarsın.',
+          confirmText: 'Yayın Sayfasını Aç',
+          cancelText: 'Şimdi Değil',
+        });
+        if (ac) window.imu.openExternal(d.url);
+      } finally {
+        guncellemePenceresiAcik = false;
       }
     }
+
+    function guncellemeDurumu(d, elleBakildi){
+      sonGuncellemeDurumu = d || null;
+      const rozet = document.getElementById('tbUpdateBadge');
+      const yeniVar = !!(d && d.ok && d.guncelMi === false);
+      // Düğmenin üstündeki nokta: yeni sürüm varken yanar, güncelken söner.
+      if (rozet) rozet.style.display = yeniVar ? 'block' : 'none';
+      const btn = document.getElementById('tbUpdate');
+      if (btn) btn.title = yeniVar ? ('Yeni sürüm var: v' + d.son) : 'Güncellemeleri denetle';
+      if (yeniVar){ guncellemePenceresi(d); return; }
+      // Güncel ya da bakılamadı: yalnızca kullanıcı elle sorduysa cevap ver.
+      if (!elleBakildi || !d || typeof toast !== 'function') return;
+      if (d.ok) toast('Güncelleme').done('En güncel sürümü kullanıyorsun (v' + d.kurulu + ').');
+      else toast('Güncelleme').fail((d.hata || 'Sürüm bilgisi alınamadı.') + ' Kurulu sürümün çalışmaya devam eder.');
+    }
+
     if (window.imu && window.imu.guncelleme){
-      window.imu.guncelleme.onDurum(guncellemeRozetiniGoster);
-      // Uygulama açılırken kontrol henüz yapılmamış olabilir; varsa önceki sonucu göster.
-      window.imu.guncelleme.sonDurum().then(guncellemeRozetiniGoster).catch(()=>{});
+      // Açılıştaki tek kontrolün sonucu buradan gelir.
+      window.imu.guncelleme.onDurum((d) => guncellemeDurumu(d, false));
       const ub = document.getElementById('tbUpdate');
-      if (ub) ub.onclick = ()=>{
-        // Rozeti söndür: kullanıcı bu sürümü gördü, her açılışta tekrar dürtmeyelim.
-        if (sonGuncellemeDurumu && sonGuncellemeDurumu.son){
-          window.imu.guncelleme.goruldu(sonGuncellemeDurumu.son).catch(()=>{});
-        }
-        ub.style.display = 'none';
-        document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
-        openAyarlar('about');
+      if (ub) ub.onclick = async ()=>{
+        ub.disabled = true;
+        const d = await window.imu.guncelleme.kontrol().catch(e=>({ ok:false, hata:(e&&e.message)||'Denetim başarısız.' }));
+        ub.disabled = false;
+        guncellemeDurumu(d, true);
       };
     }
+
+    // ---- HESAP KİMLİĞİ (sağ üstteki hesap menüsü) ----
+    // Steam'in yedi biçimi de TEK sayıdan türer: SteamID64. Ağa hiçbir şey sorulmaz.
+    //   hesap numarası = SteamID64 - 76561197960265728   (evren 1, "individual" hesap tabanı)
+    //   klasik         = STEAM_1:<numaranın son biti>:<numaranın yarısı>
+    //   SteamID3       = [U:1:<hesap numarası>]
+    // Tam sayılar 53 biti aştığı için BigInt kullanılır; Number ile son haneler bozulur.
+    const STEAM64_TABAN = 76561197960265728n;
+    let kimlikler = null;
+
+    function kimlikBicimleri(steamID64, vanity){
+      const ham = String(steamID64 || '').trim();
+      if (!/^\d{17}$/.test(ham)) return null;
+      let sid;
+      try { sid = BigInt(ham); } catch (_) { return null; }
+      if (sid < STEAM64_TABAN) return null;
+      const hesap = sid - STEAM64_TABAN;
+      return {
+        idSteam64: ham,
+        idKlasik : 'STEAM_1:' + (hesap % 2n) + ':' + (hesap / 2n),
+        idSteam3 : '[U:1:' + hesap + ']',
+        idHesap  : String(hesap),
+        idHex    : '0x' + sid.toString(16).toUpperCase().padStart(16, '0'),
+        idProfil : 'https://steamcommunity.com/profiles/' + ham,
+        idOzel   : vanity ? ('https://steamcommunity.com/id/' + vanity) : null,
+      };
+    }
+
+    function kimlikleriBoya(){
+      const sid = (imuProfile && imuProfile.steamID)
+        || (typeof appSettings === 'object' && appSettings && appSettings.steamID) || null;
+      kimlikler = kimlikBicimleri(sid, imuProfile && imuProfile.vanity);
+      ['idSteam64','idKlasik','idSteam3','idHesap','idHex','idProfil','idOzel'].forEach(id=>{
+        const e = document.getElementById(id);
+        if (!e) return;
+        const v = kimlikler ? kimlikler[id] : null;
+        // Menü 268 px: tam adres satıra sığmayıp üç noktayla kesiliyordu. Adreslerde
+        // "https://steamcommunity.com" kısmı zaten her satırda aynı, o yüzden yalnızca
+        // yol gösteriliyor. KOPYALANAN ve AÇILAN değer tam adres olarak kalır.
+        const gorunen = (v && v.startsWith('https://steamcommunity.com'))
+          ? v.slice('https://steamcommunity.com'.length)
+          : v;
+        // Boş tire "bozuk" gibi görünüyor; değeri olmayan satır sebebini yazsın.
+        e.textContent = gorunen || (kimlikler ? 'tanımlı değil' : 'hesap bağlı değil');
+        e.classList.toggle('bos', !v);
+        if (v) e.parentNode.title = v;      // tam değer üzerine gelince görünür
+      });
+      document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
+        const v = kimlikler && kimlikler[b.getAttribute('data-kopya')];
+        b.disabled = !v;
+        b.style.opacity = v ? '1' : '0.45';
+      });
+      const hepsi = document.getElementById('idCopyAll');
+      const profil = document.getElementById('idOpenProfile');
+      if (hepsi) hepsi.disabled = !kimlikler;
+      if (profil) profil.disabled = !kimlikler;
+    }
+
+    function kimlikKopyala(metin, etiket){
+      navigator.clipboard.writeText(metin).then(()=>{
+        if (typeof toast === 'function') toast('Kopyalandı').done((etiket || 'Değer') + ' panoya kopyalandı.');
+      }).catch(()=>{});
+    }
+
+    const kimlikToggle = document.getElementById('kimlikToggle');
+    if (kimlikToggle) kimlikToggle.onclick = (e)=>{
+      e.stopPropagation();                 // menü kendi kendine kapanmasın
+      const kutu = document.getElementById('kimlikBox');
+      const acik = kutu.style.display !== 'none';
+      kutu.style.display = acik ? 'none' : 'flex';
+      kimlikToggle.classList.toggle('open', !acik);
+      if (!acik) kimlikleriBoya();
+    };
+    document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
+      b.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const v = kimlikler && kimlikler[b.getAttribute('data-kopya')];
+        if (v) kimlikKopyala(v, 'Kimlik');
+      });
+    });
+    const idCopyAllBtn = document.getElementById('idCopyAll');
+    if (idCopyAllBtn) idCopyAllBtn.onclick = (e)=>{
+      e.stopPropagation();
+      if (!kimlikler) return;
+      kimlikKopyala([
+        'SteamID64      : ' + kimlikler.idSteam64,
+        'SteamID        : ' + kimlikler.idKlasik,
+        'SteamID3       : ' + kimlikler.idSteam3,
+        'Hesap numarası : ' + kimlikler.idHesap,
+        'Hex            : ' + kimlikler.idHex,
+        'Profil adresi  : ' + kimlikler.idProfil,
+        'Özel adres     : ' + (kimlikler.idOzel || 'tanımlı değil'),
+      ].join('\n'), 'Tüm kimlik biçimleri');
+    };
+    const idOpenProfileBtn = document.getElementById('idOpenProfile');
+    if (idOpenProfileBtn) idOpenProfileBtn.onclick = (e)=>{
+      e.stopPropagation();
+      if (kimlikler) window.imu.openExternal(kimlikler.idOzel || kimlikler.idProfil);
+    };
 
     // ---- üst çubuk: Bildirimler + Profil/Hesap akordiyonu (referanslar önce, olay bağlama sonra) ----
     const notifDropdown = document.getElementById('notifDropdown');

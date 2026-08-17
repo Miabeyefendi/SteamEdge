@@ -40,11 +40,6 @@
         <span style="font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--e-title)">Steam<span style="color:var(--e-brand)">Edge</span></span>
         <!-- Surum package.json'dan gelir (common.js > paintVersion) - burada elle yazilmaz. -->
         <span id="tbVersion" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--e-off);border:1px solid var(--e-bdPassive);border-radius:12px;padding:3px 8px">v-</span>
-        <!-- Gunluk sessiz kontrol yeni surum bulursa gorunur. Tiklayinca Ayarlar > Hakkinda acilir. -->
-        <button id="tbUpdate" title="Yeni sürüm var" style="display:none;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;background:#1A1030;border:1px solid var(--e-brand);color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">
-          <span style="width:6px;height:6px;border-radius:12px;background:#C2AAEE;flex-shrink:0"></span>
-          <span id="tbUpdateLbl">Güncelleme var</span>
-        </button>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="e-search">
@@ -54,6 +49,13 @@
         <button id="tbNotif" class="e-icon-btn" title="Bildirimler">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M6 10a6 6 0 0 1 12 0v5l2 2H4l2-2z"></path><path d="M10 20h4"></path></svg>
           <span class="e-badge" id="tbNotifBadge" style="display:none"></span>
+        </button>
+        <!-- Elle güncelleme denetimi. Uygulama açılışta zaten bir kez bakar ve YALNIZCA yeni
+             sürüm varsa pencere gösterir; buradan istendiği an tekrar bakılabilir. Sonuç her
+             durumda söylenir, güncel olmak da bir cevaptır. -->
+        <button id="tbUpdate" class="e-icon-btn" title="Güncellemeleri denetle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M12 4v9"></path><path d="M8.5 9.5 12 13l3.5-3.5"></path><path d="M5 17a8 8 0 0 0 14 0"></path></svg>
+          <span class="e-badge" id="tbUpdateBadge" style="display:none"></span>
         </button>
         <button id="tbSettings" class="e-icon-btn" title="Ayarlar">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"></circle><circle cx="12" cy="12" r="8"></circle><path d="M12 4v2M12 18v2M4 12h2M18 12h2"></path></svg>
@@ -74,6 +76,28 @@
     <div class="e-dropdown" id="acctDropdown">
       <span class="e-dropdown-hd">Hesaplar</span>
       <div class="e-acct-list" id="acctList"></div>
+      <div class="e-dropdown-sep"></div>
+      <!-- HESAP KİMLİĞİ
+           Steam aynı hesabı yedi ayrı biçimde yazar; hangi siteye gireceğine göre farklısı
+           istenir. Hepsi tek sayıdan (SteamID64) yerelde hesaplanır, ağa hiçbir şey sorulmaz;
+           yalnızca özel adres profilden okunur. Satıra tıklamak değeri panoya kopyalar. -->
+      <button class="e-kimlik-hd" id="kimlikToggle" title="Hesap kimliği biçimleri">
+        <span>Hesap Kimliği</span>
+        <svg id="kimlikChev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
+      </button>
+      <div class="e-kimlik" id="kimlikBox" style="display:none">
+        <button class="e-kimlik-row" data-kopya="idSteam64"><span class="k">SteamID64</span><span class="v" id="idSteam64">-</span></button>
+        <button class="e-kimlik-row" data-kopya="idKlasik"><span class="k">SteamID</span><span class="v" id="idKlasik">-</span></button>
+        <button class="e-kimlik-row" data-kopya="idSteam3"><span class="k">SteamID3</span><span class="v" id="idSteam3">-</span></button>
+        <button class="e-kimlik-row" data-kopya="idHesap"><span class="k">Hesap no</span><span class="v" id="idHesap">-</span></button>
+        <button class="e-kimlik-row" data-kopya="idHex"><span class="k">Hex</span><span class="v" id="idHex">-</span></button>
+        <button class="e-kimlik-row" data-kopya="idProfil"><span class="k">Profil</span><span class="v" id="idProfil">-</span></button>
+        <button class="e-kimlik-row" data-kopya="idOzel"><span class="k">Özel adres</span><span class="v" id="idOzel">-</span></button>
+        <div class="e-kimlik-alt">
+          <button id="idCopyAll">Hepsini kopyala</button>
+          <button id="idOpenProfile">Profili aç</button>
+        </div>
+      </div>
       <div class="e-dropdown-sep"></div>
       <button class="e-acct-add" id="acctAddBtn">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"></path></svg>

@@ -12,11 +12,10 @@ catch (_) { PAKET_SURUM = ''; }
 contextBridge.exposeInMainWorld('imu', {
   surum: PAKET_SURUM,
   // Guncelleme: yalnizca BAKAR. Indirme yok, otomatik kurulum yok - arayuz sadece
-  // yayin sayfasina baglanti gosterir.
+  // yayin sayfasina baglanti gosterir. Acilista bir kez, bir de ust cubuktaki dugmeyle.
   guncelleme: {
     kontrol: () => ipcRenderer.invoke('guncelleme:kontrol'),
     sonDurum: () => ipcRenderer.invoke('guncelleme:sonDurum'),
-    goruldu: (surum) => ipcRenderer.invoke('guncelleme:goruldu', surum),
     onDurum: (cb) => ipcRenderer.on('guncelleme:durum', (_e, d) => cb(d)),
   },
   appBilgi: () => ipcRenderer.invoke('app:bilgi'),

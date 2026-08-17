@@ -110,6 +110,28 @@
 .e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--e-bad);line-height:1}
 .e-acct-signout-sub{font-size:10px;color:var(--e-off);line-height:1.3;margin-top:3px}
 
+/* ---- hesap menüsündeki kimlik bölümü ----
+   Menü 268 px: değerler kısaltılmadan sığsın diye etiket solda küçük, değer sağda mono.
+   Satırın tamamı düğme; tıklayınca değeri kopyalar (dar alanda ayrı kopyala düğmesi
+   koymak yerine hedefi büyütmek daha kullanışlı). */
+.e-kimlik-hd{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;background:transparent;border:0;cursor:pointer;text-align:left;color:var(--e-off);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.e-kimlik-hd:hover{background:var(--e-s3);color:var(--e-sub)}
+.e-kimlik-hd svg{transition:transform .15s ease;flex-shrink:0}
+.e-kimlik-hd.open svg{transform:rotate(90deg)}
+.e-kimlik{display:flex;flex-direction:column;padding:0 6px 8px;max-height:290px;overflow-y:auto}
+.e-kimlik-row{display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:var(--e-radius);background:transparent;cursor:pointer;text-align:left}
+.e-kimlik-row:hover{background:var(--e-s3)}
+/* Etiket sütunu dar: en uzun değer olan /profiles/<17 hane> kesilmeden sığsın. */
+.e-kimlik-row .k{flex-shrink:0;width:58px;font-size:10px;color:var(--e-off)}
+/* 10.5 px: en uzun değer /profiles/<17 hane> = 26 karakter, 174 px'lik alana tam sığar.
+   11 px'te son karakter taşıp üç noktaya düşüyordu. */
+.e-kimlik-row .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--e-body)}
+.e-kimlik-row .v.bos{color:var(--e-off)}
+.e-kimlik-alt{display:flex;gap:6px;padding:8px 8px 2px}
+.e-kimlik-alt button{flex:1;height:28px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:10px;font-weight:600;letter-spacing:.06em;cursor:pointer}
+.e-kimlik-alt button:hover{border-color:var(--e-brand);color:var(--e-title)}
+.e-kimlik-alt button:disabled{opacity:.4;cursor:default;border-color:var(--e-bdPassive);color:var(--e-off)}
+
 /* ---- bildirim dropdown ---- */
 .e-notif-dropdown{position:fixed;top:64px;right:20px;z-index:40;width:320px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 18px 44px rgba(3,3,5,.66);overflow:hidden;display:none}
 .e-notif-dropdown.open{display:block}
