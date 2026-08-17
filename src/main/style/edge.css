@@ -118,14 +118,14 @@
 .e-kimlik-hd:hover{background:var(--e-s3);color:var(--e-sub)}
 .e-kimlik-hd svg{transition:transform .15s ease;flex-shrink:0}
 .e-kimlik-hd.open svg{transform:rotate(90deg)}
-.e-kimlik{display:flex;flex-direction:column;padding:0 6px 8px;max-height:290px;overflow-y:auto}
-.e-kimlik-row{display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border:0;border-radius:var(--e-radius);background:transparent;cursor:pointer;text-align:left}
+.e-kimlik{display:flex;flex-direction:column;padding:2px 0 6px;max-height:320px;overflow-y:auto}
+/* Etiket ÜSTTE, değer ALTTA: kart sütunu 248 px ve en uzun değer /profiles/<17 hane>.
+   Yan yana dizilişte bu değer sürekli üç noktaya düşüyordu; alt alta dizilince satırın
+   tamamı değere kalıyor ve hiçbir biçim kesilmiyor. */
+.e-kimlik-row{display:flex;flex-direction:column;gap:2px;width:100%;padding:7px 8px;border:0;border-radius:var(--e-radius);background:transparent;cursor:pointer;text-align:left}
 .e-kimlik-row:hover{background:var(--e-s3)}
-/* Etiket sütunu dar: en uzun değer olan /profiles/<17 hane> kesilmeden sığsın. */
-.e-kimlik-row .k{flex-shrink:0;width:58px;font-size:10px;color:var(--e-off)}
-/* 10.5 px: en uzun değer /profiles/<17 hane> = 26 karakter, 174 px'lik alana tam sığar.
-   11 px'te son karakter taşıp üç noktaya düşüyordu. */
-.e-kimlik-row .v{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;font-family:"Geist Mono",monospace;font-size:10.5px;color:var(--e-body)}
+.e-kimlik-row .k{font-size:10px;color:var(--e-off)}
+.e-kimlik-row .v{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:11px;color:var(--e-body)}
 .e-kimlik-row .v.bos{color:var(--e-off)}
 .e-kimlik-alt{display:flex;gap:6px;padding:8px 8px 2px}
 .e-kimlik-alt button{flex:1;height:28px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:10px;font-weight:600;letter-spacing:.06em;cursor:pointer}
