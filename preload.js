@@ -105,6 +105,8 @@ contextBridge.exposeInMainWorld('imu', {
   engine: {
     connect: () => ipcRenderer.invoke('engine:connect'),
     dropGames: () => ipcRenderer.invoke('engine:dropGames'),
+    // Son cekilen kart/kutuphane listeleri - Steam'e istek atmaz, diskten okur.
+    sonListeler: () => ipcRenderer.invoke('engine:sonListeler'),
     inventory: () => ipcRenderer.invoke('engine:inventory'),
     pricesFor: (hashNames) => ipcRenderer.invoke('engine:pricesFor', hashNames),
     // Steam'e istek atmaz, sadece diskteki onbellegi okur (envanter acilisinda kullanilir)

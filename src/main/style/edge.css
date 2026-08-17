@@ -110,22 +110,17 @@
 .e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--e-bad);line-height:1}
 .e-acct-signout-sub{font-size:10px;color:var(--e-off);line-height:1.3;margin-top:3px}
 
-/* ---- hesap menüsündeki kimlik bölümü ----
-   Menü 268 px: değerler kısaltılmadan sığsın diye etiket solda küçük, değer sağda mono.
-   Satırın tamamı düğme; tıklayınca değeri kopyalar (dar alanda ayrı kopyala düğmesi
-   koymak yerine hedefi büyütmek daha kullanışlı). */
-.e-kimlik-hd{display:block;padding:12px 0 6px;border-top:1px solid var(--e-bdSoft,#101621);color:var(--e-off);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
-.e-kimlik{display:flex;flex-direction:column;padding:2px 0 6px;max-height:320px;overflow-y:auto}
-/* Etiket ÜSTTE, değer ALTTA: kart sütunu 248 px ve en uzun değer /profiles/<17 hane>.
-   Yan yana dizilişte bu değer sürekli üç noktaya düşüyordu; alt alta dizilince satırın
-   tamamı değere kalıyor ve hiçbir biçim kesilmiyor. */
-.e-kimlik-row{display:flex;flex-direction:column;gap:2px;width:100%;padding:7px 8px;border:0;border-radius:var(--e-radius);background:transparent;cursor:pointer;text-align:left}
-.e-kimlik-row:hover{background:var(--e-s3)}
-.e-kimlik-row .k{font-size:10px;color:var(--e-off)}
-.e-kimlik-row .v{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:11px;color:var(--e-body)}
-.e-kimlik-row .v.bos{color:var(--e-off)}
-.e-kimlik-alt{display:flex;gap:6px;padding:8px 8px 2px}
-.e-kimlik-alt button{flex:1;height:28px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:10px;font-weight:600;letter-spacing:.06em;cursor:pointer}
+/* ---- Ayarlar > Hesap kartındaki kimlik satırları ----
+   Kartın kendi satırlarıyla AYNI kalıp: etiket solda 11 px, değer sağda mono 12 px, üstte
+   aynı ince çizgi. Ayrı bir kutu gibi durmasınlar diye ölçüler oradan alındı; tek farkları
+   tıklanınca değeri panoya kopyalamaları. */
+.e-kimlik-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621;cursor:pointer}
+.e-kimlik-row:hover .v{color:var(--e-brandSoft,#C2AAEE)}
+.e-kimlik-row .k{font-size:11px;color:var(--e-off)}
+.e-kimlik-row .v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:var(--e-title)}
+.e-kimlik-row .v.bos{font-weight:500;color:var(--e-off)}
+.e-kimlik-alt{display:flex;gap:8px}
+.e-kimlik-alt button{flex:1;height:30px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:10px;font-weight:600;letter-spacing:.08em;cursor:pointer}
 .e-kimlik-alt button:hover{border-color:var(--e-brand);color:var(--e-title)}
 .e-kimlik-alt button:disabled{opacity:.4;cursor:default;border-color:var(--e-bdPassive);color:var(--e-off)}
 

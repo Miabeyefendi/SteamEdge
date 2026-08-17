@@ -128,6 +128,20 @@
       }
     }
 
+    // Diskteki son listeler: Steam'e istek gitmez, dosyadan okunur. Kart ve kütüphane
+    // sayıları oturum açılmayı beklemeden ekrana gelsin diye. Taze veri geldiğinde
+    // aşağıdaki dropGames/ownedGames çağrıları bunların üstüne yazar.
+    let listelerTaze = false;    // ekrandaki listeler Steam'den mi geldi, diskten mi
+    async function onbelleklenmisListeler(){
+      try {
+        const r = await E.sonListeler();
+        if (!r || !r.ok) return;
+        if (!kartLoaded && Array.isArray(r.drop) && r.drop.length){ dropGames = r.drop; kartLoaded = true; }
+        if (!saatLoaded && Array.isArray(r.owned) && r.owned.length){ ownedGames = r.owned; saatLoaded = true; }
+        renderGenelStats();
+      } catch (_) {}
+    }
+
     async function loadGenel(){
       if (!genelLoaded){
         genelLoaded = true;
@@ -135,6 +149,7 @@
         // hemen ekrana yazılır. Eskiden bu satır bağlantı kurulduktan sonra çalışıyordu ve
         // sağ üstteki hesap rozeti oturum açılana kadar tire gösteriyordu.
         loadProfile();
+        await onbelleklenmisListeler();   // kart ve kütüphane sayıları hemen görünsün
         await aktiviteyiYukle();   // kalici aktivite gecmisini geri getir
         // Veri çekme başarısız olsa da (Steam'e bağlanılamadı, IPC hatası) panel yine de
         // çizilmeli - aksi halde await burada patlayıp aşağıdaki render'lar hiç çalışmıyor
@@ -147,8 +162,16 @@
               if (s) appSettings = { ...appSettings, ...s };
             }
             loadProfile();     // bağlantı kuruldu: taze profili çek, önbelleğin üstüne yaz
-            if (!kartLoaded){ const r = await E.dropGames(); if (r.ok){ dropGames = r.games; kartLoaded = true; } }
-            if (!saatLoaded){ const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; saatLoaded = true; } }
+            // Listeler diskten gelmiş olsa bile Steam'den bir kez tazelenir; ekrandaki
+            // sayılar eskimesin. listelerTaze bunu bir defaya indirir.
+            if (!kartLoaded || !listelerTaze){ const r = await E.dropGames(); if (r.ok){ dropGames = r.games; kartLoaded = true; } }
+            if (!saatLoaded || !listelerTaze){ const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; saatLoaded = true; } }
+            listelerTaze = true;
+            // Kart Düşür ekranda açıksa taze listeyle yeniden çizilsin (gizliyse dokunma:
+            // görünmeyen sekmenin listesi bilerek bellekte tutulmuyor).
+            try {
+              if (typeof renderKart === 'function' && designed.kart && !designed.kart.classList.contains('hidden')) renderKart();
+            } catch (_) {}
           } else if (con && con.error){
             pushFeed('hata', 'Bağlantı', con.error, 'Hata');
           }

@@ -839,6 +839,20 @@ ipcMain.handle('engine:connect', async () => {
   return r;
 });
 
+// Son cekilen listeler hesabin kendi dosyasinda saklanir. Amac: acilista Genel Bakis'in
+// bos beklememesi. Rozet sayfasi ve kutuphane cagrisi birkac saniye suruyor; o sure
+// boyunca "Toplam Kart" ve "Kutuphane" tire gosteriyordu. Artik son bilinen degerler
+// aninda ciziliyor, taze veri gelince ustune yaziliyor.
+function listeleriSakla(alan, veri) {
+  const v = aktifHesapVerisi();
+  v.listeler = { ...(v.listeler || {}), [alan]: veri, [alan + 'Ts']: Date.now() };
+  hesapVerisiYaz(activeSteamID);
+}
+ipcMain.handle('engine:sonListeler', () => {
+  const v = aktifHesapVerisi();
+  return { ok: true, ...(v.listeler || {}) };
+});
+
 ipcMain.handle('engine:dropGames', async () => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   try {
@@ -851,7 +865,9 @@ ipcMain.handle('engine:dropGames', async () => {
       const owned = await engine.getOwnedGames();
       owned.forEach((o) => mins.set(o.appid, o.playtimeForever || 0));
     } catch (e) { log('warn', 'oynama suresi alinamadi: ' + e.message); }
-    return { ok: true, games: games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 })) };
+    const cikti = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }));
+    listeleriSakla('drop', cikti);
+    return { ok: true, games: cikti };
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
@@ -1292,8 +1308,11 @@ ipcMain.on('open:external', (_e, url) => {
 
 ipcMain.handle('engine:ownedGames', async () => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  try { return { ok: true, games: await engine.getOwnedGames() }; }
-  catch (e) { return { ok: false, error: e.message }; }
+  try {
+    const games = await engine.getOwnedGames();
+    listeleriSakla('owned', games);
+    return { ok: true, games };
+  } catch (e) { return { ok: false, error: e.message }; }
 });
 
 // Saat Yükseltici: simple simultaneous boost (no rotation) - play the whole selection at once
@@ -2066,6 +2085,25 @@ function okumaHatalariniBildir() {
   okumaHatalari.length = 0;
 }
 
+// Steam oturumunu ARAYUZU BEKLEMEDEN ac.
+// Eskiden logon, arayuz yuklenip ilk sayfa `engine:connect` cagirinca basliyordu: once
+// HTML/CSS/JS yukleniyor, sonra bagalanti kuruluyordu ve iki sure ust uste biniyordu.
+// Oysa oturum bilgisi diskte hazir. Burada baslatinca baglanti, arayuz cizilirken yol
+// aliyor; sayfalar `engine:connect` cagirdiginda ya hazir oluyor ya da devam eden ayni
+// islemi paylasiyorlar (connectAccount > s.connecting).
+function erkenBaglan() {
+  const sess = hasSession();
+  if (!sess) return;
+  if (!activeSteamID) { activeSteamID = sess.steamID; hesapVerisiGecisi(); }
+  const entry = loadAccounts().find((a) => a.steamID === activeSteamID) || sess;
+  connectAccount(entry)
+    .then((r) => {
+      syncActive();
+      log(r && r.ok ? 'info' : 'warn', 'acilis baglantisi: ' + (r && r.ok ? 'kuruldu' : (r && r.error)));
+    })
+    .catch((e) => log('warn', 'acilis baglantisi basarisiz: ' + (e && e.message)));
+}
+
 // Karisik kurulum tespiti.
 // Kullanicilar yeni surumu ESKI klasorun uzerine cikariyor. Uygulama o sirada acikken
 // bazi dosyalar kilitli oluyor ve arsivden cikarilmiyor: exe yeni, locales/ ve app.asar
@@ -2115,6 +2153,7 @@ app.whenReady().then(() => {
   createWindow(); ensureTray();
   setTimeout(okumaHatalariniBildir, 1200);
   acilisGuncellemeKontrolu();
+  erkenBaglan();
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin' && !settings.closeToTray) app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

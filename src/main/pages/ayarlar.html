@@ -383,26 +383,26 @@
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621"><span style="font-size:11px;color:#8B8F9E">SteamID</span><span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA;cursor:pointer" id="setSteamID" title="Kopyalamak için tıkla">-</span></div>
 
                   <!-- HESAP KİMLİĞİ
-                       Steam aynı hesabı yedi ayrı biçimde yazar; hangi siteye gireceğine göre
-                       farklısı istenir. Hepsi yukarıdaki tek sayıdan (SteamID64) yerelde
-                       hesaplanır, ağa hiçbir şey sorulmaz; yalnızca özel adres profilden okunur.
-                       Hepsi açık duruyor: aramak için tıklanacak bir başlık, sekiz satırlık
-                       bir listeden daha çok yer kaplıyordu. Satıra tıklamak değeri kopyalar. -->
-                  <div class="e-kimlik-hd">Diğer Kimlik Biçimleri</div>
-                  <div class="e-kimlik" id="kimlikBox">
-                    <button class="e-kimlik-row" data-kopya="idKlasik"><span class="k">SteamID</span><span class="v" id="idKlasik">-</span></button>
-                    <button class="e-kimlik-row" data-kopya="idSteam3"><span class="k">SteamID3</span><span class="v" id="idSteam3">-</span></button>
-                    <button class="e-kimlik-row" data-kopya="idHesap"><span class="k">Hesap no</span><span class="v" id="idHesap">-</span></button>
-                    <button class="e-kimlik-row" data-kopya="idHex"><span class="k">Hex</span><span class="v" id="idHex">-</span></button>
-                    <button class="e-kimlik-row" data-kopya="idProfil"><span class="k">Profil</span><span class="v" id="idProfil">-</span></button>
-                    <button class="e-kimlik-row" data-kopya="idOzel"><span class="k">Özel adres</span><span class="v" id="idOzel">-</span></button>
-                    <div class="e-kimlik-alt">
-                      <button id="idCopyAll">Hepsini kopyala</button>
-                      <button id="idOpenProfile">Profili aç</button>
-                    </div>
+                       Steam aynı hesabı birden çok biçimde yazar; hangi siteye gireceğine göre
+                       farklısı istenir. Hepsi yukarıdaki SteamID'den yerelde hesaplanır, ağa
+                       hiçbir şey sorulmaz; yalnızca özel adres profilden okunur. Satırlar kartın
+                       kendi düzeninde: etiket solda, değer sağda, üstlerinde aynı ince çizgi.
+                       Tıklayınca değer panoya kopyalanır.
+                       Profil adresi ayrı satır DEĞİL: SteamID'nin aynısını uzun bir adres olarak
+                       tekrarlıyor, sütuna sığmıyor ve zaten "Profili Aç" düğmesiyle açılıyor. -->
+                  <div id="kimlikBox" style="display:contents">
+                    <div class="e-kimlik-row" data-kopya="idKlasik" title="Kopyalamak için tıkla"><span class="k">SteamID2</span><span class="v" id="idKlasik">-</span></div>
+                    <div class="e-kimlik-row" data-kopya="idSteam3" title="Kopyalamak için tıkla"><span class="k">SteamID3</span><span class="v" id="idSteam3">-</span></div>
+                    <div class="e-kimlik-row" data-kopya="idHesap" title="Kopyalamak için tıkla"><span class="k">Hesap No</span><span class="v" id="idHesap">-</span></div>
+                    <div class="e-kimlik-row" data-kopya="idHex" title="Kopyalamak için tıkla"><span class="k">Hex</span><span class="v" id="idHex">-</span></div>
+                    <div class="e-kimlik-row" data-kopya="idOzel" title="Kopyalamak için tıkla"><span class="k">Özel Adres</span><span class="v" id="idOzel">-</span></div>
                   </div>
 
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621"><span style="font-size:11px;color:#8B8F9E">Sürüm</span><span style="font-family:Geist Mono,monospace;font-size:12px;color:#B9C0D6" id="setVersionSide">-</span></div>
+                </div>
+                <div class="e-kimlik-alt">
+                  <button id="idCopyAll">Kimlikleri Kopyala</button>
+                  <button id="idOpenProfile">Profili Aç</button>
                 </div>
                 <button id="setLogout" style="height:34px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#B32453;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer" class="h-signout">Çıkış Yap</button>
               </div>
