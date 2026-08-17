@@ -336,12 +336,15 @@ class SteamEngine {
     if (!sid) return Promise.reject(new Error('Steam oturumu yok'));
     const personas = () => new Promise((res) => this.user.getPersonas([sid], (err, p) => res(err ? null : (p && p[sid]))));
     const levels = () => new Promise((res) => this.user.getSteamLevels([sid], (err, l) => res(err ? null : (l && l[sid]))));
-    return Promise.all([personas(), levels(), this.getVanityURL()]).then(([p, level, vanity]) => ({
+    // Ozel adres BU CAGRIYA DAHIL DEGIL. Protokolden gelmiyor, profil sayfasindan
+    // cekiliyor ve Promise.all icindeyken tum profil cevabini kendi suresince bekletiyordu
+    // (olculen 75-350 ms, Steam yavasladiginda 8 saniyeye kadar). Isim, avatar ve seviye
+    // ekranda gorunmek icin bir web istegini beklememeli; ozel adresi arayuz ayrica ister.
+    return Promise.all([personas(), levels()]).then(([p, level]) => ({
       steamID: sid,
       persona: (p && p.player_name) || this.persona || null,
       avatar: (p && (p.avatar_url_full || p.avatar_url_medium || p.avatar_url_icon)) || null,
       level: (typeof level === 'number') ? level : null,
-      vanity,
     }));
   }
 

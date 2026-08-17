@@ -386,12 +386,10 @@
                        Steam aynı hesabı yedi ayrı biçimde yazar; hangi siteye gireceğine göre
                        farklısı istenir. Hepsi yukarıdaki tek sayıdan (SteamID64) yerelde
                        hesaplanır, ağa hiçbir şey sorulmaz; yalnızca özel adres profilden okunur.
-                       Kart uzamasın diye kapalı başlar. Satıra tıklamak değeri panoya kopyalar. -->
-                  <button class="e-kimlik-hd" id="kimlikToggle" title="Hesap kimliği biçimleri">
-                    <span>Diğer Kimlik Biçimleri</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"></path></svg>
-                  </button>
-                  <div class="e-kimlik" id="kimlikBox" style="display:none">
+                       Hepsi açık duruyor: aramak için tıklanacak bir başlık, sekiz satırlık
+                       bir listeden daha çok yer kaplıyordu. Satıra tıklamak değeri kopyalar. -->
+                  <div class="e-kimlik-hd">Diğer Kimlik Biçimleri</div>
+                  <div class="e-kimlik" id="kimlikBox">
                     <button class="e-kimlik-row" data-kopya="idKlasik"><span class="k">SteamID</span><span class="v" id="idKlasik">-</span></button>
                     <button class="e-kimlik-row" data-kopya="idSteam3"><span class="k">SteamID3</span><span class="v" id="idSteam3">-</span></button>
                     <button class="e-kimlik-row" data-kopya="idHesap"><span class="k">Hesap no</span><span class="v" id="idHesap">-</span></button>

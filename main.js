@@ -685,8 +685,10 @@ function baglantiDurumunuBagla(eng, steamID) {
 const HESAP_DIZINI = path.join(CONFIG_DIR, 'accounts');
 // settings:set uzerinden gelen ama aslinda hesaba ozel olan anahtarlar.
 // Renderer tarafi degismesin diye burada ayikliyoruz.
-const HESAP_AYAR_ANAHTARLARI = ['boostGameIds'];
-const VARSAYILAN_HESAP_VERISI = { boostGameIds: [], entries: {}, achLog: [], stats: null };
+// 'profil': son bilinen isim/avatar/seviye/ozel adres. Arayuze settings ile birlikte gider,
+// boylece acilista Steam oturumu beklenmeden ekrana yazilabilir.
+const HESAP_AYAR_ANAHTARLARI = ['boostGameIds', 'profil'];
+const VARSAYILAN_HESAP_VERISI = { boostGameIds: [], entries: {}, achLog: [], stats: null, profil: null };
 
 const hesapVerileri = new Map();   // steamID -> veri
 
@@ -1117,8 +1119,28 @@ ipcMain.handle('engine:achievements', async (_e, arg) => {
 // Own Steam profile (avatar/name/level) via protocol.
 ipcMain.handle('engine:profile', async () => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  try { return { ok: true, profile: await engine.getProfile() }; }
-  catch (e) { return { ok: false, error: e.message }; }
+  try {
+    const profil = await engine.getProfile();
+    // Son bilinen profili hesabın kendi dosyasına yaz. Bir sonraki açılışta arayüz, Steam
+    // oturumu kurulmayı beklemeden isim, avatar ve seviyeyi gösterebilsin diye: oturum
+    // açma saniyeler sürüyor ve o süre boyunca ekranda tire duruyordu.
+    const v = aktifHesapVerisi();
+    v.profil = { ...(v.profil || {}), ...profil, ts: Date.now() };
+    hesapVerisiYaz(activeSteamID);
+    return { ok: true, profile: v.profil };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+// Özel profil adresi (steamcommunity.com/id/<ad>). Profil çağrısından ayrı: protokolde
+// yok, web sayfasından okunuyor ve kimse onun için isim/avatarı bekletmemeli.
+ipcMain.handle('engine:vanity', async () => {
+  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  try {
+    const vanity = await engine.getVanityURL();
+    const v = aktifHesapVerisi();
+    v.profil = { ...(v.profil || {}), vanity };
+    hesapVerisiYaz(activeSteamID);
+    return { ok: true, vanity };
+  } catch (e) { return { ok: false, error: e.message }; }
 });
 
 // ---- persistent lifetime stats (survive app restarts) ----

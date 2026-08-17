@@ -131,6 +131,10 @@
     async function loadGenel(){
       if (!genelLoaded){
         genelLoaded = true;
+        // Profil ÖNCE: son bilinen isim/avatar/seviye ayarlarla birlikte geldiği için
+        // hemen ekrana yazılır. Eskiden bu satır bağlantı kurulduktan sonra çalışıyordu ve
+        // sağ üstteki hesap rozeti oturum açılana kadar tire gösteriyordu.
+        loadProfile();
         await aktiviteyiYukle();   // kalici aktivite gecmisini geri getir
         // Veri çekme başarısız olsa da (Steam'e bağlanılamadı, IPC hatası) panel yine de
         // çizilmeli - aksi halde await burada patlayıp aşağıdaki render'lar hiç çalışmıyor
@@ -142,7 +146,7 @@
               const s = await window.imu.settings.get();
               if (s) appSettings = { ...appSettings, ...s };
             }
-            loadProfile();
+            loadProfile();     // bağlantı kuruldu: taze profili çek, önbelleğin üstüne yaz
             if (!kartLoaded){ const r = await E.dropGames(); if (r.ok){ dropGames = r.games; kartLoaded = true; } }
             if (!saatLoaded){ const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; saatLoaded = true; } }
           } else if (con && con.error){

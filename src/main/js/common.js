@@ -382,12 +382,43 @@
         + '</div>';
     }
 
-    // ---- Steam profil (avatar/isim/seviye) - bir kez çek, her yerde göster ----
+    // ---- Steam profil (avatar/isim/seviye) ----
+    // Profil ancak Steam oturumu kurulduktan SONRA çekilebiliyor ve oturum açmak saniyeler
+    // sürüyor. O süre boyunca sağ üstte ve Ayarlar'daki hesap kartında tire duruyordu.
+    // Artık son bilinen profil hesabın kendi dosyasında saklanıyor (main.js > engine:profile)
+    // ve ayarlarla birlikte anında geliyor: ekran ilk karede dolu açılıyor, bağlantı kurulunca
+    // taze veri üstüne yazıyor. Özel adres ayrı istekle, en son gelir.
     let imuProfile = null;
+    let imuProfilTaze = false;      // önbellekten mi geldi, Steam'den mi
+
+    function onbelleklenmisProfil(){
+      const p = (typeof appSettings === 'object' && appSettings && appSettings.profil) || null;
+      if (!p || (!p.persona && !p.avatar)) return false;
+      imuProfile = { ...p };
+      applyProfile();
+      return true;
+    }
+
     async function loadProfile(){
-      if (imuProfile) { applyProfile(); return; }
-      const r = await E.profile().catch(()=>null);
-      if (r && r.ok && r.profile){ imuProfile = r.profile; applyProfile(); }
+      // Elde bir şey varsa hemen göster; taze değilse arkadan tazelemeye devam et.
+      if (imuProfile) applyProfile(); else onbelleklenmisProfil();
+      if (!imuProfilTaze){
+        const r = await E.profile().catch(()=>null);
+        if (r && r.ok && r.profile){
+          imuProfile = { ...(imuProfile || {}), ...r.profile };
+          imuProfilTaze = true;
+          applyProfile();
+        }
+      }
+      // Özel adres profil sayfasından okunuyor; ismi ve avatarı bekletmesin diye ayrı istek.
+      if (imuProfile && !imuProfile.vanity){
+        E.vanity().then(v=>{
+          if (v && v.ok && v.vanity){
+            imuProfile.vanity = v.vanity;
+            if (typeof kimlikleriBoya === 'function') kimlikleriBoya();
+          }
+        }).catch(()=>{});
+      }
     }
     function applyProfile(){
       if (!imuProfile) return;
@@ -583,15 +614,6 @@
       }).catch(()=>{});
     }
 
-    const kimlikToggle = document.getElementById('kimlikToggle');
-    if (kimlikToggle) kimlikToggle.onclick = (e)=>{
-      e.stopPropagation();                 // menü kendi kendine kapanmasın
-      const kutu = document.getElementById('kimlikBox');
-      const acik = kutu.style.display !== 'none';
-      kutu.style.display = acik ? 'none' : 'flex';
-      kimlikToggle.classList.toggle('open', !acik);
-      if (!acik) kimlikleriBoya();
-    };
     document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
       b.addEventListener('click', (e)=>{
         e.stopPropagation();
@@ -769,7 +791,7 @@
       const r = await window.imu.accounts.switch(steamID).catch(()=>null);
       if (!r || !r.ok){ alert('Hesap değiştirilemedi.' + (r && r.error ? '\n'+r.error : '')); return; }
       resetPageCaches();
-      imuProfile = null; loadProfile();
+      imuProfile = null; imuProfilTaze = false; loadProfile();
       reloadActiveTab();
       renderAcctList();
     }
@@ -792,7 +814,7 @@
       if (!r || !r.ok) { alert('Hesap kaldırılamadı.'); return; }
       if (r.loggedOut) return; // main.js zaten giriş ekranına geçti
       resetPageCaches();
-      imuProfile = null; loadProfile();
+      imuProfile = null; imuProfilTaze = false; loadProfile();
       reloadActiveTab();
       renderAcctList();
     }

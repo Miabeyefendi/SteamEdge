@@ -114,10 +114,7 @@
    Menü 268 px: değerler kısaltılmadan sığsın diye etiket solda küçük, değer sağda mono.
    Satırın tamamı düğme; tıklayınca değeri kopyalar (dar alanda ayrı kopyala düğmesi
    koymak yerine hedefi büyütmek daha kullanışlı). */
-.e-kimlik-hd{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;background:transparent;border:0;cursor:pointer;text-align:left;color:var(--e-off);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
-.e-kimlik-hd:hover{background:var(--e-s3);color:var(--e-sub)}
-.e-kimlik-hd svg{transition:transform .15s ease;flex-shrink:0}
-.e-kimlik-hd.open svg{transform:rotate(90deg)}
+.e-kimlik-hd{display:block;padding:12px 0 6px;border-top:1px solid var(--e-bdSoft,#101621);color:var(--e-off);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
 .e-kimlik{display:flex;flex-direction:column;padding:2px 0 6px;max-height:320px;overflow-y:auto}
 /* Etiket ÜSTTE, değer ALTTA: kart sütunu 248 px ve en uzun değer /profiles/<17 hane>.
    Yan yana dizilişte bu değer sürekli üç noktaya düşüyordu; alt alta dizilince satırın

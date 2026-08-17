@@ -123,6 +123,8 @@ contextBridge.exposeInMainWorld('imu', {
     sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
     ownedGames: () => ipcRenderer.invoke('engine:ownedGames'),
     profile: () => ipcRenderer.invoke('engine:profile'),
+    // Ozel profil adresi ayri: web istegi gerektiriyor, isim/avatar onu beklemesin.
+    vanity: () => ipcRenderer.invoke('engine:vanity'),
     // taze=true iken 5 dakikalik sema onbellegi atlanir; toplu islem sonrasi
     // Steam'in gercekten ne kaydettigini dogrulamak icin kullanilir.
     achievements: (appid, taze) => ipcRenderer.invoke('engine:achievements', { appid, taze }),

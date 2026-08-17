@@ -11,6 +11,9 @@
       appSettings = s || {};
       // Dili ayarlardan baslat: metinler cizilmeden once devreye girmeli.
       if (typeof initI18n === 'function') initI18n(appSettings.language);
+      // Ayarlar içinde son bilinen profil de geliyor (main.js > hesap dosyası). Steam
+      // oturumu daha kurulmadan isim, avatar ve seviye ekrana yazılabilsin diye ilk iş bu.
+      if (typeof onbelleklenmisProfil === 'function') onbelleklenmisProfil();
       paintAll();
       applySettingsEverywhere(true);
       // Açılış sayfası sadece uygulama ilk açıldığında uygulanır (genel.js yüklendikten sonra)
@@ -217,10 +220,13 @@
 
     async function loadAyarlar(){
       appSettings = await S.get() || {};
-      // Profil (avatar dahil) gelmeden boyarsak avatar yerine baş harf kalır - önce profili çek.
-      await loadProfile();
+      // Sayfa ÖNCE çizilir. Eskiden burada profil beklenirdi ("avatar yerine baş harf
+      // kalmasın" diye) ve profil Steam oturumuna bağlı olduğu için hesap kartı saniyelerce
+      // tire gösteriyordu. Artık son bilinen profil ayarlarla birlikte geliyor; taze veri
+      // gelince applyProfile alanları kendisi günceller.
       paintAll();
       renderLifeStats();    // kalıcı istatistikler
+      loadProfile();        // beklenmez
     }
 
     // Test bildirimi - seçili ses/sessiz-saat ayarlarıyla birlikte gerçek bildirimi dener.
