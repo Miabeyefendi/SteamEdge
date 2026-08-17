@@ -185,10 +185,39 @@ borra.
 |---|---|---|
 | **Nivel de registro** | Solo errores | El nivel detallado aumenta bastante el uso de disco. Úsalo solo al depurar. |
 | **Guardar registros de depuración** | Desactivado | Escribe todo el tráfico del protocolo en `cache/steamedge.log`. Adjúntalo a los informes. |
-| **Aceleración por hardware** | Activado | Desactívala y reinicia si ves fallos gráficos o bloqueos. |
+| **Aceleración por hardware** | Activado | Desactivarla reduce el proceso gráfico y bajó el uso de memoria unos 45 MB en nuestras mediciones, a cambio de dibujar en la CPU. Desactívala y reinicia también si ves fallos gráficos o bloqueos. |
+| **Memoria en uso** | - | Suma de todos los procesos de SteamEdge con desglose por proceso. Leída de las métricas, no estimada. |
 | **Intervalo entre peticiones API** | 350 ms | Espacio mínimo entre peticiones a Steam. Por debajo de 350 ms hay riesgo de límite temporal. |
 | **Abrir carpeta de datos** | - | Abre la carpeta que contiene `settings/` y `cache/`. |
 | **Vaciar caché de precios** | - | Fuerza a obtener todos los precios de nuevo. |
+
+---
+
+## Tarjeta de cuenta
+
+El panel a la derecha de Ajustes. Nivel de Steam, estado de conexion y todos los formatos
+de identidad de la cuenta conectada: **SteamID** (la de 17 digitos), **SteamID2**
+(`STEAM_1:...`), **SteamID3** (`[U:1:...]`), **numero de cuenta**, **hex** y la **direccion
+personalizada** si el perfil la tiene. Haz clic en cualquier fila para copiarla. Todos se
+calculan localmente a partir de la SteamID - no se pregunta nada a Steam - salvo la
+direccion personalizada, que se lee de la pagina del perfil.
+
+**Copiar identidades** las pone todas en el portapapeles; **Abrir perfil** abre el perfil
+en el navegador.
+
+---
+
+## Actualizaciones
+
+SteamEdge consulta la lista de versiones **una vez al iniciar** y muestra una ventana
+**solo** si existe una version mas nueva. Si estas al dia, no aparece nada.
+
+El boton de descarga de la barra superior, entre la campana y el engranaje, repite la
+comprobacion cuando quieras; ahi siempre se te da el resultado, incluido "ya estas al dia".
+
+La aplicacion lee un numero de version y nada mas. Nunca se descarga, instala ni se
+reemplaza a si misma: tu decides que instalar y cuando. Para actualizar: extrae el nuevo
+archivo en una carpeta **vacia y nueva** y copia junto a ella tu carpeta `settings/`.
 
 ---
 

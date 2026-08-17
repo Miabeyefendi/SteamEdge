@@ -10,7 +10,7 @@ und es wird nichts in die Windows-Registry geschrieben.
 ## 1. Herunterladen
 
 Gehe zu [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest) und lade
-`SteamEdge-vX.Y.Z-win-x64.zip` herunter.
+`SteamEdge-vX.Y.Z-win-x64.rar` herunter.
 
 ## 2. Entpacken
 
@@ -135,7 +135,7 @@ Benötigt [Node.js](https://nodejs.org/) 20 oder neuer. Für eine eigene portabl
 npm run build
 ```
 
-Das Ergebnis erscheint in `../Release Vx.y.z` neben dem Quellordner.
+Das Ergebnis erscheint in `../SteamEdge-vX.Y.Z-win-x64` neben dem Quellordner.
 
 ---
 

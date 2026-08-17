@@ -10,7 +10,7 @@ written to the Windows registry.
 ## 1. Download
 
 Go to [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest) and download
-`SteamEdge-vX.Y.Z-win-x64.zip`.
+`SteamEdge-vX.Y.Z-win-x64.rar`.
 
 ## 2. Extract
 
@@ -131,7 +131,7 @@ Requires [Node.js](https://nodejs.org/) 20 or newer. To produce your own portabl
 npm run build
 ```
 
-The result appears in `../Release Vx.y.z` next to the source folder.
+The result appears in `../SteamEdge-vX.Y.Z-win-x64` next to the source folder.
 
 ---
 

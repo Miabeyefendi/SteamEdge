@@ -10,7 +10,7 @@ kayıt defterine hiçbir şey yazılmaz.
 ## 1. İndir
 
 [Sürümler](https://github.com/Miabeyefendi/steamedge/releases/latest) sayfasından
-`SteamEdge-vX.Y.Z-win-x64.zip` dosyasını indir.
+`SteamEdge-vX.Y.Z-win-x64.rar` dosyasını indir.
 
 ## 2. Çıkar
 
@@ -131,7 +131,7 @@ npm start
 npm run build
 ```
 
-Sonuç, kaynak klasörünün yanındaki `../Release Vx.y.z` klasöründe oluşur.
+Sonuç, kaynak klasörünün yanındaki `../SteamEdge-vX.Y.Z-win-x64` klasöründe oluşur.
 
 ---
 

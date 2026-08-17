@@ -184,10 +184,40 @@ durchschnittlicher Verkauf und Erfassungsbeginn. **Statistiken zurücksetzen** l
 |---|---|---|
 | **Protokollebene** | Nur Fehler | Ausführlich erhöht die Festplattennutzung deutlich. Nur zur Fehlersuche. |
 | **Debug-Protokolle behalten** | Aus | Schreibt den gesamten Protokollverkehr nach `cache/steamedge.log`. An Fehlerberichte anhängen. |
-| **Hardwarebeschleunigung** | An | Bei Darstellungsfehlern oder Einfrieren ausschalten und neu starten. |
+| **Hardwarebeschleunigung** | An | Abschalten verkleinert den Grafikprozess und senkte den Speicherbedarf in unseren Messungen um etwa 45 MB, dafuer zeichnet die CPU. Bei Darstellungsfehlern oder Einfrieren ebenfalls ausschalten und neu starten. |
+| **Belegter Speicher** | - | Summe aller SteamEdge-Prozesse samt Aufschluesselung. Aus den Prozessmesswerten gelesen, nicht geschaetzt. |
 | **API-Anfrageintervall** | 350 ms | Mindestabstand zwischen Steam-Anfragen. Unter 350 ms riskiert ein temporäres Limit. |
 | **Datenordner öffnen** | - | Öffnet den Ordner mit `settings/` und `cache/`. |
 | **Preis-Cache leeren** | - | Erzwingt das erneute Abrufen aller Preise. |
+
+---
+
+## Kontokarte
+
+Die Leiste rechts in den Einstellungen. Steam-Level, Verbindungsstatus und jedes
+Kennungsformat des angemeldeten Kontos: **SteamID** (die 17-stellige), **SteamID2**
+(`STEAM_1:...`), **SteamID3** (`[U:1:...]`), **Kontonummer**, **Hex** und die **eigene
+Adresse**, falls im Profil gesetzt. Ein Klick auf eine Zeile kopiert den Wert. Alles ausser
+der eigenen Adresse wird lokal aus der SteamID berechnet - Steam wird nichts gefragt; die
+eigene Adresse stammt von der Profilseite.
+
+**Kennungen kopieren** legt alle auf einmal in die Zwischenablage, **Profil oeffnen**
+oeffnet das Profil im Browser.
+
+---
+
+## Aktualisierung
+
+SteamEdge sieht **einmal beim Start** in der Release-Liste nach und zeigt **nur dann** ein
+Fenster, wenn eine neuere Version existiert. Bist du aktuell, erscheint gar nichts.
+
+Die Download-Schaltflaeche oben, zwischen Glocke und Zahnrad, wiederholt die Pruefung
+jederzeit; dort wird das Ergebnis immer genannt, auch "bereits aktuell".
+
+Die Anwendung liest eine Versionsnummer und sonst nichts. Sie laedt sich nie selbst
+herunter, installiert oder ersetzt sich nicht - du entscheidest. Zum Aktualisieren: das
+neue Archiv in einen **leeren, neuen Ordner** entpacken und den alten `settings/`-Ordner
+daneben kopieren.
 
 ---
 

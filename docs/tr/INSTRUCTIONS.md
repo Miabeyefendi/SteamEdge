@@ -182,10 +182,37 @@ gün, ortalama satış ve kayıt başlangıcı. **İstatistikleri Sıfırla** he
 |---|---|---|
 | **Kayıt seviyesi** | Sadece hata | Ayrıntılı seviye disk kullanımını belirgin artırır. Yalnızca sorun ararken kullan. |
 | **Hata ayıklama kayıtlarını tut** | Kapalı | Tüm protokol trafiğini `cache/steamedge.log` dosyasına yazar. Hata bildirimine ekle. |
-| **Donanım hızlandırma** | Açık | Görüntü bozulması veya donma yaşıyorsan kapat ve yeniden başlat. |
+| **Donanım hızlandırma** | Açık | Kapatmak ekran kartı sürecini küçültür ve ölçümlerimizde bellek kullanımını yaklaşık 45 MB düşürdü; karşılığında çizim işlemciye biner. Görüntü bozulması veya donma yaşıyorsan da kapat ve yeniden başlat. |
+| **Kullanılan bellek** | - | Tüm SteamEdge süreçlerinin toplamı, süreç kırılımıyla birlikte. Ölçümden gelir, tahmin değildir. |
 | **API isteği aralığı** | 350 ms | Steam istekleri arasındaki en kısa süre. 350 ms altı geçici hız limitine takılabilir. |
 | **Veri Klasörünü Aç** | - | `settings/` ve `cache/` klasörlerini barındıran klasörü açar. |
 | **Fiyat Önbelleğini Temizle** | - | Tüm fiyatların yeniden çekilmesini sağlar. |
+
+---
+
+## Hesap kartı
+
+Ayarlar'ın sağındaki panel. Steam seviyesi, bağlantı durumu ve giriş yapılmış hesabın tüm
+kimlik biçimleri: **SteamID** (17 haneli olan), **SteamID2** (`STEAM_1:...`), **SteamID3**
+(`[U:1:...]`), **hesap numarası**, **hex** ve profilde tanımlıysa **özel adres**. Herhangi
+bir satıra tıklamak değeri panoya kopyalar. Özel adres dışındakiler SteamID'den yerelde
+hesaplanır, Steam'e hiçbir şey sorulmaz; özel adres profil sayfasından okunur.
+
+**Kimlikleri Kopyala** hepsini birden panoya alır, **Profili Aç** profili tarayıcıda açar.
+
+---
+
+## Güncelleme
+
+SteamEdge yayın listesine **açılışta bir kez** bakar ve **yalnızca** yeni sürüm varsa
+pencere gösterir. Sürümün güncelse hiçbir şey görünmez.
+
+Üst çubukta zil ile dişli arasındaki indirme düğmesi aynı denetimi istediğin an tekrarlar;
+orada sonuç her durumda söylenir, güncel olmak dahil.
+
+Uygulama yalnızca sürüm numarasını okur. Hiçbir zaman kendini indirmez, kurmaz veya
+değiştirmez - neyi ne zaman kuracağına sen karar verirsin. Yükseltirken: yeni arşivi
+**boş ve yeni bir klasöre** çıkar, eski `settings/` klasörünü yanına kopyala.
 
 ---
 

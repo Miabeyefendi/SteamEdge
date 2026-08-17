@@ -183,10 +183,39 @@ and when tracking started. **Reset statistics** clears them.
 |---|---|---|
 | **Log level** | Errors only | Verbose noticeably increases disk usage. Use it only while troubleshooting. |
 | **Keep debug logs** | Off | Writes all protocol traffic to `cache/steamedge.log`. Attach it to bug reports. |
-| **Hardware acceleration** | On | Turn off and restart if you see graphical glitches or freezes. |
+| **Hardware acceleration** | On | Turning it off shrinks the graphics process and cut memory use by roughly 45 MB in our measurements, at the cost of drawing on the CPU. Turn it off and restart if you see graphical glitches or freezes as well. |
+| **Memory in use** | - | Total across every SteamEdge process, with a per-process breakdown. Read from the process metrics, not estimated. |
 | **API request interval** | 350 ms | Minimum gap between Steam requests. Below 350 ms risks a temporary rate limit. |
 | **Open data folder** | - | Opens the folder holding `settings/` and `cache/`. |
 | **Clear price cache** | - | Forces all prices to refetch. |
+
+---
+
+## Account card
+
+The panel on the right of Settings. Steam level, connection status and every identity
+format for the signed-in account: **SteamID** (the 17-digit one), **SteamID2**
+(`STEAM_1:...`), **SteamID3** (`[U:1:...]`), **account number**, **hex** and the **custom
+address** if the profile has one. Click any row to copy it. All of them are derived locally
+from the SteamID - nothing is asked of Steam - except the custom address, which is read
+from the profile page.
+
+**Copy identities** puts all of them on the clipboard at once; **Open profile** opens the
+profile in your browser.
+
+---
+
+## Updates
+
+SteamEdge checks the release list **once at start-up** and shows a window **only** when a
+newer version exists. If you are up to date, nothing appears.
+
+The download button in the top bar, between the bell and the gear, repeats the check
+whenever you want; there the result is always reported, up to date included.
+
+The app reads a version number and nothing else. It never downloads, installs or replaces
+itself - you decide what to install and when. To upgrade: extract the new archive into an
+**empty, new folder** and copy your old `settings/` folder next to it.
 
 ---
 

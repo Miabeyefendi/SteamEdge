@@ -106,9 +106,36 @@ Prüfe der Reihe nach:
 
 ### Die App braucht viel Arbeitsspeicher
 
-Das ist Electron. Rund 200-400 MB sind normal. Senke **Max. Spiele gleichzeitig** und
-aktiviere **Im Hintergrund farmen**, um die Neuzeichnungslast bei verstecktem Fenster zu
-reduzieren.
+Das ist Electron: es laeuft als mehrere Prozesse, deshalb zeigt der Task-Manager mehrere
+SteamEdge-Zeilen. Einstellungen → Erweitert → **Belegter Speicher** zaehlt sie zusammen und
+zeigt, welcher Prozess wie viel haelt. Auf unserem Rechner liegt eine typische Sitzung bei
+insgesamt 200-240 MB.
+
+Zwei Dinge senken das:
+
+- **Hardwarebeschleunigung aus** (Einstellungen → Erweitert). Der Grafikprozess wird
+  kleiner; in unserer Messung sank der Gesamtwert von 212 MB auf 163 MB. Gezeichnet wird
+  dann von der CPU.
+- **Im Hintergrund farmen** (Kartenfarming → Automatisierung). Ist das Fenster
+  ausgeblendet, wird die Liste des offenen Tabs freigegeben und bei der Rueckkehr neu
+  gezeichnet.
+
+Listen von Tabs, die du gerade nicht ansiehst, werden ohnehin automatisch freigegeben, und
+das Neuzeichnen stoppt vollstaendig, solange das Fenster verborgen ist.
+
+### Wie aktualisiere ich?
+
+SteamEdge sieht beim Start einmal in der Release-Liste nach und zeigt nur dann ein Fenster,
+wenn eine neuere Version existiert; bist du aktuell, bleibt es still. Die
+Download-Schaltflaeche oben wiederholt die Pruefung jederzeit.
+
+Die Anwendung aktualisiert sich nie selbst. Lade das neue Archiv von der Release-Seite,
+entpacke es in einen **leeren, neuen Ordner** und kopiere deinen alten `settings/`-Ordner
+neben die neue `SteamEdge.exe`. Einstellungen, gespeicherte Konten und Sitzung kommen mit.
+
+Eine neue Version **ueber** den alten Ordner zu entpacken ist das Einzige, was du
+vermeiden solltest: Dateien in Benutzung werden uebersprungen, es entsteht eine Mischung
+aus zwei Versionen und die Anwendung startet nicht mehr.
 
 ### Wo sind meine Dateien?
 

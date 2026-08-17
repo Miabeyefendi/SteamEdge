@@ -44,12 +44,14 @@ Market data so you can price and sell your cards without leaving the app.
 | **Realistic Mode** | Run one game while its achievements unlock across the session, ordered from most common to rarest at randomised intervals. Leaves an organic-looking play history instead of a burst of unlocks. |
 | **Inventory & Market** | Bulk average fetching, real order book (current listings + buy orders) and real sale history. Item value comes from **completed sales**, never from a single inflated listing. |
 | **No Steam client** | Everything runs over the Steam network protocol. No game files, no overlay, no injection. |
-| **Portable** | Unzip and run. Settings and cache live next to the executable; nothing is written to the registry. |
+| **Portable** | Extract and run. Settings and cache live next to the executable; nothing is written to the registry. |
+| **Update check** | Looks at the release list once at start-up and tells you only when a newer version exists. It reads a version number and nothing else: no download, no install, no self-updating. |
+| **Account identity** | Every format Steam uses for the same account - SteamID, SteamID2, SteamID3, account number, hex and custom address - each one a click away from your clipboard. |
 | **5 languages** | English, Türkçe, Deutsch, Español, 繁體中文. |
 
 ## Quick start
 
-1. Download the latest `SteamEdge-vX.Y.Z-win-x64.zip` from [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest).
+1. Download the latest `SteamEdge-vX.Y.Z-win-x64.rar` from [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest).
 2. Extract it anywhere (Desktop, USB stick, anywhere you can write to).
 3. Run `SteamEdge.exe`.
 4. Scan the QR code with the Steam mobile app, or sign in with your username and password.
@@ -103,7 +105,8 @@ git clone https://github.com/Miabeyefendi/steamedge.git
 cd SteamEdge
 npm install
 npm start          # run in development
-npm run build      # produce a portable build in ../Release Vx.y.z
+npm run dogrula    # static checks: syntax, element ids, IPC channels, stray characters
+npm run build      # produce a portable build in ../SteamEdge-vX.Y.Z-win-x64
 ```
 
 Requires Node.js 20 or newer. See [CONTRIBUTING.md](./CONTRIBUTING.md).

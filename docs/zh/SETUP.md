@@ -9,7 +9,7 @@
 ## 1. 下載
 
 前往 [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest) 下載
-`SteamEdge-vX.Y.Z-win-x64.zip`。
+`SteamEdge-vX.Y.Z-win-x64.rar`。
 
 ## 2. 解壓縮
 
@@ -122,7 +122,7 @@ npm start
 npm run build
 ```
 
-結果會出現在原始碼資料夾旁的 `../Release Vx.y.z`。
+結果會出現在原始碼資料夾旁的 `../SteamEdge-vX.Y.Z-win-x64`。
 
 ---
 

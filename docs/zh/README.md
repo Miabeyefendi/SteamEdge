@@ -46,7 +46,7 @@ SteamEdge 是一款透過 Steam 自有網路協定與 Steam 溝通的桌面應�
 ## 快速開始
 
 1. 從 [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest) 下載最新的
-   `SteamEdge-vX.Y.Z-win-x64.zip`。
+   `SteamEdge-vX.Y.Z-win-x64.rar`。
 2. 解壓縮到你有寫入權限的位置（桌面、隨身碟，任何地方皆可）。
 3. 執行 `SteamEdge.exe`。
 4. 用 Steam 手機應用程式掃描 QR 碼，或以使用者名稱與密碼登入。
@@ -95,7 +95,7 @@ git clone https://github.com/Miabeyefendi/steamedge.git
 cd SteamEdge
 npm install
 npm start          # 以開發模式執行
-npm run build      # 在 ../Release Vx.y.z 產生可攜版本
+npm run build      # 在 ../SteamEdge-vX.Y.Z-win-x64 產生可攜版本
 ```
 
 需要 Node.js 20 或更新版本。詳見 [CONTRIBUTING.md](../../CONTRIBUTING.md)。

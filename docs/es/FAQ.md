@@ -104,8 +104,33 @@ Comprueba, en orden:
 
 ### La app usa mucha memoria
 
-Es Electron. Entre 200 y 400 MB es normal. Baja **Máx. juegos a la vez** y activa **Farmear
-en segundo plano** para reducir el trabajo de redibujado con la ventana oculta.
+Es Electron: se ejecuta como varios procesos, por eso el Administrador de tareas muestra
+varias filas de SteamEdge. Ajustes → Avanzado → **Memoria en uso** los suma por ti y
+muestra cuanto ocupa cada uno. En nuestra maquina una sesion tipica ronda los 200-240 MB.
+
+Dos cosas lo reducen:
+
+- **Desactivar la aceleracion por hardware** (Ajustes → Avanzado). El proceso grafico se
+  encoge; en nuestra medicion el total paso de 212 MB a 163 MB. El dibujado pasa a la CPU.
+- **Farmear en segundo plano** (Farmeo de cromos → Automatizacion). Con la ventana oculta,
+  la lista de la pestana abierta se libera de la memoria y se redibuja al volver.
+
+Las listas de las pestanas que no estas mirando ya se liberan solas, y el redibujado se
+detiene por completo mientras la ventana esta oculta.
+
+### ¿Cómo actualizo?
+
+SteamEdge consulta la lista de versiones una vez al iniciar y solo muestra una ventana si
+existe una version mas nueva; si estas al dia, se queda callado. El boton de descarga de la
+barra superior repite la comprobacion cuando quieras.
+
+La aplicacion nunca se actualiza sola. Descarga el nuevo archivo desde la pagina de
+versiones, extraelo en una carpeta **vacia y nueva** y copia tu carpeta `settings/` junto al
+nuevo `SteamEdge.exe`. Tus ajustes, cuentas guardadas y sesion van contigo.
+
+Extraer una version nueva **encima** de la carpeta antigua es lo unico que debes evitar:
+los archivos en uso se omiten, acabas con una mezcla de dos versiones y la aplicacion se
+niega a arrancar.
 
 ### ¿Dónde están mis archivos?
 

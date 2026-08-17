@@ -48,7 +48,7 @@ verisini okur; böylece kartlarını uygulamadan çıkmadan fiyatlandırıp sata
 ## Hızlı başlangıç
 
 1. [Sürümler](https://github.com/Miabeyefendi/steamedge/releases/latest) sayfasından
-   `SteamEdge-vX.Y.Z-win-x64.zip` dosyasını indir.
+   `SteamEdge-vX.Y.Z-win-x64.rar` dosyasını indir.
 2. Yazma izni olan bir yere çıkar (Masaüstü, USB bellek, herhangi bir yer).
 3. `SteamEdge.exe` dosyasını çalıştır.
 4. QR kodu Steam mobil uygulamasıyla okut ya da kullanıcı adı ve şifreyle giriş yap.
@@ -102,7 +102,7 @@ git clone https://github.com/Miabeyefendi/steamedge.git
 cd SteamEdge
 npm install
 npm start          # geliştirme modunda çalıştır
-npm run build      # ../Release Vx.y.z altında taşınabilir sürüm üret
+npm run build      # ../SteamEdge-vX.Y.Z-win-x64 altında taşınabilir sürüm üret
 ```
 
 Node.js 20 veya üstü gerekir. Ayrıntı: [CONTRIBUTING.md](../../CONTRIBUTING.md).

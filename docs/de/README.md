@@ -48,7 +48,7 @@ und verkaufen kannst.
 
 ## Schnellstart
 
-1. Lade die neueste `SteamEdge-vX.Y.Z-win-x64.zip` von
+1. Lade die neueste `SteamEdge-vX.Y.Z-win-x64.rar` von
    [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest).
 2. Entpacke sie an einen Ort, an dem du schreiben darfst (Desktop, USB-Stick, beliebig).
 3. Starte `SteamEdge.exe`.
@@ -106,7 +106,7 @@ git clone https://github.com/Miabeyefendi/steamedge.git
 cd SteamEdge
 npm install
 npm start          # im Entwicklungsmodus starten
-npm run build      # portable Version unter ../Release Vx.y.z erzeugen
+npm run build      # portable Version unter ../SteamEdge-vX.Y.Z-win-x64 erzeugen
 ```
 
 Benötigt Node.js 20 oder neuer. Siehe [CONTRIBUTING.md](../../CONTRIBUTING.md).

@@ -10,7 +10,7 @@ el registro de Windows.
 ## 1. Descargar
 
 Ve a [Releases](https://github.com/Miabeyefendi/steamedge/releases/latest) y descarga
-`SteamEdge-vX.Y.Z-win-x64.zip`.
+`SteamEdge-vX.Y.Z-win-x64.rar`.
 
 ## 2. Extraer
 
@@ -135,7 +135,7 @@ portable:
 npm run build
 ```
 
-El resultado aparece en `../Release Vx.y.z`, junto a la carpeta del código fuente.
+El resultado aparece en `../SteamEdge-vX.Y.Z-win-x64`, junto a la carpeta del código fuente.
 
 ---
 

@@ -104,8 +104,33 @@ Sırayla kontrol et:
 
 ### Uygulama çok bellek kullanıyor
 
-Bu Electron'un doğası. 200-400 MB civarı normaldir. **Aynı anda maksimum oyun** değerini
-düşür ve pencere gizliyken yenileme yükünü azaltmak için **Arka Planda Topla**'yı aç.
+Bu Electron: birden fazla süreç olarak çalışır, o yüzden Görev Yöneticisi'nde birkaç
+SteamEdge satırı görürsün. Ayarlar → Gelişmiş → **Kullanılan bellek** hepsini senin için
+toplar ve hangi sürecin ne tuttuğunu gösterir. Bizim makinede tipik bir oturum toplam
+200-240 MB.
+
+İki şey bunu düşürür:
+
+- **Donanım hızlandırmayı kapatmak** (Ayarlar → Gelişmiş). Ekran kartı süreci küçülür;
+  ölçümümüzde toplam 212 MB'tan 163 MB'a indi. Çizim o zaman işlemciye biner.
+- **Arka Planda Topla** (Kart Düşür → Otomasyon). Pencere gizliyken açık sekmenin listesi
+  bellekten düşer, geri döndüğünde yeniden çizilir.
+
+Bakmadığın sekmelerin listeleri zaten kendiliğinden bellekten düşüyor ve pencere gizliyken
+çizim tamamen duruyor.
+
+### Nasıl güncellerim?
+
+SteamEdge açılışta yayın listesine bir kez bakar ve yalnızca yeni sürüm varsa pencere
+gösterir; sürümün güncelse sessiz kalır. Üst çubuktaki indirme düğmesi aynı denetimi
+istediğin an tekrarlar.
+
+Uygulama kendini asla güncellemez. Yeni arşivi yayın sayfasından indir, **boş ve yeni bir
+klasöre** çıkar, sonra eski `settings/` klasörünü yeni `SteamEdge.exe` dosyasının yanına
+kopyala. Ayarların, kayıtlı hesapların ve oturumun seninle gelir.
+
+Yeni sürümü eski klasörün **üzerine** çıkarmak yapılmaması gereken tek şey: kullanımdaki
+dosyalar atlanır, elinde iki sürümün karışımı kalır ve uygulama açılmayı reddeder.
 
 ### Dosyalarım nerede?
 

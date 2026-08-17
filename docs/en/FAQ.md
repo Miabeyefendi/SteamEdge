@@ -105,8 +105,32 @@ Check, in order:
 
 ### The app is using a lot of memory
 
-That is Electron. Around 200-400 MB is normal. Lower **Max games at once** and turn on
-**Farm in the background** to reduce redraw work while the window is hidden.
+That is Electron: it runs as several processes, so Task Manager shows several SteamEdge
+rows. Settings → Advanced → **Memory in use** adds them up for you and shows which process
+holds what. On our machine a typical session sits at 200-240 MB total.
+
+Two things bring it down:
+
+- **Hardware acceleration off** (Settings → Advanced). The graphics process shrinks; total
+  went from 212 MB to 163 MB in our measurement. Drawing then happens on the CPU.
+- **Farm in the background** (Card Farming → Automation). While the window is hidden, the
+  open tab's list is released from memory and redrawn when you come back.
+
+Lists of tabs you are not looking at are already released automatically, and redrawing
+stops entirely while the window is hidden.
+
+### How do I update?
+
+SteamEdge checks the release list once at start-up and shows a window only if a newer
+version exists; when you are current it stays quiet. The download button in the top bar
+repeats the check on demand.
+
+It never updates itself. Download the new archive from the releases page, extract it into
+an **empty, new folder**, then copy your old `settings/` folder next to the new
+`SteamEdge.exe`. Your settings, saved accounts and session come with it.
+
+Extracting a new version **over** an old folder is the one thing to avoid: files that are
+in use are skipped, you end up with a mix of two versions, and the app refuses to start.
 
 ### Where are my files?
 
