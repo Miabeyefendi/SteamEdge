@@ -589,9 +589,17 @@
         // Menü 268 px: tam adres satıra sığmayıp üç noktayla kesiliyordu. Adreslerde
         // "https://steamcommunity.com" kısmı zaten her satırda aynı, o yüzden yalnızca
         // yol gösteriliyor. KOPYALANAN ve AÇILAN değer tam adres olarak kalır.
-        const gorunen = (v && v.startsWith('https://steamcommunity.com'))
-          ? v.slice('https://steamcommunity.com'.length)
-          : v;
+        // Adres AYRISTIRILARAK karsilastirilir, basi kesilerek degil: "steamcommunity.com"
+        // ile BASLAYAN her dizge Steam degildir (steamcommunity.com.baskasite.tr gibi).
+        // Burada deger zaten kendi urettigimiz adres, ama karsilastirmanin dogrusu bu ve
+        // kod taramasi da hakli olarak isaret ediyordu.
+        let gorunen = v;
+        if (v) {
+          try {
+            const u = new URL(v);
+            if (u.origin === 'https://steamcommunity.com') gorunen = u.pathname + u.search + u.hash;
+          } catch (_) { /* adres degilse oldugu gibi gosterilir */ }
+        }
         // Boş tire "bozuk" gibi görünüyor; değeri olmayan satır sebebini yazsın.
         e.textContent = gorunen || (kimlikler ? 'tanımlı değil' : 'hesap bağlı değil');
         e.classList.toggle('bos', !v);
