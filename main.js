@@ -280,7 +280,6 @@ const DEFAULT_SETTINGS = {
   boostSyncStrategy: 'parallel',
   boostAutoRestart: false,  // süre dolunca oturumu kendiliğinden yeniden başlat
   seqIdle: false,           // sıralı bekletme (kapalı = tümü eşzamanlı)
-  ignoreUpdates: false,     // (*) Steam oyun güncellemelerini yoksayma karşılığı yok
   loopQueue: true,          // sıralı modda kuyruk bitince baştan başla
   boostDurationSec: 3600,
   boostGameIds: [],         // "Oyun listesini hatırla" açıkken seçili oyunlar

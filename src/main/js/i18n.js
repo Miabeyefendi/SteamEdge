@@ -2633,6 +2633,88 @@
     };
     Object.keys(I18N_G12).forEach((dil) => { Object.assign(I18N[dil], I18N_G12[dil]); });
 
+    // G12 turu: Genel Bakis'in aktif gorev paneli (Gercekci Mod satiri, gezinme seridi,
+    // goreve gore Detay etiketi) ve Saat Yukseltici'de yeniden adlandirilan esitleme yontemi.
+    const I18N_G13 = {
+      en: {
+        'Envanter sekmesinde yükle': 'Load it on the Inventory tab',
+        'Başarımlar sekmesinde oyun seç': 'Pick a game on the Achievements tab',
+        'başarımlar zamana yayılıyor': 'unlocks spread over time',
+        'Kalan Süre': 'Time left',
+        'Sıradaki': 'Up next',
+        'tek oyun': 'single game',
+        'oyun # / #': 'game # / #',
+        '# iş birlikte çalışıyor': '# jobs running together',
+        'Detay: Kart': 'Details: Cards',
+        'Detay: Saat': 'Details: Hours',
+        'Detay: Gerçekçi': 'Details: Realistic',
+        'Detay: Başarım': 'Details: Achievements',
+        'Hepsi birden': 'All at once',
+        'Sıralı': 'One by one',
+        'Eşitleme adımı # / #': 'Sync step # / #',
+        'Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.':
+          'All at once: every selected game runs at the same time and drops off the list once it reaches the target. This is the fastest route. One by one: the game furthest behind is pulled forward on its own, and once it catches up with the next one they continue together; a game waiting its turn gains no hours.',
+      },
+      de: {
+        'Envanter sekmesinde yükle': 'Im Inventar-Tab laden',
+        'Başarımlar sekmesinde oyun seç': 'Spiel im Erfolge-Tab wählen',
+        'başarımlar zamana yayılıyor': 'Erfolge über die Zeit verteilt',
+        'Kalan Süre': 'Restzeit',
+        'Sıradaki': 'Als Nächstes',
+        'tek oyun': 'ein Spiel',
+        'oyun # / #': 'Spiel # / #',
+        '# iş birlikte çalışıyor': '# Aufgaben laufen gleichzeitig',
+        'Detay: Kart': 'Details: Karten',
+        'Detay: Saat': 'Details: Stunden',
+        'Detay: Gerçekçi': 'Details: Realistisch',
+        'Detay: Başarım': 'Details: Erfolge',
+        'Hepsi birden': 'Alle zugleich',
+        'Sıralı': 'Nacheinander',
+        'Eşitleme adımı # / #': 'Abgleichschritt # / #',
+        'Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.':
+          'Alle zugleich: alle ausgewählten Spiele laufen gleichzeitig und fallen aus der Liste, sobald sie das Ziel erreichen. Das ist der schnellste Weg. Nacheinander: das am weitesten zurückliegende Spiel wird allein vorgezogen, und sobald es das nächste eingeholt hat, laufen beide zusammen weiter; ein wartendes Spiel sammelt keine Stunden.',
+      },
+      es: {
+        'Envanter sekmesinde yükle': 'Cárgalo en la pestaña Inventario',
+        'Başarımlar sekmesinde oyun seç': 'Elige un juego en la pestaña Logros',
+        'başarımlar zamana yayılıyor': 'logros repartidos en el tiempo',
+        'Kalan Süre': 'Tiempo restante',
+        'Sıradaki': 'Siguiente',
+        'tek oyun': 'un solo juego',
+        'oyun # / #': 'juego # / #',
+        '# iş birlikte çalışıyor': '# tareas ejecutándose a la vez',
+        'Detay: Kart': 'Detalles: Cromos',
+        'Detay: Saat': 'Detalles: Horas',
+        'Detay: Gerçekçi': 'Detalles: Realista',
+        'Detay: Başarım': 'Detalles: Logros',
+        'Hepsi birden': 'Todos a la vez',
+        'Sıralı': 'Uno por uno',
+        'Eşitleme adımı # / #': 'Paso de sincronización # / #',
+        'Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.':
+          'Todos a la vez: todos los juegos seleccionados se ejecutan al mismo tiempo y salen de la lista al alcanzar el objetivo. Es la vía más rápida. Uno por uno: el juego más rezagado avanza en solitario y, cuando alcanza al siguiente, ambos continúan juntos; un juego que espera su turno no acumula horas.',
+      },
+      zh: {
+        'Envanter sekmesinde yükle': '請在庫存頁面載入',
+        'Başarımlar sekmesinde oyun seç': '請在成就頁面選擇遊戲',
+        'başarımlar zamana yayılıyor': '成就依時間分散解鎖',
+        'Kalan Süre': '剩餘時間',
+        'Sıradaki': '下一個',
+        'tek oyun': '單一遊戲',
+        'oyun # / #': '遊戲 # / #',
+        '# iş birlikte çalışıyor': '# 項工作同時進行',
+        'Detay: Kart': '詳情：卡牌',
+        'Detay: Saat': '詳情：時數',
+        'Detay: Gerçekçi': '詳情：擬真',
+        'Detay: Başarım': '詳情：成就',
+        'Hepsi birden': '全部同時',
+        'Sıralı': '逐一進行',
+        'Eşitleme adımı # / #': '同步步驟 # / #',
+        'Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.':
+          '全部同時：所有已選遊戲同時執行，達到目標的遊戲會從清單中移除。這是最快的方式。逐一進行：落後最多的遊戲會單獨先行，追上下一個之後兩者一起繼續；等待中的遊戲不會累積時數。',
+      },
+    };
+    Object.keys(I18N_G13).forEach((dil) => { Object.assign(I18N[dil], I18N_G13[dil]); });
+
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
 

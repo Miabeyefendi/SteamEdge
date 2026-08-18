@@ -28,6 +28,9 @@
 .edge ::-webkit-scrollbar-thumb{background:var(--e-bd);border-radius:999px;border:3px solid var(--e-bg);background-clip:padding-box;min-height:44px}
 .edge ::-webkit-scrollbar-thumb:hover{background:var(--e-brand);background-clip:padding-box}
 @keyframes e-dotPulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+/* common.css'teki .toast .tspin bu kare dizisini istiyor ama hicbir dosyada tanimli degildi:
+   spinner donmuyor, sabit bir yarim daire olarak duruyordu. */
+@keyframes spin{to{transform:rotate(360deg)}}
 .edge [data-tip]{position:relative}
 .edge [data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);width:264px;padding:9px 11px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 12px 30px rgba(3,3,5,.7);color:var(--e-body);font-size:11px;font-weight:400;line-height:1.5;text-align:left;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;z-index:60;transition:opacity .12s}
 .edge [data-tip]:hover::after{opacity:1;visibility:visible}

@@ -8,7 +8,9 @@
     let boostState = { running: false, appids: [], startedAt: 0, durationMs: 0 };
     let boostTimerUI = null;
     // Davranış/Gizlilik anahtarları - ayarlara kalıcı yazılır (Ayarlar ekranıyla aynı anahtarlar)
-    let boostFlags = { boostAutoRestart:false, seqIdle:false, ignoreUpdates:false, loopQueue:true, offlineMode:false, hideGameName:false, boostSync:false };
+    // ignoreUpdates ve hideGameName buradan cikarildi: ilkinin motorda karsiligi hic yoktu,
+    // ikincisi Ayarlar > Gizlilik altinda duruyor.
+    let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, offlineMode:false, boostSync:false };
 
     const BC = { brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
                  off:'#656D80', bd:'#2B3345', s1:'#0D1118', bgAlt:'#090C12', sub:'#C2AAEE' };
@@ -402,8 +404,8 @@
               '  '+(i+1)+'. '+st.count+' oyun: '+fmtHours(st.fromMin)+' → '+fmtHours(st.toMin)
               +'  ('+fmtHours(st.toMin-st.fromMin)+')').join('\n');
             baslik = plan.behind+' oyun '+fmtHours(plan.targetMin)+' hedefine çekilecek';
-            govde = 'Geride kalan oyunlar kademe kademe öne çıkarılır; her kademe bittiğinde o oyunlar '
-                  + 'sonrakine katılır ve sonunda hepsi birlikte devam eder.\n\n' + lines
+            govde = 'En geride kalan oyun tek başına öne çekilir; bir sonrakine yetişince ikisi '
+                  + 'birlikte devam eder ve sonunda hepsi aynı noktada buluşur.\n\n' + lines
                   + '\n\nToplam süre: ' + fmtHours(Math.round(plan.totalMs/60000));
           }
           const ok = await edgeConfirm({
@@ -469,7 +471,7 @@
         syncOyunBilgi = new Map();
         const yuzde = d.steps ? Math.round((d.step-1)/d.steps*100) : 0;
         if (txt) txt.innerHTML =
-            '<span style="font-size:12px;font-weight:600;color:#DCE2FA">Eşitleme kademesi '+d.step+' / '+d.steps+'</span>'
+            '<span style="font-size:12px;font-weight:600;color:#DCE2FA">Eşitleme adımı '+d.step+' / '+d.steps+'</span>'
           + '<span style="font-size:11px;color:#8B8F9E">'+d.ids.length+' oyun · '
           + fmtHours(d.fromMin)+' → '+fmtHours(d.toMin)+' · hedef '+fmtHours(d.targetMin)+'</span>';
         if (eta) eta.textContent = d.stepMs ? msKisa(Math.max(0, d.stepMs-(Date.now()-(d.startedAt||Date.now())))) : '-';

@@ -78,11 +78,11 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0">
               <div style="display:flex;align-items:center;gap:7px;min-width:0">
                 <span style="font-size:12px;color:#B9C0D6">Yöntem</span>
-                <span data-tip="Paralel: seçili oyunların hepsi aynı anda çalışır, hedefe ulaşan listeden düşer. Kademeli: oyunlar yol boyunca birbirine eşit tutulur, sırasını bekleyenler süre kazanmaz." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
+                <span data-tip="Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
               </div>
               <select id="saatSyncStrategy" class="f-focus" style="height:30px;width:120px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
-                <option value="parallel">Paralel (hızlı)</option>
-                <option value="staged">Kademeli</option>
+                <option value="parallel">Hepsi birden</option>
+                <option value="staged">Sıralı</option>
               </select>
             </div>
           </div>
@@ -139,10 +139,6 @@
             <span style="font-size:12px;color:#B9C0D6">Sıralı bekletme modu</span>
             <span class="e-toggle" data-bset="seqIdle"><span class="e-knob"></span></span>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
-            <span style="font-size:12px;color:#B9C0D6">Güncellemeleri yoksay</span>
-            <span class="e-toggle" data-bset="ignoreUpdates"><span class="e-knob"></span></span>
-          </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Sırayı tekrarla (kuyruk bitince baştan başlar)</span>
             <span class="e-toggle" data-bset="loopQueue"><span class="e-knob"></span></span>
@@ -153,13 +149,11 @@
       <div style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Gizlilik</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
+          <!-- "Oyun adını gizle" buradan kaldırıldı: Ayarlar > Gizlilik altında zaten var ve
+               açıklaması orada. İki yerde durunca hangisinin geçerli olduğu belirsizdi. -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Çevrimdışı görün</span>
             <span class="e-toggle" data-bset="offlineMode"><span class="e-knob"></span></span>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
-            <span style="font-size:12px;color:#B9C0D6">Oyun adını gizle</span>
-            <span class="e-toggle" data-bset="hideGameName"><span class="e-knob"></span></span>
           </div>
         </div>
       </div>

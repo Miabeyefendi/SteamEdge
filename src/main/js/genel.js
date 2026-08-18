@@ -88,6 +88,9 @@
       if (typeof uiTickAllowed === 'function' && !uiTickAllowed()) return;
       const el=document.getElementById('gStatSession');
       if(el) el.innerHTML = monoTime(fmtSessionDur(Date.now()-sessionStartTs));
+      // Gorev satirindaki geri sayimlar motor tikine bagli kalmasin: Gercekci Mod dakikalarca
+      // sessiz kalabiliyor, "Kalan Sure" o sure boyunca donuyordu.
+      if (gorevListesi.length) renderGenelActive();
     }, 1000);
 
     function renderGenelStats(){
@@ -104,11 +107,16 @@
       set('gStatGamesSub', kartLoaded ? (dropGames.length+' oyun toplamaya hazır') : '-');
 
       // Envanter & Pazar - değer + Steam kesintisi sonrası net
+      // Yedek dali SART: hesap degistiginde resetPageCaches() invMerged'i null yapiyor ama
+      // kutu yazilmayinca ONCEKI HESABIN degeri ekranda kaliyordu.
       if (invMerged){
         let value=0, units=0;
         invMerged.forEach(i=>{ units+=i.count; if(i.marketable && i.marketHashName){ const v=priceVal(i); if(v!=null) value += v*i.count; } });
         set('gStatValue', fmtTL(value));
         set('gStatValueSub', units.toLocaleString('tr-TR')+' öğe · net '+fmtTL(value*0.87));
+      } else {
+        set('gStatValue', '-');
+        set('gStatValueSub', 'Envanter sekmesinde yükle');
       }
 
       // Saat Yükseltici
@@ -125,6 +133,9 @@
         const pct = Math.round(acData.unlocked/acData.total*100);
         set('gStatAch', acData.unlocked+' / '+acData.total);
         set('gStatAchSub', '%'+pct+' tamamlandı · '+(acData.gameName||''));
+      } else {
+        set('gStatAch', '-');
+        set('gStatAchSub', 'Başarımlar sekmesinde oyun seç');
       }
     }
 
@@ -314,6 +325,18 @@
         + '</div>';
     }
 
+    // Panelde o an gosterilen gorev. Alttaki Baslat / Durdur / Detay bu secime gore is yapar;
+    // eskiden ucu de sabit Kart Dusur'e bagliydi ve saat yukseltici calisirken Detay yanlis
+    // sayfayi aciyordu.
+    let gorevListesi = [], gorevIndeks = 0;
+    const kisalt = (s, n)=>{ s = String(s||''); return s.length > n ? (s.slice(0, n-1)+'…') : s; };
+    // Ilgili sayfanin kendi dugmesine basar: dogrulamasi, toast'i ve istatistik yazmasi
+    // orada duruyor, burada kopyalamak iki yerde bakim demek olurdu.
+    function sayfaDugmesineBas(id){
+      const b = document.getElementById(id);
+      if (b) b.click();
+    }
+
     function renderGenelActive(){
       const box = document.getElementById('gActiveBody');
       const qbox = document.getElementById('gQueue');
@@ -324,6 +347,9 @@
       const boostOn = boostState && boostState.running;
       // basarim.js ile ayni genel kapsamda; toplu islem calisiyorsa burada da gorunsun
       const achOn = (typeof acRunning !== 'undefined') && acRunning;
+      // G12: Gercekci Mod da bir is - eskiden hic izlenmiyordu. Tek basina calisirken
+      // panel "calisan islem yok" diyor, Baslat da kart dusurmeyi baslatiyordu.
+      const grOn = (typeof grDurum !== 'undefined') && grDurum && grDurum.calisiyor;
 
       let heroId = null;
       if (farmOn){
@@ -338,7 +364,7 @@
                     ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(farmSessionStart||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
           yuzde: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
-          renk:'#24AEB3',
+          renk:'#24AEB3', durdur: kartiDurdur,
         });
       }
       if (boostOn){
@@ -354,7 +380,7 @@
                     ['Oturum Süresi', monoTime(fmtSessionDur(gecen))],
                     ['Kalan', monoTime(left)]],
           yuzde: boostState.durationMs ? (gecen/boostState.durationMs*100) : 100,
-          renk:'#5624B3',
+          renk:'#5624B3', durdur: ()=>sayfaDugmesineBas('btnBoostStop'),
         });
       }
       if (achOn){
@@ -366,35 +392,79 @@
           rozetler:['Başarımlar', (top ? (yap+' / '+top) : 'çalışıyor')],
           sutunlar:[['İşlenen', yap+' / '+top, GC.ok]],
           yuzde: top ? (yap/top*100) : 0,
-          renk:'#5FB324', ikon:'★',
+          renk:'#5FB324', ikon:'★', durdur: ()=>sayfaDugmesineBas('acStop'),
+        });
+      }
+      if (grOn){
+        const acilan = grDurum.acilan || 0, toplam = grDurum.toplam || 0;
+        const kalanSure = grDurum.bitis ? Math.max(0, grDurum.bitis - Date.now()) : 0;
+        gorevler.push({
+          tab:'gercekci', appid: grDurum.appid || 0,
+          baslik: grDurum.oyunAdi || 'Gerçekçi Mod',
+          altBilgi: 'başarımlar zamana yayılıyor',
+          rozetler:['Gerçekçi Mod',
+                    (grDurum.oyunSayisi > 1 ? ('oyun ' + ((grDurum.oyunIndeks||0)+1) + ' / ' + grDurum.oyunSayisi) : 'tek oyun')],
+          sutunlar:[['Açılan', acilan + ' / ' + toplam, GC.ok],
+                    ['Kalan Süre', monoTime(fmtSessionDur(kalanSure))],
+                    ['Sıradaki', grDurum.siradaki ? kisalt(grDurum.siradaki, 16) : '-']],
+          yuzde: toplam ? (acilan/toplam*100) : 0,
+          renk:'#C2AAEE', durdur: ()=>sayfaDugmesineBas('grStop'),
         });
       }
 
       setRunPill(gorevler.length > 0);
 
+      gorevListesi = gorevler;
+
       if (!gorevler.length){
+        gorevIndeks = 0;
         box.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">'
           + '<span style="font-size:13px;font-weight:600;color:#DCE2FA">Şu anda çalışan bir işlem yok</span>'
           + '<span style="font-size:11px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>';
+        panelDugmeleriniBoya();
         renderQueue(null);
         return;
       }
 
-      box.innerHTML = (gorevler.length > 1
-          ? ('<div style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
-             + 'color:#8B8F9E;padding-bottom:2px">' + gorevler.length + ' iş birlikte çalışıyor</div>')
-          : '')
-        + gorevler.map(gorevSatiri).join('');
+      // Birden fazla is varsa hepsini alt alta yigmak yerine tek tek gosterilir; ‹ › ile
+      // gezilir. Panelin yuksekligi sabit, uc is birden aktifken alttaki kuyruk eziliyordu.
+      if (gorevIndeks >= gorevler.length) gorevIndeks = gorevler.length - 1;
+      if (gorevIndeks < 0) gorevIndeks = 0;
+      const aktifGorev = gorevler[gorevIndeks];
 
-      // Her satirin kendi Detay baglantisi kendi sekmesine gider (eskiden hep Kart'a gidiyordu)
+      box.innerHTML = (gorevler.length > 1 ? gezinmeSeridi(gorevler.length) : '')
+        + gorevSatiri(aktifGorev);
+
+      const git = (yon)=>{
+        gorevIndeks = (gorevIndeks + yon + gorevListesi.length) % gorevListesi.length;
+        renderGenelActive();
+      };
+      const onc = box.querySelector('[data-gorev-onceki]');
+      const son = box.querySelector('[data-gorev-sonraki]');
+      if (onc) onc.onclick = ()=>git(-1);
+      if (son) son.onclick = ()=>git(1);
+
+      // Satir icindeki Detay da panel altindaki Detay da AYNI gorevin sekmesine gider.
       box.querySelectorAll('[data-gorev-tab]').forEach(b=>{
-        b.onclick = ()=>{
-          const t = b.getAttribute('data-gorev-tab');
-          const nav = document.querySelector('.nav a[data-tab="'+t+'"]') || document.querySelector('[data-tab="'+t+'"]');
-          if (nav) nav.click();
-        };
+        b.onclick = ()=> goTab(b.getAttribute('data-gorev-tab'));
       });
-      renderQueue(farmOn ? heroId : null);
+      panelDugmeleriniBoya();
+      renderQueue(aktifGorev.tab === 'kart' ? heroId : null);
+    }
+
+    // ‹ 2 / 3 › seridi. Ortadaki metin o an hangi ise bakildigini soyler.
+    function gezinmeSeridi(adet){
+      const ok = (attr, isaret)=>'<button class="h-bd" '+attr+' style="width:22px;height:22px;flex-shrink:0;'
+        + 'border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;'
+        + 'line-height:1;cursor:pointer;padding:0">'+isaret+'</button>';
+      return '<div style="display:flex;align-items:center;gap:8px;padding-bottom:2px">'
+        + '<span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
+          + 'color:#8B8F9E;flex:1">' + adet + ' iş birlikte çalışıyor</span>'
+        + ok('data-gorev-onceki', '‹')
+        + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE;'
+          + 'min-width:32px;text-align:center">' + (gorevIndeks+1) + ' / ' + adet + '</span>'
+        + ok('data-gorev-sonraki', '›')
+        + '</div>';
     }
 
     // Kuyruk listesi (#sıra · ad · kalan · yüzde)
@@ -422,6 +492,11 @@
     E.onTick((data)=>{ if (data.running && farmBaselineCards===null) farmSessionBegin(); if (!data.running) farmSessionEnd(); renderGenelActive(); renderGenelStats(); });
     E.onBoostTick(()=>{ renderGenelActive(); renderGenelStats(); });
     E.onSaatFarmTick(()=>{ renderGenelActive(); renderGenelStats(); });
+    // gercekci.js kendi dinleyicisini ONCE kaydeder (dosya sirasi), yani buraya gelindiginde
+    // grDurum guncellenmis olur. Aksi halde panel bir tik geride kalirdi.
+    if (window.imu.gercekci && window.imu.gercekci.onTick){
+      window.imu.gercekci.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
+    }
 
     // Hızlı işlem toast'ı - tıklandığı an geri bildirim versin, sonucu bekletmesin.
     function toast(text){
@@ -462,25 +537,58 @@
 
     document.getElementById('gRefresh').onclick = refreshGamesQuick;
     document.getElementById('gOpenQueue').onclick = ()=> goTab('kart');
-    document.getElementById('gDetail').onclick = ()=> goTab('kart');
     document.getElementById('gNavHub').onclick = ()=> goTab('env');
     document.getElementById('gNavBoost').onclick = ()=> goTab('saat');
     document.getElementById('gNavAch').onclick = ()=> goTab('basarim');
 
-    // Başlat/Durdur - Kart Düşür'ün gerçek motoruna, oradaki seçili mod ve süreyle bağlanır.
-    document.getElementById('gStart').onclick = ()=>{
+    // Kart Düşür'ün gerçek motoruna, oradaki seçili mod ve süreyle bağlanır.
+    function kartiBaslat(){
       if (!dropGames.length){ toast('Önce oyun listesini yenile.').fail('Düşürülecek kart bulunamadı.'); return; }
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining}));
       E.startFarm(selectedMode, games, durationSec*1000);
       if (typeof setKartPill === 'function') setKartPill(true, 'Çalışıyor');
       notify('farm', 'Kart Düşürme Başladı', games.length+' oyun sırada.');
       pushFeed('kart', 'Kart Düşürme', games.length+' oyun ile başladı.', 'Çalışıyor');
-    };
-    document.getElementById('gStop').onclick = ()=>{
+    }
+    function kartiDurdur(){
       E.stopFarm();
       if (typeof setKartPill === 'function') setKartPill(false, 'Durduruldu');
       notify('farm', 'Kart Düşürme Durdu', '');
       pushFeed('kart', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
+    }
+
+    // Panel altindaki uc dugme, o an gosterilen goreve gore davranir. Calisan bir is
+    // gosteriliyorken Baslat'in anlami yok (zaten calisiyor), Durdur o isi durdurur;
+    // hicbir is yokken Durdur'un anlami yok, Baslat kart dusurmeyi baslatir.
+    function panelDugmeleriniBoya(){
+      const bas = document.getElementById('gStart');
+      const dur = document.getElementById('gStop');
+      const det = document.getElementById('gDetail');
+      const g = gorevListesi[gorevIndeks];
+      const pasif = (el, kapali)=>{
+        if (!el) return;
+        el.disabled = !!kapali;
+        el.style.opacity = kapali ? '0.4' : '1';
+        el.style.cursor = kapali ? 'not-allowed' : 'pointer';
+      };
+      pasif(bas, !!g);
+      pasif(dur, !g);
+      if (det) det.textContent = g ? ('Detay: ' + GOREV_ADI[g.tab]) : 'Detay';
+    }
+    const GOREV_ADI = { kart:'Kart', saat:'Saat', gercekci:'Gerçekçi', basarim:'Başarım' };
+
+    document.getElementById('gDetail').onclick = ()=>{
+      const g = gorevListesi[gorevIndeks];
+      goTab(g ? g.tab : 'kart');
+    };
+    document.getElementById('gStart').onclick = ()=>{
+      if (gorevListesi[gorevIndeks]) return;    // gosterilen is zaten calisiyor
+      kartiBaslat();
+    };
+    document.getElementById('gStop').onclick = ()=>{
+      const g = gorevListesi[gorevIndeks];
+      if (!g) return;
+      if (typeof g.durdur === 'function') g.durdur();
     };
 
     // Hizli islem butonlari. HEPSI try/catch icinde: bir hata firlarsa toast'i kapatip
