@@ -1,36 +1,14 @@
-<!--
-================================================================================
-TUTORIAL TEMPLATE - Miabeyefendi (https://github.com/Miabeyefendi)
-
-HOW TO USE
-  1. Replace every <PLACEHOLDER> with this project's real values.
-  2. The eight top-level sections below are fixed. Delete a section that does
-     not apply, but never reorder or rename the ones that stay.
-  3. This file answers "how does it work and what does every setting do".
-     The README answers "what is it and how do I start". Do not duplicate.
-  4. English is authoritative. Update TUTORIAL_TR / _ES / _ZH in the same commit.
-  5. Every heading gets an entry in the table of contents. Check the anchors
-     after renaming anything.
-================================================================================
--->
-
 <div align="center">
 
 # 📖 SteamEdge Tutorial
 
-**<Version> · Last updated <YYYY-MM-DD>**
+**English** · [Türkçe](./TUTORIAL_TR.md) · [Deutsch](./TUTORIAL_DE.md) · [Español](./TUTORIAL_ES.md) · [繁體中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
 
-**English** · [Türkçe](./TUTORIAL_TR.md) · [Español](./TUTORIAL_ES.md) · [繁體中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
-
-[Back to README](./README.md) · [Changelog](./CHANGELOG.md)
+[Back to the README](./README.md) · [Changelog](./CHANGELOG.md)
 
 </div>
 
 ---
-
-This document explains what every part of SteamEdge does, how it works underneath,
-and what each setting actually changes. If you only want to install and run it,
-the [README](./README.md) is shorter.
 
 ## 📑 Contents
 
@@ -49,26 +27,37 @@ the [README](./README.md) is shorter.
 
 ### What it does
 
-<Two or three paragraphs. The problem, the approach, the result. Written for
-someone who has never seen the project.>
+SteamEdge keeps your Steam games "running" without running them. It collects trading cards, banks playtime, reads and writes achievements, and prices your inventory against the real market. Every one of those things normally needs the Steam client open; none of them do here.
 
 ### How it works
 
-<The mechanism, in plain words. What runs, when, and in what order. If there is
-a pipeline, describe each stage.>
+The application speaks Steam's own network protocol, the same one the client uses. It logs in with a session token, tells Steam which games are being played, and reads back badge pages, inventories, market data and achievement schemas.
 
-```
-<A plain-text diagram if it helps. ASCII only, no image, so it survives both
-themes and never 404s.>
-```
+Two consequences follow from that, and they explain most of the app's behaviour:
+
+- **Steam is the only source of truth.** Nothing is estimated or invented. If a number cannot be fetched, the box shows a dash rather than a guess.
+- **Steam's limits are the app's limits.** Market requests are capped at roughly 20 per 30 seconds per account, and every part of the app that touches the market shares that one budget. Card drops only begin after a game passes two hours of total playtime. These are measured facts, not settings.
 
 ### File layout
 
-| Path | What lives there |
-|---|---|
-| `<path>` | <one line> |
-| `<path>` | <one line> |
-| `<path>` | <one line> |
+Everything lives next to the executable. Nothing is written to the registry, `AppData` or `Program Files`.
+
+```
+SteamEdge/
+  SteamEdge.exe
+  settings/
+    settings.json              general settings
+    accounts.json              saved accounts
+    session.json               active session token
+    accounts/<steamID>.json    per-account data: queues, presets, stats
+  cache/
+    prices.json                market prices, 24 hour lifetime
+    history.json               realised sale averages, 72 hour lifetime
+    basarimsiz.json            games found to have no achievements
+    steamedge.log              the log to attach to a bug report
+```
+
+> **`settings/` is the sensitive one.** `session.json` holds a token that is enough to use your account. Do not put it in a backup you share, an archive you upload or a screenshot.
 
 ---
 
@@ -76,135 +65,272 @@ themes and never 404s.>
 
 ### Requirements
 
-<Same list as the README, expanded with the reason each one is needed.>
+Windows 10 or newer, 64 bit. A Steam account with Steam Guard enabled. About 320 MB of disk space once extracted. The Steam client is not required and is never launched.
 
 ### Step by step
 
-1. <Step, with the exact command.>
-2. <Step.>
-3. <Step, and what you should see when it worked.>
+1. Download the latest `.rar` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+2. Extract it to a folder you own. Not `Program Files`, because the app writes its settings next to itself.
+3. Run `SteamEdge.exe`.
+4. Log in. The QR tab is the easier route: scan the code with the Steam mobile app and approve. The password tab wants your username, password and a Steam Guard code.
 
 ### Verifying the install
 
-<How to confirm it is actually running. A command, an expected output, a screen.>
+The bottom left of the window shows `SYSTEM: RUNNING` once a session is live, and the account badge in the top right fills in with your name, avatar and level. If the badge stays blank, the session did not come up; see [troubleshooting](#-troubleshooting).
 
 ### Updating
 
-<How to move to a newer version, and what carries over.>
+The app checks the published version number and tells you when a newer release exists. It does not download or install anything, on purpose. To update, extract the new archive over the old folder and keep your `settings/` and `cache/` folders.
 
 ### Uninstalling
 
-<How to remove it completely, including any settings it wrote outside the folder.>
+Delete the folder. That is the whole procedure.
 
 ---
 
 ## 🖥️ Interface tour
 
-<!-- Delete this section for projects with no interface. -->
+### Overview
 
-<div align="center">
-  <img src="./screenshots/<name>.png" width="92%" alt="<what is visible>"/>
-  <br/>
-  <sub><b><Panel name></b> · <what it is for></sub>
-</div>
+The landing page. The **Active Task** panel shows whatever is actually running, one job at a time, with arrows to step between them when several run at once. Start, Stop and Details act on the job you are looking at, not on a fixed page.
 
-### <Panel or tab name>
+Below it, the queue and the activity feed. On the right, stat tiles for cards, library size, inventory value, hours booster and achievements. A tile shows a dash when its page has not been loaded yet, which is a statement about what has been fetched, not about your account.
 
-<What it shows and what you can do here. One paragraph.>
+### Card Farming
 
-| Control | What it does |
-|---|---|
-| `<control>` | <one line> |
-| `<control>` | <one line> |
+The list of games with cards still to drop, scraped from your badge pages. Pick a mode, set a session length, press Start.
 
-### <Panel or tab name>
+### Inventory & Market
 
-<Repeat for each panel or tab.>
+Your Steam inventory, merged so duplicates count as one row. Prices and realised sale averages are fetched in the background, one item at a time, both values together. The detail panel shows the order book and lets you list an item for sale.
+
+### Hours Booster
+
+Your whole library, searchable. Select games, set a concurrent limit and a duration, press Start. Optional hour syncing pulls a selection up to a common total.
+
+### Realistic Mode
+
+A three column workspace. The queue and session length on the left, the unlock order in the middle, settings on the right, split into a Simple and an Advanced panel.
+
+### Achievements
+
+Per game, the real locked and unlocked state read from the protocol. Select achievements and unlock or relock them in bulk, with live progress and a stop button that takes effect mid-wait.
+
+### Settings
+
+Everything the app can be told to do, grouped: general, card farming, market, hours booster, realistic mode, privacy, account identity, backup.
 
 ---
 
 ## 🧩 Feature reference
 
-<!-- One subsection per feature listed in the README Highlights, in the same
-     order. This is where the detail the README refused to carry goes. -->
+### Card farming
 
-### <Feature name>
+Steam does not drop cards until a game passes **two hours** of total playtime. Every mode except one ignores that and simply runs games; **Fast mode** knows it, and rotates games that are already past the threshold so time is not spent on games that cannot drop anything yet.
 
-**What it does.** <One paragraph.>
+The modes:
 
-**How it works.** <The mechanism. Numbers, thresholds, algorithms, timings.>
+| Mode | What it does |
+|---|---|
+| Sequential | One game at a time, in list order |
+| Most cards | Games with the most remaining cards first |
+| Fewest cards | Games closest to finishing first |
+| Priority | Your own order |
+| Fast | Only games already past two hours, rotated on a short interval |
 
-**How to use it.** <Steps.>
+Cards do not arrive on a schedule and Steam sends no "a card dropped" event. The app measures the remaining-card total periodically and reports the honest difference rather than a made-up counter.
 
-**Limits.** <What it will not do, and why.>
+### Hours booster
 
----
+Runs up to 32 games at once. Steam counts time against every open game separately, so 32 games open for an hour is 32 hours of playtime.
 
-### <Feature name>
+**Hour syncing** pulls a selection up to the same total. Two methods:
 
-**What it does.** <...>
+- **All at once** - every selected game runs simultaneously and drops off as it reaches the target. Fastest possible route: the whole job takes as long as the game furthest behind.
+- **One by one** - the game furthest behind is pulled forward alone, and once it catches the next one they continue together. Slower, but the games stay level with each other along the way.
 
-**How it works.** <...>
+Progress bars sit on a shared timeline: a bar is one minus the game's remaining time over the length of the whole job. A game finishing four hours into a thirty-five hour run starts nearly full; one running to the end starts empty. Each reaches 100% exactly when it hits the target.
 
-**How to use it.** <...>
+### Achievements
 
-**Limits.** <...>
+Achievements are read and written over the protocol, not by scraping your public profile. A private profile makes no difference.
+
+Two categories cannot be touched, and the app detects both from the schema rather than failing repeatedly:
+
+- **Protected achievements** are written by the game server. Steam rejects any client that tries.
+- **Games with no stats over this protocol** (some large multiplayer titles) report `0 / N`. That is correct, not a bug.
+
+Some games only accept achievement writes while the game is open. The app opens the game for the write and then restores whatever was running before.
+
+### Realistic Mode
+
+Holds one game open and unlocks its achievements across the session, from the most common to the rarest. The point is the trail it leaves: hundreds of achievements appearing in a minute is obvious on a profile and on third party sites.
+
+**100% completion time** is the number the whole page is built on: how many hours it takes to finish this game with all its achievements. Enter it and it is remembered for that game. Leave it empty and it is estimated from the game type, but that estimate is your own playtime times a factor, so it inflates on games you have played a lot.
+
+**Target count** is worked out from two parts: what should already be unlocked at your playtime minus what actually is, plus this session's own share. The panel spells the arithmetic out so you can check it.
+
+**Distribution model** shapes the spacing. Linear is even, exponential front-loads the way a real player's first hours look, Pareto puts most of them in the first fifth.
+
+**Pacing** is weighted by rarity. Only achievements under 5% wait noticeably longer; everything above that keeps an even, quick rhythm. A game played past its completion time compresses the whole schedule, since there is no learning curve left to imitate.
+
+**Games with no achievements** are dropped from the queue the moment that is discovered, written to `cache/basarimsiz.json` and never offered on this page again. The library flag Steam publishes is not reliable; only the schema request is.
+
+### Inventory and market
+
+Item value is the **quantity-weighted median of realised sales**, not the lowest active listing. One person listing a card at 999,999 does not move it.
+
+Prices arrive in your account's **wallet currency** and are shown exactly as they arrive. There is no conversion, deliberately: converting would mean inventing an exchange rate.
+
+Price and sale average are fetched **per item, together**, then the queue moves to the next item. Both share Steam's single market budget, and the rate limit is counted in requests rather than items.
+
+### Multiple accounts
+
+Several accounts can be connected at once. Each keeps its own engine, its own queues and its own data file. Switching accounts does not restart the app or interrupt what the other accounts are doing.
 
 ---
 
 ## ⚙️ Configuration reference
 
-Every setting, what it accepts, and what happens when you change it.
+Settings live in `settings/settings.json`. Everything below is editable from the Settings page.
 
-### <Group name>
+### General
 
-| Key | Type | Default | Effect |
-|---|---|---|---|
-| `<key>` | `<type>` | `<default>` | <one line> |
-| `<key>` | `<type>` | `<default>` | <one line> |
+| Key | Default | What it does |
+|---|---|---|
+| `uiLang` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh` |
+| `autoLaunch` | `false` | Start with Windows |
+| `preventSleep` | `true` | Keep the machine awake while something is running |
+| `sessionTimeout` | `never` | Disconnect after this many idle minutes. Background jobs do not reset the timer; only your interaction does |
 
-### <Group name>
+### Card farming
 
-| Key | Type | Default | Effect |
-|---|---|---|---|
-| `<key>` | `<type>` | `<default>` | <one line> |
+| Key | Default | What it does |
+|---|---|---|
+| `autoNextGame` | `true` | Move to the next game when one finishes |
+| `cardMaxGames` | `32` | Games open at once |
+| `fastMinPlaytimeMin` | `120` | Fast mode ignores games below this playtime |
+| `pauseFarmOnBoost` | `false` | Stop farming when the hours booster starts |
+
+### Market
+
+| Key | Default | What it does |
+|---|---|---|
+| `priceRefreshHours` | `24` | How long a fetched price stays fresh |
+| `historyRefreshHours` | `72` | How long a sale average stays fresh |
+| `fetchAvgWithPrice` | `true` | Fetch the average in the same pass as the price. Off means one request per item and averages only via the Average button |
+| `bookDepth` | `5` | Order book rows in the detail panel |
+
+### Hours booster
+
+| Key | Default | What it does |
+|---|---|---|
+| `boostMaxGames` | `32` | Games open at once |
+| `boostDurationSec` | `3600` | Session length |
+| `boostSync` | `false` | Pull the selection up to a common total |
+| `boostSyncMode` | `highest` | Target: `highest` selected, `manual` hours, or `library` highest |
+| `boostSyncStrategy` | `parallel` | `parallel` is all at once, `staged` is one by one |
+| `boostAutoRestart` | `false` | Start the queue again when the session ends |
+| `rememberBoostList` | `false` | Keep the selection between sessions |
+
+### Realistic Mode
+
+| Key | Default | What it does |
+|---|---|---|
+| `grDurationSec` | `7200` | Session length |
+| `grModel` | `linear` | Distribution model |
+| `grTcOyun` | `{}` | 100% completion time per game, in hours |
+| `grCatchUp` | `true` | Compress the overdue backlog into the start of the session |
+| `grHiz` | `1` | Speed multiplier for the whole schedule |
+| `grUltraCarpan` | `3` | How much longer sub-5% achievements wait |
+| `grTelafiPay` | `20` | Percentage of the session the catch-up burst gets |
+| `grBitmisSik` | `50` | How far the schedule compresses on a finished game |
+| `grKeepHours` | `true` | Keep collecting hours after the unlocks finish |
+| `grSkipUltraRare` | `false` | Skip achievements under 5% entirely |
+
+### Privacy
+
+| Key | Default | What it does |
+|---|---|---|
+| `offlineMode` | `false` | Appear offline while running |
+| `hideGameName` | `false` | Share that you are online but not which game |
+
+> Appearing offline changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
 
 ### Where the settings are stored
 
-<Path, format, and whether it is safe to edit by hand. Say explicitly which
-files must never be committed or shared, because they hold account data.>
+General settings in `settings/settings.json`. Anything that belongs to one account, the hours booster selection, the Realistic Mode queue and presets, the achievement log and the statistics, lives in `settings/accounts/<steamID>.json`. Caches are separate, under `cache/`, and can be deleted at any time without losing configuration.
 
 ---
 
 ## 🔧 Troubleshooting
 
-### <Symptom, written the way a user would describe it>
+### The app opens and closes immediately
 
-**Cause.** <Why it happens.>
-**Fix.** <What to do.>
+Another copy is already running. SteamEdge allows one instance. Check for `SteamEdge.exe` in Task Manager and close it first.
 
-### <Symptom>
+### The account badge stays empty and nothing loads
 
-**Cause.** <...>
-**Fix.** <...>
+The Steam session did not come up. A banner appears under the top bar when the connection drops or is retrying. If it persists, check that Steam itself is reachable, then look at `cache/steamedge.log` for the reason.
+
+### "40 cards left" but only a handful dropped
+
+Cards only drop after a game passes two hours of total playtime, and each game has its own limited number of drops. A long session on games that are all under two hours produces nothing at all; use Fast mode, which only picks games past the threshold.
+
+### Prices show a dash, or fill in very slowly
+
+Steam allows roughly 20 market requests per 30 seconds per account, shared across prices, sale averages and listings. A large inventory takes a while by design. With `fetchAvgWithPrice` on, each item costs two requests, so a full inventory takes twice as long but you do not wait a second pass for the averages.
+
+### An achievement will not unlock
+
+Either it is protected, meaning the game server writes it and no client may, or the game keeps no stats over this protocol. Both are detected and reported rather than retried. The bulk operation stops after three consecutive failures and tells you why instead of looking like it hung.
+
+### Realistic Mode suggests only one or two unlocks
+
+The completion time is too high. Left empty it is estimated from your playtime, so a game you have played for a long time reads as an enormously long game. Enter the real 100% completion time in the box on the main panel.
 
 ### Collecting a log for a bug report
 
-<Where the log is, how to turn on verbose mode, and what to strip out of it
-before posting. Tokens, cookies and account names never go into an issue.>
+The log is `cache/steamedge.log` next to the executable, or open it from Settings. It records connection events, queue decisions and errors. It does **not** contain your password or session token, so it is safe to attach; skim it anyway before you post it.
 
 ---
 
 ## ❓ FAQ
 
-**<Question>**
-<Answer.>
+<details>
+<summary><b>Does it need the Steam client?</b></summary>
 
-**<Question>**
-<Answer.>
+No, and it never launches it.
 
-**<Question>**
-<Answer.>
+</details>
+
+<details>
+<summary><b>Can I run several accounts at once?</b></summary>
+
+Yes. Each keeps its own connection and its own data, and background accounts keep working while you look at another one.
+
+</details>
+
+<details>
+<summary><b>Is there an auto-updater?</b></summary>
+
+No, deliberately. The app reads the published version number and tells you when a newer one exists. It downloads nothing and modifies nothing.
+
+</details>
+
+<details>
+<summary><b>Why is everything in my wallet currency?</b></summary>
+
+Because that is how Steam sends it. Converting would mean inventing a rate.
+
+</details>
+
+<details>
+<summary><b>Can I move my setup to another machine?</b></summary>
+
+Copy the folder. Everything is in it. Remember that `settings/` includes your session token, so copy it privately.
+
+</details>
 
 ---
 
@@ -212,13 +338,21 @@ before posting. Tokens, cookies and account names never go into an issue.>
 
 | Term | Meaning |
 |---|---|
-| <term> | <one line, in this project's context> |
-| <term> | <one line> |
+| **AppID** | Steam's numeric id for a game, for example 1091500 for Cyberpunk 2077 |
+| **Badge page** | The Steam page listing how many card drops a game has left |
+| **Drop** | A trading card granted for playtime |
+| **market_hash_name** | The exact name the market uses for an item |
+| **Order book** | The live table of buy orders and sell listings for one item |
+| **Protected achievement** | One only the game server may set; no client can |
+| **Realised sale** | A completed transaction, as opposed to an active listing |
+| **Schema** | Steam's definition of a game's achievements and statistics |
+| **Session token** | The credential that keeps you logged in. Treat it like a password |
+| **Tc** | 100% completion time: hours to finish a game with all achievements |
 
 ---
 
 <div align="center">
-<img src="./assets/divider.svg" width="100%" height="3" alt="">
-<br/>
-<sub>Built by <b><a href="https://github.com/Miabeyefendi">Miabeyefendi</a></b> · <a href="./README.md">Back to README</a></sub>
+
+[Back to the README](./README.md) · [Report a bug](https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml)
+
 </div>
