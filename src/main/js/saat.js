@@ -197,17 +197,20 @@
       }
       const dur = boostState.durationMs || saatDurSec*1000;
       const pct = boostState.running && dur ? Math.min(100, Math.round((Date.now()-(boostState.startedAt||Date.now()))/dur*100)) : 0;
-      // G1: Esitleme acikken yuzde "oturum suresine" degil HEDEFE yakinliga gore olmali.
-      // Eskiden 50/40/30 saatlik uc oyun 60 saate cekilirken ucu de ayni yuzdeyi
-      // gosteriyordu, cunku olculen sey oturumun ne kadarinin gectigiydi.
+      // Esitleme acikken cubuklar ORTAK ZAMAN CIZELGESINE oturur: olcut, o oyunun kalan
+      // suresinin isin TOPLAM suresine orani. 34 saatlik bir iste 3 saat sonra bitecek
+      // oyunun cubugu bastan neredeyse doludur, sona kadar calisacak oyunun cubugu bostur.
+      // Boylece cubuklar birbiriyle kiyaslanabilir ve her oyun kendi bittigi anda %100 olur.
+      //
+      // Oyunun kendi yoluna gore olcmek (kazanilan / hedefe mesafe) denendi ve BIRAKILDI:
+      // o olcutte hepsi %0'dan basliyor, yani ekranda hangi oyunun erken bitecegi hic
+      // gorunmuyordu - 3 saatlik is de 34 saatlik is de ayni bos cubuktu.
       function oyunYuzde(g, aktif){
         const bilgi = syncOyunBilgi.get(g.appid);
-        if (bilgi && syncHedefMin){
+        if (bilgi && syncIsToplamMs > 0){
           if (bilgi.bitti) return 100;
-          const bas = bilgi.baslangicMin || 0;
-          const toplamYol = Math.max(1, syncHedefMin - bas);
-          const alinan = Math.max(0, (bilgi.suankiMin || bas) - bas);
-          return Math.max(0, Math.min(100, Math.round(alinan / toplamYol * 100)));
+          const kalan = Math.max(0, bilgi.kalanMs || 0);
+          return Math.max(0, Math.min(100, Math.round((1 - kalan / syncIsToplamMs) * 100)));
         }
         return aktif ? pct : 0;
       }
@@ -255,6 +258,9 @@
       return '#' + (i+1) + ' · ' + fmtHours(tabanMin);
     }
     let syncHedefMin = 0;
+    // Isin toplam suresi (ms). Cubuklarin ortak paydasi; motor baslangicta bir kez
+    // hesaplayip gonderiyor ve is boyunca degismiyor.
+    let syncIsToplamMs = 0;
 
     // ---- eşzamanlı limit ----
     function paintConc(){
@@ -265,15 +271,22 @@
       });
       document.getElementById('saatConcCustom').style.display = concurrentCustom ? '' : 'none';
     }
+    // Limit ANINDA diske yazilir. Sebebi: saat esitlemesini ana surec yurutuyor ve esZamanli
+    // sayisini settings.boostMaxGames'ten okuyor. Eskiden bu deger yalnizca "Preset olarak
+    // kaydet" ile yaziliyordu, yani ekranda 8 yazarken esitleme 32 ile kosabiliyordu.
+    function limitiYaz(){
+      concUserTouched = true;
+      window.imu.settings.set({ boostMaxGames: maxConcurrent }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
+    }
     document.querySelectorAll('#saatConc button[data-n]').forEach(b=>b.addEventListener('click', ()=>{
       const v = b.getAttribute('data-n');
       if (v === 'custom'){ concurrentCustom = true; }
-      else { concurrentCustom = false; maxConcurrent = +v; }
+      else { concurrentCustom = false; maxConcurrent = +v; limitiYaz(); }
       paintConc(); renderActiveBox();
     }));
     document.getElementById('saatConcCustom').addEventListener('change', (e)=>{
       maxConcurrent = Math.max(1, Math.min(32, +e.target.value || 1));
-      e.target.value = maxConcurrent; renderActiveBox();
+      e.target.value = maxConcurrent; limitiYaz(); renderActiveBox();
     });
     paintConc();
 
@@ -284,10 +297,14 @@
       bH.value=String(h).padStart(2,'0'); bM.value=String(m).padStart(2,'0'); bS.value=String(s).padStart(2,'0');
       paintBoostPresets();
     }
+    function sureyiYaz(){
+      boostUserTouched = true;
+      window.imu.settings.set({ boostDurationSec: saatDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
+    }
     function commitDurInput(){
       const h=parseInt(bH.value,10)||0, m=Math.min(59,parseInt(bM.value,10)||0), s=Math.min(59,parseInt(bS.value,10)||0);
-      boostUserTouched = true;
       saatDurSec = Math.max(60, h*3600 + m*60 + s);
+      sureyiYaz();
       writeSegs(); renderActiveBox();
     }
     [bH,bM,bS].forEach(el=>{
@@ -306,22 +323,32 @@
     document.querySelectorAll('#saatPresets button[data-h]').forEach(b=>b.addEventListener('click', ()=>{
       const h = b.getAttribute('data-h');
       if (h === 'custom'){ bH.focus(); return; }
-      boostUserTouched = true; saatDurSec = (+h)*3600; writeSegs(); renderActiveBox();
+      saatDurSec = (+h)*3600; sureyiYaz(); writeSegs(); renderActiveBox();
     }));
     writeSegs();
 
     // ---- Davranış / Gizlilik anahtarları ----
     // Ayarlar > Saat Yükseltici tercihlerini uygular ("Varsayılan hedef süre" dahil).
-    let boostUserTouched = false;
+    let boostUserTouched = false, concUserTouched = false;
     function applyBoostSettings(){
       if (typeof appSettings !== 'object' || !appSettings) return;
-      if (!boostUserTouched && appSettings.boostTarget){
-        // 'inf' = sınırsız → süre 0, "Süre dolunca otomatik durdur" kapalı gibi davranır
-        const t = appSettings.boostTarget;
-        const hours = t === 'inf' ? 0 : (+t || 0);
-        if (hours > 0 && saatDurSec !== hours*3600){ saatDurSec = hours*3600; writeSegs(); }
+      if (!boostUserTouched){
+        // Once kaydedilmis sure, yoksa Ayarlar'daki "Varsayilan hedef sure". boostDurationSec
+        // eskiden yalnizca YAZILIYOR, hicbir yerde OKUNMUYORDU; preset'in sure kismi olu idi.
+        const kayitli = +appSettings.boostDurationSec || 0;
+        if (kayitli >= 60){
+          if (saatDurSec !== kayitli){ saatDurSec = kayitli; writeSegs(); }
+        } else if (appSettings.boostTarget){
+          // 'inf' = sınırsız → süre 0, "Süre dolunca otomatik durdur" kapalı gibi davranır
+          const t = appSettings.boostTarget;
+          const hours = t === 'inf' ? 0 : (+t || 0);
+          if (hours > 0 && saatDurSec !== hours*3600){ saatDurSec = hours*3600; writeSegs(); }
+        }
       }
-      if (appSettings.boostMaxGames) maxConcurrent = +appSettings.boostMaxGames;
+      // concUserTouched: kullanici bu oturumda limiti sectiyse diskten gelen eski deger
+      // uzerine yazmaz. Eskiden kosulsuzdu; Saat sekmesinden cikip donunce secim 32'ye
+      // donuyordu, cunku loadSaat her girişte applyBoostFlags -> applyBoostSettings cagiriyor.
+      if (!concUserTouched && appSettings.boostMaxGames) maxConcurrent = +appSettings.boostMaxGames;
       paintConc();
       renderActiveBox();
     }
@@ -443,7 +470,7 @@
       if (!bar) return;
       if (!d.running){
         bar.style.display = 'none';
-        syncOyunBilgi = new Map(); syncHedefMin = 0;
+        syncOyunBilgi = new Map(); syncHedefMin = 0; syncIsToplamMs = 0;
         if (d.done){
           notify('boost', 'Saat Eşitleme Tamamlandı', 'Tüm oyunlar hedefe ulaştı.');
           pushFeed('saat', 'Saat Eşitleme', 'Tüm oyunlar hedefe ulaştı.', 'Başarılı');
@@ -453,6 +480,7 @@
       }
       bar.style.display = 'flex';
       syncHedefMin = d.targetMin || 0;
+      if (d.isToplamMs) syncIsToplamMs = d.isToplamMs;
       const txt = document.getElementById('saatSyncText');
       const eta = document.getElementById('saatSyncEta');
       const fill = document.getElementById('saatSyncBarFill');
@@ -468,7 +496,10 @@
         if (eta) eta.textContent = d.kalanMs ? msKisa(d.kalanMs) : 'bitiyor';
         if (fill) fill.style.width = yuzde + '%';
       } else {
-        syncOyunBilgi = new Map();
+        // G13: kademeli tarafta da oyun defteri geliyor. Eskiden burasi bosaltiliyordu ve
+        // her oyun ayni oturum yuzdesini gosteriyordu; hedefe 1 saati kalan oyun da
+        // 47 saati kalan oyun da ayni cubuktaydi.
+        syncOyunBilgi = new Map((d.oyunlar||[]).map(o=>[o.appid, o]));
         const yuzde = d.steps ? Math.round((d.step-1)/d.steps*100) : 0;
         if (txt) txt.innerHTML =
             '<span style="font-size:12px;font-weight:600;color:#DCE2FA">Eşitleme adımı '+d.step+' / '+d.steps+'</span>'

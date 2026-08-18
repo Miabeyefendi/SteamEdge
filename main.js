@@ -4,6 +4,7 @@ const fs = require('fs');
 const SteamAuth = require('./src/auth/steamAuth');
 const SteamEngine = require('./src/engine/steamEngine');
 const FarmController = require('./src/engine/farmController');
+const defter = require('./src/engine/esitlemeDefteri');
 const guncelleme = require('./src/update/guncelleme');
 
 // hwAccel ayarı 'gpu hızlandırmayı kapat' derse app.whenReady()'den ÖNCE etki etmesi gerekir -
@@ -1349,7 +1350,21 @@ function clearStagger() { staggerTimers.forEach((t) => clearTimeout(t)); stagger
 //        'library' (kütüphanedeki en yüksek süre).
 let syncState = null;    // { steps:[{ids,fromMin,toMin}], i, startedAt, stepMs, targetMin }
 let syncTimer = null;
-function clearSync() { if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; } syncState = null; }
+// G13: KALP ATISI. Esitleme saatler surer ve eskiden arayuze yalnizca bir oyun hedefe
+// ulastiginda haber gidiyordu: 47 saatlik bir iste ekrandaki yuzdeler 47 saat boyunca
+// baslangic degerinde donuyordu. Artik duzenli araliklarla guncel durum yollaniyor.
+let syncKalp = null;
+const SYNC_KALP_MS = 30000;
+function syncKalbiKur() {
+  if (syncKalp) clearInterval(syncKalp);
+  syncKalp = setInterval(() => { if (syncState) syncEmit(true); else syncKalbiDurdur(); }, SYNC_KALP_MS);
+}
+function syncKalbiDurdur() { if (syncKalp) { clearInterval(syncKalp); syncKalp = null; } }
+function clearSync() {
+  if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
+  syncKalbiDurdur();
+  syncState = null;
+}
 
 // ---- PARALEL ESITLEME (varsayilan) ----
 // Kademeli yontem oyunlari yol boyunca esit tutar ama sabit bir hedefe (or. 400 saat)
@@ -1384,26 +1399,15 @@ function esitlemeSimule(games, targetMin, limit) {
   return { toplamMs, asamalar };
 }
 
+const esitlemeDefteriKur = defter.defterKur;
+const esitlemeDefteriIsle = () => defter.defteriIsle(syncState, Date.now());
+
 // Calisan paralel esitlemenin bir adimini planlar: gecen sureyi aktif oyunlardan duser,
 // hedefe ulasanlari listeden cikarir, kalanlardan yeni aktif kumeyi kurar.
 function esitlemePlanla() {
   if (!syncState || syncState.strateji !== 'parallel') return;
   if (!engineReady || !engine) { clearSync(); return; }
-  const simdi = Date.now();
-  const gecen = Math.max(0, simdi - syncState.sonHesap);
-  syncState.sonHesap = simdi;
-
-  // Gecen sure yalnizca ACIK olan oyunlara islenir - Steam de boyle sayar.
-  if (gecen > 0) {
-    syncState.aktif.forEach((id) => {
-      const o = syncState.oyunlar.get(id);
-      if (o && !o.bitti) { o.kalanMs = Math.max(0, o.kalanMs - gecen); o.gecenMs += gecen; }
-    });
-  }
-  const yeniBitenler = [];
-  syncState.oyunlar.forEach((o) => {
-    if (!o.bitti && o.kalanMs <= 0) { o.bitti = true; yeniBitenler.push(o); }
-  });
+  const yeniBitenler = esitlemeDefteriIsle();
   yeniBitenler.forEach((o) => log('info', 'saat esitleme: ' + o.name + ' hedefe ulasti, listeden cikarildi'));
 
   const kalanlar = [...syncState.oyunlar.values()].filter((o) => !o.bitti);
@@ -1415,9 +1419,7 @@ function esitlemePlanla() {
     sendRaw('boost:tick', { running: false });
     return;
   }
-  // En cok suresi kalanlar once (darbogazi erken baslat)
-  kalanlar.sort((a, b) => b.kalanMs - a.kalanMs);
-  syncState.aktif = kalanlar.slice(0, syncState.limit).map((o) => o.appid);
+  syncState.aktif = defter.siradakiAktifKume(syncState);
   engine.play(syncState.aktif);
 
   const enKisa = Math.min(...syncState.aktif.map((id) => syncState.oyunlar.get(id).kalanMs));
@@ -1431,19 +1433,7 @@ function esitlemePlanla() {
 
 // Arayuze giden oyun listesi: her oyunun GUNCEL toplam suresi ve hedefe kalani.
 // (Madde 15: eskiden yalniz o oturumda gecen sure gorunuyordu.)
-function esitlemeOyunlari() {
-  if (!syncState || !syncState.oyunlar) return [];
-  const aktifSet = new Set(syncState.aktif || []);
-  return [...syncState.oyunlar.values()].map((o) => ({
-    appid: o.appid,
-    name: o.name,
-    baslangicMin: o.baslangicMin,
-    suankiMin: o.baslangicMin + Math.floor(o.gecenMs / 60000),
-    kalanMs: o.kalanMs,
-    aktif: aktifSet.has(o.appid),
-    bitti: !!o.bitti,
-  }));
-}
+function esitlemeOyunlari() { return defter.arayuzListesi(syncState, Date.now()); }
 
 function buildSyncSteps(games, targetMin) {
   // games: [{appid, playtimeMin}] - hedefi zaten geçmiş olanlar en baştan "hazır" sayılır
@@ -1476,9 +1466,13 @@ function syncEmit(running, extra) {
       // En geride kalan oyunun bitisi = tum isin bitisi (limit yeterliyse)
       kalanMs: kalanlar.length ? Math.max(...kalanlar.map((o) => o.kalanMs)) : 0,
       startedAt: syncState.baslangic,
+      isToplamMs: syncState.isToplamMs || 0,
     }, extra || {}));
     return;
   }
+  // G13: oyun listesi kademeli stratejide de gonderiliyor. Eskiden gonderilmedigi icin
+  // arayuz her oyuna AYNI yuzdeyi yaziyordu (oturumun ne kadarinin gectigi); hedefe bir
+  // saati kalan oyun da 47 saati kalan oyun da ayni cubugu gosteriyordu.
   sendRaw('boost:sync', Object.assign({
     running,
     strateji: 'staged',
@@ -1490,10 +1484,14 @@ function syncEmit(running, extra) {
     toMin: syncState && syncState.steps[syncState.i] ? syncState.steps[syncState.i].toMin : 0,
     startedAt: syncState ? syncState.startedAt : 0,
     stepMs: syncState ? syncState.stepMs : 0,
+    oyunlar: esitlemeOyunlari(),
+    isToplamMs: syncState ? (syncState.isToplamMs || 0) : 0,
   }, extra || {}));
 }
 function runSyncStep(allIds, afterDurationMs) {
   if (!syncState || !engineReady || !engine) return;
+  // Bir onceki adimda gecen sureyi deftere isle - yoksa arayuz her adimda sifirdan sayar.
+  esitlemeDefteriIsle().forEach((o) => log('info', 'saat esitleme: ' + o.name + ' hedefe ulasti'));
   const st = syncState.steps[syncState.i];
   if (!st) {
     // Tüm kademeler bitti → hepsi eşit, artık birlikte devam
@@ -1507,6 +1505,8 @@ function runSyncStep(allIds, afterDurationMs) {
   }
   syncState.stepMs = (st.toMin - st.fromMin) * 60000;
   syncState.startedAt = Date.now();
+  syncState.aktif = st.ids.slice();      // defter bu kumeye sure isler
+  syncState.sonHesap = Date.now();
   engine.play(st.ids);
   log('info', `saat esitleme adim ${syncState.i + 1}/${syncState.steps.length}: ${st.ids.length} oyun ${st.fromMin}dk -> ${st.toMin}dk`);
   syncEmit(true);
@@ -1537,27 +1537,37 @@ ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games }) => {
     } else if ((settings.boostSyncStrategy || 'parallel') === 'staged') {
       const steps = buildSyncSteps(games, targetMin);
       if (steps.length) {
-        syncState = { strateji: 'staged', steps, i: 0, startedAt: 0, stepMs: 0, targetMin };
+        syncState = {
+          strateji: 'staged', steps, i: 0, startedAt: 0, stepMs: 0, targetMin,
+          // Kademeli strateji de ayni defteri tutar: arayuz oyun bazli ilerlemeyi
+          // buradan okuyor, yoksa her oyuna oturum yuzdesini yaziyordu.
+          oyunlar: esitlemeDefteriKur(geride, targetMin),
+          aktif: [], baslangic: Date.now(), sonHesap: Date.now(),
+          // Isin TOPLAM suresi, baslangicta bir kez. Arayuzdeki cubuklar ortak bu
+          // zaman cizelgesine oturuyor: bir oyunun cubugu, o oyunun isin neresinde
+          // bittigini gosterir. Sabit tutulur, yoksa cubuklar geri gidebilir.
+          isToplamMs: steps.reduce((s, st) => s + (st.toMin - st.fromMin) * 60000, 0),
+        };
+        log('info', 'saat esitleme (sirali): ' + steps.length + ' adim, hedef ' + targetMin + ' dk');
+        syncKalbiKur();
         runSyncStep(games.map((g) => g.appid), settings.autoStopBoost === false ? 0 : (durationMs || 0));
         return;
       }
     } else {
       // Esitleme kendi suresini hesaplar; "yukseltme suresi" ayari burada gecersizdir.
       const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
-      const oyunlar = new Map();
-      geride.forEach((g) => oyunlar.set(g.appid, {
-        appid: g.appid,
-        name: g.name || ('App ' + g.appid),
-        baslangicMin: g.playtimeMin || 0,
-        kalanMs: (targetMin - (g.playtimeMin || 0)) * 60000,
-        gecenMs: 0,
-        bitti: false,
-      }));
+      const oyunlar = esitlemeDefteriKur(geride, targetMin);
       syncState = {
         strateji: 'parallel', targetMin, limit, oyunlar,
         aktif: [], baslangic: Date.now(), sonHesap: Date.now(),
       };
-      log('info', 'saat esitleme (paralel): ' + oyunlar.size + ' oyun, hedef ' + targetMin + ' dk, limit ' + limit);
+      // Isin TOPLAM suresi, baslangicta bir kez ve bir daha degismez. Arayuzdeki cubuklar
+      // ortak bu zaman cizelgesine oturur: 34 saatlik bir iste 3 saat sonra bitecek oyunun
+      // cubugu bastan doludur, sona kadar calisacak oyunun cubugu bostur.
+      syncState.isToplamMs = defter.kalanToplamMs(syncState);
+      log('info', 'saat esitleme (paralel): ' + oyunlar.size + ' oyun, hedef ' + targetMin
+        + ' dk, limit ' + limit + ', toplam is ' + Math.round(syncState.isToplamMs / 60000) + ' dk');
+      syncKalbiKur();
       esitlemePlanla();
       return;
     }
