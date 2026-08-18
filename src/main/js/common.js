@@ -718,8 +718,13 @@
         el.id = 'baglantiSerit';
         el.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 20px;'
           + 'font-size:12px;font-weight:600;border-bottom:1px solid #B37E24;background:#1A1408;color:#B37E24';
-        const ana = document.querySelector('main') || document.body;
-        ana.parentNode.insertBefore(el, ana);
+        // Serit GOVDE SATIRININ ustune girer. Eskiden dogrudan <main>'in kardesi olarak
+        // ekleniyordu; o satir yan panelle ayni flex satiri oldugu icin serit ust cubugun
+        // altina degil, kenar cubugunun yanina dusuyordu.
+        const ana = document.querySelector('main');
+        const satir = ana && ana.parentNode;                   // aside + main satiri
+        const hedef = (satir && satir.parentNode) ? satir : (ana || document.body);
+        hedef.parentNode.insertBefore(el, hedef);
       }
       const renk = durum === 'koptu' ? '#B32453' : '#B37E24';
       el.style.borderBottomColor = renk; el.style.color = renk;

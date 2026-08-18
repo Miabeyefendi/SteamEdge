@@ -205,6 +205,9 @@ const DEFAULT_SETTINGS = {
   bulkSellLimit: 50,        // tek toplu satışta en fazla kaç öğe listelenir
   priceRefreshHours: 24,    // fiyat önbelleği kaç saat sonra bayatlar
   historyRefreshHours: 72,  // satış geçmişi (ortalama) önbelleği kaç saat sonra bayatlar
+  // Bir eşyanın en düşük fiyatı çekilirken ortalaması da aynı turda çekilsin mi.
+  // Açık: öğe başına iki istek, ama ortalama için ikinci bir tur beklenmez.
+  fetchAvgWithPrice: true,
   // Saat Yükseltici
   boostMaxGames: 32,
   rememberBoostList: true,
@@ -292,13 +295,18 @@ const DEFAULT_SETTINGS = {
   grTarget: 0,              // elle hedef (0 = hepsi)
   grCR: '2.0',              // oyun uzunluğu çarpanı ('auto' = elle Tc)
   grDiff: '1.2',            // kalan başarım zorluğu çarpanı
-  grTc: '',                 // %100 süresi (saat) - elle girilen
+  grTc: '',                 // %100 süresi (saat) - eski tek alanlı değer, geriye dönük
+  grTcOyun: {},             // appid -> %100 bitiş süresi (saat). Oyun başına, elle girilen
   grModel: 'linear',        // dağıtım modeli: linear | exp | pareto
   grAuto: true,             // sırayı otomatik başlat (kuyruktaki sonraki oyuna geç)
   grRandomGap: true,        // açılış aralıklarına rastgele sapma
   grSkipUltraRare: false,   // %5 altı başarımları atla
-  grNoAchMode: 'hours',     // başarımı olmayan oyun: hours | skip | stop
   grKeepHours: true,        // başarımlar bitince süre sonuna kadar saat topla
+  grCatchUp: true,          // gecikmiş başarım birikimini oturumun başına sıkıştır
+  grHiz: 1,                 // hız çarpanı: tüm çizelgeyi sıkar/açar
+  grUltraCarpan: 3,         // %5 altı başarımlar bu oranda daha uzun bekler
+  grTelafiPay: 20,          // geride kalanlar sürenin ilk yüzde kaçında açılır
+  grBitmisSik: 50,          // oyun bitmişse çizelge bu orana iner (yüzde)
   grShowNoAch: false,       // başarımsız oyunlar oyun listesinde görünsün
   grLevel: 'simple',        // sağ panel: simple | advanced
   achDelay: '1',
@@ -909,15 +917,10 @@ const HISTORY_FILE = path.join(CACHE_DIR, 'history.json');
 const BATCH_SIZE = 18;
 const BATCH_COOLDOWN_MS = 32000;
 
+// Iki ayri onbellek, TEK kuyruk (bkz "BIRLESIK PAZAR KUYRUGU"). Onbellekler ayri kalir
+// cunku farkli hizda eskiyorlar: fiyat 24 saat, gerceklesen satis medyani 72 saat.
 let priceCache = new Map();   // hashName -> { price, ts }
-let priceQueue = [];
-let priceRunning = false;
-
-// ---- G8: satis gecmisi kuyrugu ----
 let historyCache = new Map();  // hashName -> { hist, ts, cur }
-let historyQueue = [];
-let historyRunning = false;
-let historyIptal = false;
 const historyTries = new Map();
 const MAX_HISTORY_TRIES = 2;
 const HISTORY_CACHE_VERSION = 1;
@@ -948,46 +951,119 @@ function cachedHistory(h) {
   return e.hist;
 }
 
-async function runHistoryQueue() {
-  if (historyRunning) return;
-  historyRunning = true;
-  historyIptal = false;
-  const toplam = historyQueue.length;
+// ================== BIRLESIK PAZAR KUYRUGU ==================
+// Eskiden iki ayri kuyruk vardi: once TUM ogelerin en dusuk fiyati cekiliyor, sonra bastan
+// baslanip TUM ogelerin ortalamasi cekiliyordu. Iki sorun:
+//   1. Ayni oge icin iki ayri bekleme turu - kullanici bir esyanin fiyatini gorup
+//      ortalamasi icin butun listenin bitmesini bekliyordu.
+//   2. Ikisi de AYNI Steam kotasindan yiyor (olculdu: ~20 istek / 30 sn, priceoverview ve
+//      pricehistory ortak). Birbirinden habersiz iki kuyruk kotayi iki yerden harciyordu.
+// Artik tek kuyruk var ve OGE BAZLI calisiyor: bir esyanin en dusugu ile ortalamasi ayni
+// turda, arka arkaya cekilir, sonra sonraki esyaya gecilir.
+let marketQueue = [];        // [{ h, fiyat, gecmis }]
+let marketRunning = false;
+let marketIptal = false;
+
+function marketKuyrugaEkle(h, fiyat, gecmis) {
+  const v = marketQueue.find((x) => x.h === h);
+  if (v) { v.fiyat = v.fiyat || fiyat; v.gecmis = v.gecmis || gecmis; return; }
+  marketQueue.push({ h, fiyat: !!fiyat, gecmis: !!gecmis });
+}
+function marketKuyruktaMi(h, alan) {
+  const v = marketQueue.find((x) => x.h === h);
+  return !!(v && v[alan]);
+}
+
+// Tek bir isteklik fiyat cekimi. Gecici hata olursa true doner (oge sona atilacak).
+async function fiyatCek(h) {
+  const n = (priceTries.get(h) || 0) + 1;
+  priceTries.set(h, n);
+  let p = null;
+  try { p = await marketGate(() => engine.getPrice(h)); } catch (_) { p = null; }
+  const geciciHata = p && (p.rateLimited || p.noCurrency);
+  if (geciciHata && n < MAX_PRICE_TRIES) {
+    if (p.noCurrency) log('warn', 'pazar kuru henuz okunmadi, fiyat ertelendi: ' + h);
+    return { tekrar: true, limit: !!p.rateLimited };
+  }
+  if (geciciHata) {
+    // Pes et: null onbellege yazilir, arayuz "-" gosterir ve kuyruk ilerler.
+    log('warn', `fiyat alinamadi (${n} deneme): ${h} - ${p.rateLimited ? 'istek limiti' : 'kur yok'}`);
+    p = null;
+  }
+  priceTries.delete(h);
+  priceCache.set(h, { price: p, ts: Date.now(), cur: currentPriceCurrency(), v: PRICE_CACHE_VERSION });
+  sendRaw('price:one', { hashName: h, price: p });
+  return { tekrar: false, limit: false };
+}
+
+async function gecmisCek(h) {
+  const n = (historyTries.get(h) || 0) + 1;
+  historyTries.set(h, n);
+  let hist = null;
+  try { hist = await marketGate(() => engine.getPriceHistory(h)); } catch (_) { hist = null; }
+  if (hist && hist.rateLimited && n < MAX_HISTORY_TRIES) return { tekrar: true, limit: true };
+  if (hist && hist.rateLimited) { log('warn', 'satis gecmisi alinamadi (istek limiti): ' + h); hist = null; }
+  historyTries.delete(h);
+  historyCache.set(h, { hist, ts: Date.now(), cur: currentPriceCurrency(), v: HISTORY_CACHE_VERSION });
+  sendRaw('history:one', { hashName: h, history: hist });
+  return { tekrar: false, limit: false };
+}
+
+async function runMarketQueue() {
+  if (marketRunning) return;
+  marketRunning = true;
+  marketIptal = false;
+  const toplam = marketQueue.length;
   let yapilan = 0;
+  // Kota ISTEK sayisiyla olculur, oge sayisiyla degil: bir oge iki istek harcayabilir.
+  let istekSayaci = 0;
+  let limitYendi = false;
   try {
-    while (historyQueue.length) {
-      if (historyIptal) { historyQueue.length = 0; break; }
-      const h = historyQueue.shift();
-      if (cachedHistory(h) !== undefined) { yapilan++; continue; }
-      const deneme = (historyTries.get(h) || 0) + 1;
-      historyTries.set(h, deneme);
+    while (marketQueue.length) {
+      if (marketIptal) { marketQueue.length = 0; break; }
+      const is = marketQueue.shift();
+      const h = is.h;
+      let tekrar = false;
 
-      let hist = null;
-      try { hist = await marketGate(() => engine.getPriceHistory(h)); } catch (_) { hist = null; }
+      if (is.fiyat && cachedPrice(h) === undefined) {
+        istekSayaci++;
+        const r = await fiyatCek(h);
+        limitYendi = limitYendi || r.limit;
+        tekrar = r.tekrar;
+      }
+      // AYNI OGE, AYNI TUR: ortalama icin sirayi bastan beklemek yok.
+      if (!tekrar && is.gecmis && cachedHistory(h) === undefined) {
+        istekSayaci++;
+        const r = await gecmisCek(h);
+        limitYendi = limitYendi || r.limit;
+        tekrar = r.tekrar;
+      }
 
-      if (hist && hist.rateLimited && deneme < MAX_HISTORY_TRIES) {
-        historyQueue.push(h);       // sona at, digerleri ilerlesin
-        sendRaw('history:progress', { toplam, yapilan, kalan: historyQueue.length, bekliyor: true });
-        await new Promise((r) => setTimeout(r, BATCH_COOLDOWN_MS));
-        continue;
+      if (tekrar) { marketQueue.push(is); }
+      else yapilan++;
+
+      const kalan = marketQueue.length;
+      sendRaw('price:progress', { remaining: kalan, cooldown: kalan > 0 });
+      sendRaw('history:progress', { toplam, yapilan, kalan, bekliyor: false });
+      if (yapilan % 10 === 0) { savePriceCache(); saveHistoryCache(); }
+
+      // Pencere doldu: kotanin sifirlanmasini bekle.
+      if (kalan && istekSayaci >= BATCH_SIZE) {
+        istekSayaci = 0;
+        sendRaw('history:progress', { toplam, yapilan, kalan, bekliyor: true });
+        await new Promise((r) => setTimeout(r, limitYendi ? BATCH_COOLDOWN_MS + 8000 : BATCH_COOLDOWN_MS));
+        limitYendi = false;
       }
-      if (hist && hist.rateLimited) {
-        log('warn', 'satis gecmisi alinamadi (istek limiti): ' + h);
-        hist = null;
-      }
-      historyTries.delete(h);
-      historyCache.set(h, { hist, ts: Date.now(), cur: currentPriceCurrency(), v: HISTORY_CACHE_VERSION });
-      yapilan++;
-      sendRaw('history:one', { hashName: h, history: hist });
-      if (yapilan % 10 === 0) saveHistoryCache();
-      sendRaw('history:progress', { toplam, yapilan, kalan: historyQueue.length, bekliyor: false });
     }
   } finally {
-    historyRunning = false;
+    marketRunning = false;
+    priceTries.clear();
     historyTries.clear();
+    savePriceCache();
     saveHistoryCache();
-    sendRaw('history:progress', { toplam, yapilan, kalan: 0, bitti: true, iptal: historyIptal });
-    historyIptal = false;
+    sendRaw('price:progress', { remaining: 0, cooldown: false });
+    sendRaw('history:progress', { toplam, yapilan, kalan: 0, bitti: true, iptal: marketIptal });
+    marketIptal = false;
   }
 }
 
@@ -1002,17 +1078,17 @@ ipcMain.handle('engine:historyFor', (_e, arg) => {
     if (!h) return;
     const c = cachedHistory(h);
     if (c !== undefined) out[h] = c;
-    else if (!historyQueue.includes(h)) eksik.push(h);
+    else if (!marketKuyruktaMi(h, 'gecmis')) eksik.push(h);
   });
   if (sadeceOnbellek) return { ok: true, history: out, eksik: eksik.length, kuyruk: 0 };
-  historyQueue.push(...eksik);
-  if (historyQueue.length) runHistoryQueue();
-  return { ok: true, history: out, eksik: eksik.length, kuyruk: historyQueue.length };
+  eksik.forEach((h) => marketKuyrugaEkle(h, false, true));
+  if (marketQueue.length) runMarketQueue();
+  return { ok: true, history: out, eksik: eksik.length, kuyruk: marketQueue.length };
 });
 
 ipcMain.on('engine:historyCancel', () => {
-  if (historyRunning) { historyIptal = true; log('info', 'satis gecmisi cekimi iptal edildi'); }
-  historyQueue.length = 0;
+  if (marketRunning) { marketIptal = true; log('info', 'pazar cekimi iptal edildi'); }
+  marketQueue.length = 0;
 });
 // Önbellek girdisi HANGİ PARA BİRİMİNDE çekildiyse onunla damgalanır. Farklı bir kurdaki
 // eski girdi kullanılırsa tutar tamamen yanlış görünür (ör. TRY kayıt USD sanılırsa ~40 kat
@@ -1058,71 +1134,32 @@ function marketGate(fn) {
 const priceTries = new Map();     // hash -> kaç kez denendi
 const MAX_PRICE_TRIES = 3;
 
-async function runPriceQueue() {
-  if (priceRunning) return;
-  priceRunning = true;
-  try {
-    while (priceQueue.length) {
-      const batch = priceQueue.splice(0, BATCH_SIZE);
-      let hitLimit = false;
-      for (const h of batch) {
-        if (cachedPrice(h) !== undefined) continue;
-        // DENEME SINIRI: eskiden başarısız istek sınırsız kez kuyruğa geri konuyordu.
-        // Kur bilinmiyorsa ya da Steam sürekli 429 dönüyorsa kuyruk hiç boşalmıyor,
-        // arayüzdeki "Getiriliyor 1/9" sonsuza kadar kilitli kalıyordu.
-        const n = (priceTries.get(h) || 0) + 1;
-        priceTries.set(h, n);
-        let p = null;
-        try { p = await marketGate(() => engine.getPrice(h)); } catch (_) { p = null; }
-
-        const geciciHata = p && (p.rateLimited || p.noCurrency);
-        if (geciciHata && n < MAX_PRICE_TRIES) {
-          priceQueue.push(h);          // sona at, sıradakiler ilerlesin
-          hitLimit = !!p.rateLimited;
-          if (p.noCurrency) log('warn', 'pazar kuru henuz okunmadi, fiyat ertelendi: ' + h);
-          continue;
-        }
-        if (geciciHata) {
-          // Pes et: null önbelleğe yazılır, arayüz "-" gösterir ve kuyruk ilerler.
-          log('warn', `fiyat alinamadi (${n} deneme): ${h} - ${p.rateLimited ? 'istek limiti' : 'kur yok'}`);
-          p = null;
-        }
-        priceTries.delete(h);
-        priceCache.set(h, { price: p, ts: Date.now(), cur: currentPriceCurrency(), v: PRICE_CACHE_VERSION });
-        sendRaw('price:one', { hashName: h, price: p });
-      }
-      savePriceCache();
-      sendRaw('price:progress', { remaining: priceQueue.length, cooldown: priceQueue.length > 0 });
-      if (priceQueue.length) await new Promise((r) => setTimeout(r, hitLimit ? BATCH_COOLDOWN_MS + 8000 : BATCH_COOLDOWN_MS));
-    }
-  } finally {
-    priceRunning = false;
-    priceTries.clear();
-    sendRaw('price:progress', { remaining: 0, cooldown: false });
-  }
-}
-
 // Renderer sends every marketable hash it cares about; we answer instantly from cache and
 // queue whatever is missing for background fetching.
 // sadeceOnbellek=true iken Steam'e HIC istek atilmaz, yalnizca diskteki onbellek okunur.
 // Envanter sayfasi acilirken bunu kullanir: onbellek doluysa kullaniciya "fiyatlar
 // getirilsin mi" diye sormaya gerek kalmaz, fiyatlar zaten aninda gelir.
+//
+// ORTALAMA DA AYNI TURDA: bir esyanin en dusugu cekilirken ortalamasi da cekilir
+// (Ayarlar > "Fiyatla birlikte ortalamayi da cek"). Kapatilirsa ortalama yalnizca
+// Envanter'deki "Ortalama" dugmesiyle gelir - o zaman oge basina tek istek atilir.
 ipcMain.handle('engine:pricesFor', (_e, arg) => {
   const hashNames = Array.isArray(arg) ? arg : (arg && arg.hashNames);
   const sadeceOnbellek = !Array.isArray(arg) && !!(arg && arg.sadeceOnbellek);
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  const ortalamaDa = settings.fetchAvgWithPrice !== false;
   const out = {};
   const missing = [];
   [...new Set(hashNames || [])].forEach((h) => {
     if (!h) return;
     const c = cachedPrice(h);
     if (c !== undefined) out[h] = c;
-    else if (!priceQueue.includes(h)) missing.push(h);
+    else if (!marketKuyruktaMi(h, 'fiyat')) missing.push(h);
   });
   if (sadeceOnbellek) return { ok: true, prices: out, queued: 0, eksik: missing.length };
-  priceQueue.push(...missing);
-  if (priceQueue.length) runPriceQueue();
-  return { ok: true, prices: out, queued: priceQueue.length };
+  missing.forEach((h) => marketKuyrugaEkle(h, true, ortalamaDa && cachedHistory(h) === undefined));
+  if (marketQueue.length) runMarketQueue();
+  return { ok: true, prices: out, queued: marketQueue.length };
 });
 
 // On-demand: only for the item currently open in the detail panel (see rate-limit note in engine).
@@ -1636,11 +1673,72 @@ function gercekciModelOran(p, model) {
   return q;
 }
 
+// ---- GECIKMIS BASARIM BIRIKIMI ----
+// Oyun saatlerce oynanmis ama basarim acilmamissa arada bir BIRIKIM vardir: gercek bir
+// oyuncu o saatlerde zaten bir suru basarim almis olurdu. Bu birikimi oturumun geneline
+// esit yaymak yanlis gorunur - 100 saatlik bir oyunda ilk basarimin iki saat sonra gelmesi
+// gibi. Onun yerine birikim once, hizli akar; sonra ritim normale doner.
+//
+// Birikim = "bu saate kadar beklenen acilma sayisi" eksi "gercekten acilmis olan".
+// Beklenen sayi playtime'a bagli oldugu icin olcu dogrudan SURE bazlidir: 1 saatlik oyunda
+// birkac basarim, 100 saatlik oyunda cok daha fazlasi.
+const GECIKME_UST_SINIR = 0.6;      // kuyrugun en fazla %60'i birikim sayilir
+
+function gercekciBirikim(bilgi) {
+  const b = bilgi || {};
+  const toplam = +b.toplamBasarim || 0;
+  const oynanmisSa = Math.max(0, (+b.playtimeMin || 0) / 60);
+  const tcSa = Math.max(1, +b.tcSa || 0);
+  const zorluk = Math.max(0.1, +b.zorluk || 1.2);
+  if (!toplam || !oynanmisSa) return 0;
+  // Bu saate kadar acilmis OLMASI beklenen sayi, ustten toplamla sinirli.
+  const beklenen = Math.min(toplam, toplam * (oynanmisSa / (tcSa * zorluk)));
+  return Math.max(0, Math.round(beklenen - (+b.acilmis || 0)));
+}
+
+// ---- NADIRLIK AGIRLIGI ----
+// Sure kuyruga esit bolununce ultra nadir basarim da yaygin basarim da ayni araligi
+// aliyordu; ustelik nadirler kuyrugun sonunda oldugu icin oturumun yavas kismina
+// dusuyorlardi. Artik sure AGIRLIKLA bolunuyor: yalnizca ultra nadirler (%5 alti) uzun
+// bekler, gerisi esit ve hizli akar. Profilde goze carpan sey ultra nadirin ne kadar
+// cabuk geldigidir; %10'luk bir basarimin hizli acilmasi dikkat cekmez.
+function gercekciNadirlikAgirlik(pct, ultraCarpan) {
+  if (!Number.isFinite(pct)) return 1;
+  return pct < 5 ? Math.max(1, ultraCarpan || 3) : 1;
+}
+
 // Kuyruga acilis zamanlarini yazar (oturum baslangicina gore ms).
-function gercekciZamanlariYerlestir(kuyruk, sureMs, model) {
+//   birikim > 0 : ilk o kadar basarim oturumun basina sikistirilir
+//   ayar        : { hizCarpani, ultraCarpan, telafiPayi, bitmis, bitmisOran }
+function gercekciZamanlariYerlestir(kuyruk, sureMs, model, birikim, ayar) {
   const n = kuyruk.length;
-  kuyruk.forEach((a, i) => {
-    a.zaman = Math.round(sureMs * gercekciModelOran((i + 1) / n, model));
+  if (!n) return kuyruk;
+  const a = ayar || {};
+  const hiz = Math.max(0.1, Math.min(4, +a.hizCarpani || 1));
+  const ultra = Math.max(1, Math.min(10, +a.ultraCarpan || 3));
+  const telafiPay = Math.max(0.02, Math.min(0.9, +a.telafiPayi || 0.2));
+  // Oyun zaten bitmisse (oynanan sure >= bitis suresi) ogrenme egrisini taklit etmenin
+  // anlami yok: cizelge topluca sikisir. Oturumun kendisi kisalmaz, yalnizca acilislar
+  // erken biter - "basarimlar bitince saati surdur" acikken saat toplamaya devam eder.
+  const bitmisOran = a.bitmis ? Math.max(0.05, Math.min(1, +a.bitmisOran || 0.5)) : 1;
+  const etkinSure = Math.max(60000, Math.round(sureMs * hiz * bitmisOran));
+
+  const hizli = Math.min(Math.floor(n * GECIKME_UST_SINIR), Math.max(0, +birikim || 0));
+  const hizliSure = hizli ? Math.round(etkinSure * telafiPay) : 0;
+  const kalanSure = etkinSure - hizliSure;
+  const kalanlar = kuyruk.slice(hizli);
+  const agirliklar = kalanlar.map((x) => gercekciNadirlikAgirlik(x.rarityPct, ultra));
+  const toplamAgirlik = agirliklar.reduce((t, x) => t + x, 0) || 1;
+
+  let kum = 0;
+  kuyruk.forEach((x, i) => {
+    if (i < hizli) {
+      x.zaman = Math.round(hizliSure * ((i + 1) / hizli));
+      x.gecikmeTelafi = true;
+    } else {
+      kum += agirliklar[i - hizli];
+      x.zaman = hizliSure + Math.round(kalanSure * gercekciModelOran(kum / toplamAgirlik, model));
+    }
   });
   return kuyruk;
 }
@@ -1744,12 +1842,10 @@ function gercekciSonrakiOyun() {
     if (kalanSure <= 5000) return false;               // sure bitti, gecmenin anlami yok
     const hazir = d.hazirlanan[o.appid];
     if (!hazir) continue;
-    if (!hazir.kuyruk.length) {
-      // Bu oyunda acilacak basarim yok. Davranis kullanicinin secimine bagli.
-      if (d.secenekler.basarimsizMod === 'skip') { log('info', 'gercekci mod: ' + o.name + ' atlandi (basarim yok)'); continue; }
-      if (d.secenekler.basarimsizMod === 'stop') { gercekciBitir(o.name + ' basarimsiz, sira durduruldu'); return true; }
-      // 'hours': oyunu acip kalan surenin payini saat olarak topla
-    }
+    // Acilacak basarimi kalmayan oyun sirada beklemez: bu sayfa yalnizca basarim acar,
+    // saat kasmak icin Saat Yukseltici var. Eskiden burada uc secenekli bir ayar vardi
+    // (saat topla / atla / sirayi durdur); ucu de bu sayfanin isi degildi.
+    if (!hazir.kuyruk.length) { log('info', 'gercekci mod: ' + o.name + ' atlandi (acilacak basarim yok)'); continue; }
     // Kalan sureyi kalan oyunlara basarim sayisina gore boluyoruz.
     const kalanOyunlar = d.oyunlar.slice(d.oyunIndeks);
     const kalanToplamAdet = kalanOyunlar.reduce((t, x) => t + ((d.hazirlanan[x.appid] || { kuyruk: [] }).kuyruk.length || 1), 0);
@@ -1757,7 +1853,10 @@ function gercekciSonrakiOyun() {
     const pay = Math.max(60000, Math.round(kalanSure * (buAdet / kalanToplamAdet)));
     const simdi = Date.now();
     d.aktif = {
-      appid: o.appid, oyunAdi: o.name, kuyruk: gercekciZamanlariYerlestir(hazir.kuyruk, pay, d.secenekler.model),
+      appid: o.appid, oyunAdi: o.name,
+      kuyruk: gercekciZamanlariYerlestir(hazir.kuyruk, pay, d.secenekler.model,
+                                         gercekciBirikimHesapla(o.appid, hazir, d.secenekler),
+                                         gercekciZamanAyari(o.appid, d.secenekler)),
       indeks: 0, acilan: 0, hata: 0, baslangic: simdi, bitis: simdi + pay,
     };
     try { engine.play([o.appid]); } catch (_) {}
@@ -1784,10 +1883,49 @@ function gercekciBitir(sebep) {
 
 // Bir oyunun acilabilir basarim kuyrugunu hazirlar (siralama + kirpma).
 // GENELDEN NADIRE: rarityPct BUYUK olan daha yaygin demek, once o acilir.
+// ---- BASARIMSIZ OYUN DEFTERI ----
+// Gercekci Mod yalnizca basarim acar. Basarimi olmayan bir oyunun bu sayfada isi yok:
+// saat kasmak, atlamak ya da sirayi durdurmak icin ayri sayfalar var. Steam'in kutuphane
+// ucundaki hasStats bayragi guvenilir degil - bazi oyunlar true donup sema vermiyor.
+// Gercegi ancak sema istegi soyluyor, o da saniyeler suruyor. Bu yuzden bir kez ogrenilen
+// sonuc diske yazilir ve o oyun bir daha bu sayfanin listesinde gorunmez.
+// APPID BAZLI ve hesaptan bagimsiz: basarim oyunun ozelligi, hesabin degil.
+const BASARIMSIZ_FILE = path.join(CACHE_DIR, 'basarimsiz.json');
+let basarimsizSet = new Set();
+function loadBasarimsiz() {
+  const r = jsonOku(BASARIMSIZ_FILE);
+  const liste = (r.ok && r.veri && Array.isArray(r.veri.appids)) ? r.veri.appids : [];
+  basarimsizSet = new Set(liste.map((x) => +x).filter(Boolean));
+}
+function saveBasarimsiz() {
+  jsonYaz(BASARIMSIZ_FILE, { appids: [...basarimsizSet], guncel: Date.now() }, false);
+}
+function basarimsizIsaretle(appid) {
+  const id = +appid;
+  if (!id || basarimsizSet.has(id)) return false;
+  basarimsizSet.add(id);
+  saveBasarimsiz();
+  log('info', 'gercekci mod: ' + id + ' basarimsiz olarak isaretlendi, listeden dusuruldu');
+  return true;
+}
+loadBasarimsiz();
+
+ipcMain.handle('gercekci:basarimsizlar', () => ({ ok: true, appids: [...basarimsizSet] }));
+ipcMain.handle('gercekci:basarimsizTemizle', () => {
+  const n = basarimsizSet.size;
+  basarimsizSet = new Set();
+  saveBasarimsiz();
+  log('info', 'gercekci mod: basarimsiz listesi temizlendi (' + n + ' oyun)');
+  return { ok: true, silinen: n };
+});
+
 async function gercekciKuyrukHazirla(appid, secenekler) {
   const data = await engine.getAchievements(appid);
   const hepsi = (data && Array.isArray(data.achievements)) ? data.achievements : null;
-  if (!hepsi) return { ok: false, error: 'Bu oyunun başarım şeması yok.', oyunAdi: null };
+  if (!hepsi || !hepsi.length) {
+    basarimsizIsaretle(appid);
+    return { ok: false, basarimsiz: true, error: 'Bu oyunun başarımı yok.', oyunAdi: (data && data.gameName) || null };
+  }
   // Kilitli + korumali olmayanlar. Korumalilar Steam tarafindan reddedilir (bkz G4).
   let uygun = hepsi.filter((a) => !a.achieved && !a.korumali);
   const korumali = hepsi.filter((a) => !a.achieved && a.korumali).length;
@@ -1828,8 +1966,42 @@ function gercekciSecenekler(s) {
     ultraNadirAtla: !!g.ultraNadirAtla,
     otoSira: g.otoSira !== false,
     saatiSurdur: g.saatiSurdur !== false,
-    basarimsizMod: ['hours', 'skip', 'stop'].includes(g.basarimsizMod) ? g.basarimsizMod : 'hours',
+    // Gecikmis basarim birikimini oturumun basina sikistir. Birikimin buyuklugu oyunun
+    // OYNANMA SURESINE bagli: 1 saatlik oyunda birkac tane, 100 saatlik oyunda cok daha
+    // fazlasi. Tc ve zorluk arayuzden gelir (orada zaten hesaplaniyor).
+    gecikmisHizlandir: !!g.gecikmisHizlandir,
+    hizCarpani: Math.max(0.1, Math.min(4, +g.hizCarpani || 1)),
+    ultraCarpan: Math.max(1, Math.min(10, +g.ultraCarpan || 3)),
+    telafiPayi: Math.max(0.02, Math.min(0.9, +g.telafiPayi || 0.2)),
+    bitmisOran: Math.max(0.05, Math.min(1, +g.bitmisOran || 0.5)),
+    tcSa: Math.max(1, +g.tcSa || 0) || 20,
+    zorluk: Math.max(0.1, +g.zorluk || 0) || 1.2,
+    playtime: (g.playtime && typeof g.playtime === 'object') ? g.playtime : {},
   };
+}
+
+// Zamanlama ayarlari. 'bitmis' oyun basina degisir: oynanan sure bitis suresini gectiyse.
+function gercekciZamanAyari(appid, sec) {
+  const oynanmisSa = (sec.playtime[appid] || sec.playtime[String(appid)] || 0) / 60;
+  return {
+    hizCarpani: sec.hizCarpani,
+    ultraCarpan: sec.ultraCarpan,
+    telafiPayi: sec.telafiPayi,
+    bitmis: oynanmisSa > 0 && oynanmisSa >= sec.tcSa,
+    bitmisOran: sec.bitmisOran,
+  };
+}
+
+// Bir oyunun birikimi: secenek kapaliysa 0.
+function gercekciBirikimHesapla(appid, h, sec) {
+  if (!sec.gecikmisHizlandir) return 0;
+  return gercekciBirikim({
+    toplamBasarim: h.toplamBasarim,
+    acilmis: h.acilmis,
+    playtimeMin: sec.playtime[appid] || sec.playtime[String(appid)] || 0,
+    tcSa: sec.tcSa,
+    zorluk: sec.zorluk,
+  });
 }
 
 // Onizleme: kac basarim, hangi sirada, hangi dakikada acilacak.
@@ -1842,9 +2014,12 @@ ipcMain.handle('gercekci:plan', async (_e, arg) => {
   try {
     const h = await gercekciKuyrukHazirla(appid, sec);
     if (!h.ok) return h;
-    gercekciZamanlariYerlestir(h.kuyruk, sure, sec.model);
+    const birikim = gercekciBirikimHesapla(appid, h, sec);
+    gercekciZamanlariYerlestir(h.kuyruk, sure, sec.model, birikim, gercekciZamanAyari(appid, sec));
     return {
       ok: true,
+      // Arayuz bunu "N basarim gecikmis" notu olarak gosteriyor.
+      birikim: Math.min(birikim, h.kuyruk.length),
       appid: +appid,
       oyunAdi: h.oyunAdi,
       toplam: h.kuyruk.length,          // acilacak (hedefe gore kirpilmis)
@@ -1880,17 +2055,16 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
     const oyunlar = [];
     for (const id of liste) {
       const h = await gercekciKuyrukHazirla(id, sec);
-      if (!h.ok) {
-        if (sec.basarimsizMod === 'stop') return { ok: false, error: h.error };
-        continue;
-      }
+      // Basarimsiz cikan oyun deftere yazildi ve sessizce dusuruluyor - arayuz zaten
+      // onu listeden cikaracak, sirayi durdurmanin ya da saat kasmanin anlami yok.
+      if (!h.ok) continue;
       hazirlanan[id] = h;
       oyunlar.push({ appid: id, name: h.oyunAdi });
     }
     if (!oyunlar.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
 
-    // Basarimi olmayanlar: 'skip' ise kuyruktan cikar, 'stop' ise ilkinde durur.
-    const calisacak = oyunlar.filter((o) => hazirlanan[o.appid].kuyruk.length || sec.basarimsizMod !== 'skip');
+    // Acilacak kilitli basarimi kalmayan oyun kuyruktan cikar.
+    const calisacak = oyunlar.filter((o) => hazirlanan[o.appid].kuyruk.length);
     if (!calisacak.length) return { ok: false, error: 'Seçilen oyunlarda açılabilecek kilitli başarım yok.' };
 
     const toplamHedef = calisacak.reduce((t, o) => t + hazirlanan[o.appid].kuyruk.length, 0);
@@ -1919,7 +2093,9 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
       siradakiZaman: 0,
       aktif: {
         appid: ilkOyun.appid, oyunAdi: ilkOyun.name,
-        kuyruk: gercekciZamanlariYerlestir(ilkHazir.kuyruk, ilkPay, sec.model),
+        kuyruk: gercekciZamanlariYerlestir(ilkHazir.kuyruk, ilkPay, sec.model,
+                                           gercekciBirikimHesapla(ilkOyun.appid, ilkHazir, sec),
+                                           gercekciZamanAyari(ilkOyun.appid, sec)),
         indeks: 0, acilan: 0, hata: 0,
         baslangic: simdi, bitis: simdi + ilkPay,
       },

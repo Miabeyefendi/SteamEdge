@@ -2715,6 +2715,55 @@
     };
     Object.keys(I18N_G13).forEach((dil) => { Object.assign(I18N[dil], I18N_G13[dil]); });
 
+    // G14 turu: Gercekci Mod'un gecikme telafisi ve pazar kuyrugunun birlestirilmesi.
+    const I18N_G14 = {
+          "en": {
+                "Gecikmiş başarımları hızlandır": "Catch up on overdue achievements",
+                "Fiyatla birlikte ortalamayı da çek": "Fetch the average alongside the price",
+                "Kütüphane": "Library",
+                "Listeden çıkarılacak": "Will be removed from the list",
+                "En fazla # preset tutulur. Önce birini sil.": "At most # presets are kept. Delete one first.",
+                "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "When a game has hours on it but no achievements unlocked, a backlog has built up. With this on, that backlog is cleared during the first fifth of the session and the pace then returns to normal. How large the backlog is depends on the playtime: a few achievements on a one hour game, far more on a hundred hour one.",
+                "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "With this on, an item’s realised sale average is fetched in the same pass as its lowest price, so you do not wait for the whole list to finish before averages appear. Two requests per item means a full inventory takes twice as long to fill. With it off, averages arrive only through the Average button on the Inventory page."
+          },
+          "de": {
+                "Gecikmiş başarımları hızlandır": "Ausstehende Erfolge aufholen",
+                "Fiyatla birlikte ortalamayı da çek": "Durchschnitt zusammen mit dem Preis holen",
+                "Kütüphane": "Bibliothek",
+                "Listeden çıkarılacak": "Wird aus der Liste entfernt",
+                "En fazla # preset tutulur. Önce birini sil.": "Es werden höchstens # Voreinstellungen behalten. Lösche zuerst eine.",
+                "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Wenn ein Spiel viele Stunden hat, aber keine Erfolge freigeschaltet wurden, hat sich ein Rückstand angesammelt. Ist dies aktiv, wird dieser Rückstand im ersten Fünftel der Sitzung aufgeholt, danach kehrt der Rhythmus zurück. Die Größe des Rückstands hängt von der Spielzeit ab: bei einer Stunde ein paar Erfolge, bei hundert Stunden weit mehr.",
+                "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Ist dies aktiv, wird der Verkaufsdurchschnitt eines Gegenstands im selben Durchgang wie sein niedrigster Preis geholt; du wartest nicht, bis die ganze Liste fertig ist. Zwei Anfragen pro Gegenstand bedeuten, dass ein volles Inventar doppelt so lange braucht. Ist es aus, kommen Durchschnitte nur über die Schaltfläche Durchschnitt im Inventar."
+          },
+          "es": {
+                "Gecikmiş başarımları hızlandır": "Recuperar los logros atrasados",
+                "Fiyatla birlikte ortalamayı da çek": "Obtener la media junto con el precio",
+                "Kütüphane": "Biblioteca",
+                "Listeden çıkarılacak": "Se quitará de la lista",
+                "En fazla # preset tutulur. Önce birini sil.": "Se guardan como máximo # ajustes. Borra uno primero.",
+                "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Si un juego tiene muchas horas pero ningún logro desbloqueado, se ha acumulado un atraso. Con esto activado, ese atraso se recupera en el primer quinto de la sesión y luego el ritmo vuelve a la normalidad. El tamaño del atraso depende de las horas jugadas: unos pocos logros en un juego de una hora, muchos más en uno de cien.",
+                "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Con esto activado, la media de ventas de un objeto se obtiene en la misma pasada que su precio más bajo, así que no esperas a que termine toda la lista. Dos peticiones por objeto hacen que un inventario completo tarde el doble. Desactivado, las medias llegan solo con el botón Media de la página Inventario."
+          },
+          "zh": {
+                "Gecikmiş başarımları hızlandır": "補齊落後的成就",
+                "Fiyatla birlikte ortalamayı da çek": "取得價格時一併取得平均價",
+                "Kütüphane": "遊戲庫",
+                "Listeden çıkarılacak": "將從清單中移除",
+                "En fazla # preset tutulur. Önce birini sil.": "最多保留 # 組預設。請先刪除一組。",
+                "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "若遊戲已累積不少時數卻沒有解鎖任何成就，代表有一批落後的成就。開啟後，這批落後成就會在時段的前五分之一內快速補齊，之後恢復正常節奏。落後的數量取決於遊玩時數：一小時的遊戲只有幾個，一百小時的遊戲則多得多。",
+                "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "開啟後，物品的實際成交平均價會與最低價在同一輪取得，不必等整份清單跑完才看到平均價。每件物品兩次請求，因此整個庫存填滿所需的時間會加倍。關閉時，平均價只能透過庫存頁面的「平均」按鈕取得。"
+          }
+    };
+    I18N_G14['en']['%100 Bitiş Süresi'] = '100% completion time';
+    I18N_G14['en']['Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır.'] = 'How many hours it takes to finish this game with all its achievements. Not the main story, the full clear. Leave it empty and it is estimated from the game type below, but that estimate is based on your own playtime, so it inflates on games you have played a lot. The value is remembered per game.';
+    I18N_G14['de']['%100 Bitiş Süresi'] = '100%-Abschlusszeit';
+    I18N_G14['de']['Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır.'] = 'Wie viele Stunden es dauert, dieses Spiel mit allen Erfolgen abzuschließen. Nicht die Hauptgeschichte, sondern alles. Lässt du es leer, wird aus dem Spieltyp unten geschätzt; diese Schätzung beruht aber auf deiner eigenen Spielzeit und fällt bei viel gespielten Spielen zu hoch aus. Der Wert wird pro Spiel gemerkt.';
+    I18N_G14['es']['%100 Bitiş Süresi'] = 'Tiempo para el 100%';
+    I18N_G14['es']['Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır.'] = 'Cuántas horas lleva terminar este juego con todos sus logros. No la historia principal, sino todo. Si lo dejas vacío se estima a partir del tipo de juego de abajo, pero esa estimación se basa en tus propias horas, así que se infla en juegos que has jugado mucho. El valor se recuerda por juego.';
+    I18N_G14['zh']['%100 Bitiş Süresi'] = '100% 完成時數';
+    I18N_G14['zh']['Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır.'] = '完成這款遊戲並解鎖所有成就需要幾小時。不是主線時數，而是全破時數。留空則依下方的遊戲類型推估，但該推估以你自己的遊玩時數為基礎，因此在你玩很久的遊戲上會偏高。此數值會依遊戲分別記住。';
+    Object.keys(I18N_G14).forEach((dil) => { Object.assign(I18N[dil], I18N_G14[dil]); });
+
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
 

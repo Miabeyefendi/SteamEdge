@@ -18,6 +18,9 @@
     let grTimerUI = null;
     let grAcilanlar = [];           // {name, rarityPct, ts} - bu oturumda açılanlar
     let grPresets = [];
+    // Basarimi olmadigi ogrenilen oyunlar (appid). Motor bir kez ogrenip diske yaziyor;
+    // bu sayfanin listesinde bir daha gorunmezler. Bu sayfa yalnizca basarim acar.
+    let grBasarimsiz = new Set();
     let grPlanIstek = 0;            // yarış koşullarını engellemek için istek sayacı
 
     const GRC = { brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
@@ -101,7 +104,6 @@
       if (!grLoaded){
         grSureYaz((+grVal('grDurationSec', 7200)) * 1000);
         grEl('grTarget').value = String(+grVal('grTarget', 0) || 0);
-        grEl('grTc').value = grVal('grTc', '') || '';
       }
       grSeviyeBoya();
       grPresets = (grVal('grPresets', []) || []).slice();
@@ -112,6 +114,8 @@
       if (!con.ok){ grEl('grSearch').placeholder = 'Bağlanılamadı: ' + con.error; return; }
       const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'kütüphane hatası' }));
       if (!res.ok){ grEl('grSearch').placeholder = 'Kütüphane alınamadı'; return; }
+      const bs = await window.imu.gercekci.basarimsizlar().catch(()=>null);
+      if (bs && bs.ok) grBasarimsiz = new Set((bs.appids||[]).map(Number));
       grGames = (res.games || []).map(g=>({
         appid: g.appid, name: g.name, playtimeMin: g.playtimeForever || 0, hasStats: !!g.hasStats,
       }));
@@ -127,7 +131,11 @@
 
     // ---- kütüphane arama ----
     function grAranabilir(){
-      return grVal('grShowNoAch', false) ? grGames : grGames.filter(g=>g.hasStats);
+      // Defterdekiler HER ZAMAN elenir: onlarin basarimi olmadigi denenerek ogrenildi.
+      // "Basarimsiz oyunlari goster" anahtari yalnizca Steam'in guvenilmez hasStats
+      // bayragini gevsetir, kanitlanmis olani geri getirmez.
+      const temiz = grGames.filter(g=>!grBasarimsiz.has(g.appid));
+      return grVal('grShowNoAch', false) ? temiz : temiz.filter(g=>g.hasStats);
     }
     function grAramaBoya(){
       const q = grEl('grSearch').value.trim().toLowerCase();
@@ -158,16 +166,39 @@
       if (e.key === 'Escape'){ grEl('grSearch').value = ''; grEl('grResultsBox').style.display = 'none'; }
       else if (e.key === 'Enter'){ const f = grEl('grResults').querySelector('[data-gradd]'); if (f) f.click(); }
     });
-    grEl('grResults').addEventListener('click', (e)=>{
+    // Kuyruga giren oyunu HEMEN dogrula. grPlanCek yalnizca SIRADAKI oyunun semasini
+    // okuyor; ikinci sirada eklenen basarimsiz bir oyun, sirasi gelene kadar - yani
+    // saatler sonra - fark edilmiyordu. Sema istegi protokol uzerinden gidiyor, pazar
+    // kotasini harcamiyor; motor tarafinda 5 dakika onbellekli.
+    async function grDogrula(oyun){
+      if (!oyun) return true;
+      const p = await window.imu.gercekci.plan(oyun.appid, grSureMs(), grSecenekler())
+        .catch(()=>null);
+      if (!p || !p.basarimsiz) return true;
+      grBasarimsiz.add(oyun.appid);
+      grQueue = grQueue.filter(x=>x.appid!==oyun.appid);
+      grKuyrukKaydet();
+      grKutuphaneBoya();
+      grAramaBoya();
+      if (typeof toast === 'function') toast('Gerçekçi Mod').fail(oyun.name + ' - başarımı yok, listeden çıkarıldı.');
+      return false;
+    }
+    grEl('grResults').addEventListener('click', async (e)=>{
       const row = e.target.closest('[data-gradd]'); if (!row) return;
       const id = +row.getAttribute('data-gradd');
       const g = grGames.find(x=>x.appid===id);
       if (!g) return;
-      if (grQueue.some(x=>x.appid===id)) grQueue = grQueue.filter(x=>x.appid!==id);
+      const cikariliyor = grQueue.some(x=>x.appid===id);
+      if (cikariliyor) grQueue = grQueue.filter(x=>x.appid!==id);
       else grQueue.push(g);
       grKuyrukKaydet();
       grKutuphaneBoya();
       grAramaBoya();
+      // Ilk sirada olan zaten grPlanCek ile dogrulanir; gerisi burada.
+      if (!cikariliyor && grQueue[0] && grQueue[0].appid !== id){
+        const kaldi = await grDogrula(g);
+        if (!kaldi) return;
+      }
       grPlanCek();
     });
     document.addEventListener('click', (e)=>{
@@ -224,7 +255,38 @@
     });
 
     // ---- seçenekler ----
+    // ---- %100 BITIS SURESI (Tc) ----
+    // OYUN BASINA saklanir: Cyberpunk 180 saat, kisa bir hikaye oyunu 12 saat. Tek bir
+    // genel deger butun kutuphaneye uymuyordu.
+    function grTcHarita(){ const h = grVal('grTcOyun', {}); return (h && typeof h === 'object') ? h : {}; }
+    function grTcOku(appid){ return Math.max(0, +grTcHarita()[appid] || 0); }
+    async function grTcYaz(appid, saat){
+      const h = Object.assign({}, grTcHarita());
+      if (saat > 0) h[appid] = saat; else delete h[appid];
+      await grKaydet({ grTcOyun: h });
+    }
+
+    // Tc ve zorluk carpani. grHesapBoya, grSecenekler ve motorun gecikme hesabi ayni
+    // kaynaktan beslenir, yoksa uc yerde uc farkli sayi cikar.
+    //
+    // DIKKAT - tahminin yapisal sorunu: elle deger girilmezse Tc, OYNANAN SUREDEN
+    // tahmin ediliyor (oynanan x tur carpani). Yani bir oyunu ne kadar cok oynarsan
+    // tahmini bitis suresi o kadar buyuyor ve uygulama o kadar az basarim aciyor.
+    // 180 saatlik bir oyun "demek ki 360 saatlik, daha yarisindasin" diye okunuyor.
+    // Bu yuzden elle girilen deger her zaman one geciyor ve kutu artik basit panelde.
+    function grTcVeZorluk(oyun){
+      const zorluk = parseFloat(grVal('grDiff', '1.2')) || 1.2;
+      const crRaw = grVal('grCR', '2.0');
+      const cr = crRaw === 'auto' ? 0 : (parseFloat(crRaw) || 2);
+      const oynanmisSa = oyun ? (oyun.playtimeMin / 60) : 0;
+      const elle = (oyun ? grTcOku(oyun.appid) : 0) || (parseFloat(grVal('grTc', '')) || 0);
+      const tahmin = Math.max(2, oynanmisSa * (cr || 2) || (cr || 2) * 5);
+      return { tcSa: elle > 0 ? elle : tahmin, zorluk, elleGirildi: elle > 0, oynanmisSa };
+    }
     function grSecenekler(){
+      const { tcSa, zorluk } = grTcVeZorluk(grQueue[0]);
+      const playtime = {};
+      grQueue.forEach(g=>{ playtime[g.appid] = g.playtimeMin || 0; });
       return {
         hedef: grVal('grTargetAuto', true) ? 0 : Math.max(0, +grEl('grTarget').value || 0),
         model: grVal('grModel', 'linear'),
@@ -232,7 +294,12 @@
         ultraNadirAtla: !!grVal('grSkipUltraRare', false),
         otoSira: !!grVal('grAuto', true),
         saatiSurdur: !!grVal('grKeepHours', true),
-        basarimsizMod: grVal('grNoAchMode', 'hours'),
+        gecikmisHizlandir: !!grVal('grCatchUp', true),
+        hizCarpani: +grVal('grHiz', 1) || 1,
+        ultraCarpan: +grVal('grUltraCarpan', 3) || 3,
+        telafiPayi: (+grVal('grTelafiPay', 20) || 20) / 100,
+        bitmisOran: (+grVal('grBitmisSik', 50) || 50) / 100,
+        tcSa, zorluk, playtime,
       };
     }
 
@@ -250,6 +317,18 @@
       const p = await window.imu.gercekci.plan(ilk.appid, grSureMs(), grSecenekler())
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (istek !== grPlanIstek) return;      // daha yeni bir istek var, bunu at
+      // Sema okununca "bu oyunun basarimi yok" ciktiysa oyun kuyruktan dusurulur ve bir
+      // daha listeye girmez. hasStats bayragina bakip listeye almistik, Steam yanilmis.
+      if (p && p.basarimsiz){
+        grBasarimsiz.add(ilk.appid);
+        grQueue = grQueue.filter(x=>x.appid!==ilk.appid);
+        grKuyrukKaydet();
+        grKutuphaneBoya();
+        if (typeof toast === 'function') toast('Gerçekçi Mod').fail(ilk.name + ' - başarımı yok, listeden çıkarıldı.');
+        grPlan = null;
+        grPlanCek();          // sıradaki oyunla devam
+        return;
+      }
       grPlan = (p && p.ok) ? p : null;
       if (!grPlan){
         grSet('grNextName', '-');
@@ -266,7 +345,15 @@
       const basarimsiz = !!(oyun && grPlan && !grPlan.toplam);
 
       // Üst özet şerit
-      grSet('grGameName', calisiyor ? (grDurum.oyunAdi || '-') : (oyun ? oyun.name : '-'));
+      // Steam'in basarim semasi bazen oyun adi vermiyor ve motor 'App 1091500' gibi bir
+      // yedege dusuyor. Kutuphanedeki gercek ad elimizdeyken onu gostermenin anlami yok.
+      const calisanId = calisiyor ? grDurum.appid : null;
+      const kutupAd = calisanId
+        ? ((grGames.find(g=>g.appid===calisanId) || {}).name || null)
+        : (oyun ? oyun.name : null);
+      const motorAd = calisiyor ? grDurum.oyunAdi : null;
+      const motorGecerli = motorAd && !/^App \d+$/.test(motorAd);
+      grSet('grGameName', kutupAd || (motorGecerli ? motorAd : null) || motorAd || '-');
       const art = grEl('grGameArt');
       const artId = calisiyor ? grDurum.appid : (oyun && oyun.appid);
       art.innerHTML = artId ? gameThumb(artId) : '';
@@ -283,13 +370,13 @@
       grEl('grNoAchSummary').style.display = basarimsiz ? 'flex' : 'none';
       grEl('grHasAch').style.display = basarimsiz ? 'none' : 'flex';
       if (basarimsiz){
-        const mod = grVal('grNoAchMode', 'hours');
-        const etiket = mod === 'skip' ? 'Oyunu atla' : mod === 'stop' ? 'Sırayı durdur' : 'Sadece saat topla';
-        grSet('grFallbackLabel', etiket);
+        // Buraya yalnizca "basarimi VAR ama acilacak kilitli basarim KALMAMIS" oyunlar duser.
+        // Hic basarimi olmayan oyun zaten listeye girmiyor (grPlanCek onu dusuruyor).
+        grSet('grFallbackLabel', 'Listeden çıkarılacak');
         grSet('grDurLabel2', grSureEtiket(grSureMs()));
         grSet('grFallbackNote', grPlan && grPlan.uygunToplam === 0 && grPlan.toplamBasarim
-          ? ('Bu oyunun ' + grPlan.toplamBasarim + ' başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Seçilen davranış: ' + etiket.toLowerCase() + '.')
-          : ('Steam bu oyun için başarım şeması vermiyor. Seçilen davranış: ' + etiket.toLowerCase() + '.'));
+          ? ('Bu oyunun ' + grPlan.toplamBasarim + ' başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.')
+          : 'Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.');
       }
 
       // Sırada kartı
@@ -356,29 +443,49 @@
       grSet('grTargetTotal', String(uygun));
       grSet('grDurLabel', grSureEtiket(sureMs));
 
-      // Zorluk çarpanı: zor başarımlar aynı sürede daha az açılır.
-      const diff = parseFloat(grVal('grDiff', '1.2')) || 1.2;
       const crRaw = grVal('grCR', '2.0');
-      const playtimeSa = oyun ? (oyun.playtimeMin / 60) : 0;
-      const tcElle = parseFloat(grVal('grTc', '')) || 0;
-      // Tc: elle girilmişse o; değilse mevcut süre x tür çarpanı, en az 2 saat.
-      const cr = crRaw === 'auto' ? 0 : (parseFloat(crRaw) || 2);
-      const tc = tcElle > 0 ? tcElle : Math.max(2, playtimeSa * (cr || 2) || (cr || 2) * 5);
+      const { tcSa: tc, zorluk: diff, elleGirildi, oynanmisSa: playtimeSa } = grTcVeZorluk(oyun);
       const sureSa = sureMs / 3600000;
 
-      // Otomatik hedef: bu sürede gerçek bir oyuncunun açacağı kadar.
-      // pay = süre / (Tc x zorluk); üstten uygun sayısıyla sınırlı.
-      const otoHedef = uygun ? Math.max(1, Math.min(uygun, Math.round(uygun * (sureSa / (tc * diff))))) : 0;
-      if (oto){
-        grEl('grTarget').value = String(otoHedef);
-        grEl('grTarget').readOnly = true;
-        grEl('grTarget').style.color = GRC.sub;
-      } else {
-        grEl('grTarget').readOnly = false;
-        grEl('grTarget').style.color = GRC.title;
-      }
+      // Otomatik hedef IKI parcadan olusur:
+      //   1. GERIDE KALAN - oyun bu kadar oynanmisken zaten acilmis OLMASI gereken sayi,
+      //      eksi gercekten acilmis olan. 180 saatlik ve basarimlari kilitli bir oyunda
+      //      bu buyuk bir sayidir.
+      //   2. OTURUM PAYI - bu oturumun kendi suresinde kazanilacak kadari.
+      // Eskiden yalnizca 2. parca vardi: hesap "sifirdan baslayan bir oyuncu bu surede kac
+      // basarim alir" diyordu. Sonuc, 180 saat oynanmis bir oyunda 8 saate 2 basarim gibi
+      // bir oneriydi; oysa o oyunda zaten neredeyse hepsi acilmis olmaliydi.
+      const toplamB = grPlan ? (grPlan.toplamBasarim || 0) : 0;
+      const acilmisB = grPlan ? (grPlan.acilmis || 0) : 0;
+      const payda = Math.max(0.1, tc * diff);
+      const olcek = toplamB || uygun;
+      const beklenen = olcek ? Math.min(olcek, olcek * (playtimeSa / payda)) : 0;
+      const gerideKalan = Math.max(0, Math.round(beklenen - acilmisB));
+      const oturumPayi = olcek * (sureSa / payda);
+      const otoHedef = uygun ? Math.max(1, Math.min(uygun, Math.round(gerideKalan + oturumPayi))) : 0;
+      // Hedef kutusunun iki yarisi TEK parca gorunmeli: ayni yazi tipi, ayni boy, ayni renk.
+      // Eskiden ust satirda buyuk beyaz sayi, altinda kucuk gri "/ toplam" vardi.
+      const hedefRengi = oto ? GRC.sub : GRC.title;
+      grEl('grTarget').readOnly = oto;
+      if (oto) grEl('grTarget').value = String(otoHedef);
+      ['grTarget', 'grTargetSep', 'grTargetTotal'].forEach((id)=>{
+        const el = grEl(id); if (el) el.style.color = hedefRengi;
+      });
       const hedef = oto ? otoHedef : Math.max(0, Math.min(uygun, +grEl('grTarget').value || 0));
       grSet('grTargetVal', String(hedef || (grPlan ? grPlan.toplam : 0)));
+
+      // Gecikme birikimi notu
+      const not = grEl('grCatchUpNote');
+      if (not){
+        const bir = (grPlan && grPlan.birikim) || 0;
+        if (bir > 0 && grVal('grCatchUp', true)){
+          not.style.display = 'block';
+          not.textContent = oyun
+            ? (oyun.name + ' ' + (oyun.playtimeMin/60).toFixed(0) + ' saat oynanmış ve '
+               + bir + ' başarım geride kalmış. Bunlar oturumun ilk beşte birinde açılır, sonrası normal ritimde.')
+            : (bir + ' başarım geride kalmış; oturumun ilk beşte birinde açılır.');
+        } else not.style.display = 'none';
+      }
 
       // OTO düğmesi ve hedef kutusunun kenarı
       const ab = grEl('grAutoTarget');
@@ -390,9 +497,15 @@
       // Basit paneldeki açıklama
       const crEtiket = { '1.5':'kısa hikaye oyunu', '2.0':'orta uzunlukta', '2.5':'uzun, açık dünya', '4.0':'bitmeyen sandbox', 'auto':'elle girilen süre' };
       const diffEtiket = { '0.8':'kolay', '1.2':'normal', '2.0':'zor', '3.5':'çok zor' };
+      // Sayi denetlenebilir olsun: hangi degerden nasil cikti yaziyor.
+      const tcKaynak = elleGirildi ? 'girdiğin değer' : ((crEtiket[crRaw]||'tür tahmini') + ' varsayımı');
       grSet('grSimpleNote', oyun
-        ? ('Bu ayarlarla ' + (crEtiket[crRaw]||'-') + ' ve ' + (diffEtiket[String(grVal('grDiff','1.2'))]||'-')
-           + ' kabul edildi; ' + grSureEtiket(sureMs) + ' içinde ' + hedef + ' başarım açılır. Tahmini %100 süresi ' + tc.toFixed(0) + ' saat.')
+        ? (oyun.name + ' ' + playtimeSa.toFixed(0) + ' saat oynanmış. Bitiş süresi '
+           + tc.toFixed(0) + ' saat kabul edildi (' + tcKaynak + '), zorluk '
+           + (diffEtiket[String(grVal('grDiff','1.2'))]||'-') + '. Bu kadar oynanmışken '
+           + Math.round(beklenen) + ' başarım açılmış olmalıydı, açılan ' + acilmisB + '; '
+           + gerideKalan + ' tanesi geride. ' + grSureEtiket(sureMs) + ' içinde '
+           + hedef + ' başarım açılır.')
         : 'Önce soldan bir oyun ekle.');
 
       // Dağıtım modeli açıklaması
@@ -403,27 +516,68 @@
       };
       grSet('grModelNote', modelNot[grVal('grModel','linear')] || '-');
 
-      // Gelişmiş panel: HLTB kutusu
-      grEl('grTc').placeholder = tc.toFixed(0);
+      // Iki Tc kutusu (basit ve gelismis panel) ayni degeri gosterir.
+      const tcDeger = oyun ? grTcOku(oyun.appid) : 0;
+      [grEl('grTcMain'), grEl('grTc')].forEach((el)=>{
+        if (!el) return;
+        el.placeholder = tc.toFixed(0);
+        if (document.activeElement !== el) el.value = tcDeger > 0 ? String(tcDeger) : '';
+      });
       grSet('grPlaytime', oyun ? (playtimeSa.toFixed(1) + ' sa') : '-');
-      const beklenen = (oyun && grPlan && grPlan.toplamBasarim)
-        ? Math.min(grPlan.toplamBasarim, Math.round(grPlan.toplamBasarim * (playtimeSa / (tc * diff))))
-        : 0;
-      grSet('grExpected', grPlan && grPlan.toplamBasarim ? (beklenen + ' / ' + grPlan.toplamBasarim) : '-');
-      grSet('grPace', playtimeSa > 0 && beklenen ? (beklenen / playtimeSa).toFixed(1) : '-');
+      // beklenen yukarida bir kez hesaplandi (otomatik hedefin ilk parcasi), burada
+      // yeniden hesaplanmiyor - iki yerde farkli sayi gorunmesin.
+      const beklenenB = Math.round(beklenen);
+      grSet('grExpected', toplamB ? (beklenenB + ' / ' + toplamB) : '-');
+      grSet('grPace', playtimeSa > 0 && beklenenB ? (beklenenB / playtimeSa).toFixed(1) : '-');
       grSet('grLeft', grPlan ? String(uygun) : '-');
       // Kalan başarımların gerçek oyunda ne kadar sürede açılacağı (tahmin)
-      const kalanSa = (uygun && grPlan && grPlan.toplamBasarim)
-        ? (uygun / grPlan.toplamBasarim) * tc * diff
-        : 0;
+      const kalanSa = (uygun && toplamB) ? (uygun / toplamB) * tc * diff : 0;
       grSet('grRemainEst', kalanSa ? (kalanSa < 1 ? (Math.round(kalanSa*60) + ' dk') : (kalanSa.toFixed(0) + ' sa')) : '-');
+      grHizBoya();
     }
+
+    // ---- hiz ayarlari (gelismis panel) ----
+    const GR_HIZ_ALAN = [
+      ['grHiz', 'grHiz', 1, 0.1, 4],
+      ['grUltraCarpan', 'grUltraCarpan', 3, 1, 10],
+      ['grTelafiPay', 'grTelafiPay', 20, 2, 90],
+      ['grBitmisSik', 'grBitmisSik', 50, 5, 100],
+    ];
+    function grHizBoya(){
+      GR_HIZ_ALAN.forEach(([id, anahtar, varsayilan])=>{
+        const el = grEl(id);
+        if (el && document.activeElement !== el) el.value = String(grVal(anahtar, varsayilan));
+      });
+      const oyun = grQueue[0];
+      const not = grEl('grHizNote');
+      if (!not) return;
+      if (!oyun){ not.textContent = 'Önce soldan bir oyun ekle.'; return; }
+      const { tcSa, oynanmisSa } = grTcVeZorluk(oyun);
+      const bitmis = oynanmisSa > 0 && oynanmisSa >= tcSa;
+      const sik = +grVal('grBitmisSik', 50) || 50;
+      not.textContent = bitmis
+        ? (oyun.name + ' zaten bitmiş sayılıyor (' + oynanmisSa.toFixed(0) + ' sa oynanmış, bitiş '
+           + tcSa.toFixed(0) + ' sa). Çizelge %' + sik + ' oranına sıkıştırıldı.')
+        : ('Oyun henüz bitmemiş (' + oynanmisSa.toFixed(0) + ' / ' + tcSa.toFixed(0)
+           + ' sa), sıkıştırma uygulanmıyor. Ultra nadirler ' + (+grVal('grUltraCarpan', 3) || 3)
+           + ' kat daha uzun bekler.');
+    }
+    GR_HIZ_ALAN.forEach(([id, anahtar, varsayilan, alt, ust])=>{
+      const el = grEl(id); if (!el) return;
+      el.addEventListener('change', async ()=>{
+        const v = Math.max(alt, Math.min(ust, parseFloat(el.value) || varsayilan));
+        el.value = String(v);
+        await grKaydet({ [anahtar]: v });
+        grPlanCek();          // acilis zamanlari bu degerlere bagli
+      });
+    });
 
     // ---- anahtarlar (toggle) ----
     function grToggleBoya(){
       document.querySelectorAll('#tab-gercekci .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
-        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours');
+        // grCatchUp varsayilan ACIK: birikim yoksa zaten hicbir sey degistirmiyor.
+        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp');
         el.style.background = on ? GRC.brand : '#151C28';
         el.style.borderColor = on ? GRC.brand : '#2B3345';
         const knob = el.firstElementChild;
@@ -451,11 +605,10 @@
       ata('grDiff', grVal('grDiff', '1.2'));
       ata('grDiff2', grVal('grDiff', '1.2'));
       ata('grModel', grVal('grModel', 'linear'));
-      ata('grNoAchMode', grVal('grNoAchMode', 'hours'));
     }
     // Aynı ayarı iki panelden de değiştirebiliyoruz (şablonda da öyle); ikisi senkron kalır.
     [['grCR','grCR'], ['grCR2','grCR'], ['grDiff','grDiff'], ['grDiff2','grDiff'],
-     ['grModel','grModel'], ['grNoAchMode','grNoAchMode']].forEach(([id, anahtar])=>{
+     ['grModel','grModel']].forEach(([id, anahtar])=>{
       const e = grEl(id);
       if (!e) return;
       e.addEventListener('change', async ()=>{
@@ -464,9 +617,19 @@
         if (anahtar === 'grModel') grPlanCek(); else { grHesapBoya(); grListeBoya(); }
       });
     });
-    grEl('grTc').addEventListener('change', async ()=>{
-      await grKaydet({ grTc: grEl('grTc').value.trim() });
-      grHesapBoya();
+    // Iki panel de ayni degeri yazar ve deger OYUN BASINA saklanir. Eskiden tek bir genel
+    // 'grTc' ayari vardi: Cyberpunk icin 180 yazinca kutuphanedeki her oyun 180 saatlik
+    // sayiliyordu.
+    ['grTcMain', 'grTc'].forEach((id)=>{
+      const el = grEl(id); if (!el) return;
+      el.addEventListener('change', async ()=>{
+        const oyun = grQueue[0];
+        const saat = Math.max(0, Math.min(20000, parseFloat(el.value) || 0));
+        el.value = saat > 0 ? String(saat) : '';
+        if (oyun) await grTcYaz(oyun.appid, saat);
+        else await grKaydet({ grTc: saat > 0 ? String(saat) : '' });
+        grPlanCek();       // hedef ve zamanlama bu degere bagli, plan yeniden kurulur
+      });
     });
     ['grRH','grRM','grRS'].forEach(id=>{
       grEl(id).addEventListener('change', async ()=>{
@@ -517,8 +680,15 @@
         + '<button data-grpdel="'+i+'" class="h-stop" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
         + '</div>').join('');
     }
+    // En fazla bu kadar preset tutulur. Dolu ise kaydetme REDDEDILIR - en eskisini sessizce
+    // dusurmek, kullanicinin haberi olmadan bir yapilandirmayi silmek demek olurdu.
+    const GR_PRESET_SINIR = 5;
     grEl('grSavePreset').onclick = async ()=>{
       if (!grQueue.length){ if (typeof toast === 'function') toast('Preset').fail('Önce sıraya oyun ekle.'); return; }
+      if (grPresets.length >= GR_PRESET_SINIR){
+        if (typeof toast === 'function') toast('Preset').fail('En fazla ' + GR_PRESET_SINIR + ' preset tutulur. Önce birini sil.');
+        return;
+      }
       const sureMs = grSureMs();
       const p = {
         baslik: grQueue.map(g=>g.name).join(', ').slice(0, 60),
@@ -530,7 +700,7 @@
         hedefAuto: !!grVal('grTargetAuto', true), hedef: Math.max(0, +grEl('grTarget').value || 0),
         ts: Date.now(),
       };
-      grPresets = [p].concat(grPresets).slice(0, 12);
+      grPresets = [p].concat(grPresets).slice(0, GR_PRESET_SINIR);
       await grKaydet({ grPresets });
       grPresetBoya();
       if (typeof toast === 'function') toast('Preset').done('Kaydedildi.');
