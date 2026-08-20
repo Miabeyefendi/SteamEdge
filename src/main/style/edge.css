@@ -306,10 +306,12 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
   .edge [style*="width:320px"]{width:250px!important}
   .edge [style*="width:280px"]{width:224px!important}
   .edge [style*="width:300px"]{width:200px!important}   /* ust bardaki arama */
+  .edge [style*="width:352px"]{width:280px!important}   /* Gercekci Mod sol sutunu */
 }
 
 /* ---- 1080px alti: yan panelleri daha da kucult, ust bar sikislsin ---- */
 @media (max-width: 1080px) {
+  .edge [style*="width:352px"]{width:240px!important}   /* Gercekci Mod sol sutunu */
   .edge [style*="padding:24px 26px 30px 44px"]{padding:14px 14px 18px 16px!important}
   .edge [style*="padding:20px 26px 16px 44px"]{padding:12px 14px 10px 16px!important}
   .edge [style*="padding:18px 22px 18px 44px"]{padding:12px 14px 12px 16px!important}
@@ -325,6 +327,7 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 
 /* ---- 940px alti: yan panel gizlenir yerine ALTA gecer ---- */
 @media (max-width: 940px) {
+  .edge [style*="width:352px"]{width:210px!important}   /* Gercekci Mod sol sutunu */
   /* Sag ayar panelleri asagi kayar, icerik tam genislik alir */
   .edge [style*="border-left:1px solid #1D2432"]{
     border-left:0!important;border-top:1px solid #1D2432!important;
@@ -345,3 +348,20 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 /* Sayfa govdesi ASLA yatay kaymaz - tasan icerik kendi kutusunda kayar. */
 .edge .e-main{overflow-x:hidden}
 .edge table,.edge pre{max-width:100%;overflow-x:auto;display:block}
+
+/* Gercekci Mod'un sag paneli dar (352 px sutun). Anahtar satirlarindaki etiketler flex
+   ogesi oldugu icin varsayilan min-width:auto ile icerik genisliginin altina inmiyor,
+   satiri tasiriyor ve panelde saga sola kayma yapiyordu. */
+/* Anahtar satirlari: etiket + toggle. Etiket bir flex ogesi oldugu icin varsayilan
+   min-width:auto ile icerik genisliginin altina inmiyor ve 352 px'lik dar panelde satiri
+   tasiriyordu. :has ile tam olarak bu satirlar hedefleniyor, id'ye bagli degil. */
+#tab-gercekci div:has(> .gr-toggle) > span,
+#tab-gercekci div:has(> .gr-toggle) > div,
+#tab-gercekci div:has(> .gr-toggle) > div > span{min-width:0;overflow-wrap:break-word}
+/* Ipucu kutusu 264 px ve left:50% ile ortalaniyor. 352 px'lik dar panelde sagdan tasip
+   govde satirinda (overflow-x:auto) yatay kaydirma cubugu doguruyordu; gizli olmasi fark
+   etmiyor, mutlak konumlu ogeler scrollWidth'e giriyor. Dar panellerde saga yaslaniyor,
+   boylece 264 px sola dogru aciliyor ve panelin icinde kaliyor. */
+#tab-gercekci #grSimpleBox [data-tip]::after,
+#tab-gercekci #grAdvBox [data-tip]::after,
+#tab-saat [data-tip]::after{left:auto;right:0;transform:none}

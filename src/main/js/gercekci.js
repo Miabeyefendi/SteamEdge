@@ -21,6 +21,8 @@
     // Basarimi olmadigi ogrenilen oyunlar (appid). Motor bir kez ogrenip diske yaziyor;
     // bu sayfanin listesinde bir daha gorunmezler. Bu sayfa yalnizca basarim acar.
     let grBasarimsiz = new Set();
+    // Kullanici sure alanina elle dokunduysa otomatik atama devreye girmez.
+    let grSureTouched = false;
     let grPlanIstek = 0;            // yarış koşullarını engellemek için istek sayacı
 
     const GRC = { brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
@@ -436,7 +438,7 @@
     // ---- hedef + HLTB hesapları ----
     function grHesapBoya(){
       const oyun = grQueue[0];
-      const sureMs = grSureMs();
+      let sureMs = grSureMs();
       const uygun = grPlan ? grPlan.uygunToplam : 0;
       const oto = !!grVal('grTargetAuto', true);
 
@@ -445,7 +447,7 @@
 
       const crRaw = grVal('grCR', '2.0');
       const { tcSa: tc, zorluk: diff, elleGirildi, oynanmisSa: playtimeSa } = grTcVeZorluk(oyun);
-      const sureSa = sureMs / 3600000;
+      let sureSa = sureMs / 3600000;
 
       // Otomatik hedef IKI parcadan olusur:
       //   1. GERIDE KALAN - oyun bu kadar oynanmisken zaten acilmis OLMASI gereken sayi,
@@ -462,6 +464,22 @@
       const beklenen = olcek ? Math.min(olcek, olcek * (playtimeSa / payda)) : 0;
       const gerideKalan = Math.max(0, Math.round(beklenen - acilmisB));
       const oturumPayi = olcek * (sureSa / payda);
+      // OTOMATIK SURE: ayarlar degisince yalnizca hedef degil SURE de yeniden hesaplanmali.
+      // Olcut, geride kalan basarimlari gercek bir oyuncunun kazanmasi ne kadar surerdi:
+      //   (geride kalan / toplam) x bitis suresi x zorluk
+      // 15 dakika ile 12 saat arasina kirpilir. Kullanici sureyi elle yazdiysa dokunulmaz,
+      // Ayarlar'daki anahtar kapaliysa da dokunulmaz.
+      if (grVal('grOtoSure', true) && !grSureTouched && oyun && olcek && gerideKalan > 0){
+        const gerekenSa = Math.max(0.25, Math.min(12, (gerideKalan / olcek) * payda));
+        const yeniMs = Math.round(gerekenSa * 3600000);
+        if (Math.abs(yeniMs - sureMs) > 60000){
+          grSureYaz(yeniMs);
+          sureMs = yeniMs;
+          sureSa = gerekenSa;
+          grSet('grDurLabel', grSureEtiket(sureMs));
+          grKaydet({ grDurationSec: Math.round(sureMs / 1000) });
+        }
+      }
       const otoHedef = uygun ? Math.max(1, Math.min(uygun, Math.round(gerideKalan + oturumPayi))) : 0;
       // Hedef kutusunun iki yarisi TEK parca gorunmeli: ayni yazi tipi, ayni boy, ayni renk.
       // Eskiden ust satirda buyuk beyaz sayi, altinda kucuk gri "/ toplam" vardi.
@@ -577,7 +595,7 @@
       document.querySelectorAll('#tab-gercekci .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
         // grCatchUp varsayilan ACIK: birikim yoksa zaten hicbir sey degistirmiyor.
-        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp');
+        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grOtoSure');
         el.style.background = on ? GRC.brand : '#151C28';
         el.style.borderColor = on ? GRC.brand : '#2B3345';
         const knob = el.firstElementChild;
@@ -633,6 +651,7 @@
     });
     ['grRH','grRM','grRS'].forEach(id=>{
       grEl(id).addEventListener('change', async ()=>{
+        grSureTouched = true;         // elle girildi, otomatik atama artik uzerine yazmaz
         const ms = grSureMs();
         grSureYaz(ms);
         await grKaydet({ grDurationSec: Math.round(ms/1000) });

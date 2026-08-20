@@ -303,6 +303,7 @@ const DEFAULT_SETTINGS = {
   grSkipUltraRare: false,   // %5 altı başarımları atla
   grKeepHours: true,        // başarımlar bitince süre sonuna kadar saat topla
   grCatchUp: true,          // gecikmiş başarım birikimini oturumun başına sıkıştır
+  grOtoSure: true,          // süreyi ayarlara göre kendiliğinden ata (elle yazılırsa dokunulmaz)
   grHiz: 1,                 // hız çarpanı: tüm çizelgeyi sıkar/açar
   grUltraCarpan: 3,         // %5 altı başarımlar bu oranda daha uzun bekler
   grTelafiPay: 20,          // geride kalanlar sürenin ilk yüzde kaçında açılır

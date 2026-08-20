@@ -2717,7 +2717,7 @@
 
     // G14 turu: Gercekci Mod'un gecikme telafisi ve pazar kuyrugunun birlestirilmesi.
     const I18N_G14 = {
-          "en": {
+          en: {
                 "Gecikmiş başarımları hızlandır": "Catch up on overdue achievements",
                 "Fiyatla birlikte ortalamayı da çek": "Fetch the average alongside the price",
                 "Kütüphane": "Library",
@@ -2726,7 +2726,7 @@
                 "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "When a game has hours on it but no achievements unlocked, a backlog has built up. With this on, that backlog is cleared during the first fifth of the session and the pace then returns to normal. How large the backlog is depends on the playtime: a few achievements on a one hour game, far more on a hundred hour one.",
                 "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "With this on, an item’s realised sale average is fetched in the same pass as its lowest price, so you do not wait for the whole list to finish before averages appear. Two requests per item means a full inventory takes twice as long to fill. With it off, averages arrive only through the Average button on the Inventory page."
           },
-          "de": {
+          de: {
                 "Gecikmiş başarımları hızlandır": "Ausstehende Erfolge aufholen",
                 "Fiyatla birlikte ortalamayı da çek": "Durchschnitt zusammen mit dem Preis holen",
                 "Kütüphane": "Bibliothek",
@@ -2735,7 +2735,7 @@
                 "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Wenn ein Spiel viele Stunden hat, aber keine Erfolge freigeschaltet wurden, hat sich ein Rückstand angesammelt. Ist dies aktiv, wird dieser Rückstand im ersten Fünftel der Sitzung aufgeholt, danach kehrt der Rhythmus zurück. Die Größe des Rückstands hängt von der Spielzeit ab: bei einer Stunde ein paar Erfolge, bei hundert Stunden weit mehr.",
                 "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Ist dies aktiv, wird der Verkaufsdurchschnitt eines Gegenstands im selben Durchgang wie sein niedrigster Preis geholt; du wartest nicht, bis die ganze Liste fertig ist. Zwei Anfragen pro Gegenstand bedeuten, dass ein volles Inventar doppelt so lange braucht. Ist es aus, kommen Durchschnitte nur über die Schaltfläche Durchschnitt im Inventar."
           },
-          "es": {
+          es: {
                 "Gecikmiş başarımları hızlandır": "Recuperar los logros atrasados",
                 "Fiyatla birlikte ortalamayı da çek": "Obtener la media junto con el precio",
                 "Kütüphane": "Biblioteca",
@@ -2744,7 +2744,7 @@
                 "Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Si un juego tiene muchas horas pero ningún logro desbloqueado, se ha acumulado un atraso. Con esto activado, ese atraso se recupera en el primer quinto de la sesión y luego el ritmo vuelve a la normalidad. El tamaño del atraso depende de las horas jugadas: unos pocos logros en un juego de una hora, muchos más en uno de cien.",
                 "Açıkken bir eşyanın en düşük fiyatı çekilirken gerçekleşen satış ortalaması da aynı turda çekilir; ortalama için listenin tamamının bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamının dolması iki katı sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Con esto activado, la media de ventas de un objeto se obtiene en la misma pasada que su precio más bajo, así que no esperas a que termine toda la lista. Dos peticiones por objeto hacen que un inventario completo tarde el doble. Desactivado, las medias llegan solo con el botón Media de la página Inventario."
           },
-          "zh": {
+          zh: {
                 "Gecikmiş başarımları hızlandır": "補齊落後的成就",
                 "Fiyatla birlikte ortalamayı da çek": "取得價格時一併取得平均價",
                 "Kütüphane": "遊戲庫",
@@ -2763,6 +2763,107 @@
     I18N_G14['zh']['%100 Bitiş Süresi'] = '100% 完成時數';
     I18N_G14['zh']['Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır.'] = '完成這款遊戲並解鎖所有成就需要幾小時。不是主線時數，而是全破時數。留空則依下方的遊戲類型推估，但該推估以你自己的遊玩時數為基礎，因此在你玩很久的遊戲上會偏高。此數值會依遊戲分別記住。';
     Object.keys(I18N_G14).forEach((dil) => { Object.assign(I18N[dil], I18N_G14[dil]); });
+
+    // G15: `npm run dil` taramasinin bulduğu, sözlükte karşılığı olmayan arayüz metinleri.
+    const I18N_G15 = {
+      en: {
+        'kuruş': 'cents',
+        'Özel Adres': 'Custom URL',
+        'Profili Aç': 'Open profile',
+        'Ortalamaları Getir': 'Fetch averages',
+        '10 ₺ ve üzeri': '10 TL and above',
+        'Kart Düşür sekmesinde yenile': 'Refresh it on the Card Farming tab',
+        'Gerçekçi Mod': 'Realistic Mode',
+        'süresinde': 'over',
+        'başarım açılacaktır': 'achievements will unlock',
+        'Hız çarpanı': 'Speed multiplier',
+        'Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.': 'Compresses or stretches the whole schedule. 0.5 is twice as fast.',
+        '%5 altı başarımlar bu oranda daha uzun bekler.': 'Achievements under 5% wait this many times longer.',
+        'Telafi payı': 'Catch-up share',
+        'Geride kalanlar sürenin ilk yüzde kaçında açılır.': 'What percentage of the session the backlog is cleared in.',
+        'Bitmiş oyunda sıkıştır': 'Compress on a finished game',
+        'Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.': 'If your playtime is past the completion time, the schedule shrinks to this ratio.',
+        'Süreyi ayarlara göre belirle': 'Set the duration from the settings',
+        'Pencere gizliyken listeler bellekten düşer, geri gelince yeniden çizilir': 'Lists are released from memory while the window is hidden and redrawn when it returns',
+        'Süreleri eşitle': 'Level the playtimes',
+        'Kütüphanedeki en yüksek': 'Highest in the library',
+        'Yöntem': 'Method',
+        'Tahmini bitiş': 'Estimated finish',
+      },
+      de: {
+        'kuruş': 'Cent',
+        'Özel Adres': 'Eigene Adresse',
+        'Profili Aç': 'Profil öffnen',
+        'Ortalamaları Getir': 'Durchschnitte holen',
+        '10 ₺ ve üzeri': '10 TL und mehr',
+        'Kart Düşür sekmesinde yenile': 'Im Kartenfarming-Tab aktualisieren',
+        'Gerçekçi Mod': 'Realistischer Modus',
+        'süresinde': 'in',
+        'başarım açılacaktır': 'Erfolge werden freigeschaltet',
+        'Hız çarpanı': 'Geschwindigkeitsfaktor',
+        'Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.': 'Staucht oder dehnt den ganzen Plan. 0,5 ist doppelt so schnell.',
+        '%5 altı başarımlar bu oranda daha uzun bekler.': 'Erfolge unter 5% warten um diesen Faktor länger.',
+        'Telafi payı': 'Aufholanteil',
+        'Geride kalanlar sürenin ilk yüzde kaçında açılır.': 'In wie viel Prozent der Sitzung der Rückstand aufgeholt wird.',
+        'Bitmiş oyunda sıkıştır': 'Bei abgeschlossenem Spiel stauchen',
+        'Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.': 'Liegt deine Spielzeit über der Abschlusszeit, schrumpft der Plan auf dieses Verhältnis.',
+        'Süreyi ayarlara göre belirle': 'Dauer aus den Einstellungen bestimmen',
+        'Pencere gizliyken listeler bellekten düşer, geri gelince yeniden çizilir': 'Listen werden freigegeben, solange das Fenster verborgen ist, und bei der Rückkehr neu gezeichnet',
+        'Süreleri eşitle': 'Spielzeiten angleichen',
+        'Kütüphanedeki en yüksek': 'Höchster Wert der Bibliothek',
+        'Yöntem': 'Verfahren',
+        'Tahmini bitiş': 'Voraussichtliches Ende',
+      },
+      es: {
+        'kuruş': 'céntimos',
+        'Özel Adres': 'Dirección personalizada',
+        'Profili Aç': 'Abrir perfil',
+        'Ortalamaları Getir': 'Obtener medias',
+        '10 ₺ ve üzeri': '10 TL o más',
+        'Kart Düşür sekmesinde yenile': 'Actualízalo en la pestaña Farmeo de cromos',
+        'Gerçekçi Mod': 'Modo realista',
+        'süresinde': 'en',
+        'başarım açılacaktır': 'logros se desbloquearán',
+        'Hız çarpanı': 'Multiplicador de velocidad',
+        'Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.': 'Comprime o estira todo el calendario. 0,5 es el doble de rápido.',
+        '%5 altı başarımlar bu oranda daha uzun bekler.': 'Los logros por debajo del 5% esperan esta cantidad de veces más.',
+        'Telafi payı': 'Parte de recuperación',
+        'Geride kalanlar sürenin ilk yüzde kaçında açılır.': 'En qué porcentaje de la sesión se recupera el atraso.',
+        'Bitmiş oyunda sıkıştır': 'Comprimir en un juego terminado',
+        'Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.': 'Si tus horas superan el tiempo de finalización, el calendario se reduce a esta proporción.',
+        'Süreyi ayarlara göre belirle': 'Fijar la duración según los ajustes',
+        'Pencere gizliyken listeler bellekten düşer, geri gelince yeniden çizilir': 'Las listas se liberan de la memoria mientras la ventana está oculta y se redibujan al volver',
+        'Süreleri eşitle': 'Igualar las horas',
+        'Kütüphanedeki en yüksek': 'El más alto de la biblioteca',
+        'Yöntem': 'Método',
+        'Tahmini bitiş': 'Fin estimado',
+      },
+      zh: {
+        'kuruş': '分',
+        'Özel Adres': '自訂網址',
+        'Profili Aç': '開啟個人檔案',
+        'Ortalamaları Getir': '取得平均價',
+        '10 ₺ ve üzeri': '10 里拉以上',
+        'Kart Düşür sekmesinde yenile': '請在卡牌收集頁面重新整理',
+        'Gerçekçi Mod': '擬真模式',
+        'süresinde': '內將解鎖',
+        'başarım açılacaktır': '個成就',
+        'Hız çarpanı': '速度倍率',
+        'Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.': '壓縮或拉長整份排程。0.5 表示速度加倍。',
+        '%5 altı başarımlar bu oranda daha uzun bekler.': '低於 5% 的成就會等待這個倍數的時間。',
+        'Telafi payı': '補齊佔比',
+        'Geride kalanlar sürenin ilk yüzde kaçında açılır.': '落後的部分要在時段的前百分之幾內補齊。',
+        'Bitmiş oyunda sıkıştır': '已完成的遊戲予以壓縮',
+        'Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.': '若遊玩時數已超過完成時數，排程會縮減到這個比例。',
+        'Süreyi ayarlara göre belirle': '依設定決定時段長度',
+        'Pencere gizliyken listeler bellekten düşer, geri gelince yeniden çizilir': '視窗隱藏時清單會從記憶體釋放，回到視窗時重新繪製',
+        'Süreleri eşitle': '同步遊玩時數',
+        'Kütüphanedeki en yüksek': '遊戲庫中的最高值',
+        'Yöntem': '方式',
+        'Tahmini bitiş': '預估完成',
+      },
+    };
+    Object.keys(I18N_G15).forEach((dil) => { Object.assign(I18N[dil], I18N_G15[dil]); });
 
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];

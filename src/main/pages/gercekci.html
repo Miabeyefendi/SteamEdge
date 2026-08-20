@@ -258,13 +258,9 @@
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun Verisi · HLTB</span>
           <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
-              <span style="font-size:12px;color:#B9C0D6">%100 süresi · Tc</span>
-              <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-                <input id="grTc" class="f-brand" style="width:58px;height:26px;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none">
-                <span style="font-size:11px;color:#656D80">sa</span>
-              </div>
-            </div>
+            <!-- "%100 süresi · Tc" satırı kaldırıldı: aynı değer artık ana paneldeki
+                 "%100 Bitiş Süresi" kutusunda ve oyun başına saklanıyor. İki yerde
+                 durunca hangisinin geçerli olduğu belirsizdi. -->
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
               <span style="font-size:12px;color:#B9C0D6">Oyun türü · CR</span>
               <select id="grCR2" class="f-brand" style="width:126px;height:26px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
@@ -326,6 +322,7 @@
             <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621"><div style="display:flex;align-items:center;gap:7px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Süreyi ayarlara göre belirle</span><span data-tip="Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span></div><div class="gr-toggle" data-grset="grOtoSure" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div></div>
             <div style="display:flex;align-items:center;gap:7px;min-width:0">
               <span style="font-size:12px;color:#B9C0D6">Gecikmiş başarımları hızlandır</span>
               <span data-tip="Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>

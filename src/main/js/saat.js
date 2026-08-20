@@ -228,13 +228,37 @@
                 + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
                 + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+altSatir(g, on, i, elapsed)+'</span>'
               + '</div>'
-              + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">%'+p+'</span>'
+              + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+                + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">%'+p+'</span>'
+                // Tek oyunu kuyruktan cikar. Eskiden yalnizca "kuyrugu temizle" vardi,
+                // yani bir oyunu atmak icin butun secimi bozmak gerekiyordu.
+                + '<button data-saatdel="'+g.appid+'" class="h-stop" title="Kuyruktan çıkar" '
+                  + 'style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;'
+                  + 'background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;'
+                  + 'line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
+              + '</div>'
             + '</div>'
             + '<div style="height:5px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
               + '<div style="height:100%;width:'+p+'%;border-radius:12px;background:'+(on?BC.ok:BC.teal)+'"></div></div>'
           + '</div></div>';
       }).join('');
     }
+
+    // Kuyruktan tek oyun cikarma. Calisirken kuyruga dokunulmaz: motor zaten o listeyle
+    // baslatildi, arayuzden silmek ekranla motoru ayirir.
+    document.getElementById('activeBoostBox').addEventListener('click', (e)=>{
+      const b = e.target.closest('[data-saatdel]'); if (!b) return;
+      if (boostState && boostState.running){
+        if (typeof toast === 'function') toast('Saat Yükseltici').fail('Çalışırken kuyruk değiştirilemez.');
+        return;
+      }
+      const id = +b.getAttribute('data-saatdel');
+      selectedSaat = selectedSaat.filter(g=>g.appid!==id);
+      persistBoostList();
+      const row = document.querySelector('#saatListBody [data-appid="'+id+'"]');
+      if (row) paintLibRow(row, false);
+      renderActiveBox();
+    });
 
     // MADDE 15: Eskiden yalnizca "o oturumda gecen sure" yaziyordu; oyunun GUNCEL toplam
     // suresi gorunmuyordu. Artik baslangic + gecen sure gosteriliyor, esitleme acikken
