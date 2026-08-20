@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/logo-dark.svg">
-  <img src="./assets/logo.svg" width="120" alt="SteamEdge">
-</picture>
+<img src="./assets/logo-mark.png" width="120" alt="SteamEdge">
 
 # SteamEdge
 
@@ -28,6 +25,8 @@
     <img src="./assets/btn-tutorial.svg" height="52" alt="Прочитать руководство">
   </picture>
 </a>
+
+<img src="./screenshots/main-showcase.jpg" width="92%" alt="SteamEdge фармит карточки, накручивает часы и управляет достижениями без клиента Steam">
 
 </div>
 
