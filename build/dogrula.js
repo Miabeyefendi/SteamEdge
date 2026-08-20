@@ -153,6 +153,63 @@ dosyalar(path.join(KOK, 'src'), '.js').forEach((f) => {
 });
 if (!iz) console.log('  temiz');
 
+// ---- 8. Olu ayar anahtari ----
+// Varsayilan ayarlarda duran ama hicbir yerde okunmayan anahtar. 1.1.2'de "ignoreUpdates"
+// boyle bulundu: arayuzde bir dugmesi vardi, motorda karsiligi yoktu, kullanici acip
+// kapatiyor ve hicbir sey olmuyordu. Elle fark edilmesi zor, taramasi kolay.
+bolum('8. Olu ayar anahtari');
+{
+  const ana = oku(path.join(KOK, 'main.js'));
+  const blok = ana.match(/const VARSAYILAN_AYARLAR\s*=\s*\{([\s\S]*?)\n\};/)
+            || ana.match(/const DEFAULT_SETTINGS\s*=\s*\{([\s\S]*?)\n\};/);
+  if (!blok) {
+    console.log('  varsayilan ayar blogu bulunamadi, atlandi');
+  } else {
+    const anahtarlar = [...blok[1].matchAll(/^\s{2}([A-Za-z_$][\w$]*)\s*:/gm)].map((m) => m[1]);
+    // Tum kaynakta anahtarin gectigi yerler (varsayilan blogu haric)
+    const govde = dosyalar(KOK, '.js')
+      .concat(dosyalar(KOK, '.html'))
+      .filter((f) => !kendisi(f) && !gorece(f).startsWith('package-lock'))
+      .map((f) => (gorece(f) === 'main.js' ? ana.replace(blok[0], '') : oku(f)))
+      .join('\n');
+    const olu = anahtarlar.filter((k) => {
+      const re = new RegExp('[."\'\\[]' + k + '\\b');
+      return !re.test(govde);
+    });
+    if (olu.length) {
+      olu.forEach((k) => uyari('okunmayan ayar: ' + k));
+      console.log('  ' + anahtarlar.length + ' anahtar, ' + olu.length + ' tanesi hicbir yerde okunmuyor');
+    } else {
+      console.log('  ' + anahtarlar.length + ' anahtarin hepsi kullaniliyor');
+    }
+  }
+}
+
+// ---- 9. Karsiliksiz IPC kanali ----
+// preload.js bir kanal aciyor ama main.js karsilamiyorsa cagri sessizce reddedilir ve
+// arayuz "alinamadi" der. Tersi de olur: main'de handler durur, kimse cagirmaz.
+bolum('9. Karsiliksiz IPC kanali');
+{
+  const on = oku(path.join(KOK, 'preload.js'));
+  const ana = oku(path.join(KOK, 'main.js'));
+  const cagrilan = new Set([...on.matchAll(/ipcRenderer\.(?:invoke|send)\(\s*'([^']+)'/g)].map((m) => m[1]));
+  const dinlenen = new Set([...on.matchAll(/ipcRenderer\.on\(\s*'([^']+)'/g)].map((m) => m[1]));
+  const karsilanan = new Set([...ana.matchAll(/ipcMain\.(?:handle|on)\(\s*'([^']+)'/g)].map((m) => m[1]));
+  const yollanan = new Set([...ana.matchAll(/sendRaw\(\s*'([^']+)'|webContents\.send\(\s*'([^']+)'/g)]
+    .map((m) => m[1] || m[2]).filter(Boolean));
+
+  const eksikHandler = [...cagrilan].filter((k) => !karsilanan.has(k));
+  eksikHandler.forEach((k) => hata('preload cagiriyor, main karsilamiyor: ' + k));
+
+  // Dinlenen olaylar icin: main tarafinda hic yollanmiyorsa olu dinleyici
+  const olmayanOlay = [...dinlenen].filter((k) => !yollanan.has(k) && !ana.includes("'" + k + "'"));
+  olmayanOlay.forEach((k) => uyari('preload dinliyor, main hic yollamiyor: ' + k));
+
+  if (!eksikHandler.length && !olmayanOlay.length) {
+    console.log('  ' + cagrilan.size + ' cagri + ' + dinlenen.size + ' olay, hepsinin karsiligi var');
+  }
+}
+
 // ---- ozet ----
 console.log('\n================================');
 console.log('HATA  : ' + hataSayisi);

@@ -339,8 +339,28 @@
     // motor ana süreçte çalıştığı için kart toplama, saat yükseltme ve başarım işleri
     // etkilenmez - sadece çizim durur. Pencere geri geldiğinde sayfalar bir kez tazelenir,
     // böylece kullanıcı asla bayat sayaç görmez.
+    // HAFIF MOD.
+    // Chromium yalnizca pencere GIZLI ya da ORTULU oldugunda cizimi kisar. Pencere
+    // ekranda durup odakta degilken hicbir sey kismiyor: saniyelik yeniden cizimler ve
+    // sonsuz CSS animasyonlari her karede kompozisyon yaptiriyor. Tam ekran bir oyun
+    // (olculdu: Dota 2, Vulkan) bu yuzden "independent flip" sunumunu kaybedip kompozit
+    // moda dusuyor ve kare hizi dusuyor. SteamEdge'in GPU kullanimi %0 olsa bile oluyor,
+    // cunku maliyet bizim degil masaustu kompozitorunun.
+    //
+    // Cozum: odak kaybinda saniyelik cizimleri durdur ve animasyonlari duraklat.
+    let pencereOdakta = document.hasFocus();
+    function hafifModAcik(){
+      return typeof appSettings !== 'object' || !appSettings || appSettings.hafifMod !== false;
+    }
+    function durgunlukBoya(){
+      const durgun = hafifModAcik() && !pencereOdakta;
+      document.documentElement.classList.toggle('e-durgun', durgun);
+    }
+    window.addEventListener('focus', () => { pencereOdakta = true; durgunlukBoya(); });
+    window.addEventListener('blur',  () => { pencereOdakta = false; durgunlukBoya(); });
     function uiTickAllowed(){
-      return !document.hidden;
+      if (document.hidden) return false;
+      return !(hafifModAcik() && !pencereOdakta);
     }
     document.addEventListener('visibilitychange', () => {
       if (document.hidden){

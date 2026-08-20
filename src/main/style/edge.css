@@ -365,3 +365,12 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 #tab-gercekci #grSimpleBox [data-tip]::after,
 #tab-gercekci #grAdvBox [data-tip]::after,
 #tab-saat [data-tip]::after{left:auto;right:0;transform:none}
+
+/* HAFIF MOD - pencere odakta degilken.
+   Sonsuz animasyonlar (durum noktalari, spinner) odak disindayken bile her karede
+   kompozisyon yaptiriyor; tam ekran bir oyunla ayni masaustunde bu, oyunun sunum
+   yolunu bozup kare hizini dusuruyor. Duraklatmak kareyi tamamen kesiyor.
+   Gecisler de kapatiliyor: odak disinda kimse bakmiyor. */
+.e-durgun *,
+.e-durgun *::before,
+.e-durgun *::after{animation-play-state:paused!important;transition:none!important}

@@ -20,6 +20,8 @@ contextBridge.exposeInMainWorld('imu', {
   },
   appBilgi: () => ipcRenderer.invoke('app:bilgi'),
   appBellek: () => ipcRenderer.invoke('app:bellek'),
+  // Gorsel ve ag onbellegini bosaltir. Ayar ve oturum kaybi yok.
+  appBellekTemizle: () => ipcRenderer.invoke('app:bellekTemizle'),
   pages: {
     // Sayfa HTML parçalarını senkron okur - main.html'in <script> etiketleri çalışmadan ÖNCE
     // DOM'a enjekte edilmesi gerekir (o script'ler ilgili id'lere anında bağlanıyor).

@@ -211,6 +211,23 @@
       const d = await window.imu.appBellek().catch(()=>null);
       bellekYaz(d);
     }
+    // Gorsel ve ag onbellegini bosalt. Uzun oturumlarda binlerce oyun kapagi birikiyor;
+    // ayar ve oturum kaybi olmadan bellegi geri kazanmanin en dogrudan yolu bu.
+    (function bellekTemizleBagla(){
+      const b = document.getElementById('memTemizle');
+      if (!b) return;
+      b.onclick = async ()=>{
+        b.disabled = true; b.style.opacity = '0.5';
+        const t = (typeof toast === 'function') ? toast('Önbellek boşaltılıyor...') : null;
+        const r = await window.imu.appBellekTemizle().catch(e=>({ ok:false, error:(e&&e.message) }));
+        b.disabled = false; b.style.opacity = '1';
+        if (!r || !r.ok){ if (t) t.fail((r && r.error) || 'Boşaltılamadı.'); return; }
+        const mb = Math.round((r.kazancKb || 0) / 1024);
+        if (t) t.done(mb > 0 ? (mb + ' MB geri alındı.') : 'Önbellek boşaltıldı.');
+        bellekOku();
+      };
+    })();
+
     function bellekIzlemeKur(){
       if (memTimer) return;
       memTimer = setInterval(bellekOku, 4000);
@@ -301,6 +318,14 @@
       snapshotSettings();
       return true;
     }
+    // Bu anahtarlar Chromium'a app.whenReady()'den ONCE veriliyor; degistirmek ancak
+    // uygulama yeniden acilinca etki eder. Sessizce kaydedip "oldu" gibi durmak yanlis
+    // olurdu, o yuzden soyleniyor.
+    const YENIDEN_BASLAT = ['hwAccel', 'gpuArkaUc', 'gpuKompozisyon'];
+    function baslatmaUyar(key){
+      if (!YENIDEN_BASLAT.includes(key)) return;
+      if (typeof toast === 'function') toast('Ayar kaydedildi').done('Etkili olması için SteamEdge yeniden başlatılmalı.');
+    }
     document.querySelectorAll('#tab-ayarlar [data-set]').forEach(el=>{
       const key = el.getAttribute('data-set');
       if (el.tagName === 'DIV'){
@@ -309,6 +334,7 @@
           paintToggle(el, val);
           appSettings = await S.set({ [key]: val });
           markDirty(key);
+          baslatmaUyar(key);
           if (key === 'notifications') paintAll();
           applySettingsEverywhere();
         });
@@ -322,6 +348,7 @@
           }
           appSettings = await S.set({ [key]: val });
           markDirty(key);
+          baslatmaUyar(key);
           // Dil degisti: cevrilmis metni geri cevirmek mumkun degil, sayfa yeniden yuklenir.
           if (key === 'language'){ if (typeof setUiLang === 'function') setUiLang(val); return; }
           // Ses seçilince hemen çal - kullanıcı deneyerek seçebilsin

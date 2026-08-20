@@ -8,7 +8,13 @@
  * etmiyor. Bir de test sirasinda Turkce arayuzde Cince bir bildirim goruldu, yani
  * anahtarlar arasinda beklenmedik bir eslesme olabiliyor.
  *
+ * BILINEN KORLUK: 6. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan metinleri
+ * bildiriyor. "Grafik arka ucu" gibi saf ASCII bir Turkce baslik gozden kacar. Daha
+ * gevsek bir olcut, ingilizce kod parcalari ve sayilarla dolu yuzlerce yanlis alarm
+ * uretiyordu; yeni metin eklerken bunu akilda tut.
+ *
  * Calistirma:  npm run dil
+ *              npm run dil -- --tam    (uzun listeleri kirpmadan)
  */
 const fs = require('fs');
 const path = require('path');

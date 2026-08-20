@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const SteamAuth = require('./src/auth/steamAuth');
@@ -19,6 +19,21 @@ try {
     : path.join(erkenKok, 'config', 'settings.json');
   const early = JSON.parse(fs.readFileSync(erkenYol, 'utf8'));
   if (early && early.hwAccel === false) app.disableHardwareAcceleration();
+
+  // GRAFIK UYUMLULUGU. Uc anahtar da whenReady'den ONCE verilmek zorunda; sonra
+  // ayarlanirsa Chromium onlari gormez. Bu yuzden Ayarlar'da "yeniden baslatma ister"
+  // yaziyor.
+  //
+  // ANGLE arka ucu: Chromium Windows'ta OpenGL/Vulkan cagrilarini varsayilan olarak
+  // D3D11 uzerinden cevirir. Bazi Intel ve eski AMD surucularinde bu yol tokluyor;
+  // D3D9 ya da OpenGL'e almak duzeltiyor. Otomatik = Chromium ne secerse.
+  const angle = early && early.gpuArkaUc;
+  if (angle && angle !== 'auto') app.commandLine.appendSwitch('use-angle', angle);
+
+  // GPU kompozisyonu kapali: pencerenin karelerini islemci birlestirir, ekran karti
+  // hic dokunmaz. Tam ekran bir oyunla ayni masaustunde calisirken oyunun sunum
+  // yolunu serbest birakir. Bedeli islemci tarafinda birkac puan.
+  if (early && early.gpuKompozisyon === false) app.commandLine.appendSwitch('disable-gpu-compositing');
 } catch (_) {}
 
 // Windows'ta toast bildirimleri AppUserModelID olmadan sessizce düşürülür - HTML5
@@ -55,6 +70,11 @@ if (!app.requestSingleInstanceLock()) {
 // uygulamanın çalışmasını etkilemez, karşılığında konsol temiz kalır.
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-gpu-program-cache');
+
+// Steam kutuphanesi buyudukce oyun kucuk resimleri birikiyor: 2500 oyunluk bir hesapta
+// onbellek yuzlerce megabayta cikabiliyor ve Chromium bunun bir kismini bellekte tutuyor.
+// 50 MB yeterli; asilinca en eski girisler dusuyor, gorsel yeniden indiriliyor.
+app.commandLine.appendSwitch('disk-cache-size', String(50 * 1024 * 1024));
 
 let win = null;
 // Çoklu-hesap paralel giriş: login ekranındaki her (+) kutusu kendi bağımsız SteamAuth
@@ -228,6 +248,9 @@ const DEFAULT_SETTINGS = {
   // Gelişmiş & Veri
   apiRequestDelayMs: 350,   // fiyat isteği başına bekleme (Steam limiti - düşürmek 429 riskini artırır)
   hwAccel: true,            // GPU donanım hızlandırma - kapatmak yeniden başlatma ister
+  hafifMod: true,           // pencere odakta değilken çizimi ve animasyonları durdur
+  gpuArkaUc: 'auto',        // ANGLE arka ucu: auto | d3d11 | d3d9 | gl (yeniden başlatma ister)
+  gpuKompozisyon: true,     // false = pencereyi işlemci birleştirsin (oyunla çakışmayı azaltır)
   debugLogs: false,
 
   // ---- Ayarlar ekranının geri kalan alanları ----
@@ -2444,6 +2467,20 @@ ipcMain.handle('app:bellek', () => {
     gpuAcik: settings.hwAccel !== false,
   };
 });
+// Gorsel ve ag onbellegini bosalt. Ayar, oturum ya da veri kaybi YOK - yalnizca yeniden
+// indirilebilir seyler gider. Uzun oturumlarda bellek geri kazanmanin en dogrudan yolu.
+ipcMain.handle('app:bellekTemizle', async () => {
+  const once = app.getAppMetrics().reduce((t, p) => t + ((p.memory && p.memory.workingSetSize) || 0), 0);
+  try {
+    await session.defaultSession.clearCache();
+    if (win && !win.isDestroyed()) win.webContents.session.clearCodeCaches({ urls: [] });
+  } catch (e) { return { ok: false, error: e.message }; }
+  await new Promise((r) => setTimeout(r, 600));
+  const sonra = app.getAppMetrics().reduce((t, p) => t + ((p.memory && p.memory.workingSetSize) || 0), 0);
+  log('info', 'onbellek temizlendi: ' + Math.round((once - sonra) / 1024) + ' MB');
+  return { ok: true, kazancKb: Math.max(0, once - sonra) };
+});
+
 ipcMain.handle('app:bilgi', () => ({
   surum: app.getVersion(),
   electron: process.versions.electron,

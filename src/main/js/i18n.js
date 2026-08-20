@@ -2865,6 +2865,83 @@
     };
     Object.keys(I18N_G15).forEach((dil) => { Object.assign(I18N[dil], I18N_G15[dil]); });
 
+    // G16: 1.1.6 grafik ve bellek ayarlari.
+    const I18N_G16 = {
+      en: {
+        'Odak dışındayken çizimi durdur': 'Stop drawing when unfocused',
+        'Pencere ekranda durup odakta değilken saniyelik güncellemeler ve dönen animasyonlar durur. Tam ekran bir oyunla aynı masaüstündeyken masaüstü birleştiricisi oyunun sunum yolunu serbest bırakır, kare hızı düşmez. Arka planda çalışan işler etkilenmez, yalnızca çizim durur.': 'While the window sits on screen without focus, the per-second updates and the spinning animations stop. Sharing a desktop with a fullscreen game, this lets the desktop compositor leave the game its presentation path, so the frame rate holds. Background work is untouched; only drawing stops.',
+        'Grafik arka ucu': 'Graphics backend',
+        'Chromium, arayüzü çizerken Windows üzerinde D3D11 kullanır. Bazı Intel ve eski AMD sürücülerinde bu yol takılıyor; D3D9 ya da OpenGL düzeltiyor. Otomatik, Chromium ne seçerse odur. Değiştirmek uygulamayı yeniden başlatmayı gerektirir.': 'Chromium draws the interface through D3D11 on Windows. Some Intel and older AMD drivers stall on that path; D3D9 or OpenGL fixes it. Automatic is whatever Chromium picks. Changing this needs a restart.',
+        'Otomatik': 'Automatic',
+        'GPU birleştirme': 'GPU compositing',
+        'Kapalıyken pencerenin kareleri işlemcide birleştirilir, ekran kartına hiç dokunulmaz. Oyun oynarken ekran kartını tamamen serbest bırakır, karşılığında birkaç puan işlemci yer. Yeniden başlatmayı gerektirir.': 'With this off the window’s frames are composited on the processor and the graphics card is never touched. It leaves the card entirely to your game, at the cost of a few points of CPU. Needs a restart.',
+        'Görsel önbelleğini boşalt': 'Clear the image cache',
+        'Oyun kapak görselleri ve indirilen sayfa parçaları bellekten ve diskten silinir. Ayar, oturum ve istatistik kaybı yoktur; silinen her şey gerektiğinde yeniden indirilir. Uzun süre açık kalan oturumlarda belleği geri kazanmanın en doğrudan yolu.': 'Game cover art and downloaded page assets are dropped from memory and disk. No settings, session or statistics are lost; everything removed is fetched again when needed. On a long running session this is the most direct way to get memory back.',
+        'Boşalt': 'Clear',
+        'Önbellek boşaltılıyor...': 'Clearing the cache...',
+        'Önbellek boşaltıldı.': 'Cache cleared.',
+        'Boşaltılamadı.': 'Could not clear it.',
+        '# MB geri alındı.': '# MB reclaimed.',
+        'Ayar kaydedildi': 'Setting saved',
+        'Etkili olması için SteamEdge yeniden başlatılmalı.': 'SteamEdge has to restart for this to take effect.',
+      },
+      de: {
+        'Odak dışındayken çizimi durdur': 'Zeichnen stoppen, wenn nicht im Fokus',
+        'Pencere ekranda durup odakta değilken saniyelik güncellemeler ve dönen animasyonlar durur. Tam ekran bir oyunla aynı masaüstündeyken masaüstü birleştiricisi oyunun sunum yolunu serbest bırakır, kare hızı düşmez. Arka planda çalışan işler etkilenmez, yalnızca çizim durur.': 'Steht das Fenster auf dem Bildschirm, ohne den Fokus zu haben, stoppen die sekündlichen Aktualisierungen und die laufenden Animationen. Teilt es sich den Desktop mit einem Vollbildspiel, überlässt der Desktop-Compositor dem Spiel seinen Präsentationspfad und die Bildrate bleibt. Hintergrundarbeit bleibt unberührt, nur das Zeichnen hört auf.',
+        'Grafik arka ucu': 'Grafik-Backend',
+        'Chromium, arayüzü çizerken Windows üzerinde D3D11 kullanır. Bazı Intel ve eski AMD sürücülerinde bu yol takılıyor; D3D9 ya da OpenGL düzeltiyor. Otomatik, Chromium ne seçerse odur. Değiştirmek uygulamayı yeniden başlatmayı gerektirir.': 'Chromium zeichnet die Oberfläche unter Windows über D3D11. Manche Intel- und ältere AMD-Treiber hängen auf diesem Weg; D3D9 oder OpenGL behebt es. Automatisch ist, was Chromium wählt. Eine Änderung erfordert einen Neustart.',
+        'Otomatik': 'Automatisch',
+        'GPU birleştirme': 'GPU-Compositing',
+        'Kapalıyken pencerenin kareleri işlemcide birleştirilir, ekran kartına hiç dokunulmaz. Oyun oynarken ekran kartını tamamen serbest bırakır, karşılığında birkaç puan işlemci yer. Yeniden başlatmayı gerektirir.': 'Ist dies aus, werden die Fensterbilder auf dem Prozessor zusammengesetzt und die Grafikkarte gar nicht berührt. Das überlässt die Karte ganz deinem Spiel, zum Preis einiger Prozentpunkte CPU. Erfordert einen Neustart.',
+        'Görsel önbelleğini boşalt': 'Bildzwischenspeicher leeren',
+        'Oyun kapak görselleri ve indirilen sayfa parçaları bellekten ve diskten silinir. Ayar, oturum ve istatistik kaybı yoktur; silinen her şey gerektiğinde yeniden indirilir. Uzun süre açık kalan oturumlarda belleği geri kazanmanın en doğrudan yolu.': 'Spiel-Coverbilder und heruntergeladene Seitenteile werden aus Speicher und von der Platte entfernt. Keine Einstellungen, keine Sitzung und keine Statistik gehen verloren; alles Entfernte wird bei Bedarf neu geladen. In einer lang laufenden Sitzung ist das der direkteste Weg, Speicher zurückzubekommen.',
+        'Boşalt': 'Leeren',
+        'Önbellek boşaltılıyor...': 'Zwischenspeicher wird geleert...',
+        'Önbellek boşaltıldı.': 'Zwischenspeicher geleert.',
+        'Boşaltılamadı.': 'Konnte nicht geleert werden.',
+        '# MB geri alındı.': '# MB zurückgewonnen.',
+        'Ayar kaydedildi': 'Einstellung gespeichert',
+        'Etkili olması için SteamEdge yeniden başlatılmalı.': 'SteamEdge muss neu starten, damit das wirkt.',
+      },
+      es: {
+        'Odak dışındayken çizimi durdur': 'Dejar de dibujar sin el foco',
+        'Pencere ekranda durup odakta değilken saniyelik güncellemeler ve dönen animasyonlar durur. Tam ekran bir oyunla aynı masaüstündeyken masaüstü birleştiricisi oyunun sunum yolunu serbest bırakır, kare hızı düşmez. Arka planda çalışan işler etkilenmez, yalnızca çizim durur.': 'Mientras la ventana está en pantalla sin el foco, se detienen las actualizaciones por segundo y las animaciones en marcha. Compartiendo escritorio con un juego a pantalla completa, el compositor le deja al juego su vía de presentación y la tasa de fotogramas se mantiene. El trabajo en segundo plano sigue igual; solo se detiene el dibujado.',
+        'Grafik arka ucu': 'Motor gráfico',
+        'Chromium, arayüzü çizerken Windows üzerinde D3D11 kullanır. Bazı Intel ve eski AMD sürücülerinde bu yol takılıyor; D3D9 ya da OpenGL düzeltiyor. Otomatik, Chromium ne seçerse odur. Değiştirmek uygulamayı yeniden başlatmayı gerektirir.': 'Chromium dibuja la interfaz mediante D3D11 en Windows. Algunos controladores Intel y AMD antiguos se atascan por esa vía; D3D9 u OpenGL lo arregla. Automático es lo que elija Chromium. Cambiarlo exige reiniciar.',
+        'Otomatik': 'Automático',
+        'GPU birleştirme': 'Composición por GPU',
+        'Kapalıyken pencerenin kareleri işlemcide birleştirilir, ekran kartına hiç dokunulmaz. Oyun oynarken ekran kartını tamamen serbest bırakır, karşılığında birkaç puan işlemci yer. Yeniden başlatmayı gerektirir.': 'Con esto desactivado los fotogramas de la ventana se componen en el procesador y no se toca la tarjeta gráfica. Deja la tarjeta entera para tu juego, a cambio de unos puntos de CPU. Exige reiniciar.',
+        'Görsel önbelleğini boşalt': 'Vaciar la caché de imágenes',
+        'Oyun kapak görselleri ve indirilen sayfa parçaları bellekten ve diskten silinir. Ayar, oturum ve istatistik kaybı yoktur; silinen her şey gerektiğinde yeniden indirilir. Uzun süre açık kalan oturumlarda belleği geri kazanmanın en doğrudan yolu.': 'Las carátulas de los juegos y los recursos descargados se eliminan de la memoria y del disco. No se pierden ajustes, ni la sesión, ni las estadísticas; todo lo eliminado se vuelve a descargar cuando haga falta. En una sesión larga es la forma más directa de recuperar memoria.',
+        'Boşalt': 'Vaciar',
+        'Önbellek boşaltılıyor...': 'Vaciando la caché...',
+        'Önbellek boşaltıldı.': 'Caché vaciada.',
+        'Boşaltılamadı.': 'No se ha podido vaciar.',
+        '# MB geri alındı.': '# MB recuperados.',
+        'Ayar kaydedildi': 'Ajuste guardado',
+        'Etkili olması için SteamEdge yeniden başlatılmalı.': 'SteamEdge tiene que reiniciarse para que surta efecto.',
+      },
+      zh: {
+        'Odak dışındayken çizimi durdur': '失去焦點時停止繪製',
+        'Pencere ekranda durup odakta değilken saniyelik güncellemeler ve dönen animasyonlar durur. Tam ekran bir oyunla aynı masaüstündeyken masaüstü birleştiricisi oyunun sunum yolunu serbest bırakır, kare hızı düşmez. Arka planda çalışan işler etkilenmez, yalnızca çizim durur.': '視窗留在畫面上但沒有焦點時，每秒更新與持續播放的動畫都會停止。與全螢幕遊戲共用同一個桌面時，桌面組合器會把呈現路徑留給遊戲，影格率不會下降。背景工作不受影響，停止的只有繪製。',
+        'Grafik arka ucu': '繪圖後端',
+        'Chromium, arayüzü çizerken Windows üzerinde D3D11 kullanır. Bazı Intel ve eski AMD sürücülerinde bu yol takılıyor; D3D9 ya da OpenGL düzeltiyor. Otomatik, Chromium ne seçerse odur. Değiştirmek uygulamayı yeniden başlatmayı gerektirir.': 'Chromium 在 Windows 上透過 D3D11 繪製介面。部分 Intel 與較舊的 AMD 驅動在這條路徑上會卡住，改用 D3D9 或 OpenGL 可以解決。自動即由 Chromium 決定。變更後需要重新啟動。',
+        'Otomatik': '自動',
+        'GPU birleştirme': 'GPU 合成',
+        'Kapalıyken pencerenin kareleri işlemcide birleştirilir, ekran kartına hiç dokunulmaz. Oyun oynarken ekran kartını tamamen serbest bırakır, karşılığında birkaç puan işlemci yer. Yeniden başlatmayı gerektirir.': '關閉時，視窗畫面改由處理器合成，完全不動用顯示卡。這會把顯示卡整個留給你的遊戲，代價是多用幾個百分點的 CPU。需要重新啟動。',
+        'Görsel önbelleğini boşalt': '清空圖片快取',
+        'Oyun kapak görselleri ve indirilen sayfa parçaları bellekten ve diskten silinir. Ayar, oturum ve istatistik kaybı yoktur; silinen her şey gerektiğinde yeniden indirilir. Uzun süre açık kalan oturumlarda belleği geri kazanmanın en doğrudan yolu.': '遊戲封面圖與已下載的頁面資源會從記憶體和磁碟中移除。不會遺失任何設定、工作階段或統計資料；移除的內容需要時會重新下載。在長時間執行的工作階段中，這是取回記憶體最直接的方式。',
+        'Boşalt': '清空',
+        'Önbellek boşaltılıyor...': '正在清空快取...',
+        'Önbellek boşaltıldı.': '快取已清空。',
+        'Boşaltılamadı.': '無法清空。',
+        '# MB geri alındı.': '已取回 # MB。',
+        'Ayar kaydedildi': '設定已儲存',
+        'Etkili olması için SteamEdge yeniden başlatılmalı.': '需要重新啟動 SteamEdge 才會生效。',
+      },
+    };
+    Object.keys(I18N_G16).forEach((dil) => { Object.assign(I18N[dil], I18N_G16[dil]); });
+
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
 
