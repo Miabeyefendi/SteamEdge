@@ -2,7 +2,7 @@
 
 # 📖 Guía de SteamEdge
 
-[English](./TUTORIAL.md) · [Türkçe](./TUTORIAL_TR.md) · [Deutsch](./TUTORIAL_DE.md) · **Español** · [繁體中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
+[English](./TUTORIAL.md) · [Türkçe](./TUTORIAL_TR.md) · [Deutsch](./TUTORIAL_DE.md) · **Español** · [简体中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
 
 [Volver al README](./README_ES.md) · [Cambios](./CHANGELOG.md)
 
@@ -12,7 +12,7 @@
 
 ## 📑 Contenido
 
-- [Panorama](#-panorama)
+- [Visión general](#-visión-general)
 - [Instalación](#-instalación)
 - [Recorrido por la interfaz](#️-recorrido-por-la-interfaz)
 - [Referencia de funciones](#-referencia-de-funciones)
@@ -23,22 +23,22 @@
 
 ---
 
-## 🔭 Panorama
+## 🔭 Visión general
 
 ### Qué hace
 
-SteamEdge mantiene tus juegos de Steam "en marcha" sin ejecutarlos. Recoge cromos, acumula horas, lee y escribe logros y pone precio a tu inventario contra el mercado real. Todo eso normalmente exige el cliente de Steam abierto; aquí nada de ello.
+SteamEdge mantiene tus juegos de Steam "en ejecución" sin ejecutarlos. Recoge cromos, acumula horas de juego, lee y escribe logros y valora tu inventario contra el mercado real. Normalmente cada una de esas cosas necesita el cliente de Steam abierto; aquí ninguna lo necesita.
 
 ### Cómo funciona
 
-La aplicación habla el protocolo de red propio de Steam, el mismo que usa el cliente. Inicia sesión con un token, le dice a Steam qué juegos se están jugando y lee de vuelta páginas de insignias, inventarios, datos de mercado y esquemas de logros.
+La aplicación habla el propio protocolo de red de Steam, el mismo que usa el cliente. Inicia sesión con un token, le dice a Steam qué juegos se están jugando y lee de vuelta las páginas de insignias, los inventarios, los datos de mercado y los esquemas de logros.
 
-De ahí se derivan dos cosas, y explican casi todo el comportamiento de la aplicación:
+De ahí se derivan dos consecuencias, y explican casi todo el comportamiento de la aplicación:
 
 - **Steam es la única fuente de verdad.** Nada se estima ni se inventa. Si un número no se puede obtener, la casilla muestra un guion en lugar de una suposición.
-- **Los límites de Steam son los límites de la aplicación.** Las peticiones al mercado están limitadas a unas 20 cada 30 segundos por cuenta, y cada parte de la aplicación que toca el mercado comparte ese único presupuesto. Los cromos no empiezan a caer hasta que un juego supera las dos horas de tiempo total. Son hechos medidos, no ajustes.
+- **Los límites de Steam son los límites de la aplicación.** Las peticiones de mercado están topadas en unas 20 cada 30 segundos por cuenta, y todas las partes de la aplicación que tocan el mercado comparten ese único presupuesto. Los cromos no empiezan a caer hasta que un juego supera las dos horas de tiempo total. Son hechos medidos, no ajustes.
 
-### Distribución de archivos
+### Estructura de archivos
 
 Todo vive junto al ejecutable. No se escribe nada en el registro, en `AppData` ni en `Program Files`.
 
@@ -48,16 +48,16 @@ SteamEdge/
   settings/
     settings.json              ajustes generales
     accounts.json              cuentas guardadas
-    session.json               token de sesión activo
-    accounts/<steamID>.json    por cuenta: colas, ajustes guardados, estadísticas
+    session.json               token de sesion activa
+    accounts/<steamID>.json    datos por cuenta: colas, presets, estadisticas
   cache/
     prices.json                precios de mercado, 24 horas de vida
     history.json               medias de ventas realizadas, 72 horas de vida
-    basarimsiz.json            juegos sin logros
-    steamedge.log              el registro que adjuntar a un informe de error
+    basarimsiz.json            juegos sin logros detectados
+    steamedge.log              el registro que adjuntar a un informe de fallo
 ```
 
-> **La carpeta delicada es `settings/`.** `session.json` guarda un token que basta para usar tu cuenta. No la pongas en una copia de seguridad que compartas, en un archivo que subas ni en una captura de pantalla.
+> **`settings/` es la carpeta sensible.** `session.json` contiene un token que basta para usar tu cuenta. No lo metas en una copia de seguridad que compartas, en un archivo que subas ni en una captura de pantalla.
 
 ---
 
@@ -65,22 +65,22 @@ SteamEdge/
 
 ### Requisitos
 
-Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 320 MB de disco una vez extraído. El cliente de Steam no hace falta y nunca se abre.
+Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 320 MB de espacio en disco una vez extraído. El cliente de Steam no hace falta y no se abre en ningún momento.
 
 ### Paso a paso
 
-1. Descarga el último `.rar` desde la [página de versiones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+1. Descarga el `.rar` más reciente desde la [página de publicaciones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
 2. Extráelo en una carpeta tuya. No en `Program Files`, porque la aplicación escribe sus ajustes junto a sí misma.
 3. Ejecuta `SteamEdge.exe`.
-4. Inicia sesión. La vía fácil es la pestaña QR: escanea el código con la app móvil de Steam y aprueba. La pestaña de contraseña pide usuario, contraseña y un código de Steam Guard.
+4. Inicia sesión. La pestaña QR es el camino más cómodo: escanea el código con la app móvil de Steam y aprueba. La pestaña de contraseña pide usuario, contraseña y un código de Steam Guard.
 
-### Comprobar la instalación
+### Verificar la instalación
 
-Abajo a la izquierda pone `SISTEMA: EN MARCHA` cuando hay una sesión viva, y arriba a la derecha la placa de cuenta se rellena con tu nombre, tu avatar y tu nivel. Si sigue vacía, la sesión no llegó a levantarse; mira la [resolución de problemas](#-resolución-de-problemas).
+Abajo a la izquierda aparece `SYSTEM: RUNNING` en cuanto hay sesión, y la insignia de cuenta arriba a la derecha se rellena con tu nombre, avatar y nivel. Si la insignia sigue en blanco, la sesión no llegó a levantarse; consulta [resolución de problemas](#-resolución-de-problemas).
 
 ### Actualizar
 
-La aplicación consulta el número de versión publicado y avisa cuando existe uno más nuevo. A propósito no descarga ni instala nada. Para actualizar, extrae el archivo nuevo sobre la carpeta antigua y conserva `settings/` y `cache/`.
+La aplicación consulta el número de versión publicado y te avisa cuando existe una más nueva. No descarga ni instala nada, a propósito. Para actualizar, extrae el archivo nuevo encima de la carpeta antigua y conserva tus carpetas `settings/` y `cache/`.
 
 ### Desinstalar
 
@@ -90,35 +90,35 @@ Borra la carpeta. Ese es todo el procedimiento.
 
 ## 🖥️ Recorrido por la interfaz
 
-### Resumen
+### Overview
 
-La página de inicio. El panel **Tarea activa** muestra lo que está en marcha de verdad, una tarea a la vez, con flechas para pasar entre ellas cuando hay varias. Iniciar, Detener y Detalles actúan sobre la tarea que estás viendo, no sobre una página fija.
+La página de inicio. El panel **Active Task** muestra lo que está realmente en marcha, un trabajo cada vez, con flechas para pasar entre ellos cuando hay varios. Start, Stop y Details actúan sobre el trabajo que estás mirando, no sobre una página fija.
 
-Debajo, la cola y el historial de actividad. A la derecha, las casillas de cromos, tamaño de biblioteca, valor del inventario, impulsor de horas y logros. Una casilla muestra un guion mientras su página no se ha cargado; eso habla de lo que se ha obtenido, no de tu cuenta.
+Debajo, la cola y el registro de actividad. A la derecha, las casillas de estadísticas de cromos, tamaño de la biblioteca, valor del inventario, horas acumuladas y logros. Una casilla muestra un guion cuando su página aún no se ha cargado, lo cual dice algo sobre lo que se ha consultado, no sobre tu cuenta.
 
-### Farmeo de cromos
+### Card Farming
 
-La lista de juegos a los que aún les quedan cromos, leída de tus páginas de insignias. Elige un modo, fija una duración y pulsa Iniciar.
+La lista de juegos a los que aún les quedan cromos por caer, extraída de tus páginas de insignias. Elige un modo, fija la duración de la sesión y pulsa Start.
 
-### Inventario & Mercado
+### Inventory & Market
 
-Tu inventario de Steam, agrupado para que los duplicados sean una sola fila. Los precios y las medias de ventas realizadas se obtienen en segundo plano, objeto a objeto y los dos valores juntos. El panel de detalle muestra el libro de órdenes y permite poner un objeto a la venta.
+Tu inventario de Steam, agrupado de modo que los duplicados cuentan como una fila. Los precios y las medias de ventas realizadas se obtienen en segundo plano, artículo a artículo, ambos valores juntos. El panel de detalle muestra el libro de órdenes y permite poner un artículo a la venta.
 
-### Impulsor de horas
+### Hours Booster
 
-Toda tu biblioteca, con buscador. Selecciona juegos, fija un límite simultáneo y una duración, pulsa Iniciar. La sincronización opcional lleva una selección a un total común.
+Toda tu biblioteca, con búsqueda. Selecciona juegos, fija un límite de simultaneidad y una duración, pulsa Start. La sincronización de horas opcional lleva una selección hasta un total común.
 
-### Modo realista
+### Realistic Mode
 
-Un espacio de trabajo de tres columnas. La cola y la duración a la izquierda, el orden de desbloqueo en el centro, los ajustes a la derecha, divididos en un panel Simple y otro Avanzado.
+Un espacio de trabajo de tres columnas. La cola y la duración de la sesión a la izquierda, el orden de desbloqueo en el centro, los ajustes a la derecha, repartidos entre un panel Simple y otro Advanced.
 
-### Logros
+### Achievements
 
-Por juego, el estado real de bloqueo y desbloqueo leído del protocolo. Selecciona logros y desbloquéalos o vuelve a bloquearlos en lote, con progreso en vivo y un botón de parada que surte efecto incluso en medio de una espera.
+Por juego, el estado real de bloqueado y desbloqueado leído desde el protocolo. Selecciona logros y desbloquéalos o vuelve a bloquearlos en bloque, con progreso en vivo y un botón de parada que surte efecto incluso en mitad de una espera.
 
-### Ajustes
+### Settings
 
-Todo lo que se le puede indicar a la aplicación, agrupado: general, farmeo, mercado, impulsor de horas, modo realista, privacidad, identidad de la cuenta, copias de seguridad.
+Todo lo que se le puede indicar a la aplicación, agrupado: general, farmeo de cromos, mercado, acumulador de horas, modo realista, privacidad, identidad de cuenta y copia de seguridad.
 
 ---
 
@@ -126,73 +126,73 @@ Todo lo que se le puede indicar a la aplicación, agrupado: general, farmeo, mer
 
 ### Farmeo de cromos
 
-Steam no suelta cromos hasta que un juego supera **dos horas** de tiempo total. Todos los modos menos uno lo ignoran y simplemente ejecutan juegos; el **modo rápido** lo tiene en cuenta y rota solo juegos que ya han pasado el umbral, para no gastar tiempo en juegos que todavía no pueden soltar nada.
+Steam no suelta cromos hasta que un juego supera las **dos horas** de tiempo total. Todos los modos menos uno ignoran ese hecho y simplemente ejecutan juegos; el **modo Fast** lo tiene en cuenta y rota juegos que ya han pasado el umbral, para no gastar tiempo en juegos que todavía no pueden soltar nada.
 
 Los modos:
 
 | Modo | Qué hace |
 |---|---|
-| Secuencial | Un juego cada vez, en el orden de la lista |
-| Más cromos | Primero los juegos con más cromos pendientes |
-| Menos cromos | Primero los juegos más cerca de terminar |
-| Prioridad | Tu propio orden |
-| Rápido | Solo juegos que ya pasan de dos horas, rotados a intervalos cortos |
+| Sequential | Un juego cada vez, en el orden de la lista |
+| Most cards | Primero los juegos con más cromos pendientes |
+| Fewest cards | Primero los juegos más cerca de terminar |
+| Priority | Tu propio orden |
+| Fast | Solo juegos ya por encima de dos horas, rotados a intervalos cortos |
 
-Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación mide periódicamente el total de cromos pendientes e informa de la diferencia real en vez de un contador inventado.
+Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación mide periódicamente el total de cromos restantes y reporta la diferencia honesta en lugar de un contador inventado.
 
-### Impulsor de horas
+### Acumulador de horas
 
-Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo por separado para cada juego abierto, así que 32 juegos abiertos una hora son 32 horas de juego.
+Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo de cada juego abierto por separado, así que 32 juegos abiertos durante una hora son 32 horas de tiempo jugado.
 
-**La sincronización de horas** lleva una selección al mismo total. Dos métodos:
+**La sincronización de horas** lleva una selección hasta el mismo total. Dos métodos:
 
-- **Todos a la vez** - todos los juegos seleccionados se ejecutan simultáneamente y van saliendo al alcanzar el objetivo. La vía más rápida posible: el trabajo entero dura lo que tarde el juego más rezagado.
-- **Uno por uno** - el juego más rezagado avanza en solitario y, cuando alcanza al siguiente, ambos continúan juntos. Más lento, pero los juegos se mantienen a la par por el camino.
+- **Todos a la vez** - todos los juegos seleccionados corren simultáneamente y van saliendo según alcanzan el objetivo. La ruta más rápida posible: el trabajo entero dura lo que tarde el juego más rezagado.
+- **Uno por uno** - el juego más rezagado avanza solo, y cuando alcanza al siguiente continúan juntos. Más lento, pero los juegos se mantienen a la par por el camino.
 
-Las barras de progreso se apoyan en una línea de tiempo común: una barra es uno menos el tiempo restante del juego dividido por la duración de todo el trabajo. Un juego que termina cuatro horas dentro de una tarea de treinta y cinco horas empieza casi lleno; uno que corre hasta el final empieza vacío. Cada uno llega al 100% justo cuando alcanza el objetivo.
+Las barras de progreso comparten una línea temporal: una barra es uno menos el tiempo restante del juego dividido entre la duración del trabajo completo. Un juego que termina a las cuatro horas de una tanda de treinta y cinco empieza casi lleno; uno que corre hasta el final empieza vacío. Cada uno llega al 100% exactamente cuando alcanza su objetivo.
 
 ### Logros
 
-Los logros se leen y se escriben por el protocolo, no rascando tu perfil público. Que el perfil sea privado no cambia nada.
+Los logros se leen y se escriben por el protocolo, no raspando tu perfil público. Que el perfil sea privado no cambia nada.
 
-Hay dos categorías intocables, y la aplicación detecta ambas por el esquema en vez de fallar una y otra vez:
+Hay dos categorías intocables, y la aplicación detecta ambas desde el esquema en vez de fallar una y otra vez:
 
 - **Los logros protegidos** los escribe el servidor del juego. Steam rechaza a cualquier cliente que lo intente.
-- **Los juegos sin estadísticas por este protocolo** (algunos títulos multijugador grandes) informan `0 / N`. Eso es correcto, no un fallo.
+- **Los juegos sin estadísticas por este protocolo** (algunos títulos multijugador grandes) reportan `0 / N`. Eso es correcto, no un fallo.
 
-Algunos juegos solo aceptan escrituras de logros mientras el juego está abierto. La aplicación abre el juego para escribir y luego restaura lo que estuviera en marcha antes.
+Algunos juegos solo aceptan escrituras de logros mientras el juego está abierto. La aplicación abre el juego para la escritura y luego restaura lo que estuviera corriendo antes.
 
-### Modo realista
+### Realistic Mode
 
-Mantiene un juego abierto y desbloquea sus logros a lo largo de la sesión, del más común al más raro. Lo que importa es el rastro que deja: cientos de logros en un minuto cantan mucho en un perfil y en las webs de terceros.
+Mantiene un juego abierto y va desbloqueando sus logros a lo largo de la sesión, del más común al más raro. La razón es el rastro que deja: cientos de logros apareciendo en un minuto se ve a la legua en un perfil y en sitios de terceros.
 
-**Tiempo para el 100%** es la cifra sobre la que se construye toda la página: cuántas horas cuesta terminar este juego con todos sus logros. Si la introduces, se recuerda para ese juego. Si la dejas vacía se estima a partir del tipo de juego, pero esa estimación son tus propias horas multiplicadas por un factor, así que se infla en juegos que has jugado mucho.
+**El tiempo de completado al 100%** es el número sobre el que se construye toda la página: cuántas horas cuesta terminar este juego con todos sus logros. Introdúcelo y queda recordado para ese juego. Déjalo vacío y se estima a partir del tipo de juego, pero esa estimación es tu propio tiempo jugado multiplicado por un factor, así que se infla en juegos que has jugado mucho.
 
-**El número objetivo** sale de dos partes: lo que ya debería estar desbloqueado con tus horas menos lo que realmente lo está, más la parte que aporta esta sesión. El panel escribe la cuenta para que puedas comprobarla.
+**El número objetivo** se calcula con dos partes: lo que ya debería estar desbloqueado a tu tiempo de juego menos lo que realmente lo está, más la parte que corresponde a esta sesión. El panel desglosa la aritmética para que puedas comprobarla.
 
-**El modelo de distribución** da forma a los intervalos. Lineal reparte por igual, exponencial carga al principio como las primeras horas de un jugador real, Pareto pone la mayoría en el primer quinto.
+**El modelo de distribución** da forma al espaciado. Linear es uniforme, exponential carga la mano al principio como se ven las primeras horas de un jugador real, y Pareto pone la mayoría en el primer quinto.
 
-**El ritmo** se pondera por rareza. Solo los logros por debajo del 5% esperan notablemente más; todo lo que esté por encima mantiene un ritmo parejo y rápido. Un juego jugado más allá de su tiempo de finalización comprime todo el calendario, porque ya no queda curva de aprendizaje que imitar.
+**El ritmo** está ponderado por rareza. Solo los logros por debajo del 5% esperan notablemente más; todo lo que está por encima mantiene un compás uniforme y rápido. Un juego jugado más allá de su tiempo de completado comprime todo el calendario, porque ya no queda curva de aprendizaje que imitar.
 
-**Los juegos sin logros** salen de la cola en cuanto se descubre, se anotan en `cache/basarimsiz.json` y no vuelven a ofrecerse en esta página. La bandera de biblioteca que publica Steam no es fiable; solo lo es la petición del esquema.
+**Los juegos sin logros** se retiran de la cola en cuanto se descubre, se anotan en `cache/basarimsiz.json` y no se vuelven a ofrecer en esta página. La marca de biblioteca que publica Steam no es fiable; solo lo es la petición del esquema.
 
 ### Inventario y mercado
 
-El valor de un objeto es la **mediana ponderada por cantidad de las ventas realizadas**, no la oferta activa más baja. Que una persona ponga un cromo a 999.999 no lo mueve.
+El valor de un artículo es la **mediana ponderada por cantidad de las ventas realizadas**, no el listado activo más barato. Que alguien publique un cromo a 999.999 no lo mueve.
 
-Los precios llegan en la **moneda de tu cartera** y se muestran exactamente así. No hay conversión, a propósito: convertir significaría inventar un tipo de cambio.
+Los precios llegan en la **moneda del monedero** de tu cuenta y se muestran exactamente como llegan. No hay conversión, deliberadamente: convertir significaría inventarse un tipo de cambio.
 
-El precio y la media de ventas se obtienen **por objeto, juntos**, y luego la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en objetos.
+El precio y la media de ventas se obtienen **por artículo, juntos**, y después la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en artículos.
 
 ### Varias cuentas
 
-Pueden estar conectadas varias cuentas a la vez. Cada una mantiene su motor, sus colas y su archivo de datos. Cambiar de cuenta no reinicia la aplicación ni interrumpe lo que hacen las demás.
+Se pueden conectar varias cuentas a la vez. Cada una mantiene su propio motor, sus propias colas y su propio archivo de datos. Cambiar de cuenta no reinicia la aplicación ni interrumpe lo que están haciendo las demás.
 
 ---
 
 ## ⚙️ Referencia de configuración
 
-Los ajustes viven en `settings/settings.json`. Todo lo de abajo se edita desde la página de Ajustes.
+Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desde la página de Settings.
 
 ### General
 
@@ -200,8 +200,8 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo se edita desde l
 |---|---|---|
 | `uiLang` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh` |
 | `autoLaunch` | `false` | Arrancar con Windows |
-| `preventSleep` | `true` | Mantener el equipo despierto mientras algo está en marcha |
-| `sessionTimeout` | `never` | Desconectar tras estos minutos sin actividad. Las tareas en segundo plano no reinician el contador; solo tu interacción |
+| `preventSleep` | `true` | Mantener el equipo despierto mientras algo esté en marcha |
+| `sessionTimeout` | `never` | Desconectar tras estos minutos de inactividad. Los trabajos en segundo plano no reinician el contador; solo tu interacción |
 
 ### Farmeo de cromos
 
@@ -209,43 +209,43 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo se edita desde l
 |---|---|---|
 | `autoNextGame` | `true` | Pasar al siguiente juego cuando uno termina |
 | `cardMaxGames` | `32` | Juegos abiertos a la vez |
-| `fastMinPlaytimeMin` | `120` | El modo rápido ignora los juegos por debajo de esto |
-| `pauseFarmOnBoost` | `false` | Parar el farmeo cuando arranca el impulsor de horas |
+| `fastMinPlaytimeMin` | `120` | El modo Fast ignora juegos por debajo de este tiempo jugado |
+| `pauseFarmOnBoost` | `false` | Detener el farmeo cuando arranca el acumulador de horas |
 
 ### Mercado
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
-| `priceRefreshHours` | `24` | Cuánto sigue fresco un precio obtenido |
-| `historyRefreshHours` | `72` | Cuánto sigue fresca una media de ventas |
-| `fetchAvgWithPrice` | `true` | Obtener la media en el mismo paso que el precio. Apagado significa una petición por objeto y medias solo con el botón Media |
+| `priceRefreshHours` | `24` | Cuánto sigue siendo fresco un precio obtenido |
+| `historyRefreshHours` | `72` | Cuánto sigue siendo fresca una media de ventas |
+| `fetchAvgWithPrice` | `true` | Obtener la media en la misma pasada que el precio. Desactivado significa una petición por artículo y medias solo mediante el botón Average |
 | `bookDepth` | `5` | Filas del libro de órdenes en el panel de detalle |
 
-### Impulsor de horas
+### Acumulador de horas
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
 | `boostMaxGames` | `32` | Juegos abiertos a la vez |
 | `boostDurationSec` | `3600` | Duración de la sesión |
 | `boostSync` | `false` | Llevar la selección a un total común |
-| `boostSyncMode` | `highest` | Objetivo: el más alto de los seleccionados, horas manuales o el más alto de la biblioteca |
+| `boostSyncMode` | `highest` | Objetivo: el `highest` seleccionado, horas `manual`, o el más alto de la `library` |
 | `boostSyncStrategy` | `parallel` | `parallel` es todos a la vez, `staged` es uno por uno |
-| `boostAutoRestart` | `false` | Volver a lanzar la cola al terminar la sesión |
+| `boostAutoRestart` | `false` | Volver a lanzar la cola cuando acaba la sesión |
 | `rememberBoostList` | `false` | Conservar la selección entre sesiones |
 
-### Modo realista
+### Realistic Mode
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
 | `grDurationSec` | `7200` | Duración de la sesión |
 | `grModel` | `linear` | Modelo de distribución |
-| `grTcOyun` | `{}` | Tiempo para el 100% por juego, en horas |
-| `grCatchUp` | `true` | Comprimir el atraso al principio de la sesión |
+| `grTcOyun` | `{}` | Tiempo de completado al 100% por juego, en horas |
+| `grCatchUp` | `true` | Comprimir el atraso acumulado al principio de la sesión |
 | `grHiz` | `1` | Multiplicador de velocidad para todo el calendario |
 | `grUltraCarpan` | `3` | Cuánto más esperan los logros por debajo del 5% |
-| `grTelafiPay` | `20` | Porcentaje de la sesión dedicado a recuperar el atraso |
-| `grBitmisSik` | `50` | Cuánto se comprime el calendario en un juego terminado |
-| `grKeepHours` | `true` | Seguir acumulando horas cuando acaban los desbloqueos |
+| `grTelafiPay` | `20` | Porcentaje de la sesión que se lleva la ráfaga de recuperación |
+| `grBitmisSik` | `50` | Cuánto se comprime el calendario en un juego ya terminado |
+| `grKeepHours` | `true` | Seguir acumulando horas cuando terminen los desbloqueos |
 | `grSkipUltraRare` | `false` | Saltarse por completo los logros por debajo del 5% |
 
 ### Privacidad
@@ -253,82 +253,82 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo se edita desde l
 | Clave | Por defecto | Qué hace |
 |---|---|---|
 | `offlineMode` | `false` | Aparecer desconectado mientras se ejecuta |
-| `hideGameName` | `false` | Compartir que estás conectado pero no a qué juegas |
+| `hideGameName` | `false` | Compartir que estás en línea pero no a qué juegas |
 
-> Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello en una sesión larga.
+> Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 
 ### Dónde se guardan los ajustes
 
-Lo general en `settings/settings.json`. Todo lo que pertenece a una cuenta, la selección del impulsor de horas, la cola y los ajustes guardados del modo realista, el registro de logros y las estadísticas, vive en `settings/accounts/<steamID>.json`. Las cachés van aparte, bajo `cache/`, y se pueden borrar en cualquier momento sin perder configuración.
+Los ajustes generales en `settings/settings.json`. Todo lo que pertenece a una cuenta, la selección del acumulador de horas, la cola y los presets de Realistic Mode, el registro de logros y las estadísticas, vive en `settings/accounts/<steamID>.json`. Las cachés van aparte, bajo `cache/`, y se pueden borrar en cualquier momento sin perder configuración.
 
 ---
 
 ## 🔧 Resolución de problemas
 
-### La aplicación se abre y se cierra al momento
+### La aplicación se abre y se cierra al instante
 
 Ya hay otra copia en marcha. SteamEdge permite una sola instancia. Busca `SteamEdge.exe` en el Administrador de tareas y ciérralo primero.
 
-### La placa de cuenta se queda vacía y no carga nada
+### La insignia de cuenta se queda vacía y no carga nada
 
-La sesión de Steam no llegó a levantarse. Cuando la conexión se cae o se está reintentando aparece una banda bajo la barra superior. Si persiste, comprueba primero que Steam sea accesible y luego mira el motivo en `cache/steamedge.log`.
+La sesión de Steam no llegó a levantarse. Aparece un aviso bajo la barra superior cuando la conexión se cae o se está reintentando. Si persiste, comprueba que Steam sea alcanzable y luego mira `cache/steamedge.log` para ver el motivo.
 
-### Dice "quedan 40 cromos" pero solo han caído unos pocos
+### Dice "quedan 40 cromos" pero solo cayeron unos pocos
 
-Los cromos solo caen cuando un juego pasa de dos horas de tiempo total, y cada juego tiene un número limitado. Una sesión larga con juegos que están todos por debajo de dos horas no produce nada; usa el modo rápido, que solo elige juegos por encima del umbral.
+Los cromos solo caen después de que un juego supere las dos horas de tiempo total, y cada juego tiene su propio número limitado de caídas. Una sesión larga sobre juegos que están todos por debajo de dos horas no produce absolutamente nada; usa el modo Fast, que solo elige juegos que ya pasaron el umbral.
 
-### Los precios muestran un guion o se llenan muy despacio
+### Los precios muestran un guion, o se rellenan muy despacio
 
-Steam permite unas 20 peticiones de mercado cada 30 segundos por cuenta, compartidas entre precios, medias de ventas y anuncios. Un inventario grande tarda por diseño. Con `fetchAvgWithPrice` activado cada objeto cuesta dos peticiones, así que un inventario completo tarda el doble, pero no esperas una segunda pasada para las medias.
+Steam permite unas 20 peticiones de mercado cada 30 segundos por cuenta, compartidas entre precios, medias de ventas y listados. Un inventario grande tarda por diseño. Con `fetchAvgWithPrice` activado cada artículo cuesta dos peticiones, así que un inventario completo tarda el doble, pero no esperas una segunda pasada para las medias.
 
 ### Un logro no se desbloquea
 
-O está protegido, es decir lo escribe el servidor del juego y ningún cliente puede, o el juego no guarda estadísticas por este protocolo. Ambos casos se detectan y se informan en vez de reintentarse. La operación en lote se detiene tras tres fallos seguidos y dice por qué, en lugar de parecer colgada.
+O bien está protegido, es decir lo escribe el servidor del juego y ningún cliente puede, o bien el juego no lleva estadísticas por este protocolo. Ambos casos se detectan y se informan en vez de reintentarse. La operación en bloque se detiene tras tres fallos consecutivos y te dice por qué, en lugar de parecer que se ha colgado.
 
-### El modo realista solo propone uno o dos desbloqueos
+### Realistic Mode solo propone uno o dos desbloqueos
 
-El tiempo de finalización es demasiado alto. Dejado vacío se estima a partir de tus horas, así que un juego que has jugado mucho se lee como un juego larguísimo. Introduce el tiempo real para el 100% en la casilla del panel principal.
+El tiempo de completado es demasiado alto. Si se deja vacío se estima a partir de tu tiempo jugado, así que un juego al que has dedicado mucho tiempo se lee como un juego larguísimo. Introduce el tiempo real de completado al 100% en la casilla del panel principal.
 
-### Recoger un registro para un informe de error
+### Recoger un registro para informar de un fallo
 
-El registro es `cache/steamedge.log`, junto al ejecutable, o se abre desde Ajustes. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así échale un vistazo antes de publicarlo.
+El registro es `cache/steamedge.log`, junto al ejecutable, o ábrelo desde Settings. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo.
 
 ---
 
 ## ❓ Preguntas frecuentes
 
 <details>
-<summary><b>¿Hace falta el cliente de Steam?</b></summary>
+<summary><b>¿Necesita el cliente de Steam?</b></summary>
 
-No, y nunca se abre.
+No, y nunca lo abre.
 
 </details>
 
 <details>
-<summary><b>¿Puedo llevar varias cuentas a la vez?</b></summary>
+<summary><b>¿Puedo usar varias cuentas a la vez?</b></summary>
 
 Sí. Cada una mantiene su conexión y sus datos, y las cuentas en segundo plano siguen trabajando mientras miras otra.
 
 </details>
 
 <details>
-<summary><b>¿Hay actualización automática?</b></summary>
+<summary><b>¿Hay actualizador automático?</b></summary>
 
-No, a propósito. La aplicación lee el número de versión publicado y avisa cuando hay uno más nuevo. No descarga nada ni modifica nada.
-
-</details>
-
-<details>
-<summary><b>¿Por qué está todo en la moneda de mi cartera?</b></summary>
-
-Porque así lo envía Steam. Convertirlo significaría inventar un tipo de cambio.
+No, deliberadamente. La aplicación lee el número de versión publicado y te avisa cuando existe uno más nuevo. No descarga nada ni modifica nada.
 
 </details>
 
 <details>
-<summary><b>¿Puedo mover mi instalación a otro equipo?</b></summary>
+<summary><b>¿Por qué está todo en la moneda de mi monedero?</b></summary>
 
-Copia la carpeta, todo está dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado.
+Porque así es como lo envía Steam. Convertir significaría inventarse un tipo de cambio.
+
+</details>
+
+<details>
+<summary><b>¿Puedo llevarme mi configuración a otro equipo?</b></summary>
+
+Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado.
 
 </details>
 
@@ -339,20 +339,20 @@ Copia la carpeta, todo está dentro. Recuerda que `settings/` incluye tu token d
 | Término | Significado |
 |---|---|
 | **AppID** | El identificador numérico de Steam para un juego, por ejemplo 1091500 para Cyberpunk 2077 |
-| **Página de insignias** | La página de Steam que enumera cuántos cromos le quedan por soltar a un juego |
-| **Drop** | Un cromo concedido por tiempo de juego |
-| **market_hash_name** | El nombre exacto que usa el mercado para un objeto |
-| **Libro de órdenes** | La tabla en vivo de órdenes de compra y anuncios de venta de un objeto |
-| **Logro protegido** | Uno que solo puede otorgar el servidor del juego, ningún cliente |
-| **Venta realizada** | Una transacción completada, frente a un anuncio activo |
+| **Página de insignia** | La página de Steam que indica cuántas caídas de cromos le quedan a un juego |
+| **Caída** | Un cromo concedido por tiempo jugado |
+| **market_hash_name** | El nombre exacto que usa el mercado para un artículo |
+| **Libro de órdenes** | La tabla en vivo de órdenes de compra y listados de venta de un artículo |
+| **Logro protegido** | Uno que solo el servidor del juego puede fijar; ningún cliente puede |
+| **Venta realizada** | Una transacción completada, frente a un listado activo |
 | **Esquema** | La definición que hace Steam de los logros y estadísticas de un juego |
 | **Token de sesión** | La credencial que te mantiene con la sesión iniciada. Trátala como una contraseña |
-| **Tc** | Tiempo para el 100%: horas para terminar un juego con todos sus logros |
+| **Tc** | Tiempo de completado al 100%: horas para terminar un juego con todos sus logros |
 
 ---
 
 <div align="center">
 
-[Volver al README](./README_ES.md) · [Informar de un error](https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml)
+[Volver al README](./README_ES.md) · [Informar de un fallo](https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml)
 
 </div>

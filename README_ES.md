@@ -12,7 +12,7 @@
 [![Estado](https://img.shields.io/badge/estado-activo-22C55E?style=for-the-badge)](#)
 [![Autor](https://img.shields.io/badge/por-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · [Türkçe](./README_TR.md) · **Español** · [繁體中文](./README_ZH.md) · [Русский](./README_RU.md)
+[English](./README.md) · [Türkçe](./README_TR.md) · **Español** · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
 
 [Instalación](#-instalación) · [Funciones](#-lo-esencial) · [Uso](#-inicio-rápido) · [Guía](./TUTORIAL_ES.md) · [Cambios](./CHANGELOG.md)
 

@@ -2,7 +2,7 @@
 
 # 📖 SteamEdge Tutorial
 
-**English** · [Türkçe](./TUTORIAL_TR.md) · [Deutsch](./TUTORIAL_DE.md) · [Español](./TUTORIAL_ES.md) · [繁體中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
+**English** · [Türkçe](./TUTORIAL_TR.md) · [Deutsch](./TUTORIAL_DE.md) · [Español](./TUTORIAL_ES.md) · [简体中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
 
 [Back to the README](./README.md) · [Changelog](./CHANGELOG.md)
 

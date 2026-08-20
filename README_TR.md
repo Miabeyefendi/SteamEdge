@@ -12,7 +12,7 @@
 [![Durum](https://img.shields.io/badge/durum-etkin-22C55E?style=for-the-badge)](#)
 [![Yazar](https://img.shields.io/badge/yazan-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · **Türkçe** · [Español](./README_ES.md) · [繁體中文](./README_ZH.md) · [Русский](./README_RU.md)
+[English](./README.md) · **Türkçe** · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
 
 [Kurulum](#-kurulum) · [Özellikler](#-öne-çıkanlar) · [Kullanım](#-hızlı-başlangıç) · [Rehber](./TUTORIAL_TR.md) · [Sürüm notları](./CHANGELOG.md)
 

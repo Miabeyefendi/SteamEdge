@@ -12,7 +12,7 @@
 [![Статус](https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-%D0%B0%D0%BA%D1%82%D0%B8%D0%B2%D0%B5%D0%BD-22C55E?style=for-the-badge)](#)
 [![Автор](https://img.shields.io/badge/%D0%B0%D0%B2%D1%82%D0%BE%D1%80-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · [繁體中文](./README_ZH.md) · **Русский**
+[English](./README.md) · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · **Русский**
 
 [Установка](#-установка) · [Возможности](#-главное) · [Использование](#-быстрый-старт) · [Руководство](./TUTORIAL_RU.md) · [Изменения](./CHANGELOG.md)
 
