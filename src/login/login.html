@@ -60,14 +60,14 @@
           <span style="font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--e-title)">Steam<span style="color:var(--e-brand)">Edge</span></span>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px;margin:40px 0">
-          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--e-muted)">Steam Kart Toplama Paketi</p>
-          <h1 style="margin:0;font-size:28px;line-height:1.1;font-weight:700;letter-spacing:-.02em;color:var(--e-title)">Kart toplama, envanter ve pazar - tek konsolda.</h1>
-          <p style="margin:0;font-size:13px;line-height:1.6;color:var(--e-muted);max-width:34ch">Oturumunu aç, kuyruğunu kur ve arka planda çalıştır. Uygulama Steam ağıyla senkronize kalır.</p>
+          <p style="margin:0;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--e-muted)">Steam Masaüstü Konsolu</p>
+          <h1 style="margin:0;font-size:28px;line-height:1.1;font-weight:700;letter-spacing:-.02em;color:var(--e-title)">Kart, saat, başarım ve pazar - hepsi tek konsolda.</h1>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:var(--e-muted);max-width:34ch">Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.</p>
         </div>
         <div style="display:flex;gap:22px">
           <div style="display:flex;flex-direction:column;gap:4px">
             <span style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)">Sürüm</span>
-            <span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">v1.0.8</span>
+            <span id="lgSurum" style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">-</span>
           </div>
           <div style="width:1px;background:var(--e-bdPassive)"></div>
           <div style="display:flex;flex-direction:column;gap:4px">
@@ -89,7 +89,19 @@
   <script src="../main/js/i18n.js"></script>
   <script>
     // Giris ekraninda da secili dil uygulanir (ayarlar main surecten okunur).
-    window.imu.settings.get().then(s => { if (typeof initI18n === 'function') initI18n(s && s.language); }).catch(()=>{});
+    window.imu.settings.get().then(s => {
+      if (typeof initI18n !== 'function') return;
+      initI18n(s && s.language);
+      // applyI18n yalnizca body'yi geziyor, <title> ona gorunmuyor. Pencere basligi
+      // gorev cubugunda duruyor, o da cevrilmeli.
+      if (typeof t === 'function') document.title = t(document.title);
+    }).catch(()=>{});
+    // Surum numarasi elle yazilmisti ve 1.0.8'de kalmisti. Tek kaynak package.json;
+    // ana surec app.getVersion() ile veriyor.
+    window.imu.appBilgi().then(b => {
+      const el = document.getElementById('lgSurum');
+      if (el && b && b.surum) el.textContent = 'v' + b.surum;
+    }).catch(()=>{});
     const A = window.imu, $id = id => document.getElementById(id);
     $id('min').onclick=()=>A.win.minimize(); $id('max').onclick=()=>A.win.maximize(); $id('close').onclick=()=>A.win.close();
 
@@ -139,9 +151,12 @@
             + '<div id="qrBox-' + i + '" style="width:196px;height:196px;border-radius:12px;border:1px solid var(--e-bd);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden">'
               + '<div class="spin"></div>'
             + '</div>'
+            // Cumle eskiden "Steam Guard" cevresinde <b> ile ikiye bolunuyordu. Sozluk
+            // metin dugumu bazinda calistigi icin iki yarim cumle iki ayri anahtar olmus,
+            // biri cevrilmis biri Turkce kalmisti. Ustelik bu kalip cevrilebilir degil:
+            // her dil "Steam Guard"i cumlenin baska yerine koyar. Tek dugum yapildi.
             + '<div style="font-size:11px;line-height:1.6;color:var(--e-muted);text-align:center;max-width:30ch">'
-              + 'Steam mobil uygulamasını aç, <b style="color:var(--e-body)">Steam Guard</b> sekmesindeki '
-              + 'tarama simgesine bas ve bu kodu okut.'
+              + 'Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.'
             + '</div>'
             + '<button id="qrYenile-' + i + '" style="background:transparent;border:0;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Kodu Yenile</button>'
           + '</div>'
@@ -156,11 +171,6 @@
         + '<div id="stPrep-' + i + '" class="hide" style="display:flex;flex-direction:column;align-items:center;gap:12px">'
           + '<div class="spin"></div>'
           + '<div style="color:var(--e-muted);font-size:12px;text-align:center" id="prepMsg-' + i + '">Bağlanıldı, hazırlanıyor...</div>'
-          + '<div id="smsWrap-' + i + '" class="hide" style="width:100%;display:flex;flex-direction:column;gap:10px">'
-            + '<div class="lgfield"><label id="smsLbl-' + i + '">Telefona gelen kod (maFile için)</label><input id="sms-' + i + '" spellcheck="false" placeholder="kod" style="height:42px;border-radius:12px;background:var(--e-bg);border:1px solid var(--e-bd);color:var(--e-title);font-size:13px;padding:0 14px;outline:none"></div>'
-            + '<button id="smsGo-' + i + '" class="lgbtn" style="background:var(--e-ok);border-color:var(--e-ok);color:#062400">Onayla</button>'
-            + '<div class="back" id="smsSkip-' + i + '">Atla (maFile\'sız devam)</div>'
-          + '</div>'
         + '</div>'
         + '<div id="stSuccess-' + i + '" class="panel-success hide">'
           + '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--e-ok)" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>'
@@ -246,8 +256,6 @@
       g('acc').addEventListener('keydown', e => { if (e.key === 'Enter') g('pw').focus(); });
       g('pw').addEventListener('keydown', e => { if (e.key === 'Enter') g('go').click(); });
       g('guard').addEventListener('keydown', e => { if (e.key === 'Enter') g('go').click(); });
-      g('smsGo').onclick = () => { setStatus(i, ''); A.auth.finalizeMaFile(i, g('sms').value.trim()); };
-      g('smsSkip').onclick = () => finishSlot(i);
     }
 
     // slot 0 = ana kutu: başarıyla bitince panele geçilir. Diğer kutular arka planda kalabilir,
@@ -285,18 +293,6 @@
       $id('prepMsg-' + i).textContent = (d.accountName ? d.accountName + ' - ' : '') + 'giriş başarılı, hazırlanıyor...';
       $id('successName-' + i).textContent = d.accountName ? ('✓ ' + d.accountName) : 'Giriş başarılı';
       setTimeout(() => finishSlot(i), 800);
-    });
-    A.auth.on('mafileGuard', d => {
-      const i = d.slotId;
-      const w = $id('smsWrap-' + i); if (!w) return;
-      w.classList.remove('hide');
-      $id('prepMsg-' + i).textContent = 'maFile için telefona kod gönderildi.';
-    });
-    A.auth.on('mafile', d => {
-      const i = d.slotId;
-      const m = $id('prepMsg-' + i); if (!m) return;
-      m.textContent = d.ok ? 'maFile kaydedildi. Devam ediliyor...' : 'Devam ediliyor...';
-      setTimeout(() => finishSlot(i), d.ok ? 900 : 600);
     });
 
     slotsRow.addEventListener('click', e => {

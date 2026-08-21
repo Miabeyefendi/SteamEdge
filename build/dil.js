@@ -164,8 +164,15 @@ function varlikCoz(metin) {
   return metin.replace(/&(?:amp|nbsp|lt|gt|quot|#39);/g, (v) => VARLIK[v]);
 }
 const eksikMetin = [];
-fs.readdirSync(SAYFA_DIZIN).filter((f) => f.endsWith('.html')).forEach((f) => {
-  const html = fs.readFileSync(path.join(SAYFA_DIZIN, f), 'utf8');
+// Giris ekrani sayfa klasorunun disinda duruyor ve bu yuzden yillarca hic taranmadi;
+// icinde elle yazilmis "v1.0.8" gibi eskimis metinler kalmisti. Listeye alindi.
+const HTML_DOSYALAR = fs.readdirSync(SAYFA_DIZIN)
+  .filter((f) => f.endsWith('.html'))
+  .map((f) => ({ ad: f, yol: path.join(SAYFA_DIZIN, f) }))
+  .concat([{ ad: 'login.html', yol: path.join(KOK, 'src', 'login', 'login.html') }])
+  .filter((x) => fs.existsSync(x.yol));
+HTML_DOSYALAR.forEach(({ ad: f, yol }) => {
+  const html = fs.readFileSync(yol, 'utf8');
   const gorunur = ayikla(html);
   const re = />([^<>{}]{4,80})</g;
   let m;

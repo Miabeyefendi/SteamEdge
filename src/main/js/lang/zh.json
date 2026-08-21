@@ -23,8 +23,6 @@
  "Giriş başarılı": "登入成功",
  "Bağlanıldı, hazırlanıyor...": "已連線，準備中…",
  "Bağlı değil": "未連線",
- "Telefona gelen kod (maFile için)": "手機收到的驗證碼（用於 maFile）",
- "Atla (maFile'sız devam)": "略過（不使用 maFile 繼續）",
  "Steam Kart Toplama Paketi": "Steam 卡牌農場套件",
  "Başlat": "開始",
  "Durdur": "停止",
@@ -402,7 +400,6 @@
  "Idle Master'ın sürdürülen çatallanması. Özgün proje bırakıldıktan sonra Steam tarafında nelerin değiştiğini ve hangi davranışların hâlâ geçerli olduğunu buradan takip ettik; kullanıcıya hangi ayarların sunulmasının işe yaradığı konusunda yol gösterdi.": "Idle Master 的持續維護分支。原專案停止後，我們透過它追蹤 Steam 端的變化與仍然適用的行為；也讓我們了解哪些設定值得提供給使用者。",
  "Saat yükseltme tarafındaki esin kaynağımız. Birden çok oyunun aynı anda açık tutulabildiğini ve bunun süre işlemesi açısından ne anlama geldiğini bu projenin yaklaşımından öğrendik. Saat Yükseltici sekmesinin var olma sebebi budur.": "時數提升方面的靈感來源。我們從其做法了解到可同時開啟多款遊戲，以及這對時數累積的意義。這正是「時數提升」分頁存在的原因。",
  "Başarımların oyun açılmadan okunup değiştirilebildiğini gösteren proje. Başarım şemasının ve açılma durumunun Steam tarafında nasıl tutulduğunu kavramamızı sağladı; Başarımlar sekmesi bu fikir üzerine kendi kodumuzla kuruldu.": "此專案示範了不啟動遊戲也能讀取與修改成就。它讓我們理解 Steam 端如何保存成就結構與解鎖狀態；「成就」分頁便是依此想法以我們自己的程式碼建立的。",
- "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Mobil doğrulayıcı dosyasının (maFile) kullanımı ve çoklu hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "關於如何在背景長時間維持無介面 Steam 工作階段的靈感來源。行動驗證器檔案（maFile）的使用方式，以及同時執行多帳戶的想法皆來自於此。",
  "# öğe · net #": "# 件物品 · 淨額 #",
  "Seçili oyunların toplam oynanma sürelerini aynı noktada buluşturur. Steam eşzamanlı açık her oyuna süre işlediği için, geride kalanlar kademe kademe öne çıkarılır: örneğin 8 saat, 11 saat ve 101 saatlik üç oyunda önce 8 saatlik olan tek başına 11 saate çekilir, sonra ikisi birlikte 101 saate çıkarılır, ardından üçü birden devam eder. Başlatmadan önce kaç kademe ve ne kadar süre gerektiği gösterilir.": "將所選遊戲的總遊玩時數拉齊到同一點。由於 Steam 會為每個同時開啟的遊戲累積時數，落後者會分階段被帶上來：例如 8 小時、11 小時與 101 小時的三款遊戲，會先讓 8 小時的單獨升到 11 小時，接著兩款一起升到 101 小時，最後三款一同繼續。開始前會顯示需要幾個階段以及需時多久。",
  "İki başarım açılışı arasında beklenecek süre. Gerçek bekleme bu değerin çevresinde her seferinde rastgele değişir (±%40), böylece açılışlar sabit bir ritim oluşturmaz. \"Açılışları zamana yay\" açıkken sapma çok daha geniştir. 1 saniye en hızlı seçenektir; yüzlerce başarımı çok kısa sürede açmak profilde dikkat çeker.": "兩次成就解鎖之間的等待時間。實際延遲每次都會在此數值附近隨機變動（±40%），因此不會形成固定節奏。開啟「將解鎖分散於一段時間」後變化幅度會大得多。1 秒是最快的選項；在極短時間內解鎖數百個成就會在個人檔案上相當顯眼。",
@@ -715,5 +712,11 @@
  "Oturumun sonuna": "距離工作階段結束",
  "Tahmini kalan": "預估剩餘",
  "Gönderiliyor": "傳送中",
- "maFile işlemi tamamlanamadı. Ayrıntı kayıt dosyasında.": "maFile 操作無法完成，詳情請見紀錄檔。"
+ "SteamEdge - Giriş Yap": "SteamEdge - 登入",
+ "Steam Masaüstü Konsolu": "Steam 桌面主控台",
+ "Kart, saat, başarım ve pazar - hepsi tek konsolda.": "卡牌、時數、成就與市集，全在一個主控台裡。",
+ "Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.": "登入、設定工作，然後讓它在背景執行。不需要 Steam 用戶端。",
+ "Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.": "在 Steam 手機應用程式開啟 Steam Guard 分頁，點一下掃描圖示並掃描此代碼。",
+ "QR kodu alınıyor...": "正在取得 QR 代碼...",
+ "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "在如何讓一個長時間於背景執行、沒有介面的 Steam 工作階段保持健康這件事上給了我們啟發。同時執行多個帳號的想法也來自這裡。"
 }

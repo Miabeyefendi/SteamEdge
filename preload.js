@@ -58,10 +58,7 @@ contextBridge.exposeInMainWorld('imu', {
     submitGuard: (slotId, code) => ipcRenderer.send('auth:submitGuard', { slotId, code }),
     cancel: (slotId) => ipcRenderer.send('auth:cancel', { slotId }),
     loginCookie: (slotId, o) => ipcRenderer.send('auth:loginCookie', { slotId, ...o }),
-    generateMaFile: (slotId) => ipcRenderer.send('auth:generateMaFile', { slotId }),
-    finalizeMaFile: (slotId, code) => ipcRenderer.send('auth:finalizeMaFile', { slotId, code }),
-    importMaFile: (slotId, json) => ipcRenderer.send('auth:importMaFile', { slotId, json }),
-    // event: 'qr' | 'guard' | 'status' | 'authenticated' | 'error' | 'mafile' | 'mafileGuard' - data.slotId ile hangi kutuya ait olduğu ayırt edilir
+    // event: 'qr' | 'guard' | 'status' | 'authenticated' | 'error' - data.slotId ile hangi kutuya ait olduğu ayırt edilir
     on: (event, cb) => ipcRenderer.on('auth:' + event, (_e, data) => cb(data)),
   },
   goDashboard: () => ipcRenderer.send('go:dashboard'),

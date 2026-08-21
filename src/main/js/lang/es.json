@@ -23,8 +23,6 @@
  "Giriş başarılı": "Sesión iniciada",
  "Bağlanıldı, hazırlanıyor...": "Conectado, preparando...",
  "Bağlı değil": "Sin conexión",
- "Telefona gelen kod (maFile için)": "Código enviado al teléfono (para maFile)",
- "Atla (maFile'sız devam)": "Omitir (continuar sin maFile)",
  "Steam Kart Toplama Paketi": "Suite de farmeo de cromos de Steam",
  "Başlat": "Iniciar",
  "Durdur": "Detener",
@@ -402,7 +400,6 @@
  "Idle Master'ın sürdürülen çatallanması. Özgün proje bırakıldıktan sonra Steam tarafında nelerin değiştiğini ve hangi davranışların hâlâ geçerli olduğunu buradan takip ettik; kullanıcıya hangi ayarların sunulmasının işe yaradığı konusunda yol gösterdi.": "Un fork mantenido de Idle Master. Tras abandonarse el proyecto original, seguimos este para ver qué cambió en Steam y qué comportamientos siguen vigentes; también nos mostró qué ajustes merece la pena ofrecer.",
  "Saat yükseltme tarafındaki esin kaynağımız. Birden çok oyunun aynı anda açık tutulabildiğini ve bunun süre işlemesi açısından ne anlama geldiğini bu projenin yaklaşımından öğrendik. Saat Yükseltici sekmesinin var olma sebebi budur.": "Nuestra inspiración en el impulso de horas. De su enfoque aprendimos que se pueden mantener varios juegos abiertos a la vez y qué implica eso para la acumulación de tiempo. Por eso existe la pestaña del Impulsor de horas.",
  "Başarımların oyun açılmadan okunup değiştirilebildiğini gösteren proje. Başarım şemasının ve açılma durumunun Steam tarafında nasıl tutulduğunu kavramamızı sağladı; Başarımlar sekmesi bu fikir üzerine kendi kodumuzla kuruldu.": "El proyecto que demostró que los logros se pueden leer y modificar sin abrir el juego. Nos ayudó a entender cómo guarda Steam el esquema y el estado de desbloqueo; la pestaña de Logros se construyó sobre esa idea con código propio.",
- "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Mobil doğrulayıcı dosyasının (maFile) kullanımı ve çoklu hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "Una inspiración para mantener sana una sesión de Steam headless y de larga duración en segundo plano. De aquí vino el uso del archivo del autenticador móvil (maFile) y la idea de ejecutar varias cuentas a la vez.",
  "# öğe · net #": "# objetos · neto #",
  "Seçili oyunların toplam oynanma sürelerini aynı noktada buluşturur. Steam eşzamanlı açık her oyuna süre işlediği için, geride kalanlar kademe kademe öne çıkarılır: örneğin 8 saat, 11 saat ve 101 saatlik üç oyunda önce 8 saatlik olan tek başına 11 saate çekilir, sonra ikisi birlikte 101 saate çıkarılır, ardından üçü birden devam eder. Başlatmadan önce kaç kademe ve ne kadar süre gerektiği gösterilir.": "Lleva el tiempo de juego total de los juegos seleccionados al mismo punto. Como Steam acumula tiempo para cada juego abierto a la vez, los que van por detrás se adelantan por etapas: con juegos de 8, 11 y 101 horas, primero el de 8 sube solo a 11, luego ambos suben juntos a 101 y por último los tres continúan a la vez. Antes de empezar se te muestra cuántas etapas hacen falta y cuánto tardará.",
  "İki başarım açılışı arasında beklenecek süre. Gerçek bekleme bu değerin çevresinde her seferinde rastgele değişir (±%40), böylece açılışlar sabit bir ritim oluşturmaz. \"Açılışları zamana yay\" açıkken sapma çok daha geniştir. 1 saniye en hızlı seçenektir; yüzlerce başarımı çok kısa sürede açmak profilde dikkat çeker.": "La espera entre dos desbloqueos de logros. El retardo real varía aleatoriamente en torno a este valor (±40 %) cada vez, para que no se forme un ritmo fijo. Con \"Repartir los desbloqueos en el tiempo\" activado, la variación es mucho mayor. 1 segundo es la opción más rápida; desbloquear cientos de logros en muy poco tiempo llama la atención en tu perfil.",
@@ -715,5 +712,11 @@
  "Oturumun sonuna": "Hasta el fin de la sesion",
  "Tahmini kalan": "Restante estimado",
  "Gönderiliyor": "Enviando",
- "maFile işlemi tamamlanamadı. Ayrıntı kayıt dosyasında.": "No se pudo completar la operacion de maFile. Los detalles estan en el archivo de registro."
+ "SteamEdge - Giriş Yap": "SteamEdge - Iniciar sesion",
+ "Steam Masaüstü Konsolu": "Consola de escritorio para Steam",
+ "Kart, saat, başarım ve pazar - hepsi tek konsolda.": "Cromos, horas, logros y el mercado - todo en una consola.",
+ "Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.": "Inicia sesion, prepara tu tarea y dejala correr en segundo plano. No hace falta el cliente de Steam.",
+ "Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.": "Abre la pestana Steam Guard en la aplicacion movil de Steam, toca el icono de escaneo y lee este codigo.",
+ "QR kodu alınıyor...": "Obteniendo el codigo QR...",
+ "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "Una inspiracion para mantener sana una sesion de Steam sin interfaz que corre mucho tiempo en segundo plano. La idea de ejecutar varias cuentas a la vez viene de aqui."
 }
