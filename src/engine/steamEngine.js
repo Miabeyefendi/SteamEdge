@@ -954,6 +954,94 @@ class SteamEngine {
   play(appids) { this._playing = appids.slice(); this.user.gamesPlayed(appids); this._applyPersona(); }
   stop() { this._playing = []; this.user.gamesPlayed([]); this._applyPersona(); }
   get playing() { return this._playing; }
+
+  // ================== SOHBET ==================
+  // Steam sohbeti istemci gerektirmiyor: node-steam-user'in chat bileseni arkadas
+  // listesini, gecmisi ve gonderimi protokol uzerinden veriyor. Gelen mesaj zaten
+  // 'friendMessage' olayiyla yakalaniyordu (bkz. yukarisi), eksik olan sadece arayuzdu.
+  //
+  // DIKKAT: burada Steam'in GRUP sohbetleri yok, yalnizca birebir arkadas mesajlari.
+  // Grup sohbeti ayri bir kavram (chatroom groups) ve ayri bir ekran ister.
+
+  // Arkadas listesi. myFriends steamID -> iliski turu veriyor; 3 = karsilikli arkadas.
+  // Isim ve avatar getPersonas'tan gelir, tek istekte hepsi birden.
+  async getFriends() {
+    const iliskiler = this.user.myFriends || {};
+    const idler = Object.keys(iliskiler).filter((id) => iliskiler[id] === 3);
+    if (!idler.length) return [];
+    // getPersonas cok sayida id ile yavasliyor; 100'luk gruplara boluyoruz.
+    const kisiler = {};
+    for (let i = 0; i < idler.length; i += 100) {
+      const grup = idler.slice(i, i + 100);
+      // eslint-disable-next-line no-await-in-loop
+      const p = await new Promise((res) => {
+        try { this.user.getPersonas(grup, (err, r) => res(err ? {} : (r || {}))); }
+        catch (_) { res({}); }
+      });
+      Object.assign(kisiler, p);
+    }
+    return idler.map((id) => {
+      const k = kisiler[id] || {};
+      return {
+        steamid: id,
+        persona: k.player_name || ('Kullanıcı ' + id.slice(-4)),
+        avatar: k.avatar_url_medium || k.avatar_url_icon || null,
+        // 0 = cevrimdisi, 1 = cevrimici, digerleri mesgul/uzakta vb.
+        durum: typeof k.persona_state === 'number' ? k.persona_state : 0,
+        oyun: k.game_name || null,
+      };
+    }).sort((a, b) => {
+      if ((b.durum > 0) !== (a.durum > 0)) return (b.durum > 0) ? 1 : -1;
+      return a.persona.localeCompare(b.persona, 'tr');
+    });
+  }
+
+  // Son konusmalar: kiminle yazismisiz, en son ne zaman, kac okunmamis.
+  async getConversations() {
+    const r = await this.user.chat.getActiveFriendMessageSessions({}).catch(() => null);
+    if (!r || !Array.isArray(r.sessions)) return [];
+    return r.sessions.map((s) => ({
+      steamid: s.steamid_friend ? s.steamid_friend.toString() : null,
+      sonMesajTs: s.last_message ? new Date(s.last_message).getTime() : 0,
+      okunmamis: s.unread_message_count || 0,
+    })).filter((s) => s.steamid);
+  }
+
+  // Bir kisiyle olan yazisma. Steam en yeniden eskiye veriyor, arayuz icin ters cevriliyor.
+  async getChatHistory(steamid, adet) {
+    const r = await this.user.chat.getFriendMessageHistory(steamid, {
+      maxCount: Math.max(1, Math.min(200, +adet || 50)),
+    });
+    const benim = this.user.steamID ? this.user.steamID.toString() : null;
+    const mesajlar = (r && r.messages ? r.messages : []).map((m) => ({
+      gonderen: m.sender ? m.sender.toString() : null,
+      ben: !!(benim && m.sender && m.sender.toString() === benim),
+      metin: String(m.message || ''),
+      ts: m.server_timestamp ? m.server_timestamp.getTime() : 0,
+      okunmamis: !!m.unread,
+    }));
+    mesajlar.sort((a, b) => a.ts - b.ts);
+    return { mesajlar, dahaVar: !!(r && r.more_available) };
+  }
+
+  async sendChat(steamid, metin) {
+    const t = String(metin || '').trim();
+    if (!t) throw new Error('Boş mesaj gönderilemez.');
+    await this.user.chat.sendFriendMessage(steamid, t);
+    return { ts: Date.now() };
+  }
+
+  // Okundu isaretle - Steam'de de okunmus gorunsun, telefonda tekrar bildirim cikmasin.
+  async markChatRead(steamid) {
+    try { await this.user.chat.ackFriendMessage(steamid, new Date()); } catch (_) { /* onemsiz */ }
+    return true;
+  }
+
+  // "Yazıyor..." bildirimi. Karsi taraf gorsun diye; basarisiz olursa onemli degil.
+  sendTyping(steamid) {
+    try { this.user.chat.sendFriendTyping(steamid); } catch (_) {}
+  }
+
   // Kasitli cikis: yeniden baglanma denemesi YAPILMAZ (G3 dongusuyle carpismasin diye).
   logOff() {
     this._kapatildi = true;

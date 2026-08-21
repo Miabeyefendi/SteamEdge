@@ -39,6 +39,7 @@
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
 - **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar. Profilde gerçekten oynanmış gibi bir iz bırakır.
 - **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda.
+- **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
@@ -106,7 +107,7 @@ Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel ve
 | `fetchAvgWithPrice` | `true` | Bir eşyanın ortalamasını fiyatıyla aynı turda çeker |
 | `pauseFarmOnBoost` | `false` | Saat yükseltici başlayınca kart düşürmeyi durdurur |
 | `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser |
-| `uiLang` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapılandırma-başvurusu) yazılı.
 
@@ -123,8 +124,8 @@ Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapıl
 
 ## 🧭 Yol haritası
 
-- [ ] Steam sohbet entegrasyonu. Motor gelen mesajı zaten alıyor ve otomatik yanıt verebiliyor; eksik olan arayüz.
-- [ ] Rusça arayüz dili, belgelerle aynı hizaya gelsin.
+- [x] Steam sohbeti: arkadaş listesi, yazışma ve mesaj gönderme uygulamada
+- [x] Rusça arayüz dili, belgelerle aynı hizada
 - [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa.
 - [x] Gerçekçi Mod şablona göre yeniden yapıldı
 - [x] Öğe bazlı pazar kuyruğu, fiyat ve ortalama birlikte çekiliyor

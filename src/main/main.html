@@ -46,6 +46,11 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
           <input id="tbSearch" type="text" placeholder="Oyun, eşya veya AppID ara...">
         </div>
+        <!-- Sohbet: Steam'in arkadas mesajlari. Rozet okunmamis mesaj sayisini gosterir. -->
+        <button id="tbChat" class="e-icon-btn" title="Sohbet">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-5.5A8 8 0 0 1 11 4h2a8 8 0 0 1 8 8z"></path></svg>
+          <span class="e-badge" id="tbChatBadge" style="display:none"></span>
+        </button>
         <button id="tbNotif" class="e-icon-btn" title="Bildirimler">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M6 10a6 6 0 0 1 12 0v5l2 2H4l2-2z"></path><path d="M10 20h4"></path></svg>
           <span class="e-badge" id="tbNotifBadge" style="display:none"></span>
@@ -158,6 +163,7 @@
         <section id="tab-saat" class="hidden"></section>
         <section id="tab-gercekci" class="hidden"></section>
         <section id="tab-basarim" class="hidden"></section>
+        <section id="tab-sohbet" class="hidden"></section>
         <section id="tab-ayarlar" class="hidden"></section>
         <section id="tab-empty" class="hidden">
           <div class="empty">
@@ -178,6 +184,7 @@
     document.getElementById('tab-saat').innerHTML = window.imu.pages.load('saat');
     document.getElementById('tab-gercekci').innerHTML = window.imu.pages.load('gercekci');
     document.getElementById('tab-basarim').innerHTML = window.imu.pages.load('basarim');
+    document.getElementById('tab-sohbet').innerHTML = window.imu.pages.load('sohbet');
     document.getElementById('tab-ayarlar').innerHTML = window.imu.pages.load('ayarlar');
   </script>
   <!-- Cok dillilik: sozluk + DOM uzerinde ceviri. Diger sayfa JS'lerinden ONCE. -->
@@ -188,6 +195,7 @@
   <script src="js/env.js"></script>
   <script src="js/basarim.js"></script>
   <script src="js/gercekci.js"></script>
+  <script src="js/sohbet.js"></script>
   <script src="js/ayarlar.js"></script>
   <script src="js/genel.js"></script>
 </body>

@@ -1,0 +1,67 @@
+<!-- ================================================================
+     SOHBET
+     Steam'in birebir arkadaş mesajları. Grup sohbetleri kapsam dışı:
+     ayrı bir kavram (chat room groups) ve ayrı bir ekran ister.
+
+     İki sütun: solda arkadaş listesi (çevrimiçi olanlar üstte), sağda
+     seçili kişiyle yazışma. Renkler ve ölçüler edge.css paletinden.
+     ================================================================ -->
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+  <!-- ÜST ŞERİT -->
+  <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Arkadaş Mesajları</span>
+      <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#DCE2FA">Sohbet</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Çevrimiçi</span>
+        <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#5FB324;line-height:1" id="chOnline">0</span>
+      </div>
+      <div style="width:1px;height:34px;background:#1D2432"></div>
+      <button id="chYenile" class="h-bd" style="height:38px;padding:0 20px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Yenile</button>
+    </div>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex;gap:0">
+
+    <!-- SOL: arkadaş listesi -->
+    <div style="width:300px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
+      <div style="flex-shrink:0;padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Arkadaşlar</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="chSayi">0 kişi</span>
+        </div>
+        <div style="position:relative;display:flex;align-items:center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
+          <input id="chAra" type="text" placeholder="Kişi ara..." class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 33px;outline:none">
+        </div>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:8px" id="chListe"></div>
+    </div>
+
+    <!-- SAĞ: yazışma -->
+    <div style="flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;background:#030305">
+
+      <!-- seçili kişi başlığı -->
+      <div id="chBaslik" style="flex-shrink:0;height:64px;padding:0 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1D2432;background:#090C12">
+        <div id="chAvatar" style="width:36px;height:36px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden"></div>
+        <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+          <span style="font-size:14px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="chAd">Kişi seçilmedi</span>
+          <span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="chDurum">Soldan bir arkadaş seç</span>
+        </div>
+        <button id="chProfil" class="h-bd" style="margin-left:auto;height:32px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:none">Profili Aç</button>
+      </div>
+
+      <!-- mesajlar -->
+      <div id="chMesajlar" style="flex:1;min-height:0;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:10px"></div>
+
+      <!-- yazma kutusu -->
+      <div style="flex-shrink:0;padding:14px 22px;border-top:1px solid #1D2432;background:#090C12;display:flex;align-items:flex-end;gap:10px">
+        <textarea id="chGiris" rows="1" placeholder="Mesaj yaz..." class="f-brand" disabled style="flex:1;min-width:0;max-height:120px;min-height:40px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:13px;padding:10px 12px;outline:none;resize:none;line-height:1.4;font-family:inherit"></textarea>
+        <button id="chGonder" class="h-brand" disabled style="height:40px;padding:0 22px;flex-shrink:0;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Gönder</button>
+      </div>
+    </div>
+  </div>
+</div>

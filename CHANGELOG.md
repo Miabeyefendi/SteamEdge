@@ -8,6 +8,69 @@ Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and thei
 archives deleted on purpose. Their notes are not reproduced here.
 
 
+## [1.1.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.7)
+
+Steam chat comes to the app, and the interface speaks Russian.
+
+### Added
+
+- **Chat.** A Chat button sits at the top right and opens a two-column screen: your friend list on the left, the conversation on the right. Messages are sent and received over the Steam network protocol, the same one everything else here runs on, so the Steam client is still not needed. Friends come back sorted with the online ones first, unread counts show as a badge on the row, and the top bar carries its own badge so a message that lands while you are on another tab does not go unnoticed. Enter sends, Shift+Enter starts a new line, and the person you are writing to sees the typing indicator. Opening a conversation marks it read on Steam. Group chats are out of scope: they are a separate concept in the protocol and want a screen of their own.
+- **Russian interface.** The sixth language, and the first added since the app shipped. 707 entries, every one of them checked against the other five so no screen falls back to Turkish half way through.
+
+### Changed
+
+- **`npm run dil` gained a check for text that lives in JavaScript.** The audit only ever read the page HTML, so every dialog, toast and empty-state message written inside a page script was invisible to it. That blind spot is now measured: 379 such strings have no dictionary entry and stay Turkish in the other five languages. Seven of them were visible on the main tabs and are translated in this release; the rest are counted and reported rather than quietly ignored.
+- **The audit understands Cyrillic.** Its wrong-alphabet check treated any Cyrillic value as an error, which was correct until this release. It now expects Cyrillic in the Russian block and flags the reverse instead: a Russian entry left sitting in Latin script, which is what an untranslated entry looks like.
+- Two long tooltips, the hardware acceleration one and the update warning, are stored under computed keys the audit's parser cannot read, so the Russian pass skipped them. They are translated, and a runtime test now compares the dictionaries as the app actually loads them rather than as the file parses.
+
+## [1.1.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.6)
+
+Stop the interface drawing when you are not looking at it, so a fullscreen game keeps its frame rate, and expose the graphics knobs that used to be compiled in.
+
+### Added
+
+- **Stop drawing when unfocused.** Chromium only throttles a window that is hidden or covered. A window sitting on screen without focus keeps repainting every second and keeps its animations spinning, and that is enough to cost a fullscreen game its presentation path: the desktop compositor takes it back and the frame rate drops. Measured on Dota 2 under Vulkan, with SteamEdge reading 0% GPU the whole time, which is the point. The per-second updates and every running animation now stop the moment the window loses focus and resume when it returns. Background work, farming, syncing, unlocking, is untouched. On by default, switchable in Settings.
+- **Graphics backend.** Chromium draws through Direct3D 11 on Windows, and some Intel and older AMD drivers stall on that path. You can now pick Direct3D 9 or OpenGL instead of waiting for a driver update.
+- **GPU compositing switch.** Turn it off and the window's frames are composited on the processor, leaving the graphics card entirely to whatever you are playing, for a few points of CPU.
+- **Clear the image cache.** Cover art and downloaded page assets build up over a long session. The button drops them from memory and disk and reports how much came back. Nothing else is touched: no settings, no session, no statistics.
+
+### Fixed
+
+- **Settings that need a restart now say so.** Hardware acceleration is handed to Chromium before the app finishes starting, so changing it did nothing until the next launch, silently. It, the new graphics backend and the compositing switch all report what they are waiting for.
+
+### Changed
+
+- The disk cache is capped at 50 MB. It had no practical limit, and a large library fills it with cover art.
+- **`npm run dogrula` gained two checks.** One lists settings keys that are defined but never read anywhere: that is how the dead "ignore updates" switch was found by hand in 1.1.2, and it will not need finding by hand again. The other matches every IPC channel the preload opens against what the main process actually answers, in both directions. Both report clean: 108 keys all used, 74 calls and 15 events all answered.
+
+### Update note
+
+Memory was measured before and after and did not move: 442.7 MB against 446.8 MB after visiting every tab in a synthetic session. Forcing garbage collection returns three megabytes of eighty-eight, so what is held is Chromium's own per-page rendering state rather than anything leaking. The cache cap and the clear button are real, but their effect only shows against a real Steam library with real cover art, which the test harness has no network to fetch.
+
+## [1.1.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.5)
+
+Interface fixes from testing, a queue that lets you drop one game instead of all of them, and a language audit that found every untranslated string in the app.
+
+### Added
+
+- **Remove one game from the Hours Booster queue.** There was only Clear queue, so dropping a single game meant rebuilding the whole selection. Each row now carries a minus button, matching Realistic Mode. It is refused while a session is running, because the engine was started with that list and editing only the screen would put the two out of step.
+- **The session length follows the settings.** Change the completion time, the difficulty or the game type and the duration is recalculated along with the target: how long a real player would need to earn what you are behind by, clamped between fifteen minutes and twelve hours. Type a duration by hand and automatic assignment stands down for that session. There is a switch for it in the advanced panel.
+- **`npm run dil`, a language audit.** Reports dictionary size per language, keys present in one language and missing in another, entries whose translation is identical to the source, values written in the wrong alphabet, whether the Chinese is consistently one variant, and every visible Turkish string in the pages that has no dictionary entry at all. It knows about the runtime's number normalisation, so `7 days` and `30 days` count as one entry rather than two gaps.
+
+### Fixed
+
+- **Twenty-two interface strings had no translation.** They stayed Turkish in English, German, Spanish and Chinese: the whole speed section of Realistic Mode, several settings labels, the market and hours-sync controls. All four languages now cover them, and the audit reports the app clean.
+- **The 100% completion time appeared in two places.** 1.1.4 put a labelled box on the main panel while the old `Tc` field stayed in the advanced panel, both writing the same value, neither showing which one was in charge. The advanced copy is gone.
+- **Labels in the right panel spilled out of their row.** A label sitting next to a switch is a flex item, and a flex item does not shrink below its content by default, so long Turkish labels pushed the row wider than the 352 pixel column. They wrap now. Tooltips in the narrow panels are anchored to the right rather than centred, so a hidden tooltip no longer extends past the panel edge.
+
+### Changed
+
+- The dictionary is written in one style again. One block had been generated as JSON, with quoted language keys, which the new audit could not read and which no other block used.
+
+### Update note
+
+Below roughly 1390 pixels of window width the page still scrolls sideways. That is the layout's declared minimum content width, not a regression, and lifting it belongs with the page rebuild rather than a patch.
+
 ## [1.1.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.4)
 
 Realistic Mode stops pretending to be an hour farm, and the market fetches an item's price and its average together instead of making two passes over your inventory.

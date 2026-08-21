@@ -131,6 +131,7 @@ const TUTULAN_DILLER = [
   'de',
   'es',
   'zh-TW',
+  'ru',
 ];
 function localeKirp(hedef) {
   const dizin = path.join(hedef, 'locales');

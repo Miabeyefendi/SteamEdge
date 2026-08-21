@@ -22,7 +22,7 @@ const path = require('path');
 const KOK = path.join(__dirname, '..');
 const I18N_DOSYA = path.join(KOK, 'src', 'main', 'js', 'i18n.js');
 const SAYFA_DIZIN = path.join(KOK, 'src', 'main', 'pages');
-const DILLER = ['en', 'de', 'es', 'zh'];
+const DILLER = ['en', 'de', 'es', 'zh', 'ru'];
 
 let hata = 0;
 let uyari = 0;
@@ -91,6 +91,19 @@ while ((am = atamaRe.exec(kaynak))) {
   sozluk[dil].set(coz(am[4]), coz(am[6]));
 }
 
+// Yeni bir dil eklerken cevrilecek anahtarlarin tam listesi lazim oluyor. Elle toplamak
+// hem hataya acik hem de bu dosyada zaten dogru calisan bir ayristirici var.
+//   npm run dil -- --dok <dosya>
+const dokIdx = process.argv.indexOf('--dok');
+if (dokIdx > 0 && process.argv[dokIdx + 1]) {
+  const satirlar = [...sozluk.en.entries()]
+    .map(([k, v]) => JSON.stringify({ k, en: v }))
+    .join('\n');
+  fs.writeFileSync(process.argv[dokIdx + 1], satirlar, 'utf8');
+  yaz('anahtar: ' + sozluk.en.size + ', karakter: ' + satirlar.length);
+  process.exit(0);
+}
+
 bolum(1, 'Sozluk buyuklugu');
 DILLER.forEach((d) => yaz('  ' + d + ': ' + sozluk[d].size + ' anahtar'));
 
@@ -137,7 +150,12 @@ DILLER.forEach((d) => {
   sozluk[d].forEach((v, k) => {
     const cjk = CJK.test(v), kiril = KIRIL.test(v);
     if (d !== 'zh' && cjk) { karisik++; hata++; yaz('  HATA ' + d + ' blogunda Cince deger: ' + k.slice(0, 40) + ' -> ' + v.slice(0, 40)); }
-    if (kiril) { karisik++; hata++; yaz('  HATA ' + d + ' blogunda Kiril deger: ' + k.slice(0, 40) + ' -> ' + v.slice(0, 40)); }
+    if (d !== 'ru' && kiril) { karisik++; hata++; yaz('  HATA ' + d + ' blogunda Kiril deger: ' + k.slice(0, 40) + ' -> ' + v.slice(0, 40)); }
+    if (d === 'ru' && !kiril && v !== k && /[A-Za-z]{4}/.test(v)) {
+      // Rusca degerin Kiril tasimamasi, o girisin cevrilmeden kaldigini gosterir.
+      // Marka adlari (SteamEdge, HLTB) ve sayilar bu olcutun disinda kaliyor.
+      karisik++; hata++; yaz('  HATA ru blogunda Latin deger: ' + k.slice(0, 40) + ' -> ' + v.slice(0, 40));
+    }
   });
 });
 if (!karisik) yaz('  her dil blogu kendi alfabesinde');
@@ -190,6 +208,41 @@ if (eksikMetin.length) {
   (TAM ? liste : liste.slice(0, 12)).forEach((x) => yaz('      ' + x));
   if (!TAM && liste.length > 12) yaz('      ... ve ' + (liste.length - 12) + ' tane daha (npm run dil -- --tam)');
 } else yaz('  arayuzdeki her Turkce metnin karsiligi var');
+
+// ---- 7. sayfa JS'lerinin urettigi metin ----
+// 6. bolum yalnizca HTML tariyor. Uyari kutulari, bos durum metinleri ve toast'lar
+// JS icinde string olarak duruyor; bunlarin karsiligi yoksa arayuz yari cevrili kalir.
+// Olcut kaba oldugu icin (kod parcalari da tirnak icinde) HATA degil UYARI sayilir.
+bolum(7, 'Sayfa JS metinleri (sozlukte karsiligi yok)');
+const JS_DIZIN = path.join(KOK, 'src', 'main', 'js');
+const normA = (x) => x.replace(/\d[\d.,]*/g, '#');
+const enNorm = new Set([...sozluk.en.keys()].map(normA));
+const jsEksik = new Map();
+fs.readdirSync(JS_DIZIN).filter((f) => f.endsWith('.js') && f !== 'i18n.js').forEach((f) => {
+  const kaynak = fs.readFileSync(path.join(JS_DIZIN, f), 'utf8')
+    .replace(/^\s*\/\/.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
+  let m;
+  while ((m = re.exec(kaynak))) {
+    const ham = m[1] !== undefined ? m[1] : m[2];
+    if (!ham || !TR_HARF.test(ham)) continue;
+    // Etiketleri soyup yalnizca gorunur metni birak
+    ham.split(/<[^>]*>/).forEach((p) => {
+      const t = p.replace(/\s+/g, ' ').trim();
+      if (t.length < 4 || !TR_HARF.test(t)) return;
+      if (sozluk.en.has(t) || enNorm.has(normA(t))) return;
+      if (!jsEksik.has(t)) jsEksik.set(t, f);
+    });
+  }
+});
+if (jsEksik.size) {
+  uyari++;
+  yaz('  ' + jsEksik.size + ' metnin sozlukte karsiligi yok');
+  const liste = [...jsEksik].map(([t, f]) => f + ': ' + t.slice(0, 70));
+  (TAM ? liste : liste.slice(0, 12)).forEach((x) => yaz('      ' + x));
+  if (!TAM && liste.length > 12) yaz('      ... ve ' + (liste.length - 12) + ' tane daha (npm run dil -- --tam)');
+} else yaz('  JS icindeki her Turkce metnin karsiligi var');
 
 // ---- ozet ----
 yaz('\n================================');

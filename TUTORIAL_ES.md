@@ -120,6 +120,10 @@ Por juego, el estado real de bloqueado y desbloqueado leído desde el protocolo.
 
 Todo lo que se le puede indicar a la aplicación, agrupado: general, farmeo de cromos, mercado, acumulador de horas, modo realista, privacidad, identidad de cuenta y copia de seguridad.
 
+### Chat
+
+Se abre desde el boton Chat de arriba a la derecha, no desde el menu lateral. A la izquierda los amigos, con los conectados primero; a la derecha la conversacion. Enter envia, Shift+Enter salta de linea. Los no leidos aparecen en la fila del amigo y en el boton de la barra superior.
+
 ---
 
 ## 🧩 Referencia de funciones
@@ -184,6 +188,12 @@ Los precios llegan en la **moneda del monedero** de tu cuenta y se muestran exac
 
 El precio y la media de ventas se obtienen **por artículo, juntos**, y después la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en artículos.
 
+### Chat
+
+Los mensajes de amigos van por el mismo protocolo de red que todo lo demas, sin cliente de Steam de por medio. Abrir una conversacion la marca como leida en Steam, y la persona a la que escribes ve el indicador de escritura.
+
+**Los chats de grupo quedan fuera.** Son un concepto aparte en el protocolo (chat room groups) y piden una pantalla propia.
+
 ### Varias cuentas
 
 Se pueden conectar varias cuentas a la vez. Cada una mantiene su propio motor, sus propias colas y su propio archivo de datos. Cambiar de cuenta no reinicia la aplicación ni interrumpe lo que están haciendo las demás.
@@ -198,7 +208,7 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
-| `uiLang` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Arrancar con Windows |
 | `preventSleep` | `true` | Mantener el equipo despierto mientras algo esté en marcha |
 | `sessionTimeout` | `never` | Desconectar tras estos minutos de inactividad. Los trabajos en segundo plano no reinician el contador; solo tu interacción |

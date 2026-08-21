@@ -2240,6 +2240,54 @@ ipcMain.on('engine:startFarm', (_e, { mode, games, durationMs }) => {
 ipcMain.on('engine:stopFarm', () => { if (farm) farm.stop(); });
 ipcMain.handle('engine:playing', () => (engineReady && engine) ? engine.playing : []);
 
+// ---- SOHBET ----
+// Hepsi AKTIF hesabin motoru uzerinden. Arka plandaki hesaplarin sohbetine bakilmiyor:
+// ekranda tek bir kimlik var, iki hesabin yazismasini ayni listede gostermek karisiklik.
+function sohbetMotoru() {
+  if (!engineReady || !engine) return null;
+  return engine;
+}
+ipcMain.handle('chat:friends', async () => {
+  const e = sohbetMotoru();
+  if (!e) return { ok: false, error: 'Bağlı değil.' };
+  try { return { ok: true, friends: await e.getFriends() }; }
+  catch (err) { return { ok: false, error: err.message }; }
+});
+ipcMain.handle('chat:conversations', async () => {
+  const e = sohbetMotoru();
+  if (!e) return { ok: false, error: 'Bağlı değil.' };
+  try { return { ok: true, konusmalar: await e.getConversations() }; }
+  catch (err) { return { ok: false, error: err.message }; }
+});
+ipcMain.handle('chat:history', async (_ev, arg) => {
+  const e = sohbetMotoru();
+  if (!e) return { ok: false, error: 'Bağlı değil.' };
+  const { steamid, adet } = arg || {};
+  if (!steamid) return { ok: false, error: 'Kişi seçilmedi.' };
+  try { return Object.assign({ ok: true }, await e.getChatHistory(steamid, adet)); }
+  catch (err) { return { ok: false, error: err.message }; }
+});
+ipcMain.handle('chat:send', async (_ev, arg) => {
+  const e = sohbetMotoru();
+  if (!e) return { ok: false, error: 'Bağlı değil.' };
+  const { steamid, metin } = arg || {};
+  try {
+    const r = await e.sendChat(steamid, metin);
+    log('info', 'sohbet: mesaj gonderildi -> ' + steamid);
+    return { ok: true, ts: r.ts };
+  } catch (err) { return { ok: false, error: err.message }; }
+});
+ipcMain.handle('chat:read', async (_ev, steamid) => {
+  const e = sohbetMotoru();
+  if (!e) return { ok: false };
+  await e.markChatRead(steamid);
+  return { ok: true };
+});
+ipcMain.on('chat:typing', (_ev, steamid) => {
+  const e = sohbetMotoru();
+  if (e && steamid) e.sendTyping(steamid);
+});
+
 // ---- Oturum zaman aşımı (Ayarlar > Gizlilik) ----
 // Renderer her kullanıcı etkileşiminde 'session:activity' yollar. Belirlenen süre boyunca
 // etkileşim olmazsa Steam oturumu kapatılır. Çalışan kart toplama/saat yükseltme sayacı

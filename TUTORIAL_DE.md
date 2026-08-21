@@ -120,6 +120,10 @@ Pro Spiel der echte gesperrte und freigeschaltete Zustand, aus dem Protokoll gel
 
 Alles, was man der Anwendung sagen kann, gruppiert: allgemein, Kartenfarming, Markt, Stundenbooster, realistischer Modus, Privatsphäre, Kontoidentität, Sicherung.
 
+### Chat
+
+Wird über die Chat-Schaltflaeche oben rechts geoeffnet, nicht ueber die Seitenleiste. Links die Freunde, die Online-Kontakte zuerst, rechts die Unterhaltung. Enter sendet, Shift+Enter beginnt eine neue Zeile. Ungelesene Nachrichten erscheinen in der Freundeszeile und auf der Schaltflaeche in der oberen Leiste.
+
 ---
 
 ## 🧩 Funktionsreferenz
@@ -184,6 +188,12 @@ Preise kommen in der **Währung deines Guthabens** an und werden genau so angeze
 
 Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann geht die Warteschlange zum nächsten. Beide teilen sich Steams einziges Marktbudget, und das Limit wird in Anfragen gezählt, nicht in Gegenständen.
 
+### Chat
+
+Freundesnachrichten laufen ueber dasselbe Netzwerkprotokoll wie alles andere hier, ein Steam-Client ist nicht beteiligt. Das Oeffnen einer Unterhaltung markiert sie bei Steam als gelesen, und dein Gegenueber sieht die Schreibanzeige.
+
+**Gruppenchats sind nicht Teil davon.** Sie sind im Protokoll ein eigenes Konzept (chat room groups) und brauchen einen eigenen Bildschirm.
+
 ### Mehrere Konten
 
 Mehrere Konten können gleichzeitig verbunden sein. Jedes hat seine eigene Verbindung, seine eigenen Warteschlangen und seine eigene Datendatei. Ein Kontowechsel startet die Anwendung nicht neu und unterbricht nicht, was die anderen Konten tun.
@@ -198,7 +208,7 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
-| `uiLang` | `tr` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Mit Windows starten |
 | `preventSleep` | `true` | Rechner wach halten, solange etwas läuft |
 | `sessionTimeout` | `never` | Nach so vielen untätigen Minuten trennen. Hintergrundaufgaben setzen den Zähler nicht zurück, nur deine Eingaben |

@@ -120,6 +120,10 @@ Oyun bazında, protokolden okunan gerçek kilitli ve açık durum. Başarımlar�
 
 Uygulamaya söylenebilecek her şey, gruplanmış hâlde: genel, kart düşürme, pazar, saat yükseltici, gerçekçi mod, gizlilik, hesap kimliği, yedekleme.
 
+### Sohbet
+
+Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkadaşlar, çevrimiçi olanlar üstte; sağda yazışma. Enter gönderir, Shift+Enter alt satıra geçer. Okunmamış sayısı hem arkadaş satırında hem üst çubuktaki düğmede görünür.
+
 ---
 
 ## 🧩 Özellik başvurusu
@@ -184,6 +188,12 @@ Fiyatlar hesabının **cüzdan kurunda** gelir ve aynen o kurda gösterilir. Çe
 
 Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk sıradaki öğeye geçer. İkisi Steam'in tek pazar bütçesini paylaşır ve limit öğe sayısıyla değil istek sayısıyla ölçülür.
 
+### Sohbet
+
+Arkadaş mesajları buradaki her şeyle aynı ağ protokolü üzerinden gider, Steam istemcisi işin içinde değildir. Yazışmayı açmak Steam tarafında okundu olarak işaretler, yazdığın kişi de "yazıyor" bilgisini görür.
+
+**Grup sohbetleri kapsam dışı.** Protokolde ayrı bir kavram (chat room groups) ve ayrı bir ekran ister.
+
 ### Çoklu hesap
 
 Aynı anda birden çok hesap bağlanabilir. Her biri kendi motorunu, kendi kuyruklarını ve kendi veri dosyasını tutar. Hesap değiştirmek uygulamayı yeniden başlatmaz ve diğer hesapların işini kesmez.
@@ -198,7 +208,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
-| `uiLang` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
 | `preventSleep` | `true` | Bir iş çalışırken makineyi uyutma |
 | `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı kes. Arka plan işleri sayacı sıfırlamaz, yalnızca senin etkileşimin sıfırlar |

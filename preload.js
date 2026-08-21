@@ -110,6 +110,15 @@ contextBridge.exposeInMainWorld('imu', {
     onTick: (cb) => ipcRenderer.on('gercekci:tick', (_e, d) => cb(d)),
     onAcildi: (cb) => ipcRenderer.on('gercekci:acildi', (_e, d) => cb(d)),
   },
+  // Steam sohbeti - birebir arkadas mesajlari. Grup sohbeti kapsam disi.
+  sohbet: {
+    friends: () => ipcRenderer.invoke('chat:friends'),
+    conversations: () => ipcRenderer.invoke('chat:conversations'),
+    history: (steamid, adet) => ipcRenderer.invoke('chat:history', { steamid, adet }),
+    send: (steamid, metin) => ipcRenderer.invoke('chat:send', { steamid, metin }),
+    read: (steamid) => ipcRenderer.invoke('chat:read', steamid),
+    typing: (steamid) => ipcRenderer.send('chat:typing', steamid),
+  },
   engine: {
     connect: () => ipcRenderer.invoke('engine:connect'),
     dropGames: () => ipcRenderer.invoke('engine:dropGames'),

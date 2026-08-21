@@ -3,36 +3,44 @@
     document.getElementById('max').onclick = () => api && api.win.maximize();
     document.getElementById('close').onclick = () => api && api.win.close();
 
-    const designed = { genel: document.getElementById('tab-genel'), kart: document.getElementById('tab-kart'), env: document.getElementById('tab-env'), saat: document.getElementById('tab-saat'), gercekci: document.getElementById('tab-gercekci'), basarim: document.getElementById('tab-basarim'), ayarlar: document.getElementById('tab-ayarlar') };
+    const designed = { genel: document.getElementById('tab-genel'), kart: document.getElementById('tab-kart'), env: document.getElementById('tab-env'), saat: document.getElementById('tab-saat'), gercekci: document.getElementById('tab-gercekci'), basarim: document.getElementById('tab-basarim'), sohbet: document.getElementById('tab-sohbet'), ayarlar: document.getElementById('tab-ayarlar') };
     const empty = document.getElementById('tab-empty');
     const emptyName = document.getElementById('emptyName');
+    // Sekme acma. Eskiden govde dogrudan nav baglantisinin click dinleyicisinin icindeydi;
+    // ust bardaki Sohbet dugmesinin kenar cubugunda karsiligi olmadigi icin ayri bir
+    // fonksiyona cikarildi. Nav baglantilari da bunu cagiriyor, tek yol kaldi.
+    async function sekmeAc(tab, kaynakBaglanti) {
+      // Ayarlar sekmesinden çıkılıyorsa kaydedilmemiş değişiklik uyarısı (ayarlar.js)
+      const leavingSettings = !designed.ayarlar.classList.contains('hidden');
+      if (leavingSettings && typeof confirmLeaveSettings === 'function') {
+        const ok = await confirmLeaveSettings();
+        if (!ok) return;
+      }
+      if (tab === 'cikis') { window.imu.logout(); return; }
+      document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
+      // Sohbet'in kenar cubugunda baglantisi yok; o zaman hicbiri isaretli kalmaz.
+      if (kaynakBaglanti) kaynakBaglanti.classList.add('active');
+      setRailTop(tab);
+      Object.values(designed).forEach(s => s.classList.add('hidden'));
+      empty.classList.add('hidden');
+      if (designed[tab]) designed[tab].classList.remove('hidden');
+      else {
+        empty.classList.remove('hidden');
+        emptyName.textContent = kaynakBaglanti ? kaynakBaglanti.textContent.trim() : tab;
+      }
+      agirListeleriBosalt(tab);
+      if (tab === 'genel') loadGenel();
+      if (tab === 'kart') loadKart();
+      if (tab === 'saat') loadSaat();
+      if (tab === 'env') loadEnv();
+      if (tab === 'gercekci') loadGercekci();
+      if (tab === 'basarim') loadBasarim();
+      if (tab === 'sohbet') loadSohbet();
+      if (tab === 'ayarlar') loadAyarlar();
+      agirListeyiGeriCiz(tab);
+    }
     document.querySelectorAll('.nav a[data-tab]').forEach(a => {
-      a.addEventListener('click', async () => {
-        // Ayarlar sekmesinden çıkılıyorsa kaydedilmemiş değişiklik uyarısı (ayarlar.js)
-        const leavingSettings = !designed.ayarlar.classList.contains('hidden');
-        if (leavingSettings && typeof confirmLeaveSettings === 'function') {
-          const ok = await confirmLeaveSettings();
-          if (!ok) return;
-        }
-        document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
-        a.classList.add('active');
-        const tab = a.getAttribute('data-tab');
-        if (tab === 'cikis') { window.imu.logout(); return; }
-        setRailTop(tab);
-        Object.values(designed).forEach(s => s.classList.add('hidden'));
-        empty.classList.add('hidden');
-        if (designed[tab]) designed[tab].classList.remove('hidden');
-        else { empty.classList.remove('hidden'); emptyName.textContent = a.textContent.trim(); }
-        agirListeleriBosalt(tab);
-        if (tab === 'genel') loadGenel();
-        if (tab === 'kart') loadKart();
-        if (tab === 'saat') loadSaat();
-        if (tab === 'env') loadEnv();
-        if (tab === 'gercekci') loadGercekci();
-        if (tab === 'basarim') loadBasarim();
-        if (tab === 'ayarlar') loadAyarlar();
-        agirListeyiGeriCiz(tab);
-      });
+      a.addEventListener('click', () => sekmeAc(a.getAttribute('data-tab'), a));
     });
 
     // ---- GÖRÜNMEYEN SEKMELERİN LİSTELERİNİ BELLEKTE TUTMA ----
@@ -506,6 +514,20 @@
       openAyarlar();
     };
 
+    // ---- ust cubuk: Sohbet ----
+    // Kenar cubugunda karsiligi yok, dogrudan sekmeyi aciyor. Rozet okunmamis mesaj
+    // sayisini tutar; sohbet ekrani acikken sifirlanir.
+    let chBekleyen = 0;
+    function chRozetBoya(){
+      const r = document.getElementById('tbChatBadge');
+      if (!r) return;
+      r.style.display = chBekleyen ? '' : 'none';
+    }
+    document.getElementById('tbChat').onclick = () => {
+      chBekleyen = 0; chRozetBoya();
+      sekmeAc('sohbet');
+    };
+
     // ---- üst çubuk: sürüm rozeti ve güncelleme uyarısı ----
     // Sürüm package.json'dan okunur (preload > imu.surum); hiçbir yerde elle yazılmaz.
     const APP_SURUM = (window.imu && window.imu.surum) || '';
@@ -806,6 +828,8 @@
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
       if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; }
       if (typeof acCache !== 'undefined') acCache.clear();
+      // Sohbet baska hesabin arkadas listesini gostermesin
+      if (typeof chYuklendi !== 'undefined'){ chYuklendi = false; chArkadaslar = []; chSecili = null; chMesajlar.clear(); chOkunmamis.clear(); }
       if (typeof genelLoaded !== 'undefined') genelLoaded = false;
       // Aktivite akisi hesaba ozeldir; eski hesabin gecmisi ekranda kalmasin
       if (typeof activityFeed !== 'undefined') activityFeed.length = 0;
@@ -859,6 +883,10 @@
     // Gelen Steam mesajı: aktivite akışına düşer + ekranda toast çıkar. Masaüstü bildirimi
     // ana süreçte gönderiliyor (bkz. main.js connectAccount > onChatMessage).
     if (window.imu.onChatMessage) window.imu.onChatMessage((m)=>{
+      // Sohbet ekrani acik degilse ust bardaki rozet yansin.
+      if (designed.sohbet && designed.sohbet.classList.contains('hidden')){
+        chBekleyen++; chRozetBoya();
+      }
       const who = m.persona || m.from;
       if (typeof pushFeed === 'function'){
         pushFeed('mesaj', 'Steam mesajı · ' + who,

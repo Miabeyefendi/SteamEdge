@@ -39,6 +39,7 @@
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
 - **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency.
+- **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
@@ -106,7 +107,7 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `fetchAvgWithPrice` | `true` | Fetch an item's sale average in the same pass as its price |
 | `pauseFarmOnBoost` | `false` | Stop card farming when the hours booster starts |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes |
-| `uiLang` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Every key is documented in the [configuration reference](./TUTORIAL.md#️-configuration-reference).
 
@@ -123,8 +124,8 @@ Every key is documented in the [configuration reference](./TUTORIAL.md#️-confi
 
 ## 🧭 Roadmap
 
-- [ ] Steam chat integration. The engine already receives messages and can auto-reply; the interface is what is missing.
-- [ ] Russian interface language, to match the documentation.
+- [x] Steam chat: friend list, conversations and sending, in the app
+- [x] Russian interface language, matching the documentation
 - [ ] The remaining pages rebuilt to the design spec, one release at a time.
 - [x] Realistic Mode rebuilt to the design spec
 - [x] Item-based market queue, price and average fetched together

@@ -120,6 +120,10 @@ Per game, the real locked and unlocked state read from the protocol. Select achi
 
 Everything the app can be told to do, grouped: general, card farming, market, hours booster, realistic mode, privacy, account identity, backup.
 
+### Chat
+
+Opened from the Chat button at the top right, not the sidebar. Friends on the left with the online ones first, the conversation on the right. Enter sends, Shift+Enter starts a new line. Unread counts show on the friend row and on the top bar button.
+
 ---
 
 ## 🧩 Feature reference
@@ -184,6 +188,12 @@ Prices arrive in your account's **wallet currency** and are shown exactly as the
 
 Price and sale average are fetched **per item, together**, then the queue moves to the next item. Both share Steam's single market budget, and the rate limit is counted in requests rather than items.
 
+### Chat
+
+Friend messages run over the same network protocol as everything else here, so no Steam client is involved. Opening a conversation marks it read on Steam, and the person you are writing to sees the typing indicator.
+
+**Group chats are out of scope.** They are a separate concept in the protocol (chat room groups) and want a screen of their own.
+
 ### Multiple accounts
 
 Several accounts can be connected at once. Each keeps its own engine, its own queues and its own data file. Switching accounts does not restart the app or interrupt what the other accounts are doing.
@@ -198,7 +208,7 @@ Settings live in `settings/settings.json`. Everything below is editable from the
 
 | Key | Default | What it does |
 |---|---|---|
-| `uiLang` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
 | `preventSleep` | `true` | Keep the machine awake while something is running |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes. Background jobs do not reset the timer; only your interaction does |

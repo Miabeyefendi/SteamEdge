@@ -39,6 +39,7 @@
 - **Gestor de logros** - Lee el estado real de bloqueo y desbloqueo directamente del protocolo de Steam, y luego desbloquea o rebloquea en lote.
 - **Modo realista** - Mantiene un juego abierto y desbloquea sus logros del más común al más raro, repartidos por la sesión, de forma que el perfil parezca jugado de verdad.
 - **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera.
+- **Chat** - Lista de amigos, conversaciones y envío, por el mismo protocolo de red. Los no leídos se ven en la pestaña, así no se escapa nada mientras corre una cola.
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
@@ -106,7 +107,7 @@ Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos p
 | `fetchAvgWithPrice` | `true` | Obtiene la media de ventas junto con el precio |
 | `pauseFarmOnBoost` | `false` | Detiene el farmeo cuando arranca el impulsor de horas |
 | `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad |
-| `uiLang` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh` |
+| `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Todas las claves están documentadas en la [referencia de configuración](./TUTORIAL_ES.md#️-referencia-de-configuración).
 
@@ -123,8 +124,8 @@ Todas las claves están documentadas en la [referencia de configuración](./TUTO
 
 ## 🧭 Hoja de ruta
 
-- [ ] Integración del chat de Steam. El motor ya recibe mensajes y puede responder solo; falta la interfaz.
-- [ ] Interfaz en ruso, para igualar la documentación.
+- [x] Chat de Steam: lista de amigos, conversaciones y envío, dentro de la aplicación
+- [x] Interfaz en ruso, a la altura de la documentación
 - [ ] Las páginas restantes rehechas según el diseño, una por versión.
 - [x] Modo realista rehecho según el diseño
 - [x] Cola de mercado por objeto, precio y media juntos
