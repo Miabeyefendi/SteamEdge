@@ -63,6 +63,9 @@ async function main() {
   console.log('  kaynak   : ' + KOK);
   console.log('  hedef    : ' + HEDEF);
 
+  // Sozlukler paketlemeden once dogrulanir: eksikse derlemeye devam etmenin anlami yok.
+  sozlukKontrol();
+
   // Onceki cikti kalintilarini temizle
   fs.rmSync(GECICI, { recursive: true, force: true });
 
@@ -163,6 +166,25 @@ function klasorBoyutu(d) {
     t += e.isDirectory() ? klasorBoyutu(p) : fs.statSync(p).size;
   }
   return t;
+}
+
+// Sozlukler 1.1.8'den beri src/main/js/lang/<kod>.json icinde ve asar'a IGNORE
+// listesinden gectikleri icin sessizce giriyorlar. Sessiz giren sey sessizce de
+// dusebilir: dosya pakete girmezse uygulama hata vermez, arayuz Turkce acilir ve
+// kimse fark etmez. Bu yuzden derleme once kaynakta hepsinin durdugunu dogruluyor.
+function sozlukKontrol() {
+  const dizin = path.join(KOK, 'src', 'main', 'js', 'lang');
+  const bekleyen = ['en', 'de', 'es', 'zh', 'ru'];
+  const eksik = [];
+  let toplam = 0;
+  bekleyen.forEach((d) => {
+    const p = path.join(dizin, d + '.json');
+    if (!fs.existsSync(p)) { eksik.push(d + '.json'); return; }
+    try { toplam += Object.keys(JSON.parse(fs.readFileSync(p, 'utf8'))).length; }
+    catch (e) { eksik.push(d + '.json (bozuk JSON)'); }
+  });
+  if (eksik.length) throw new Error('sozluk eksik: ' + eksik.join(', '));
+  console.log('  sozluk   : ' + bekleyen.length + ' dil, ' + toplam + ' giris');
 }
 
 // Release klasorune kullanici notu (kod bilmeyen kisi icin, tek sayfa).

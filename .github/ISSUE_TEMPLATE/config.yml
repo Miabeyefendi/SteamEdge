@@ -1,14 +1,14 @@
 blank_issues_enabled: false
 contact_links:
   - name: Setup, tutorial and settings reference
-    url: https://github.com/Miabeyefendi/steamedge/tree/main/docs/en
-    about: Installing, logging in, farming, and what every setting does. Available in 5 languages.
+    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/TUTORIAL.md
+    about: Installing, logging in, farming, and what every setting does. Available in 6 languages.
   - name: FAQ
-    url: https://github.com/Miabeyefendi/steamedge/blob/main/docs/en/FAQ.md
+    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/TUTORIAL.md#-faq
     about: Bans, VAC, rate limits, prices, cards not dropping. Please read before opening an issue.
   - name: Questions and ideas
-    url: https://github.com/Miabeyefendi/steamedge/discussions
+    url: https://github.com/Miabeyefendi/SteamEdge/discussions
     about: Use Discussions for usage questions rather than the issue tracker.
   - name: Report a security vulnerability
-    url: https://github.com/Miabeyefendi/steamedge/blob/main/SECURITY.md
+    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/SECURITY.md
     about: Do not open a public issue for security problems. Follow SECURITY.md instead.

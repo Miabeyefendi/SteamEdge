@@ -422,7 +422,7 @@
           + '<span style="font-size:13px;font-weight:600;color:#DCE2FA">Şu anda çalışan bir işlem yok</span>'
           + '<span style="font-size:11px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>';
         panelDugmeleriniBoya();
-        renderQueue(null);
+        renderGorevDetay(null, null);
         return;
       }
 
@@ -449,7 +449,7 @@
         b.onclick = ()=> goTab(b.getAttribute('data-gorev-tab'));
       });
       panelDugmeleriniBoya();
-      renderQueue(aktifGorev.tab === 'kart' ? heroId : null);
+      renderGorevDetay(aktifGorev, heroId);
     }
 
     // ‹ 2 / 3 › seridi. Ortadaki metin o an hangi ise bakildigini soyler.
@@ -467,26 +467,115 @@
         + '</div>';
     }
 
-    // Kuyruk listesi (#sıra · ad · kalan · yüzde)
-    function renderQueue(currentId){
-      const qbox = document.getElementById('gQueue');
-      if (!qbox) return;
-      if (!dropGames.length){
-        qbox.innerHTML = '<div style="padding:12px 0;font-size:11px;color:#656D80">Kuyruk boş - Kart Düşür sekmesinde listeyi yenile.</div>';
-        return;
-      }
+    // ---- GOSTERILEN GOREVIN DETAY ALANI ----
+    // Bu kutu 1.1.8'e kadar SABIT olarak kart dusurme kuyruguydu. Panelde ‹ › ile baska
+    // bir ise gecince ustteki satir degisiyor, alttaki kuyruk oldugu gibi kaliyordu; kart
+    // kuyrugu bossa da basarim isine bakarken ekranda "Kuyruk bos" yaziyordu. Artik alan
+    // gosterilen isin kendi ayrintisini cizer.
+    const DETAY_SATIR = 'display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #101621';
+    const DETAY_MONO = 'font-family:Geist Mono,monospace;font-size:11px';
+    const detayBos = (metin) => '<div style="padding:12px 0;font-size:11px;color:#656D80">' + metin + '</div>';
+
+    // Ince ilerleme cubugu. Yuzde her is turunde farkli hesaplaniyor, cizim ortak.
+    function detayCubuk(yuzde, renk){
+      const y = Math.max(0, Math.min(100, Math.round(yuzde || 0)));
+      return '<div style="height:3px;border-radius:999px;background:#101621;overflow:hidden;width:52px;flex-shrink:0">'
+        + '<div style="height:100%;width:' + y + '%;background:' + (renk || GC.sub) + '"></div></div>';
+    }
+
+    function detaySatiri(sira, ad, sag, yuzde, renk, vurgu){
+      return '<div style="' + DETAY_SATIR + '">'
+        + '<span style="' + DETAY_MONO + ';font-weight:700;color:' + (vurgu ? GC.sub : GC.muted) + ';width:22px;flex-shrink:0">' + sira + '</span>'
+        + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">' + esc(ad) + '</span>'
+        + '<span style="' + DETAY_MONO + ';color:#8B8F9E;flex-shrink:0">' + sag + '</span>'
+        + (yuzde === null ? '' : detayCubuk(yuzde, vurgu ? (renk || GC.ok) : '#333D4D'))
+        + '</div>';
+    }
+
+    // Kart dusurme: kuyruk (#sira · ad · kalan kart · yuzde)
+    function detayKart(currentId){
+      if (!dropGames.length) return detayBos('Kuyruk boş - Kart Düşür sekmesinde listeyi yenile.');
       const list = (typeof orderedForMode === 'function' ? orderedForMode() : dropGames).slice(0, 12);
       const maxRem = list.reduce((m,g)=>Math.max(m,g.remaining),0) || 1;
-      qbox.innerHTML = list.map((g,i)=>{
+      return list.map((g,i)=>{
         const on = g.appid === currentId;
-        const pct = Math.round((1 - g.remaining/maxRem) * 100);
-        return '<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #101621">'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?GC.sub:GC.muted)+';width:22px;flex-shrink:0">#'+(i+1)+'</span>'
-          + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">'+esc(g.name)+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0">'+g.remaining+' kart</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?GC.ok:GC.muted)+';width:38px;text-align:right;flex-shrink:0">'+(on?'%'+pct:'-')+'</span>'
-          + '</div>';
+        return detaySatiri('#'+(i+1), g.name, g.remaining + ' kart',
+                           Math.round((1 - g.remaining/maxRem) * 100), GC.ok, on);
       }).join('');
+    }
+
+    // Saat yukseltici: acik oyunlar. Esitleme calisiyorsa cubuklar saat.js'in ORTAK ZAMAN
+    // CIZELGESI olcutunu kullanir (kalan / isin toplami), yoksa oturumun kendi yuzdesi.
+    function detaySaat(){
+      const liste = (typeof selectedSaat !== 'undefined' && selectedSaat.length)
+        ? selectedSaat
+        : (boostState.appids || []).map(id => (ownedGames.find(g=>g.appid===id) || { appid:id, name:'App '+id }));
+      if (!liste.length) return detayBos('Saat Yükseltici sekmesinde oyun seç.');
+      const aktif = new Set(boostState.activeAppids || boostState.appids || []);
+      const gecen = Date.now() - (boostState.startedAt || Date.now());
+      const oturumYuzde = boostState.durationMs ? (gecen / boostState.durationMs * 100) : 0;
+      const bilgiVar = (typeof syncOyunBilgi !== 'undefined') && (typeof syncIsToplamMs !== 'undefined') && syncIsToplamMs > 0;
+      return liste.slice(0, 12).map((g,i)=>{
+        const on = aktif.has(g.appid);
+        let yuzde = on ? oturumYuzde : 0;
+        let sag = on ? 'çalışıyor' : 'sırada';
+        if (bilgiVar){
+          const b = syncOyunBilgi.get(g.appid);
+          if (b){
+            yuzde = b.bitti ? 100 : Math.max(0, Math.min(100, (1 - Math.max(0, b.kalanMs||0) / syncIsToplamMs) * 100));
+            sag = b.bitti ? 'bitti' : monoTime(fmtSessionDur(Math.max(0, b.kalanMs||0)));
+          }
+        }
+        return detaySatiri('#'+(i+1), g.name, sag, yuzde, '#5624B3', on);
+      }).join('');
+    }
+
+    // Gercekci Mod: acilan / kalan basarim ve siradakine kalan sure.
+    function detayGercekci(){
+      if (typeof grDurum === 'undefined' || !grDurum) return detayBos('Gerçekçi Mod çalışmıyor.');
+      const acilan = grDurum.acilan || 0, toplam = grDurum.toplam || 0;
+      const kalanAd = grDurum.siradaki || '-';
+      // siradakiZaman mutlak zaman damgasi, geri sayima cevriliyor.
+      const sonraki = grDurum.siradakiZaman
+        ? monoTime(fmtSessionDur(Math.max(0, grDurum.siradakiZaman - Date.now()))) : '-';
+      const kalanSure = grDurum.bitis ? Math.max(0, grDurum.bitis - Date.now()) : 0;
+      const oturumYuzde = (grDurum.baslangic && grDurum.bitis)
+        ? ((Date.now() - grDurum.baslangic) / Math.max(1, grDurum.bitis - grDurum.baslangic) * 100)
+        : null;
+      return detaySatiri('▸', 'Sıradaki', kisalt(kalanAd, 20) + '  ' + sonraki, null, null, true)
+        + detaySatiri('★', 'Açılan başarım', acilan + ' / ' + toplam, toplam ? (acilan/toplam*100) : 0, '#C2AAEE', true)
+        + detaySatiri('◷', 'Oturumun sonuna', monoTime(fmtSessionDur(kalanSure)), oturumYuzde, '#C2AAEE', true);
+    }
+
+    // Basarim islemi: o an gonderilen basarim ve secili araliga gore kalan tahmini.
+    function detayBasarim(){
+      const yap = (typeof acRunYapilan !== 'undefined') ? acRunYapilan : 0;
+      const top = (typeof acRunToplam !== 'undefined') ? acRunToplam : 0;
+      const not = (typeof acRunNot !== 'undefined' && acRunNot) ? acRunNot : '-';
+      // Kalan sure = kalan basarim x secili aralik. Gercek bekleme her turda rastgele
+      // sapiyor (bkz. acNextDelayMs), yani bu bir tahmin; ortalama dogru.
+      let kalanSure = '-';
+      if (typeof acBaseDelaySec === 'function' && top > yap){
+        kalanSure = monoTime(fmtSessionDur((top - yap) * acBaseDelaySec() * 1000));
+      }
+      return detaySatiri('▸', 'Gönderiliyor', kisalt(not.replace(/^gönderiliyor:\s*/i, ''), 22), null, null, true)
+        + detaySatiri('★', 'İşlenen', yap + ' / ' + top, top ? (yap/top*100) : 0, GC.ok, true)
+        + detaySatiri('◷', 'Tahmini kalan', kalanSure, null, null, true);
+    }
+
+    // Gosterilen gorevin detayini cizer. Hicbir is calismiyorsa kart kuyrugu gosterilir:
+    // panelin altindaki Baslat da kart dusurmeyi baslatiyor, yani ekranda tutarli.
+    function renderGorevDetay(gorev, currentId){
+      const qbox = document.getElementById('gQueue');
+      if (!qbox) return;
+      let html;
+      if (!gorev) html = detayKart(null);
+      else if (gorev.tab === 'kart') html = detayKart(currentId);
+      else if (gorev.tab === 'saat') html = detaySaat();
+      else if (gorev.tab === 'gercekci') html = detayGercekci();
+      else if (gorev.tab === 'basarim') html = detayBasarim();
+      else html = detayKart(null);
+      qbox.innerHTML = html;
     }
 
     E.onTick((data)=>{ if (data.running && farmBaselineCards===null) farmSessionBegin(); if (!data.running) farmSessionEnd(); renderGenelActive(); renderGenelStats(); });

@@ -30,6 +30,19 @@ contextBridge.exposeInMainWorld('imu', {
       catch (_) { return ''; }
     },
   },
+  dil: {
+    // Yalnızca seçili dilin sözlüğünü okur; diğer beş dosya hiç açılmaz. Sayfa HTML'leri
+    // gibi senkron, çünkü çeviri ilk çizimden önce hazır olmalı.
+    // Dosya adı dışarıdan geliyor: yalnızca harf kabul edilir ve klasör sabittir, yoksa
+    // "../" içeren bir kod diskte istediği dosyayı okutabilirdi.
+    yukle: (kod) => {
+      if (!/^[a-z]{2}$/.test(String(kod || ''))) return null;
+      try {
+        const p = path.join(__dirname, 'src', 'main', 'js', 'lang', kod + '.json');
+        return JSON.parse(fs.readFileSync(p, 'utf8'));
+      } catch (_) { return null; }
+    },
+  },
   win: {
     minimize: () => ipcRenderer.send('win:minimize'),
     maximize: () => ipcRenderer.send('win:maximize'),

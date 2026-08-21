@@ -453,8 +453,37 @@ function sendRaw(channel, data) {
 // Safety net: some steam-user/steam-totp paths throw asynchronously (e.g. enableTwoFactor on an
 // account that already has an authenticator) and would otherwise crash the whole app. Swallow,
 // report, keep running.
-process.on('uncaughtException', (e) => { console.error('uncaughtException:', e && e.message); send('mafile', { ok: false, message: 'maFile atlandı: ' + (e && e.message) }); });
-process.on('unhandledRejection', (e) => { console.error('unhandledRejection:', e && (e.message || e)); });
+//
+// Bu tuzak bir zamanlar YAKALADIGI HER SEYI maFile bildirimine ceviriyordu. Ana surecin
+// herhangi bir yerindeki hata, kullanicinin ekranina "maFile atlandi: <ham hata metni>"
+// diye dusuyordu; oyun oynarken bile. Artik iki ayrim var:
+//   - maFile islemi sirasinda olustuysa (asagidaki zaman damgasi taze) maFile kanalina,
+//     ham hata metni degil anlasilir bir mesajla gider.
+//   - Baska her sey yalnizca kayit dosyasina yazilir. Kullaniciya ham JavaScript hatasi
+//     gosterilmez; hata kaybolmasin diye kayit hata ayiklama ayarindan bagimsiz tutulur.
+let maFileAnI = 0;                      // son maFile isteginin zamani
+const MAFILE_PENCERE_MS = 30000;        // bu sure icindeki cokme maFile ile ilgili sayilir
+
+// log() dosyaya yalnizca debugLogs acikken yaziyor. Cokme kaydi her zaman yazilmali,
+// yoksa kullanici "ekrana hata geldi" dediginde bakacak hicbir sey olmuyor.
+function cokmeYaz(tur, e) {
+  const satir = `[${new Date().toISOString()}] CRASH ${tur} ${(e && e.stack) || (e && e.message) || e}`;
+  console.error(satir);
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+    try { if (fs.statSync(LOG_FILE).size > 2 * 1024 * 1024) fs.renameSync(LOG_FILE, LOG_FILE + '.1'); } catch (_) {}
+    fs.appendFileSync(LOG_FILE, satir + '\n');
+  } catch (_) {}
+}
+
+process.on('uncaughtException', (e) => {
+  cokmeYaz('uncaughtException', e);
+  if (Date.now() - maFileAnI < MAFILE_PENCERE_MS) {
+    maFileAnI = 0;
+    send('mafile', { ok: false, message: 'maFile işlemi tamamlanamadı. Ayrıntı kayıt dosyasında.' });
+  }
+});
+process.on('unhandledRejection', (e) => { cokmeYaz('unhandledRejection', e); });
 
 function hasSession() {
   try {
@@ -547,9 +576,11 @@ ipcMain.on('auth:startCredentials', (_e, { slotId, accountName, password }) => g
 ipcMain.on('auth:submitGuard', (_e, { slotId, code }) => getAuthSlot(slotId).submitGuard(code));
 ipcMain.on('auth:cancel', (_e, { slotId } = {}) => getAuthSlot(slotId).cancel());
 ipcMain.on('auth:loginCookie', (_e, { slotId, sessionid, steamLoginSecure, steamparental }) => getAuthSlot(slotId).loginCookie(sessionid, steamLoginSecure, steamparental));
-ipcMain.on('auth:generateMaFile', (_e, { slotId } = {}) => getAuthSlot(slotId).generateMaFile());
-ipcMain.on('auth:finalizeMaFile', (_e, { slotId, code }) => getAuthSlot(slotId).finalizeMaFile(code));
-ipcMain.on('auth:importMaFile', (_e, { slotId, json }) => getAuthSlot(slotId).importMaFile(json));
+// maFileAnI damgasi: bu ucler steam-totp'a giriyor ve orada async throw olabiliyor.
+// Yakalanmamis hata bu pencerede olustuysa maFile ile ilgili sayilir (bkz. uncaughtException).
+ipcMain.on('auth:generateMaFile', (_e, { slotId } = {}) => { maFileAnI = Date.now(); getAuthSlot(slotId).generateMaFile(); });
+ipcMain.on('auth:finalizeMaFile', (_e, { slotId, code }) => { maFileAnI = Date.now(); getAuthSlot(slotId).finalizeMaFile(code); });
+ipcMain.on('auth:importMaFile', (_e, { slotId, json }) => { maFileAnI = Date.now(); getAuthSlot(slotId).importMaFile(json); });
 
 // logout: clear saved session, back to login
 ipcMain.on('auth:logout', () => {

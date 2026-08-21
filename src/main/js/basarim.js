@@ -662,9 +662,11 @@
     let acRunning = false, acStopIstendi = false, acDurdurmaSebebi = null;
     let acBeklemeIptal = null;
     // Genel Bakis'taki "Aktif Görev" paneli bunlari okur (MADDE 16)
-    let acRunYapilan = 0, acRunToplam = 0;
+    // acRunNot 1.1.8'de eklendi: panel artik o an hangi basarimin gonderildigini de
+    // yaziyor, yalnizca sayaci degil.
+    let acRunYapilan = 0, acRunToplam = 0, acRunNot = '';
     function paintRunBox(yapilan, toplam, not){
-      acRunYapilan = yapilan; acRunToplam = toplam;
+      acRunYapilan = yapilan; acRunToplam = toplam; acRunNot = not || '';
       // Genel Bakis paneli basarim isini de gostersin; tek basina calisirken baska
       // hicbir olay tetiklenmedigi icin buradan haber veriyoruz.
       if (typeof renderGenelActive === 'function') { try { renderGenelActive(); } catch (_) {} }
@@ -683,7 +685,7 @@
       toggleBulkButtons(!acRunning);
     }
     function gizleRunBox(){
-      acRunYapilan = 0; acRunToplam = 0;
+      acRunYapilan = 0; acRunToplam = 0; acRunNot = '';
       if (typeof renderGenelActive === 'function') { try { renderGenelActive(); } catch (_) {} }
       const box = document.getElementById('acRunBox');
       if (box) box.style.display = 'none';

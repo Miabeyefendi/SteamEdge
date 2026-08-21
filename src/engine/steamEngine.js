@@ -59,10 +59,30 @@ class SteamEngine {
     return (nerede ? nerede + ': ' : '') + m;
   }
 
+  // Steam topluluk sayfalari ve pazar uclari yaniti hesabin Steam diline gore
+  // yereller. Turkce arayuzde Cince bir hata bildirimi bu yuzden gorulmustu: metin
+  // sozlukten degil, Steam'in kendisinden geliyordu. `Steam_Language` cerezi bu secimi
+  // sabitler; `l=english` parametresi de cerezsiz cagrilar icin ayni isi yapar.
+  cerezBasligi() {
+    const c = this.cookies ? this.cookies.slice() : [];
+    c.push('Steam_Language=english');
+    return c.join('; ');
+  }
+
+  // Steam'in gonderdigi hata metni yine de Latin disi cikarsa gosterilmez. Bilgi
+  // tasidigi icin metni tamamen atmiyoruz, sadece okunamayacak olani yediyle degistiriyoruz.
+  static steamMesaji(metin, yedek) {
+    const m = String(metin || '').trim();
+    if (!m) return yedek;
+    // ASCII + Latin-1 eki + Latin Genisletilmis A/B: Ingilizce, Almanca, Ispanyolca,
+    // Turkce hepsi bu araliga siger. Kiril, CJK, Arapca girmez.
+    return /^[\x20-\x7E\u00A0-\u024F\s]+$/.test(m) ? m : yedek;
+  }
+
   async _iste(url, secenekler = {}, nerede = 'Steam') {
     const { deneme = 3, zamanAsimiMs = 20000, cerezli = true, ...fetchSec } = secenekler;
     const basliklar = { 'User-Agent': SteamEngine.UA, ...(fetchSec.headers || {}) };
-    if (cerezli && this.cookies) basliklar.Cookie = this.cookies.join('; ');
+    if (cerezli && this.cookies) basliklar.Cookie = this.cerezBasligi();
 
     let sonHata = null;
     for (let i = 0; i < deneme; i++) {
@@ -101,7 +121,7 @@ class SteamEngine {
   async detectMarketCurrency() {
     if (!this.cookies) return null;
     try {
-      const r = await this._iste('https://steamcommunity.com/market/', { deneme: 2 }, 'Pazar kuru');
+      const r = await this._iste('https://steamcommunity.com/market/?l=english', { deneme: 2 }, 'Pazar kuru');
       const html = await r.text();
       const m = html.match(/"wallet_currency"\s*:\s*(\d+)/);
       if (!m) return null;
@@ -467,7 +487,7 @@ class SteamEngine {
     const code = this.currencyCode();
     const cur = code && SteamEngine.CURRENCY[code];
     if (!cur) return { noCurrency: true };
-    const url = `https://steamcommunity.com/market/priceoverview/?appid=753&currency=${cur}&market_hash_name=${encodeURIComponent(marketHashName)}`;
+    const url = `https://steamcommunity.com/market/priceoverview/?appid=753&currency=${cur}&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
     const r = await fetch(url);
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
@@ -490,8 +510,8 @@ class SteamEngine {
   // parametresi almaz, oturuma göre döner).
   async getPriceHistory(marketHashName) {
     if (!this.cookies) throw new Error('web oturumu yok');
-    const url = `https://steamcommunity.com/market/pricehistory/?appid=753&market_hash_name=${encodeURIComponent(marketHashName)}`;
-    const r = await fetch(url, { headers: { Cookie: this.cookies.join('; ') } });
+    const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
+    const r = await fetch(url, { headers: { Cookie: this.cerezBasligi() } });
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
     const j = await r.json().catch(() => null);
@@ -569,10 +589,10 @@ class SteamEngine {
   async getItemOrders(marketHashName) {
     const code = this.currencyCode();
     if (!code) return { noCurrency: true };
-    const url = `https://steamcommunity.com/market/listings/753/${encodeURIComponent(marketHashName)}`;
+    const url = `https://steamcommunity.com/market/listings/753/${encodeURIComponent(marketHashName)}?l=english`;
     const r = await fetch(url, {
       headers: {
-        Cookie: this.cookies ? this.cookies.join('; ') : '',
+        Cookie: this.cerezBasligi(),
         // Özet cümlelerini İngilizce yakalayabilmek için dil sabitleniyor; tarayıcı benzeri
         // bir User-Agent olmadan Steam sayfayı farklı biçimde döndürebiliyor.
         'Accept-Language': 'en-US,en;q=0.9',
@@ -655,7 +675,7 @@ class SteamEngine {
     const r = await fetch('https://steamcommunity.com/market/sellitem/', {
       method: 'POST',
       headers: {
-        Cookie: this.cookies.join('; '),
+        Cookie: this.cerezBasligi(),
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Referer: `https://steamcommunity.com/profiles/${this.steamID}/inventory`,
         Origin: 'https://steamcommunity.com',
@@ -664,7 +684,7 @@ class SteamEngine {
     });
     const j = await r.json().catch(() => null);
     if (!j) throw new Error('Market yanıtı okunamadı (HTTP ' + r.status + ')');
-    if (!j.success) throw new Error(j.message || 'Listeleme reddedildi');
+    if (!j.success) throw new Error(SteamEngine.steamMesaji(j.message, 'Listeleme reddedildi'));
     return j; // { success, requires_confirmation, needs_mobile_confirmation, ... }
   }
 

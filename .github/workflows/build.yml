@@ -1,13 +1,21 @@
 name: Build
 
+# Amac: depo temiz bir cekimden derlenebiliyor mu, onu dogrulamak. Yayinlanan arsiv
+# elle uretiliyor (WinRAR, -m5); bu is akisinin urettigi .zip yalnizca dogrulama icin
+# artifact olarak kalir, yayina eklenmez.
+#
+# 1.1.8'de duzeltildi. Onceki hali iki ayri sebeple hic calismiyordu: etiket filtresi
+# "v*" idi ama surumler v'siz etiketleniyor (1.1.7), ve derleme ciktisini "Release V*"
+# adinda bir klasorde ariyordu - o isim depo yeniden adlandirilali beri yok.
+
 on:
   workflow_dispatch:
   push:
     tags:
-      - "v*"
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   windows:
@@ -17,11 +25,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Static checks
+        run: npm run dogrula
+
+      - name: Language audit
+        run: npm run dil
 
       - name: Read version
         id: ver
@@ -34,17 +48,13 @@ jobs:
       - name: Zip
         shell: pwsh
         run: |
-          $src = Get-ChildItem -Directory .. -Filter "Release V*" | Select-Object -First 1
-          if (-not $src) { throw "Build output folder not found" }
-          Compress-Archive -Path "$($src.FullName)\*" -DestinationPath "SteamEdge-v${{ steps.ver.outputs.v }}-win-x64.zip"
+          $ad = "SteamEdge-v${{ steps.ver.outputs.v }}-win-x64"
+          $src = Join-Path (Split-Path $PWD -Parent) $ad
+          if (-not (Test-Path $src)) { throw "Build output folder not found: $src" }
+          Compress-Archive -Path "$src\*" -DestinationPath "$ad.zip"
 
       - uses: actions/upload-artifact@v4
         with:
           name: SteamEdge-win-x64
           path: SteamEdge-v${{ steps.ver.outputs.v }}-win-x64.zip
-
-      - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: SteamEdge-v${{ steps.ver.outputs.v }}-win-x64.zip
+          retention-days: 14

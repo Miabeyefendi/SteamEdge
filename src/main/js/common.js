@@ -99,7 +99,10 @@
         + ' onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + gameImg(appid, 'capsule') + '\';}'
         + 'else{this.style.display=\'none\';}">';
     }
-    function esc(s){ return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+    // Tirnaklar da kacirilir: bu fonksiyonun cikisi cogu yerde oznitelik degeri olarak
+    // kullaniliyor (src="'+esc(x)+'"), tirnak kacmayinca deger oznitelikten cikabiliyordu.
+    const ESC_HARF = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    function esc(s){ return (s||'').replace(/[&<>"']/g, c => ESC_HARF[c]); }
 
     // ================= TEMALI ONAY MODALI =================
     // Yerel confirm() kutusu Windows'un gri penceresini açıyordu (tema dışı). Bu, aynı işi

@@ -8,6 +8,27 @@ Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and thei
 archives deleted on purpose. Their notes are not reproduced here.
 
 
+## [1.1.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.8)
+
+Raw JavaScript errors no longer land on your screen mid-game, the active task panel shows the task you are actually looking at, and the dictionary moved out of the code.
+
+### Fixed
+
+- **Uncaught errors were shown to you as maFile notifications.** The safety net that keeps a `steam-totp` failure from killing the app was catching everything and routing all of it to one place: any error anywhere in the main process arrived on screen as `maFile atlandı:` followed by a raw JavaScript error string. It shows up while you are playing, and it says nothing useful. Only errors during an actual maFile operation reach that notification now, with a message a person can read. Everything else goes to the log, and it goes there whether or not debug logging is on, so there is something to read the next time instead of nothing.
+- **The active task panel showed the card queue no matter which task you were on.** With two jobs running you page between them with the arrows, the top row changed and the box underneath did not: it was hard-wired to card farming. Looking at an achievement run with an empty card queue, the panel said "the queue is empty" underneath. That box now follows the task on screen. Card farming shows the queue as before; the Hour Booster shows the games it is holding open, on the shared timeline the booster page uses; Realistic Mode shows what unlocks next and when, plus how much of the session is left; an achievement run shows the achievement being sent, the counter and an estimate of the time remaining. Every row carries its own progress bar.
+- **A Steam error could arrive in a language you do not speak.** Pressing refresh repeatedly hits Steam's rate limit, and Steam localises its own error text. That is where the Chinese notification in a Turkish interface came from: not the dictionary, which was clean, but Steam. Every community and market request is now pinned to English through both the `Steam_Language` cookie and an `l=english` parameter, and a Steam-supplied message written in an alphabet the app did not ask for is replaced with our own text rather than passed through.
+- **`esc()` did not escape quotes.** It handled `&`, `<` and `>`, but its output is used inside HTML attributes throughout the app, where a `"` in the value escapes the attribute. Reported by code scanning against the chat avatar; the one-line fix covers every call site.
+
+### Changed
+
+- **The dictionary lives in `src/main/js/lang/<code>.json`, one file per language.** It used to be six dictionaries in a single 288 KB script, in nineteen blocks appended one release at a time, and all six loaded whether you needed them or not. Only the selected language is read now. The immediate benefit is not speed, it is that adding a language is adding a file, and that the audit reads JSON instead of parsing JavaScript with a hand-written parser that could not see computed keys. Two entries were skipped when Russian was added for exactly that reason. `i18n.js` is 132 lines and holds only the translation logic.
+- **`npm run build` refuses to package without the dictionaries.** They reach the archive through a deny list, so a missing file would not fail the build: the app would just open in Turkish and nobody would notice. It is checked before packaging now, the same as the locale trimming guard.
+- **The CI workflow was broken in two ways and is fixed.** It triggered on `v*` tags while releases are tagged without the `v`, and it looked for an output folder named `Release V*`, a name that has not existed since the repository was renamed. It now runs the static checks and the language audit as well.
+
+### Update note
+
+Ten gigabytes of old build folders and backups were cleared out of the working tree, and the build now lives inside its own backup rather than beside the source. This changes nothing about the app; it is noted because the release archives for 1.0.5 through 1.1.6 are only on the releases page from here on.
+
 ## [1.1.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.7)
 
 Steam chat comes to the app, and the interface speaks Russian.

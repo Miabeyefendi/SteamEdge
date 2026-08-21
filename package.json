@@ -1,7 +1,7 @@
 {
   "name": "steamedge",
   "productName": "SteamEdge",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "description": "Headless Steam trading card farmer, hour booster, achievement manager and market tool. No Steam client required.",
   "keywords": [
     "steam",
@@ -19,13 +19,13 @@
     "headless",
     "steam-badges"
   ],
-  "homepage": "https://github.com/Miabeyefendi/steamedge",
+  "homepage": "https://github.com/Miabeyefendi/SteamEdge",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Miabeyefendi/steamedge.git"
+    "url": "https://github.com/Miabeyefendi/SteamEdge.git"
   },
   "bugs": {
-    "url": "https://github.com/Miabeyefendi/steamedge/issues"
+    "url": "https://github.com/Miabeyefendi/SteamEdge/issues"
   },
   "main": "main.js",
   "scripts": {
@@ -34,7 +34,8 @@
     "dogrula": "node build/dogrula.js",
     "build:win": "node build/build.js --platform=win32",
     "postinstall": "node -e \"console.log('SteamEdge: npm start ile calistirin, npm run build ile paketleyin.')\"",
-    "dil": "node build/dil.js"
+    "dil": "node build/dil.js",
+    "changelog": "node build/changelog.js"
   },
   "author": "Miabeyefendi (Mustafa Ihsan Albayrak) <https://github.com/Miabeyefendi>",
   "license": "AGPL-3.0-or-later",

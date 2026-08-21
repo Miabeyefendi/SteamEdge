@@ -1,27 +1,34 @@
 /* Dil denetimi.
  *
- * Sozluk (src/main/js/i18n.js) diller arasinda tutarli mi, arayuzdeki metinlerin
- * karsiligi var mi, bir dilde olup digerinde olmayan anahtar var mi.
+ * Sozlukler (src/main/js/lang/<kod>.json) diller arasinda tutarli mi, arayuzdeki
+ * metinlerin karsiligi var mi, bir dilde olup digerinde olmayan anahtar var mi.
  *
  * Neden gerekti: ceviri tek yonlu (kaynak Turkce, anahtar Turkce metnin kendisi) ve
  * sozluk elle buyuyor. Bir dilde unutulan anahtar sessizce Turkce kaliyor; kimse fark
- * etmiyor. Bir de test sirasinda Turkce arayuzde Cince bir bildirim goruldu, yani
- * anahtarlar arasinda beklenmedik bir eslesme olabiliyor.
+ * etmiyor. Bir de test sirasinda Turkce arayuzde Cince bir bildirim goruldu; onun
+ * kaynagi sozluk degilmis, Steam'in kendi yerellestirmesiymis (1.1.8'de sabitlendi).
  *
- * BILINEN KORLUK: 6. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan metinleri
+ * 1.1.8 oncesi sozluk tek bir .js dosyasinda, tur tur eklenmis on dokuz blok halindeydi
+ * ve burada elle yazilmis bir ayristirici vardi. Ayristirici kosuk anahtarlari
+ * ([SABIT]: 'deger') goremiyordu; Rusca eklenirken iki giris bu yuzden atlanmisti.
+ * Sozluk artik JSON, ayristirici da gitti.
+ *
+ * BILINEN KORLUK: 6. ve 7. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan metinleri
  * bildiriyor. "Grafik arka ucu" gibi saf ASCII bir Turkce baslik gozden kacar. Daha
  * gevsek bir olcut, ingilizce kod parcalari ve sayilarla dolu yuzlerce yanlis alarm
  * uretiyordu; yeni metin eklerken bunu akilda tut.
  *
  * Calistirma:  npm run dil
  *              npm run dil -- --tam    (uzun listeleri kirpmadan)
+ *              npm run dil -- --dok <dosya>   (anahtar listesini disari yaz)
  */
 const fs = require('fs');
 const path = require('path');
 
 const KOK = path.join(__dirname, '..');
-const I18N_DOSYA = path.join(KOK, 'src', 'main', 'js', 'i18n.js');
+const DIL_DIZIN = path.join(KOK, 'src', 'main', 'js', 'lang');
 const SAYFA_DIZIN = path.join(KOK, 'src', 'main', 'pages');
+const JS_DIZIN = path.join(KOK, 'src', 'main', 'js');
 const DILLER = ['en', 'de', 'es', 'zh', 'ru'];
 
 let hata = 0;
@@ -30,70 +37,26 @@ const yaz = (s) => process.stdout.write(s + '\n');
 const bolum = (n, b) => yaz('\n' + n + '. ' + b);
 const TAM = process.argv.includes('--tam');   // uzun listeleri kirpmadan yaz
 
-// ---- sozlugu oku ----
-// Dosya tarayici kapsaminda calisan bir betik, require edilemez. Dil bloklari
-// "  en: {" ... "  }," bicimini izliyor; parantez sayarak cikariliyor.
-function dilBloklari(kaynak) {
-  const sonuc = {};
-  DILLER.forEach((d) => { sonuc[d] = []; });
-  const re = new RegExp("(^|\\n)\\s*(" + DILLER.join('|') + ")\\s*:\\s*\\{", 'g');
-  let m;
-  while ((m = re.exec(kaynak))) {
-    const dil = m[2];
-    let i = kaynak.indexOf('{', m.index + m[0].length - 1);
-    let derinlik = 0, j = i, tirnak = null;
-    for (; j < kaynak.length; j++) {
-      const c = kaynak[j], onceki = kaynak[j - 1];
-      if (tirnak) { if (c === tirnak && onceki !== '\\') tirnak = null; continue; }
-      if (c === "'" || c === '"' || c === '`') { tirnak = c; continue; }
-      if (c === '{') derinlik++;
-      else if (c === '}') { derinlik--; if (!derinlik) break; }
-    }
-    sonuc[dil].push(kaynak.slice(i + 1, j));
-  }
-  return sonuc;
-}
-
-// Bir blok icindeki 'anahtar': 'deger' ciftleri
-function ciftler(blok) {
-  const out = new Map();
-  const re = /(^|[\n,])\s*(['"])((?:\\.|(?!\2)[^\\])*)\2\s*:\s*(['"])((?:\\.|(?!\4)[^\\])*)\4/g;
-  let m;
-  while ((m = re.exec(blok))) {
-    const anahtar = m[3].replace(/\\'/g, "'").replace(/\\"/g, '"');
-    const deger = m[5].replace(/\\'/g, "'").replace(/\\"/g, '"');
-    out.set(anahtar, deger);
-  }
-  return out;
-}
-
-const kaynak = fs.readFileSync(I18N_DOSYA, 'utf8');
-const bloklar = dilBloklari(kaynak);
+// ---- sozlukleri oku ----
 const sozluk = {};
 DILLER.forEach((d) => {
-  sozluk[d] = new Map();
-  bloklar[d].forEach((b) => { ciftler(b).forEach((v, k) => sozluk[d].set(k, v)); });
+  const p = path.join(DIL_DIZIN, d + '.json');
+  if (!fs.existsSync(p)) {
+    hata++;
+    yaz('HATA sozluk yok: ' + path.relative(KOK, p));
+    sozluk[d] = new Map();
+    return;
+  }
+  try {
+    sozluk[d] = new Map(Object.entries(JSON.parse(fs.readFileSync(p, 'utf8'))));
+  } catch (e) {
+    hata++;
+    yaz('HATA bozuk JSON: ' + path.relative(KOK, p) + ' - ' + e.message);
+    sozluk[d] = new Map();
+  }
 });
 
-// Bazi girisler blok icinde degil, atama satiri olarak ekleniyor:
-//   I18N_G14['en']['anahtar'] = 'deger';
-// Bunlar da sozlugun parcasi; saymazsak var olan ceviriyi "eksik" diye raporlariz.
-const atamaRe = new RegExp(
-  "I18N_G\\d+\\s*\\[\\s*(['\"])(\\w+)\\1\\s*\\]\\s*"        // dil
-  + "\\[\\s*(['\"])((?:\\\\.|(?!\\3)[^\\\\])*)\\3\\s*\\]"   // anahtar
-  + "\\s*=\\s*(['\"])((?:\\\\.|(?!\\5)[^\\\\])*)\\5",       // deger
-  'g');
-let am;
-while ((am = atamaRe.exec(kaynak))) {
-  const dil = am[2];
-  if (!sozluk[dil]) continue;
-  const coz = (x) => x.replace(/\\'/g, "'").replace(/\\"/g, '"');
-  sozluk[dil].set(coz(am[4]), coz(am[6]));
-}
-
-// Yeni bir dil eklerken cevrilecek anahtarlarin tam listesi lazim oluyor. Elle toplamak
-// hem hataya acik hem de bu dosyada zaten dogru calisan bir ayristirici var.
-//   npm run dil -- --dok <dosya>
+// Yeni bir dil eklerken cevrilecek anahtarlarin tam listesi lazim oluyor.
 const dokIdx = process.argv.indexOf('--dok');
 if (dokIdx > 0 && process.argv[dokIdx + 1]) {
   const satirlar = [...sozluk.en.entries()]
@@ -180,16 +143,34 @@ else yaz('  varyant tutarli');
 // disindaki dillerde Turkce kalir.
 bolum(6, 'Sozlukte karsiligi olmayan arayuz metni');
 const TR_HARF = /[çğıöşüÇĞİÖŞÜ]/;
+
+// Yorum ve script/style ayiklama, sonuc degismeyene kadar tekrarlanir. Tek gecis
+// yetmiyor: ayiklanan parcanin iki yani birlesince yeni bir "<!--" olusabiliyor.
+function ayikla(metin) {
+  let onceki;
+  do {
+    onceki = metin;
+    metin = metin
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
+  } while (metin !== onceki);
+  return metin;
+}
+
+// Varlik cozme tek geciste yapilir. Sirayla yapinca "&amp;nbsp;" once "&nbsp;"
+// olup sonra bosluga donuyordu, yani metin iki kez cozuluyordu.
+const VARLIK = { '&amp;': '&', '&nbsp;': ' ', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'" };
+function varlikCoz(metin) {
+  return metin.replace(/&(?:amp|nbsp|lt|gt|quot|#39);/g, (v) => VARLIK[v]);
+}
 const eksikMetin = [];
 fs.readdirSync(SAYFA_DIZIN).filter((f) => f.endsWith('.html')).forEach((f) => {
   const html = fs.readFileSync(path.join(SAYFA_DIZIN, f), 'utf8');
-  const gorunur = html
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
+  const gorunur = ayikla(html);
   const re = />([^<>{}]{4,80})</g;
   let m;
   while ((m = re.exec(gorunur))) {
-    const t = m[1].replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+    const t = varlikCoz(m[1]).replace(/\s+/g, ' ').trim();
     if (!t || !TR_HARF.test(t)) continue;               // Turkce harfi yoksa dokunma
     if (/^[\d\s.,:/%+-]+$/.test(t)) continue;
     // Calisma zamaninda anahtar sayilardan arindiriliyor (i18nNormKey): "7 gun" ile
@@ -214,7 +195,6 @@ if (eksikMetin.length) {
 // JS icinde string olarak duruyor; bunlarin karsiligi yoksa arayuz yari cevrili kalir.
 // Olcut kaba oldugu icin (kod parcalari da tirnak icinde) HATA degil UYARI sayilir.
 bolum(7, 'Sayfa JS metinleri (sozlukte karsiligi yok)');
-const JS_DIZIN = path.join(KOK, 'src', 'main', 'js');
 const normA = (x) => x.replace(/\d[\d.,]*/g, '#');
 const enNorm = new Set([...sozluk.en.keys()].map(normA));
 const jsEksik = new Map();
