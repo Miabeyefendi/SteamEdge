@@ -718,5 +718,9 @@
  "Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.": "Войдите, настройте задачу и оставьте её работать в фоне. Клиент Steam не нужен.",
  "Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.": "Откройте вкладку Steam Guard в мобильном приложении Steam, нажмите значок сканирования и считайте этот код.",
  "QR kodu alınıyor...": "Получаем QR-код...",
- "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "Источник вдохновения в том, как поддерживать долгую фоновую сессию Steam без интерфейса. Идея одновременной работы нескольких аккаунтов пришла отсюда."
+ "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "Источник вдохновения в том, как поддерживать долгую фоновую сессию Steam без интерфейса. Идея одновременной работы нескольких аккаунтов пришла отсюда.",
+ "Başarım ara...": "Поиск достижений...",
+ "Sıralama yönü": "Направление сортировки",
+ "Artan sıra": "По возрастанию",
+ "Azalan sıra": "По убыванию"
 }

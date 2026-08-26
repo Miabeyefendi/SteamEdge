@@ -139,7 +139,11 @@
             <span style="font-size:12px;color:#B9C0D6">Sıralı bekletme modu</span>
             <span class="e-toggle" data-bset="seqIdle"><span class="e-knob"></span></span>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
+          <!-- "Sırayı tekrarla" yalnızca sıralı bekletme modunda anlamlıdır: eşzamanlı
+               modda kuyruk yoktur, oyunlar birlikte çalışıp hedefte düşer. Sıralı mod
+               kapalıyken bu satır sönükleşir ve tıklanamaz; yoksa açık görünüp hiçbir
+               şey yapmayan bir anahtar olur. -->
+          <div id="saatLoopRow" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Sırayı tekrarla (kuyruk bitince baştan başlar)</span>
             <span class="e-toggle" data-bset="loopQueue"><span class="e-knob"></span></span>
           </div>

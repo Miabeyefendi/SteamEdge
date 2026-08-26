@@ -297,31 +297,47 @@
     // MADDE 16: Panel eskiden TEK gorev varsayiyordu - kart calisiyorsa saat gorunmuyor,
     // basarim toplu islemi hic gorunmuyordu ve "Detay" her zaman Kart sekmesine gidiyordu.
     // Artik calisan her is kendi satirinda, kendi ilerlemesi ve kendi Detay baglantisiyla.
+    // Panelin gorunur olcusu 1.1.10'da buyutuldu: kapak 85x40 -> 116x54, baslik 14 -> 15,
+    // sayilar 13 -> 15, cubuk 6 -> 8 piksel. 2K bir ekranda satir kucuk kaliyordu ve
+    // ustelik satirin kendi "Detay" dugmesi, panelin altindaki Detay ile ayni isi yapan
+    // IKINCI bir dugmeydi. Satirdaki kaldirildi; alttaki zaten gosterilen gorevi izliyor.
+    //
+    // Eklenenler yalnizca GOSTERIM: yuzde sayisi, oturumun baslama saati. Hicbiri yeni
+    // veri cekmiyor, hepsi zaten panele gelen tick'in icinde.
     function gorevSatiri(g){
       const yuzde = Math.max(0, Math.min(100, Math.round(g.yuzde || 0)));
-      return '<div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid #101621">'
-        + '<div style="display:flex;align-items:flex-start;gap:12px">'
-          + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;'
+      return '<div style="display:flex;flex-direction:column;gap:11px;padding:14px 0 4px;border-top:1px solid #101621">'
+        + '<div style="display:flex;align-items:flex-start;gap:14px">'
+          // Kutuphane basligi orani (920x430, ~2.14:1)
+          + '<div style="width:116px;height:54px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;'
             + 'background:#101621;overflow:hidden;display:flex;align-items:center;justify-content:center">'
-            + (g.appid ? gameThumb(g.appid) : '<span style="font-size:16px">' + (g.ikon || '') + '</span>')
+            + (g.appid ? gameThumb(g.appid)
+                       : '<span style="display:flex;align-items:center;justify-content:center;transform:scale(1.7);transform-origin:center">'
+                         + detayIkon(g.ikon, g.renk || GC.sub) + '</span>')
           + '</div>'
-          + '<div style="display:flex;flex-direction:column;gap:4px;min-width:0;flex:1">'
-            + '<span style="font-size:14px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
-              + 'text-overflow:ellipsis">' + esc(g.baslik) + '</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'
+          + '<div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex:1">'
+            + '<span style="font-size:15px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
+              + 'text-overflow:ellipsis;line-height:1.2">' + esc(g.baslik) + '</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:10.5px;color:#8B8F9E">'
               + (g.appid ? ('APP_ID: ' + g.appid) : esc(g.altBilgi || '')) + '</span>'
-            + '<div style="display:flex;gap:6px;margin-top:2px;flex-wrap:wrap">'
+            + '<div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap">'
               + (g.rozetler || []).map(chip).join('') + '</div>'
           + '</div>'
-          + '<div style="display:flex;align-items:center;gap:18px;flex-shrink:0">'
+          + '<div style="display:flex;align-items:center;gap:22px;flex-shrink:0">'
             + (g.sutunlar || []).map(c=>statCol(c[0], c[1], c[2])).join('')
-            + '<button class="h-bd" data-gorev-tab="' + g.tab + '" style="height:28px;padding:0 12px;'
-              + 'border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;'
-              + 'font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Detay</button>'
           + '</div>'
         + '</div>'
-        + '<div style="height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden;flex-shrink:0">'
-          + '<div style="height:100%;width:' + yuzde + '%;border-radius:12px;background:' + (g.renk || '#24AEB3') + '"></div></div>'
+        + '<div style="display:flex;align-items:center;gap:11px">'
+          + '<div style="flex:1;min-width:0;height:8px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
+            + '<div style="height:100%;width:' + yuzde + '%;border-radius:12px;background:' + (g.renk || '#24AEB3') + '"></div>'
+          + '</div>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;flex-shrink:0;'
+            + 'min-width:38px;text-align:right;color:' + (g.renk || '#24AEB3') + '">%' + yuzde + '</span>'
+        + '</div>'
+        + (g.basladi
+            ? ('<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80">Başlangıç: '
+               + fmtClock(g.basladi) + '</span>')
+            : '')
         + '</div>';
     }
 
@@ -364,6 +380,7 @@
                     ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(farmSessionStart||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
           yuzde: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
+          basladi: farmSessionStart || null,
           renk:'#24AEB3', durdur: kartiDurdur,
         });
       }
@@ -380,6 +397,7 @@
                     ['Oturum Süresi', monoTime(fmtSessionDur(gecen))],
                     ['Kalan', monoTime(left)]],
           yuzde: boostState.durationMs ? (gecen/boostState.durationMs*100) : 100,
+          basladi: boostState.startedAt || null,
           renk:'#5624B3', durdur: ()=>sayfaDugmesineBas('btnBoostStop'),
         });
       }
@@ -392,7 +410,7 @@
           rozetler:['Başarımlar', (top ? (yap+' / '+top) : 'çalışıyor')],
           sutunlar:[['İşlenen', yap+' / '+top, GC.ok]],
           yuzde: top ? (yap/top*100) : 0,
-          renk:'#5FB324', ikon:'★', durdur: ()=>sayfaDugmesineBas('acStop'),
+          renk:'#5FB324', ikon:'sayac', durdur: ()=>sayfaDugmesineBas('acStop'),
         });
       }
       if (grOn){
@@ -408,6 +426,7 @@
                     ['Kalan Süre', monoTime(fmtSessionDur(kalanSure))],
                     ['Sıradaki', grDurum.siradaki ? kisalt(grDurum.siradaki, 16) : '-']],
           yuzde: toplam ? (acilan/toplam*100) : 0,
+          basladi: grDurum.baslangic || null,
           renk:'#C2AAEE', durdur: ()=>sayfaDugmesineBas('grStop'),
         });
       }
@@ -444,10 +463,6 @@
       if (onc) onc.onclick = ()=>git(-1);
       if (son) son.onclick = ()=>git(1);
 
-      // Satir icindeki Detay da panel altindaki Detay da AYNI gorevin sekmesine gider.
-      box.querySelectorAll('[data-gorev-tab]').forEach(b=>{
-        b.onclick = ()=> goTab(b.getAttribute('data-gorev-tab'));
-      });
       panelDugmeleriniBoya();
       renderGorevDetay(aktifGorev, heroId);
     }
@@ -479,14 +494,39 @@
     // Ince ilerleme cubugu. Yuzde her is turunde farkli hesaplaniyor, cizim ortak.
     function detayCubuk(yuzde, renk){
       const y = Math.max(0, Math.min(100, Math.round(yuzde || 0)));
-      return '<div style="height:3px;border-radius:999px;background:#101621;overflow:hidden;width:52px;flex-shrink:0">'
+      return '<div style="height:4px;border-radius:999px;background:#101621;overflow:hidden;width:64px;flex-shrink:0">'
         + '<div style="height:100%;width:' + y + '%;background:' + (renk || GC.sub) + '"></div></div>';
     }
 
+    // Satir basi isaretleri once ▸ ★ ◷ gibi Unicode karakterlerdi. Yazi tipine gore boylari
+    // ve taban cizgileri tutmuyordu: uc satirda uc farkli buyuklukte, kucuk ve ne oldugu
+    // anlasilmayan sekiller cikiyordu. Hepsi ayni 16 pikselik cerceveye oturan, ayni cizgi
+    // kalinligindaki SVG'lere cevrildi.
+    const DETAY_IKON = {
+      // ok: siradaki / gonderilen
+      sonraki: '<path d="M5 12h13M13 7l5 5-5 5"></path>',
+      // hedef: sayac (acilan, islenen)
+      sayac: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle>',
+      // saat: kalan sure
+      sure: '<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4.5l3 1.8"></path>',
+    };
+    function detayIkon(ad, renk){
+      const yol = DETAY_IKON[ad];
+      if (!yol) return '';
+      return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (renk || GC.muted)
+        + '" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="display:block">'
+        + yol + '</svg>';
+    }
+
+    // `sira` ya bir sira numarasi metnidir (#1, #2) ya da DETAY_IKON anahtaridir.
     function detaySatiri(sira, ad, sag, yuzde, renk, vurgu){
+      const renkli = vurgu ? GC.sub : GC.muted;
+      const bas = DETAY_IKON[sira]
+        ? detayIkon(sira, renkli)
+        : '<span style="' + DETAY_MONO + ';font-weight:700;color:' + renkli + '">' + sira + '</span>';
       return '<div style="' + DETAY_SATIR + '">'
-        + '<span style="' + DETAY_MONO + ';font-weight:700;color:' + (vurgu ? GC.sub : GC.muted) + ';width:22px;flex-shrink:0">' + sira + '</span>'
-        + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">' + esc(ad) + '</span>'
+        + '<span style="width:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center">' + bas + '</span>'
+        + '<span style="font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">' + esc(ad) + '</span>'
         + '<span style="' + DETAY_MONO + ';color:#8B8F9E;flex-shrink:0">' + sag + '</span>'
         + (yuzde === null ? '' : detayCubuk(yuzde, vurgu ? (renk || GC.ok) : '#333D4D'))
         + '</div>';
@@ -542,9 +582,9 @@
       const oturumYuzde = (grDurum.baslangic && grDurum.bitis)
         ? ((Date.now() - grDurum.baslangic) / Math.max(1, grDurum.bitis - grDurum.baslangic) * 100)
         : null;
-      return detaySatiri('▸', 'Sıradaki', kisalt(kalanAd, 20) + '  ' + sonraki, null, null, true)
-        + detaySatiri('★', 'Açılan başarım', acilan + ' / ' + toplam, toplam ? (acilan/toplam*100) : 0, '#C2AAEE', true)
-        + detaySatiri('◷', 'Oturumun sonuna', monoTime(fmtSessionDur(kalanSure)), oturumYuzde, '#C2AAEE', true);
+      return detaySatiri('sonraki', 'Sıradaki', kisalt(kalanAd, 20) + '  ' + sonraki, null, null, true)
+        + detaySatiri('sayac', 'Açılan başarım', acilan + ' / ' + toplam, toplam ? (acilan/toplam*100) : 0, '#C2AAEE', true)
+        + detaySatiri('sure', 'Oturumun sonuna', monoTime(fmtSessionDur(kalanSure)), oturumYuzde, '#C2AAEE', true);
     }
 
     // Basarim islemi: o an gonderilen basarim ve secili araliga gore kalan tahmini.
@@ -558,9 +598,9 @@
       if (typeof acBaseDelaySec === 'function' && top > yap){
         kalanSure = monoTime(fmtSessionDur((top - yap) * acBaseDelaySec() * 1000));
       }
-      return detaySatiri('▸', 'Gönderiliyor', kisalt(not.replace(/^gönderiliyor:\s*/i, ''), 22), null, null, true)
-        + detaySatiri('★', 'İşlenen', yap + ' / ' + top, top ? (yap/top*100) : 0, GC.ok, true)
-        + detaySatiri('◷', 'Tahmini kalan', kalanSure, null, null, true);
+      return detaySatiri('sonraki', 'Gönderiliyor', kisalt(not.replace(/^gönderiliyor:\s*/i, ''), 22), null, null, true)
+        + detaySatiri('sayac', 'İşlenen', yap + ' / ' + top, top ? (yap/top*100) : 0, GC.ok, true)
+        + detaySatiri('sure', 'Tahmini kalan', kalanSure, null, null, true);
     }
 
     // Gosterilen gorevin detayini cizer. Hicbir is calismiyorsa kart kuyrugu gosterilir:

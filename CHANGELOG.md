@@ -8,6 +8,27 @@ Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and thei
 archives deleted on purpose. Their notes are not reproduced here.
 
 
+## [1.1.10](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.10)
+
+Layout fixes across four screens, and three achievement settings that were quietly overruling each other.
+
+### Fixed
+
+- **A Realistic Mode row rendered one letter per line, and the panel scrolled sideways.** Two separate causes. The "Set the duration from the settings" row had been added inside the next row's still-open `<div>`, so one row held three flex children instead of two and the labels were squeezed to a character wide. Separately, the tooltip bubble is 264 pixels wide and absolutely positioned, and an absolutely positioned box still counts towards its scrolling ancestor's width, so the side column grew a horizontal scrollbar it was never meant to have. The rows are siblings now, tooltips in narrow columns open leftwards, the column clips horizontally, and labels beside a tooltip are allowed to wrap instead of refusing to shrink. Measured at 1200, 1400 and 1716 pixels: no overflow left on any of the six tabs.
+- **The 100% completion time box was narrower than everything below it.** It was an input and a "hours" label sitting side by side, so it lost the label's width against the full-width dropdowns beneath it. The unit sits inside the field now and the box matches.
+- **Two Details buttons for one task.** The active task row carried its own Details button that did exactly what the one at the bottom of the panel does. The one in the row is gone; the one by Start and Stop already follows whichever task the arrows are showing.
+- **The icons in the task detail rows were three different sizes.** They were Unicode characters, and the font sized and baselined each one differently: small, uneven, and hard to identify at all on a high resolution display. They are inline SVG now, one 16 pixel frame and one stroke weight for all of them.
+- **The unlock interval was ignored unless safe mode was on.** With safe mode off every achievement went out in a single request, so an interval of 55 minutes unlocked the lot in about a second. The interval now always applies and achievements always go one at a time. Safe mode is what decides whether that interval is randomised: off means the exact interval, on means it varies around it, and "Spread unlocks over time" widens that variation. Three settings, three separate effects, none of them silently overruling another. The confirmation dialog now spells out the interval and the estimated total before you start.
+- **"Repeat the queue" did nothing outside sequential mode.** There is no queue when games run in parallel, so the switch was inert but looked live. It is dimmed and inactive while sequential idling is off, and says why. Same for "Spread unlocks over time" while safe mode is off.
+- **`npm run dogrula` counted `<div>` inside comments.** A comment that mentions markup, or a block commented out, made a balanced file look broken. Comments are stripped before counting.
+
+### Changed
+
+- **The active task panel is larger and better packed.** Cover art goes from 85x40 to 116x54, the title and the figures grow, the progress bar goes from 6 to 8 pixels and now carries its own percentage. Where a task knows when it started, the row shows the time, in whichever clock format is set.
+- **The Achievements toolbar starts with the game.** Game names are long and you have to pick one before anything else on the screen means much, so it is first and it is the widest field. Achievement search follows it, shorter, with a placeholder to match. The filter and sort dropdowns are wider.
+- **Sorting has a direction.** A single button next to the sort dropdown, with an arrow that shows which way the list runs. It is inert on the default order, which has no direction. Date starts newest first and rarity starts rarest first, because that is the order you want to see first; the button flips either.
+- **The Inventory toolbar matches the Achievements one:** game first, then search. The two screens used to put the same two controls in opposite places.
+
 ## [1.1.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.9)
 
 The login screen no longer describes an app from nine releases ago, and the maFile step that did nothing is gone.

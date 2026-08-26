@@ -362,9 +362,34 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
    govde satirinda (overflow-x:auto) yatay kaydirma cubugu doguruyordu; gizli olmasi fark
    etmiyor, mutlak konumlu ogeler scrollWidth'e giriyor. Dar panellerde saga yaslaniyor,
    boylece 264 px sola dogru aciliyor ve panelin icinde kaliyor. */
-#tab-gercekci #grSimpleBox [data-tip]::after,
-#tab-gercekci #grAdvBox [data-tip]::after,
-#tab-saat [data-tip]::after{left:auto;right:0;transform:none}
+/* Ipucu balonu 264 piksel ve mutlak konumlu. Ortalanmis halde (left:50%) dar bir
+   sutunda 130 pikselden fazlasi saga tasiyor; mutlak konumlu kutu da kaydirilabilir
+   atasinin scrollWidth'ine SAYILDIGI icin panelde yatay kaydirma cubugu beliriyordu.
+   Dar panellerin tamaminda balon saga yaslaniyor, yani sola dogru aciliyor: 264 piksel
+   290 piksellik sutuna sigiyor ve tasma kalmiyor. */
+#tab-gercekci [data-tip]::after,
+#tab-saat [data-tip]::after,
+#acSortDir[data-tip]::after{left:auto;right:0;transform:none}
+
+/* overflow-y:auto verilen bir kutuda overflow-x kendiliginden `auto` olur (visible,
+   diger eksen kaydirilabilirken auto'ya doner). Yani dikey kaydirma isteyen her panel
+   istemeden yatay kaydirma da kazaniyor. Bu sutunlar sabit genislikte; yatay kaydirma
+   tasarimda yok, kirpiliyor. `clip` secildi cunku `hidden`in aksine yeni bir kaydirma
+   baglami kurmuyor. */
+#tab-gercekci .gr-yan{overflow-x:clip}
+
+/* Flex cocugunun varsayilan min-width degeri `auto`dur: icerigi kadar yer kaplar ve
+   daralmayi reddeder. Yanina ipucu `?`si konan etiketler bu yuzden kabindan tasiyordu
+   (161 piksellik satirda 167 piksel). min-width:0 verilince etiket ikinci satira
+   sariyor, hicbir sey kirpilmiyor. */
+#tab-gercekci .gr-yan span{min-width:0}
+
+/* Ipucu `?`si tiklama alanini buyutmek icin `margin:-6px;padding:6px` kullaniyor:
+   gorunen 14 piksel, dokunulabilir 26 piksel. Negatif kenar bosluguna ragmen dolgu
+   kutusu saga 6 piksel tasiyor ve satiri kabindan genis gosteriyor. Bu sutunda sag
+   taraftaki fazlalik kaldiriliyor - `?` zaten satirin sonunda, sagina tiklanmiyor.
+   Inline stil oldugu icin !important sart. */
+#tab-gercekci .gr-yan [data-tip]{margin-right:0 !important;padding-right:0 !important}
 
 /* HAFIF MOD - pencere odakta degilken.
    Sonsuz animasyonlar (durum noktalari, spinner) odak disindayken bile her karede

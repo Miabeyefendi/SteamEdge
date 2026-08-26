@@ -388,10 +388,22 @@
       document.querySelectorAll('#tab-saat .e-toggle[data-bset]').forEach(el=>{
         el.classList.toggle('on', !!boostFlags[el.getAttribute('data-bset')]);
       });
+      saatKapiBoya();
       paintConc();
       syncAyarlariCiz();
       // Ayarlar simdi hazir; kutuphane daha once geldiyse secimi burada geri yukle.
       if (restoreBoostList()){ renderSaatList(); renderActiveBox(); }
+    }
+    // Baska bir anahtara bagli olan satirlar: kapali durumdayken sonuk ve tiklanamaz.
+    // Bir anahtarin acik gorunup hicbir sey yapmamasi, 1.1.10'da basarim acilis
+    // araliginda yasandi; ayni tuzagi burada da kapatiyoruz.
+    function saatKapiBoya(){
+      const satir = document.getElementById('saatLoopRow');
+      if (!satir) return;
+      const acik = !!boostFlags.seqIdle;
+      satir.style.opacity = acik ? '1' : '.4';
+      satir.style.pointerEvents = acik ? '' : 'none';
+      satir.title = acik ? '' : 'Sıralı bekletme modu kapalıyken kuyruk yoktur.';
     }
     document.querySelectorAll('#tab-saat .e-toggle[data-bset]').forEach(el=>{
       el.addEventListener('click', async ()=>{
@@ -401,6 +413,7 @@
         el.classList.toggle('on', val);
         const next = await window.imu.settings.set({ [key]: val }).catch(()=>null);
         if (next) appSettings = next;
+        saatKapiBoya();
         syncAyarlariCiz();
         renderActiveBox();
       });

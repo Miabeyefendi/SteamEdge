@@ -22,7 +22,28 @@
 
     // Bir ayar değişince ilgili sayfaları anında yeniden çizer - "kaydettim ama hiçbir şey
     // olmadı" durumunu ortadan kaldırır.
+    // Bir ayarin baska bir ayara bagli oldugu yerler. Bagli olan kapaliyken satir sonuk
+    // ve tiklanamaz olur; acik gorunup hicbir sey yapmayan anahtar birakmiyoruz. Bu tuzak
+    // 1.1.10'da basarim acilis araliginda yasandi: guvenli mod kapaliyken aralik sessizce
+    // yok sayiliyordu ve kullanici 55 dakika secip hepsinin bir anda acildigini gordu.
+    const AYAR_KAPILARI = [
+      // "Acilislari zamana yay" sapmanin GENISLIGINI ayarlar; sapma da guvenli modda olur.
+      { satir: 'ayAchSpreadRow', kosul: () => appSettings.achSafeMode !== false,
+        not: 'Güvenli mod kapalıyken açılış aralığı sapmaz.' },
+    ];
+    function ayarKapilariniBoya(){
+      AYAR_KAPILARI.forEach(({ satir, kosul, not }) => {
+        const el = document.getElementById(satir);
+        if (!el) return;
+        const acik = !!kosul();
+        el.style.opacity = acik ? '1' : '.4';
+        el.style.pointerEvents = acik ? '' : 'none';
+        el.title = acik ? '' : not;
+      });
+    }
+
     function applySettingsEverywhere(first){
+      ayarKapilariniBoya();
       if (typeof applyDensity === 'function') applyDensity();
       // Yan menü daraltılmış başlasın
       if (first && typeof sideNav !== 'undefined' && sideNav && appSettings.sidebarCollapsed) {

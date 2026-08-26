@@ -718,5 +718,9 @@
  "Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.": "登入、設定工作，然後讓它在背景執行。不需要 Steam 用戶端。",
  "Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.": "在 Steam 手機應用程式開啟 Steam Guard 分頁，點一下掃描圖示並掃描此代碼。",
  "QR kodu alınıyor...": "正在取得 QR 代碼...",
- "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "在如何讓一個長時間於背景執行、沒有介面的 Steam 工作階段保持健康這件事上給了我們啟發。同時執行多個帳號的想法也來自這裡。"
+ "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "在如何讓一個長時間於背景執行、沒有介面的 Steam 工作階段保持健康這件事上給了我們啟發。同時執行多個帳號的想法也來自這裡。",
+ "Başarım ara...": "搜尋成就...",
+ "Sıralama yönü": "排序方向",
+ "Artan sıra": "遞增",
+ "Azalan sıra": "遞減"
 }

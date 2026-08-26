@@ -98,7 +98,10 @@ if (!tekrar) console.log('  tekrar yok');
 // ---- 4. Etiket dengesi ----
 bolum('4. Etiket dengesi (div)');
 htmlDosyalar.forEach((f) => {
-  const m = oku(f);
+  // Yorumlar sayilmaz. Sayaci yorum korlugu bir kez yanlis alarm verdi: yerlesim
+  // hatasini anlatan bir yorumun icinde "<div>" gectigi icin dosya dengesiz gorundu.
+  // Yorum icine alinmis bir blok da ayni sekilde yanlis alarm uretirdi.
+  const m = oku(f).replace(/<!--[\s\S]*?-->/g, '');
   const ac = (m.match(/<div\b/g) || []).length;
   const kapa = (m.match(/<\/div>/g) || []).length;
   if (ac !== kapa) hata(gorece(f) + ' <div> ' + ac + ' / </div> ' + kapa);

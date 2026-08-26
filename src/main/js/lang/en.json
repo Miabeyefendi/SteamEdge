@@ -718,5 +718,9 @@
  "Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.": "Sign in, set up your job and let it run in the background. No Steam client needed.",
  "Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.": "Open the Steam Guard tab in the Steam mobile app, tap the scan icon and read this code.",
  "QR kodu alınıyor...": "Fetching the QR code...",
- "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "An inspiration for keeping a long-running, headless Steam session healthy in the background. The idea of running several accounts at once came from here."
+ "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "An inspiration for keeping a long-running, headless Steam session healthy in the background. The idea of running several accounts at once came from here.",
+ "Başarım ara...": "Search achievements...",
+ "Sıralama yönü": "Sort direction",
+ "Artan sıra": "Ascending",
+ "Azalan sıra": "Descending"
 }

@@ -5,6 +5,9 @@
     const acBusy = new Set();
     const acCache = new Map();
     let acView = 'grid', acFilterV = 'all', acSort = 'default', acSelAp = null;
+    // Siralama yonu. 'default' sirasinda yon kavrami yok (acilanlar uste, sonra kilitliler),
+    // o yuzden dugme orada devre disi kaliyor.
+    let acSortDir = 'asc';
     const acSelected = new Set();     // apiName - toplu aç/kilitle seçimi
 
     const AC = { ok:'#5FB324', warn:'#B37E24', teal:'#24AEB3', sub:'#C2AAEE', brand:'#5624B3',
@@ -46,6 +49,7 @@
       if (typeof appSettings !== 'object' || !appSettings) return;
       if (appSettings.achOrder) acSort = appSettings.achOrder;
       const s = document.getElementById('acSort'); if (s) s.value = acSort;
+      if (typeof acYonBoya === 'function') acYonBoya();
       const sm = document.getElementById('acSafeMode');
       if (sm){
         const on = appSettings.achSafeMode !== false;
@@ -135,12 +139,33 @@
     });
     document.getElementById('acSearch').addEventListener('input', renderAchievements);
     document.getElementById('acFilter').addEventListener('change', e=>{ acFilterV=e.target.value; renderAchievements(); });
-    document.getElementById('acSort').addEventListener('change', e=>{ acSort=e.target.value; renderAchievements(); });
+    document.getElementById('acSort').addEventListener('change', e=>{ acSort=e.target.value; acYonBoya(); renderAchievements(); });
+    // Yon dugmesi: ok yukari = artan, asagi = azalan. Varsayilan sirada sonuk ve olusuz.
+    function acYonBoya(){
+      const b = document.getElementById('acSortDir');
+      if (!b) return;
+      const kapali = acSort === 'default';
+      b.disabled = kapali;
+      b.style.opacity = kapali ? '.4' : '1';
+      b.style.cursor = kapali ? 'default' : 'pointer';
+      b.style.color = kapali ? '#656D80' : '#C2AAEE';
+      b.style.borderColor = kapali ? '#2B3345' : '#5624B3';
+      const yol = b.querySelector('path');
+      if (yol) yol.setAttribute('d', acSortDir === 'asc' ? 'M12 5v14M6 11l6-6 6 6' : 'M12 19V5M6 13l6 6 6-6');
+      b.setAttribute('data-tip', acSortDir === 'asc' ? 'Artan sıra' : 'Azalan sıra');
+    }
+    document.getElementById('acSortDir').onclick = ()=>{
+      if (acSort === 'default') return;
+      acSortDir = acSortDir === 'asc' ? 'desc' : 'asc';
+      acYonBoya(); renderAchievements();
+    };
+    acYonBoya();
     document.getElementById('acReset').onclick = ()=>{
-      acFilterV='all'; acSort='default'; acSelected.clear();
+      acFilterV='all'; acSort='default'; acSortDir='asc'; acSelected.clear();
       document.getElementById('acFilter').value='all';
       document.getElementById('acSort').value='default';
       document.getElementById('acSearch').value='';
+      acYonBoya();
       renderAchievements();
     };
     function paintAcView(){
@@ -199,10 +224,19 @@
       else if (acFilterV === 'ultrarare') list = list.filter(a=>rarityTier(a.rarityPct)==='ultrarare');
       if (q) list = list.filter(a=>a.name.toLowerCase().includes(q) || (a.desc||'').toLowerCase().includes(q));
       list = list.slice();
-      if (acSort === 'alpha') list.sort((a,b)=>a.name.localeCompare(b.name));
-      else if (acSort === 'rarity') list.sort((a,b)=>(a.rarityPct??101)-(b.rarityPct??101));
-      else if (acSort === 'date') list.sort((a,b)=>(b.unlockTime||0)-(a.unlockTime||0));
-      else list.sort((a,b)=>(b.achieved-a.achieved));
+      // Her olcut icin ARTAN karsilastirici yazilir, azalan bunun tersi. Boylece yon
+      // tek yerde uygulaniyor ve her siralama secenegi icin ayri kod yazmak gerekmiyor.
+      const karsilastir = acSort === 'alpha' ? (a,b)=>a.name.localeCompare(b.name)
+        : acSort === 'rarity' ? (a,b)=>(a.rarityPct??101)-(b.rarityPct??101)
+        : acSort === 'date' ? (a,b)=>(a.unlockTime||0)-(b.unlockTime||0)
+        : null;
+      if (karsilastir) {
+        // Tarih ve nadirlikte kullanicinin bekledigi ilk goruntu TERSTIR: once en yeni
+        // acilan, once en nadir. Alfabetikte A-Z. Bu yuzden yon carpani olcute gore.
+        const tersBaslar = (acSort === 'date');
+        const yon = ((acSortDir === 'asc') !== tersBaslar) ? 1 : -1;
+        list.sort((a,b)=>karsilastir(a,b) * yon);
+      } else list.sort((a,b)=>(b.achieved-a.achieved));
       return list;
     }
 
@@ -398,10 +432,9 @@
       const n = acSelected.size;
       const set=(id,t)=>{ const e=document.getElementById(id); if(e) e.textContent=t; };
       set('acPickLabel', n + ' başarım');
-      // Güvenli mod açıkken açılışlar ayarlardaki aralıkla tek tek yapılır → gerçek tahmin.
-      // Aralık rastgeleleştirildiği için tahmin ORTALAMA üzerinden verilir.
-      const safe = !appSettings || appSettings.achSafeMode !== false;
-      const secs = safe ? Math.round(n * acBaseDelaySec()) : 0;
+      // Acilislar HER ZAMAN ayarlardaki aralikla tek tek yapilir; guvenli mod yalnizca
+      // araligin rastgele sapip sapmayacagini belirler. Tahmin iki durumda da ayni.
+      const secs = Math.round(n * acBaseDelaySec());
       const h = Math.floor(secs/3600), m = Math.floor((secs%3600)/60), s = secs%60;
       set('acPickEta', (h ? (String(h).padStart(2,'0')+':') : '')
                        + String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'));
@@ -421,6 +454,11 @@
     }
     function acNextDelayMs(){
       const base = acBaseDelaySec() * 1000;
+      // Guvenli mod KAPALIYKEN aralik aynen uygulanir - sapma yok. Acikken sapar:
+      // normalde +-%40, "Acilislari zamana yay" acikken %40-%160. Uc ayar bagimsiz:
+      // aralik her zaman gecerli, guvenli mod sapmayi acar, yayma sapmayi genisletir.
+      const safe = !appSettings || appSettings.achSafeMode !== false;
+      if (!safe) return Math.max(250, base);
       const spread = appSettings && appSettings.achSpread;
       const f = spread ? (0.4 + Math.random()*1.2) : (0.6 + Math.random()*0.8);
       return Math.max(250, Math.round(base * f));
@@ -529,16 +567,19 @@
         body: (acSelected.size ? 'Seçtiğin' : 'Şu anki filtreye uyan') + ' başarımlar üzerinde işlem yapılacak.\n'
               + 'Bu işlem Steam hesabını kalıcı olarak değiştirir.'
               + (korumaliSayi ? ('\n\n' + korumaliSayi + ' başarım oyun tarafından korunduğu için atlanacak.') : ''),
-        warn: (appSettings && appSettings.achSafeMode !== false)
-          ? ('Güvenli mod açık: açılışlar ortalama ' + fmtDelay(acBaseDelaySec()) + ' arayla, her seferinde '
-             + 'rastgele sapmayla yapılır - sabit bir ritim oluşmaz.')
-          : 'Güvenli mod KAPALI: hepsi aynı anda gönderilir, profilde toplu açılış olarak görünür.',
+        // Uc ayar ayri ayri anlatiliyor: hangisinin ne yaptigi onay ekraninda gorunmezse
+        // kullanici araligi degistirip hicbir sey degismedigini saniyor.
+        warn: ((appSettings && appSettings.achSafeMode !== false)
+          ? ('Aralık: ' + fmtDelay(acBaseDelaySec()) + '. Güvenli mod açık, bu aralık her açılışta '
+             + 'rastgele sapar - sabit bir ritim oluşmaz.')
+          : ('Aralık: ' + fmtDelay(acBaseDelaySec()) + '. Güvenli mod kapalı, aralık aynen uygulanır; '
+             + 'eşit aralıklı açılış profilde göze çarpar.'))
+          + '\nToplam süre yaklaşık ' + fmtDelay(Math.round(targets.length * acBaseDelaySec())) + '.',
         confirmText: unlock ? 'Hepsini Aç' : 'Hepsini Kilitle',
         danger: !unlock,
       });
       if (!okBulk) return;
 
-      const safe = !appSettings || appSettings.achSafeMode !== false;
       targets.forEach(a=>acBusy.add(a.apiName));
       acRunning = true; acStopIstendi = false;
       const basarisizlar = [];
@@ -546,7 +587,12 @@
       paintRunBox(0, targets.length, 'başlıyor');
       renderAchievements();
 
-      if (safe){
+      // Acilislar HER ZAMAN tek tek ve ayarlardaki aralikla gonderilir.
+      // Eskiden guvenli mod kapaliyken hepsi TEK istekte gidiyordu ve "acilis
+      // araligi" ayari o durumda sessizce yok sayiliyordu: 55 dakika secili
+      // olmasina ragmen hepsi bir saniyede aciliyordu. Aralik artik her kosulda
+      // gecerli; guvenli mod yalnizca sapmayi acar (bkz. acNextDelayMs).
+      {
         for (let i = 0; i < targets.length; i++){
           if (acStopIstendi){
             // Kalanlarin mesgul isaretini kaldir, yoksa satirlar sonsuza kadar donuk kalir
@@ -589,22 +635,6 @@
           const d = acNextDelayMs();
           if (d) await acBekle(d, i+1, targets.length);
         }
-      } else {
-        paintRunBox(0, targets.length, 'toplu gönderiliyor');
-        const r = await E.setAchievements(acAppid, targets.map(a=>({ apiName:a.apiName, unlock })))
-                         .catch(e=>({ ok:false, error:(e&&e.message) }));
-        targets.forEach(a=>acBusy.delete(a.apiName));
-        if (r.ok){ ok = targets.length; targets.forEach(a=>{
-          a.achieved = unlock; if (unlock && !a.unlockTime) a.unlockTime = Date.now(); a.sonHata = null;
-          window.imu.state.achLog({ appid: acAppid, game: acData.gameName, apiName: a.apiName, name: a.name, unlock }).catch(()=>{});
-        }); }
-        else {
-          fail = targets.length;
-          targets.forEach(a=>{ a.sonHata = r.error || 'Steam reddetti'; });
-          basarisizlar.push({ ad: targets.length+' başarım', hata: r.error || 'Steam reddetti' });
-        }
-        acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
-        paintRunBox(targets.length, targets.length, null);
       }
 
       acRunning = false;

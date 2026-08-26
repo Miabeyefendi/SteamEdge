@@ -172,7 +172,7 @@
     </div>
 
     <!-- SAĞ: basit / gelişmiş ayarlar -->
-    <div style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
+    <div class="gr-yan" style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
       <div style="display:flex;gap:4px;padding:3px;border-radius:999px;background:#0D1118;border:1px solid #2B3345">
         <button id="grLvlSimple" style="flex:1;height:28px;border-radius:999px;border:1px solid #5624B3;background:#151C28;color:#DCE2FA;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Basit</button>
         <button id="grLvlAdv" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Gelişmiş</button>
@@ -184,9 +184,13 @@
             <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">%100 Bitiş Süresi</span>
             <span data-tip="Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input id="grTcMain" class="f-brand" placeholder="tahmin" style="flex:1;min-width:0;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 10px;outline:none">
-            <span style="font-size:12px;color:#656D80;flex-shrink:0">saat</span>
+          <!-- Kutu, altindaki acilir listelerle AYNI genislikte olmali. Eskiden satir
+               "input + saat" seklinde iki flex cocuguydu; "saat" etiketi kadar dar
+               kaliyor ve panelde tek kutu ice kacik duruyordu. Birim artik alanin
+               icinde, konumlandirilmis; disaridaki kap tam genislikte. -->
+          <div style="position:relative;width:100%">
+            <input id="grTcMain" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#656D80;pointer-events:none">saat</span>
           </div>
         </div>
 
@@ -321,8 +325,18 @@
             <span style="font-size:12px;color:#B9C0D6">Başarımsız oyunları listede göster</span>
             <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
+          <!-- "Süreyi ayarlara göre belirle" satiri 1.1.5'te eklenirken, bir sonraki
+               satirin ACIK olan <div>'inin ICINE dusmus. Bu yuzden tek satirda uc flex
+               cocugu yan yana geliyor ve etiketler harf harf alt alta iniyor, panelde de
+               yatay kaydirma cikiyordu. Iki satir artik kardes. -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
+            <div style="display:flex;align-items:center;gap:7px;min-width:0">
+              <span style="font-size:12px;color:#B9C0D6">Süreyi ayarlara göre belirle</span>
+              <span data-tip="Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
+            </div>
+            <div class="gr-toggle" data-grset="grOtoSure" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+          </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621"><div style="display:flex;align-items:center;gap:7px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Süreyi ayarlara göre belirle</span><span data-tip="Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span></div><div class="gr-toggle" data-grset="grOtoSure" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div></div>
             <div style="display:flex;align-items:center;gap:7px;min-width:0">
               <span style="font-size:12px;color:#B9C0D6">Gecikmiş başarımları hızlandır</span>
               <span data-tip="Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>

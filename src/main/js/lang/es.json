@@ -718,5 +718,9 @@
  "Oturumunu aç, işini kur ve arka planda çalıştır. Steam istemcisi gerekmez.": "Inicia sesion, prepara tu tarea y dejala correr en segundo plano. No hace falta el cliente de Steam.",
  "Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.": "Abre la pestana Steam Guard en la aplicacion movil de Steam, toca el icono de escaneo y lee este codigo.",
  "QR kodu alınıyor...": "Obteniendo el codigo QR...",
- "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "Una inspiracion para mantener sana una sesion de Steam sin interfaz que corre mucho tiempo en segundo plano. La idea de ejecutar varias cuentas a la vez viene de aqui."
+ "Arka planda, arayüzsüz ve uzun süre çalışan bir Steam oturumunun nasıl sağlıklı tutulacağı konusunda esin kaynağı. Birden çok hesabın aynı anda yürütülebilmesi fikrini buradan edindik.": "Una inspiracion para mantener sana una sesion de Steam sin interfaz que corre mucho tiempo en segundo plano. La idea de ejecutar varias cuentas a la vez viene de aqui.",
+ "Başarım ara...": "Buscar logros...",
+ "Sıralama yönü": "Sentido de la ordenacion",
+ "Artan sıra": "Ascendente",
+ "Azalan sıra": "Descendente"
 }
