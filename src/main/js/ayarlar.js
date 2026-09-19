@@ -89,7 +89,7 @@
       if (kind==='ach'   && !appSettings.notifyAch)   return;
       if (inQuietHours()) return;
       // Ana süreç üzerinden gönderilir; Windows toast'ları renderer'dan sessizce düşüyordu.
-      window.imu.notify(title, body||'').catch(()=>{});
+      window.imu.notify(t(title), t(body||'')).catch(()=>{});
       if (typeof playNotifSound === 'function') playNotifSound();
     }
 
@@ -244,7 +244,7 @@
         b.disabled = false; b.style.opacity = '1';
         if (!r || !r.ok){ if (t) t.fail((r && r.error) || 'Boşaltılamadı.'); return; }
         const mb = Math.round((r.kazancKb || 0) / 1024);
-        if (t) t.done(mb > 0 ? (mb + ' MB geri alındı.') : 'Önbellek boşaltıldı.');
+        if (t) t.done(mb > 0 ? tf('# MB geri alındı.', mb) : 'Önbellek boşaltıldı.');
         bellekOku();
       };
     })();
@@ -271,16 +271,16 @@
     const testBtn = document.getElementById('setTestNotif');
     if (testBtn) testBtn.onclick = async ()=>{
       if (!appSettings.notifications){
-        alert('Önce "Masaüstü bildirimlerini göster" anahtarını aç.');
+        alert(t('Önce "Masaüstü bildirimlerini göster" anahtarını aç.'));
         return;
       }
       if (inQuietHours()){
-        alert('Sessiz saatler şu an aktif ('+(appSettings.quietFrom||'23:00')+'-'+(appSettings.quietTo||'08:00')+').\nBu aralıkta bildirim gösterilmez.');
+        alert(t('Sessiz saatler şu an aktif') + ' ('+(appSettings.quietFrom||'23:00')+'-'+(appSettings.quietTo||'08:00')+').\n' + t('Bu aralıkta bildirim gösterilmez.'));
         return;
       }
       testBtn.disabled = true;
       const r = await window.imu.notify('SteamEdge',
-        'Bildirimler çalışıyor ✓  ·  ses: ' + (appSettings.notifSound || 'chime')).catch(e=>({ ok:false, error:(e&&e.message) }));
+        t('Bildirimler çalışıyor ✓') + '  ·  ' + t('ses:') + ' ' + (appSettings.notifSound || 'chime')).catch(e=>({ ok:false, error:(e&&e.message) }));
       testBtn.disabled = false;
       if (typeof playNotifSound === 'function') playNotifSound();
       if (r && r.ok){
@@ -309,7 +309,7 @@
     function markDirty(key){
       if (key) dirtyKeys.add(key);
       const d = document.getElementById('setDirty');
-      if (d) d.textContent = dirtyKeys.size ? (dirtyKeys.size + ' değişiklik') : 'yok';
+      if (d) d.textContent = dirtyKeys.size ? tf('# değişiklik', dirtyKeys.size) : 'yok';
     }
     function snapshotSettings(){
       settingsSnapshot = JSON.parse(JSON.stringify(appSettings || {}));
@@ -323,8 +323,8 @@
       const list = [...dirtyKeys].slice(0, 6).join(', ') + (dirtyKeys.size > 6 ? ' …' : '');
       const r = await edgeConfirm({
         tag: 'Kaydedilmemiş Değişiklik',
-        title: dirtyKeys.size + ' ayarı değiştirdin',
-        body: 'Değişiklikler zaten uygulandı ve diske yazıldı.\nDeğişen: ' + list,
+        title: tf('# ayarı değiştirdin', dirtyKeys.size),
+        body: t('Değişiklikler zaten uygulandı ve diske yazıldı.') + '\n' + t('Değişen:') + ' ' + list,
         warn: '“Geri Al” dersen bu sayfaya girdiğin andaki değerlere dönülür.',
         confirmText: 'Kaydet ve Çık',
         altText: 'Geri Al',
@@ -413,7 +413,7 @@
       const r = await S.export().catch(e=>({ ok:false, error:(e&&e.message) }));
       if (r && r.canceled) return;
       if (r && r.ok){
-        setBackupInfo('Son dışa aktarma: ' + r.file);
+        setBackupInfo(t('Son dışa aktarma:') + ' ' + r.file);
         if (typeof toast === 'function') toast('Dışa aktarma').done('Yedek kaydedildi.');
       } else {
         edgeConfirm({ tag:'Hata', danger:true, title:'Dışa aktarılamadı',
@@ -433,8 +433,8 @@
         await renderLifeStats();   // istatistikler de yedekten gelmiş olabilir
         paintAll();
         applySettingsEverywhere();
-        setBackupInfo('Son içe aktarma: ' + r.file);
-        if (typeof toast === 'function') toast('İçe aktarma').done(r.applied + ' ayar geri yüklendi.');
+        setBackupInfo(t('Son içe aktarma:') + ' ' + r.file);
+        if (typeof toast === 'function') toast('İçe aktarma').done(tf('# ayar geri yüklendi.', r.applied));
       } else {
         edgeConfirm({ tag:'Hata', danger:true, title:'İçe aktarılamadı',
                       body:(r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', cancelText:'Kapat' });
@@ -444,8 +444,7 @@
 
     document.getElementById('setWipeAll').onclick = async ()=>{
       const ok1 = await edgeConfirm({ tag:'Tehlikeli Bölge', danger:true, title:'TÜM YEREL VERİ SİLİNECEK',
-        body:'Oturum, kayıtlı hesaplar, ayarlar, kalıcı istatistikler ve fiyat önbelleği kalıcı olarak silinir '
-             + 've giriş ekranına dönülür.',
+        body:'Oturum, kayıtlı hesaplar, ayarlar, kalıcı istatistikler ve fiyat önbelleği kalıcı olarak silinir ve giriş ekranına dönülür.',
         warn:'Steam hesabın etkilenmez - sadece bu bilgisayardaki uygulama verisi temizlenir.',
         confirmText:'Devam' });
       if (!ok1) return;

@@ -21,7 +21,7 @@ const { packager } = require('@electron/packager');
 
 const KOK = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(KOK, 'package.json'), 'utf8'));
-const CIKTI_KOK = path.resolve(KOK, '..');                       // "App - SteamEdge"
+const CIKTI_KOK = path.join(KOK, 'releases');                    // standart agac: releases/
 // Klasor adi dogrudan arsiv adi olacak sekilde: SteamEdge-v1.0.7-win-x64
 // Boylece sag tik > arsivle dendiginde dosya adini elle duzeltmeye gerek kalmiyor.
 const PAKET_ADI = 'SteamEdge-v' + pkg.version + '-win-x64';
@@ -49,6 +49,12 @@ const IGNORE = [
   // Depo dosyalari: uygulamanin calismasi icin gerekmez, exe'ye girmesin.
   /^\/docs($|\/)/,
   /^\/\.github($|\/)/,
+  // Standart agac klasorleri. archive/ tur yedeklerini tutuyor, iclerinde
+  // derlenmis eski surumler var; dislanmazsa asar gigabaytlara ciker.
+  /^\/archive($|\/)/,
+  /^\/releases($|\/)/,
+  /^\/design($|\/)/,
+  /^\/tests($|\/)/,
   /^\/\.(gitignore|gitattributes|editorconfig)$/,
   /\.md$/i,
   /package-lock\.json$/,

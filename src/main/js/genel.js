@@ -83,7 +83,7 @@
     // Sayaçlarda iki nokta üst üste vurgu rengiyle yazılır: 04<span #C2AAEE>:</span>12
     function monoTime(str){ return String(str).replace(/:/g, '<span style="color:#C2AAEE">:</span>'); }
 
-    document.getElementById('gStatSessionSub').textContent = 'Başlangıç: ' + new Date(sessionStartTs).toLocaleTimeString('tr-TR');
+    document.getElementById('gStatSessionSub').textContent = t('Başlangıç:') + ' ' + new Date(sessionStartTs).toLocaleTimeString('tr-TR');
     setInterval(()=>{
       if (typeof uiTickAllowed === 'function' && !uiTickAllowed()) return;
       const el=document.getElementById('gStatSession');
@@ -104,7 +104,7 @@
 
       // Kütüphane
       set('gStatGames', (saatLoaded && ownedGames.length) ? ownedGames.length.toLocaleString('tr-TR') : '-');
-      set('gStatGamesSub', kartLoaded ? (dropGames.length+' oyun toplamaya hazır') : '-');
+      set('gStatGamesSub', kartLoaded ? tf('# oyun toplamaya hazır', dropGames.length) : '-');
 
       // Envanter & Pazar - değer + Steam kesintisi sonrası net
       // Yedek dali SART: hesap degistiginde resetPageCaches() invMerged'i null yapiyor ama
@@ -113,7 +113,7 @@
         let value=0, units=0;
         invMerged.forEach(i=>{ units+=i.count; if(i.marketable && i.marketHashName){ const v=priceVal(i); if(v!=null) value += v*i.count; } });
         set('gStatValue', fmtTL(value));
-        set('gStatValueSub', units.toLocaleString('tr-TR')+' öğe · net '+fmtTL(value*0.87));
+        set('gStatValueSub', tf('# öğe · net #', units.toLocaleString('tr-TR'), fmtTL(value*0.87)));
       } else {
         set('gStatValue', '-');
         set('gStatValueSub', 'Envanter sekmesinde yükle');
@@ -125,14 +125,14 @@
       set('gStatBoost', bIds.length + ' aktif');
       if (bOn && boostState.durationMs){
         const left = Math.max(0, boostState.durationMs - (Date.now()-(boostState.startedAt||Date.now())));
-        set('gStatBoostSub', 'Kalan ' + fmtSessionDur(left));
+        set('gStatBoostSub', t('Kalan') + ' ' + fmtSessionDur(left));
       } else set('gStatBoostSub', bOn ? 'Süresiz çalışıyor' : 'Çalışmıyor');
 
       // Başarımlar - sadece Başarımlar sekmesinde bir oyun seçiliyse gerçek veri var
       if (typeof acData !== 'undefined' && acData && acData.total){
         const pct = Math.round(acData.unlocked/acData.total*100);
         set('gStatAch', acData.unlocked+' / '+acData.total);
-        set('gStatAchSub', '%'+pct+' tamamlandı · '+(acData.gameName||''));
+        set('gStatAchSub', tf('%# tamamlandı ·', pct) + ' ' + (acData.gameName||''));
       } else {
         set('gStatAch', '-');
         set('gStatAchSub', 'Başarımlar sekmesinde oyun seç');
@@ -217,7 +217,7 @@
             if (before != null && g.remaining < before){
               const n = before - g.remaining;
               if (typeof pushDrop === 'function') pushDrop(g.appid, g.name, n);
-              if (appSettings && appSettings.notifyCardDrop) notify('farm', n+' kart düştü', g.name);
+              if (appSettings && appSettings.notifyCardDrop) notify('farm', tf('# kart düştü', n), g.name);
             }
           });
           dropGames = r.games;
@@ -226,7 +226,7 @@
           farmDroppedCount = Math.max(0, farmBaselineCards - now);
           cardDelta = Math.max(0, farmDroppedCount - farmLifeDropped);
           farmLifeDropped = farmDroppedCount;
-          if (cardDelta > 0) pushFeed('kart', cardDelta+' kart düştü', 'Toplam '+farmDroppedCount+' kart · bu oturum', 'Başarılı');
+          if (cardDelta > 0) pushFeed('kart', tf('# kart düştü', cardDelta), tf('Toplam # kart · bu oturum', farmDroppedCount), 'Başarılı');
           if (kartLoaded && typeof renderKart === 'function') renderKart();
           renderGenelStats(); renderGenelActive();
           // "Otomatik Pazarda Satış": kart düştüyse o oyunun yeni kartlarını listele
@@ -335,7 +335,7 @@
             + 'min-width:38px;text-align:right;color:' + (g.renk || '#24AEB3') + '">%' + yuzde + '</span>'
         + '</div>'
         + (g.basladi
-            ? ('<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80">Başlangıç: '
+            ? ('<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80">' + esc(t('Başlangıç:')) + ' '
                + fmtClock(g.basladi) + '</span>')
             : '')
         + '</div>';
@@ -375,7 +375,7 @@
         const nextDrop = lastTick.durationMs ? fmtSessionDur(Math.max(0, lastTick.durationMs - (lastTick.elapsedMs||0))) : '-';
         gorevler.push({
           tab:'kart', appid:heroId, baslik:(cur?cur.name:'Kart Düşürme'),
-          rozetler:[modeLabels[selectedMode]||selectedMode, activeIds.length+' oyun eşzamanlı'],
+          rozetler:[modeLabels[selectedMode]||selectedMode, tf('# oyun eşzamanlı', activeIds.length)],
           sutunlar:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(farmSessionStart||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
@@ -392,7 +392,7 @@
         const left = boostState.durationMs ? fmtSessionDur(Math.max(0, boostState.durationMs-gecen)) : '-';
         gorevler.push({
           tab:'saat', appid:bId, baslik:(g?g.name:'Saat Yükseltici'),
-          rozetler:['Saat Yükseltici', ids.length+' oyun eşzamanlı'],
+          rozetler:['Saat Yükseltici', tf('# oyun eşzamanlı', ids.length)],
           sutunlar:[['Aktif Oyun', ids.length, GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(gecen))],
                     ['Kalan', monoTime(left)]],
@@ -474,7 +474,7 @@
         + 'line-height:1;cursor:pointer;padding:0">'+isaret+'</button>';
       return '<div style="display:flex;align-items:center;gap:8px;padding-bottom:2px">'
         + '<span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
-          + 'color:#8B8F9E;flex:1">' + adet + ' iş birlikte çalışıyor</span>'
+          + 'color:#8B8F9E;flex:1">' + esc(tf('# iş birlikte çalışıyor', adet)) + '</span>'
         + ok('data-gorev-onceki', '‹')
         + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE;'
           + 'min-width:32px;text-align:center">' + (gorevIndeks+1) + ' / ' + adet + '</span>'
@@ -659,7 +659,7 @@
       }
       renderGenelStats(); renderGenelActive();
       if (con.ok){ pushFeed('kart', 'Oyun Listesi', 'Kütüphane ve kart listesi yenilendi.', 'Başarılı'); t.done('Oyun listesi yenilendi.'); }
-      else { pushFeed('hata', 'Oyun Listesi', 'Bağlantı hatası: '+con.error, 'Hata'); t.fail('Bağlantı hatası: '+con.error); }
+      else { pushFeed('hata', 'Oyun Listesi', tf('Bağlantı hatası: #', con.error), 'Hata'); t.fail(tf('Bağlantı hatası: #', con.error)); }
     }
 
     const goTab = (tab) => document.querySelector('.nav a[data-tab='+tab+']').click();
@@ -676,8 +676,8 @@
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining}));
       E.startFarm(selectedMode, games, durationSec*1000);
       if (typeof setKartPill === 'function') setKartPill(true, 'Çalışıyor');
-      notify('farm', 'Kart Düşürme Başladı', games.length+' oyun sırada.');
-      pushFeed('kart', 'Kart Düşürme', games.length+' oyun ile başladı.', 'Çalışıyor');
+      notify('farm', 'Kart Düşürme Başladı', tf('# oyun sırada.', games.length));
+      pushFeed('kart', 'Kart Düşürme', tf('# oyun ile başladı.', games.length), 'Çalışıyor');
     }
     function kartiDurdur(){
       E.stopFarm();
@@ -760,7 +760,7 @@
       if (!invMerged || !invMerged.length) return { hata: 'Envanter alınamadı. Envanter sekmesindeki hatayı kontrol et.' };
       renderGenelStats();
       pushFeed('envanter', 'Envanter', 'Envanter Steam\'den yeniden çekildi.', 'Başarılı');
-      return { mesaj: invMerged.length + ' çeşit öğe yüklendi.' };
+      return { mesaj: tf('# çeşit öğe yüklendi.', invMerged.length) };
     });
 
     // "Pazarı Yenile" - envanteri degil, market FIYATLARINI tazeler (onbellegi atlar).
@@ -779,3 +779,8 @@
 
     // Genel Bakış açılışta zaten görünür sekme - tıklama olmadan ilk verileri yükle.
     loadGenel();
+    // Dil değişimi sayfayı yeniledi: kullanıcıyı bıraktığı Ayarlar bölümüne geri götür (i18n.js).
+    try {
+      const donus = sessionStorage.getItem(I18N_DONUS_ANAHTARI);
+      if (donus) { sessionStorage.removeItem(I18N_DONUS_ANAHTARI); openAyarlar(donus); }
+    } catch (_) {}

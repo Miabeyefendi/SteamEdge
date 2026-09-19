@@ -62,6 +62,14 @@
       return bas + hedef + son;
     }
 
+    // Sayı taşıyan şablonlar için: t('# oyun sırada.', 5). Sayfa JS'leri metni sayıyla
+    // birleştirince DOM gözlemcisi parçaları eşleştiremiyordu; şablon sözlükte '#' ile
+    // durur, çevrilir, sonra değerler sırayla yerine konur.
+    function tf(sablon, ...degerler) {
+      let i = 0;
+      return t(sablon).replace(/#/g, () => (i < degerler.length ? String(degerler[i++]) : '#'));
+    }
+
     // DOM'u gezip metin düğümlerini ve metin taşıyan öznitelikleri çevirir.
     let i18nUyguluyor = false;
     const I18N_ATLA = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE']);
@@ -117,10 +125,16 @@
     // Dil değiştirme. Türkçeye dönmek metinleri geri çeviremez (çeviri tek yönlü), bu yüzden
     // sayfa yeniden yükleniyor; diğer diller arasında geçişte de aynı sebeple yeniden yükleme
     // en güvenli yol.
+    // Yeniden yükleme Genel Bakış'a düşürüyordu: kullanıcı dili değiştirip Ayarlar'ın
+    // ortasında kaybolmasın diye açık bölüm sessionStorage ile bir sonraki açılışa taşınır.
+    const I18N_DONUS_ANAHTARI = 'se.dilDonusBolumu';
     function setUiLang(kod, yenidenYukle) {
       const yeni = I18N_LANGS[kod] ? kod : 'tr';
       if (yeni === uiLang) return;
-      if (yenidenYukle !== false) { location.reload(); return; }
+      if (yenidenYukle !== false) {
+        try { sessionStorage.setItem(I18N_DONUS_ANAHTARI, typeof currentSetSec === 'string' ? currentSetSec : 'general'); } catch (_) {}
+        location.reload(); return;
+      }
       uiLang = yeni;
       i18nSozlukYukle(uiLang);
       applyI18n();

@@ -303,3 +303,10 @@ maFiles/
 
 # Not committed: local push notes
 PUSH-REHBERI.txt
+
+# Standart yapi: derlenmis cikti ve arsiv depoya girmez
+releases/
+archive/
+
+# Tasarim kaynak dosyalari (.ai/.eps/.tif, 10 MB). SVG ve PNG ciktilar src/assets ve assets altinda
+design/raw_files/

@@ -1,32 +1,32 @@
 <div align="center">
 
-<img src="./assets/logo-mark.png" width="120" alt="SteamEdge">
+<img src="../../assets/logo-mark.svg" width="120" alt="SteamEdge">
 
 # SteamEdge
 
 **Consigue cromos de Steam, acumula horas de juego y gestiona logros sin abrir nunca el cliente de Steam.**
 
-[![Licencia: AGPL v3](https://img.shields.io/badge/Licencia-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](./LICENSE)
+[![Licencia: AGPL v3](https://img.shields.io/badge/Licencia-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](../../LICENSE)
 [![Versión](https://img.shields.io/github/v/release/Miabeyefendi/SteamEdge?style=for-the-badge&color=F59E0B&label=versi%C3%B3n)](https://github.com/Miabeyefendi/SteamEdge/releases/latest)
 [![Plataforma](https://img.shields.io/badge/Windows-1E293B?style=for-the-badge&logo=windows&logoColor=white)](#-instalación)
 [![Estado](https://img.shields.io/badge/estado-activo-22C55E?style=for-the-badge)](#)
 [![Autor](https://img.shields.io/badge/por-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · [Türkçe](./README_TR.md) · **Español** · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
+[English](../../README.md) · [Türkçe](./README_TR.md) · **Español** · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
 
-[Instalación](#-instalación) · [Funciones](#-lo-esencial) · [Uso](#-inicio-rápido) · [Guía](./TUTORIAL_ES.md) · [Cambios](./CHANGELOG.md)
+[Instalación](#-instalación) · [Funciones](#-lo-esencial) · [Uso](#-inicio-rápido) · [Guía](./TUTORIAL_ES.md) · [Cambios](../../CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
-  <img src="./assets/btn-download.svg" height="52" alt="Descargar la última versión">
+  <img src="../../assets/btn-download.svg" height="52" alt="Descargar la última versión">
 </a>
 <a href="./TUTORIAL_ES.md">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
-    <img src="./assets/btn-tutorial.svg" height="52" alt="Leer la guía">
+    <img src="../../assets/btn-tutorial.svg" height="52" alt="Leer la guía">
   </picture>
 </a>
 
-<img src="./screenshots/main-showcase.jpg" width="92%" alt="SteamEdge farmeando cromos, subiendo horas y gestionando logros sin el cliente de Steam">
+<img src="../../design/screenshots/Overview.png" width="92%" alt="SteamEdge farmeando cromos, subiendo horas y gestionando logros sin el cliente de Steam">
 
 </div>
 
@@ -43,6 +43,22 @@
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
+
+---
+
+## 📸 Capturas
+
+<div align="center">
+
+| | |
+|:-:|:-:|
+| <img src="../../design/screenshots/CardFarming.png" alt="Farmeo de cromos"><br><sub>Farmeo de cromos</sub> | <img src="../../design/screenshots/HourBoostr.png" alt="Subida de horas"><br><sub>Subida de horas</sub> |
+| <img src="../../design/screenshots/Achievements.png" alt="Logros"><br><sub>Logros</sub> | <img src="../../design/screenshots/RealisticMode.png" alt="Modo realista"><br><sub>Modo realista</sub> |
+| <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="Modo realista, avanzado"><br><sub>Modo realista, avanzado</sub> | <img src="../../design/screenshots/Market.png" alt="Inventario y mercado"><br><sub>Inventario y mercado</sub> |
+| <img src="../../design/screenshots/Market2.png" alt="Mercado, libro de órdenes"><br><sub>Mercado, libro de órdenes</sub> | <img src="../../design/screenshots/Chat.png" alt="Chat de Steam"><br><sub>Chat de Steam</sub> |
+| <img src="../../design/screenshots/SettingsGeneral.png" alt="Ajustes"><br><sub>Ajustes</sub> |  |
+
+</div>
 
 ---
 
@@ -116,9 +132,9 @@ Todas las claves están documentadas en la [referencia de configuración](./TUTO
 ## 📖 Documentación
 
 - [**Guía**](./TUTORIAL_ES.md) - todas las funciones y ajustes, explicados por completo
-- [**Cambios**](./CHANGELOG.md) - qué cambió en cada versión
-- [**Contribuir**](./CONTRIBUTING.md) - cómo enviar un cambio
-- [**Seguridad**](./SECURITY.md) - cómo informar de una vulnerabilidad en privado
+- [**Cambios**](../../CHANGELOG.md) - qué cambió en cada versión
+- [**Contribuir**](../../CONTRIBUTING.md) - cómo enviar un cambio
+- [**Seguridad**](../../SECURITY.md) - cómo informar de una vulnerabilidad en privado
 
 ---
 
@@ -175,21 +191,21 @@ Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resoluc
 
 ## 🤝 Contribuir
 
-Las contribuciones son bienvenidas. Lee antes [CONTRIBUTING.md](./CONTRIBUTING.md) y
-[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Al contribuir aceptas licenciar tu
+Las contribuciones son bienvenidas. Lee antes [CONTRIBUTING.md](../../CONTRIBUTING.md) y
+[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md). Al contribuir aceptas licenciar tu
 trabajo bajo la AGPL-3.0.
 
 <div align="center">
 <a href="https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-report-bug-dark.svg">
-    <img src="./assets/btn-report-bug.svg" height="52" alt="Informar de un error">
+    <img src="../../assets/btn-report-bug.svg" height="52" alt="Informar de un error">
   </picture>
 </a>
 <a href="https://github.com/Miabeyefendi/SteamEdge/stargazers">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-star-dark.svg">
-    <img src="./assets/btn-star.svg" height="52" alt="Marcar el repositorio con una estrella">
+    <img src="../../assets/btn-star.svg" height="52" alt="Marcar el repositorio con una estrella">
   </picture>
 </a>
 </div>
@@ -199,7 +215,7 @@ trabajo bajo la AGPL-3.0.
 ## 🛡️ Seguridad
 
 ¿Has encontrado una vulnerabilidad? No abras una incidencia pública. Sigue el
-proceso privado descrito en [SECURITY.md](./SECURITY.md).
+proceso privado descrito en [SECURITY.md](../../SECURITY.md).
 
 ---
 
@@ -207,7 +223,7 @@ proceso privado descrito en [SECURITY.md](./SECURITY.md).
 
 Este proyecto se publica bajo la **Licencia Pública General Affero de GNU v3.0
 (AGPL-3.0)**, junto con los términos complementarios del archivo
-[NOTICE](./NOTICE). En resumen:
+[NOTICE](../../NOTICE). En resumen:
 
 - Puedes usar, estudiar, modificar, redistribuir e incluso ganar dinero con este
   software de forma gratuita, **siempre que** mantengas el código fuente completo
@@ -215,7 +231,7 @@ Este proyecto se publica bajo la **Licencia Pública General Affero de GNU v3.0
   (AGPL, sección 13), y conserves la atribución al autor que figura abajo.
 - Para usar este trabajo en un producto cerrado o propietario, o ejecutarlo como
   un SaaS cerrado, necesitas una **licencia comercial escrita aparte**, que puede
-  incluir regalías o reparto de ingresos. Consulta [NOTICE](./NOTICE), sección 8,
+  incluir regalías o reparto de ingresos. Consulta [NOTICE](../../NOTICE), sección 8,
   y ponte en contacto conmigo.
 
 ### Atribución (obligatoria)
@@ -234,7 +250,7 @@ con la que interactúe. Valve y Steam no están afiliados al autor ni lo respald
 sus nombres y marcas pertenecen a sus respectivos propietarios. El autor no acepta
 responsabilidad alguna por baneos de cuenta, pérdida de datos ni ningún otro daño,
 en la máxima medida permitida por la ley aplicable. Los términos completos están
-en los archivos [LICENSE](./LICENSE) y [NOTICE](./NOTICE).
+en los archivos [LICENSE](../../LICENSE) y [NOTICE](../../NOTICE).
 
 ---
 

@@ -28,7 +28,8 @@ const bolum = (m) => console.log('\n' + m);
 function dosyalar(dizin, uzanti, cikti = []) {
   for (const e of fs.readdirSync(dizin, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.git' || e.name === '.out'
-        || e.name === 'settings' || e.name === 'cache') continue;
+        || e.name === 'settings' || e.name === 'cache'
+        || e.name === 'archive' || e.name === 'releases') continue;
     const p = path.join(dizin, e.name);
     if (e.isDirectory()) dosyalar(p, uzanti, cikti);
     else if (e.name.toLowerCase().endsWith(uzanti)) cikti.push(p);

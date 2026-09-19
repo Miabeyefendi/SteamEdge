@@ -2,9 +2,9 @@
 
 # 📖 SteamEdge Rehberi
 
-[English](./TUTORIAL.md) · **Türkçe** · [Deutsch](./TUTORIAL_DE.md) · [Español](./TUTORIAL_ES.md) · [简体中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
+[English](../guides/TUTORIAL.md) · **Türkçe** · [Deutsch](./TUTORIAL_DE.md) · [Español](./TUTORIAL_ES.md) · [简体中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
 
-[README'ye dön](./README_TR.md) · [Sürüm notları](./CHANGELOG.md)
+[README'ye dön](./README_TR.md) · [Sürüm notları](../../CHANGELOG.md)
 
 </div>
 

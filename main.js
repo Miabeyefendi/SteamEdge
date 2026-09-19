@@ -1,11 +1,11 @@
 const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const SteamAuth = require('./src/auth/steamAuth');
-const SteamEngine = require('./src/engine/steamEngine');
-const FarmController = require('./src/engine/farmController');
-const defter = require('./src/engine/esitlemeDefteri');
-const guncelleme = require('./src/update/guncelleme');
+const SteamAuth = require('./src/services/steamAuth');
+const SteamEngine = require('./src/core/steamEngine');
+const FarmController = require('./src/core/farmController');
+const defter = require('./src/core/esitlemeDefteri');
+const guncelleme = require('./src/services/guncelleme');
 
 // hwAccel ayarı 'gpu hızlandırmayı kapat' derse app.whenReady()'den ÖNCE etki etmesi gerekir -
 // normal settings.json yüklemesi (loadSettings) whenReady içinde olduğu için burada senkron,

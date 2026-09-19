@@ -1,32 +1,32 @@
 <div align="center">
 
-<img src="./assets/logo-mark.png" width="120" alt="SteamEdge">
+<img src="../../assets/logo-mark.svg" width="120" alt="SteamEdge">
 
 # SteamEdge
 
 **Steam istemcisini hiç açmadan ticari kart topla, oynanma süresi biriktir, başarımlarını yönet.**
 
-[![Lisans: AGPL v3](https://img.shields.io/badge/Lisans-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](./LICENSE)
+[![Lisans: AGPL v3](https://img.shields.io/badge/Lisans-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](../../LICENSE)
 [![Sürüm](https://img.shields.io/github/v/release/Miabeyefendi/SteamEdge?style=for-the-badge&color=F59E0B&label=s%C3%BCr%C3%BCm)](https://github.com/Miabeyefendi/SteamEdge/releases/latest)
 [![Platform](https://img.shields.io/badge/Windows-1E293B?style=for-the-badge&logo=windows&logoColor=white)](#-kurulum)
 [![Durum](https://img.shields.io/badge/durum-etkin-22C55E?style=for-the-badge)](#)
 [![Yazar](https://img.shields.io/badge/yazan-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · **Türkçe** · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
+[English](../../README.md) · **Türkçe** · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
 
-[Kurulum](#-kurulum) · [Özellikler](#-öne-çıkanlar) · [Kullanım](#-hızlı-başlangıç) · [Rehber](./TUTORIAL_TR.md) · [Sürüm notları](./CHANGELOG.md)
+[Kurulum](#-kurulum) · [Özellikler](#-öne-çıkanlar) · [Kullanım](#-hızlı-başlangıç) · [Rehber](./TUTORIAL_TR.md) · [Sürüm notları](../../CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
-  <img src="./assets/btn-download.svg" height="52" alt="En son sürümü indir">
+  <img src="../../assets/btn-download.svg" height="52" alt="En son sürümü indir">
 </a>
 <a href="./TUTORIAL_TR.md">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
-    <img src="./assets/btn-tutorial.svg" height="52" alt="Rehberi oku">
+    <img src="../../assets/btn-tutorial.svg" height="52" alt="Rehberi oku">
   </picture>
 </a>
 
-<img src="./screenshots/main-showcase.jpg" width="92%" alt="SteamEdge, Steam istemcisi olmadan kart topluyor, saat yükseltiyor ve başarım yönetiyor">
+<img src="../../design/screenshots/Overview.png" width="92%" alt="SteamEdge, Steam istemcisi olmadan kart topluyor, saat yükseltiyor ve başarım yönetiyor">
 
 </div>
 
@@ -43,6 +43,22 @@
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
+
+---
+
+## 📸 Ekran görüntüleri
+
+<div align="center">
+
+| | |
+|:-:|:-:|
+| <img src="../../design/screenshots/CardFarming.png" alt="Kart Düşür"><br><sub>Kart Düşür</sub> | <img src="../../design/screenshots/HourBoostr.png" alt="Saat Yükseltici"><br><sub>Saat Yükseltici</sub> |
+| <img src="../../design/screenshots/Achievements.png" alt="Başarımlar"><br><sub>Başarımlar</sub> | <img src="../../design/screenshots/RealisticMode.png" alt="Gerçekçi Mod"><br><sub>Gerçekçi Mod</sub> |
+| <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="Gerçekçi Mod, gelişmiş"><br><sub>Gerçekçi Mod, gelişmiş</sub> | <img src="../../design/screenshots/Market.png" alt="Envanter & Pazar"><br><sub>Envanter & Pazar</sub> |
+| <img src="../../design/screenshots/Market2.png" alt="Pazar, sipariş defteri"><br><sub>Pazar, sipariş defteri</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam sohbeti"><br><sub>Steam sohbeti</sub> |
+| <img src="../../design/screenshots/SettingsGeneral.png" alt="Ayarlar"><br><sub>Ayarlar</sub> |  |
+
+</div>
 
 ---
 
@@ -116,9 +132,9 @@ Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapıl
 ## 📖 Belgeler
 
 - [**Rehber**](./TUTORIAL_TR.md) - her özellik, her ayar, tam anlatımıyla
-- [**Sürüm notları**](./CHANGELOG.md) - hangi sürümde ne değişti
-- [**Katkı**](./CONTRIBUTING.md) - değişiklik nasıl gönderilir
-- [**Güvenlik**](./SECURITY.md) - açık nasıl gizlice bildirilir
+- [**Sürüm notları**](../../CHANGELOG.md) - hangi sürümde ne değişti
+- [**Katkı**](../../CONTRIBUTING.md) - değişiklik nasıl gönderilir
+- [**Güvenlik**](../../SECURITY.md) - açık nasıl gizlice bildirilir
 
 ---
 
@@ -175,21 +191,21 @@ Bazı başarımları oyun sunucusu yazar, istemci değil; Steam hiçbir istemcin
 
 ## 🤝 Katkı
 
-Katkılar hoş karşılanır. Önce [CONTRIBUTING.md](./CONTRIBUTING.md) ve
-[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) dosyalarını oku. Katkı vererek
+Katkılar hoş karşılanır. Önce [CONTRIBUTING.md](../../CONTRIBUTING.md) ve
+[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md) dosyalarını oku. Katkı vererek
 çalışmanı AGPL-3.0 altında lisanslamayı kabul etmiş olursun.
 
 <div align="center">
 <a href="https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-report-bug-dark.svg">
-    <img src="./assets/btn-report-bug.svg" height="52" alt="Hata bildir">
+    <img src="../../assets/btn-report-bug.svg" height="52" alt="Hata bildir">
   </picture>
 </a>
 <a href="https://github.com/Miabeyefendi/SteamEdge/stargazers">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-star-dark.svg">
-    <img src="./assets/btn-star.svg" height="52" alt="Depoyu yıldızla">
+    <img src="../../assets/btn-star.svg" height="52" alt="Depoyu yıldızla">
   </picture>
 </a>
 </div>
@@ -198,7 +214,7 @@ Katkılar hoş karşılanır. Önce [CONTRIBUTING.md](./CONTRIBUTING.md) ve
 
 ## 🛡️ Güvenlik
 
-Bir açık mı buldun? Herkese açık bir issue açma. [SECURITY.md](./SECURITY.md)
+Bir açık mı buldun? Herkese açık bir issue açma. [SECURITY.md](../../SECURITY.md)
 içindeki gizli bildirim yolunu izle.
 
 ---
@@ -206,7 +222,7 @@ içindeki gizli bildirim yolunu izle.
 ## 📜 Lisans
 
 Bu proje **GNU Affero General Public License v3.0 (AGPL-3.0)** ile,
-[NOTICE](./NOTICE) dosyasındaki ek koşullarla birlikte lisanslanmıştır.
+[NOTICE](../../NOTICE) dosyasındaki ek koşullarla birlikte lisanslanmıştır.
 Kısaca:
 
 - Yazılımı ücretsiz kullanabilir, inceleyebilir, değiştirebilir, dağıtabilir ve
@@ -215,7 +231,7 @@ Kısaca:
   dahil, AGPL 13. madde) ve aşağıdaki yazar atfını koruyasın.
 - Bu çalışmayı kapalı kaynaklı ya da tescilli bir üründe kullanmak, ya da kapalı
   bir SaaS olarak çalıştırmak için **ayrı bir yazılı ticari lisans** gerekir; bu
-  lisans telif ya da gelir payı içerebilir. [NOTICE](./NOTICE) 8. bölüme bak ve
+  lisans telif ya da gelir payı içerebilir. [NOTICE](../../NOTICE) 8. bölüme bak ve
   benimle iletişime geç.
 
 ### Atıf (zorunlu)
@@ -233,7 +249,7 @@ koşullarına uymak dahil, kullanımından yalnızca sen sorumlusun. Valve ve St
 yazarla bağlantılı değildir ve bu projeyi onaylamış değildir; adları ve markaları
 sahiplerine aittir. Yazar; hesap yasaklanması, veri kaybı ya da başka hiçbir
 zarardan, yürürlükteki yasaların izin verdiği azami ölçüde sorumlu tutulamaz.
-Koşulların tamamı [LICENSE](./LICENSE) ve [NOTICE](./NOTICE) dosyalarındadır.
+Koşulların tamamı [LICENSE](../../LICENSE) ve [NOTICE](../../NOTICE) dosyalarındadır.
 
 ---
 

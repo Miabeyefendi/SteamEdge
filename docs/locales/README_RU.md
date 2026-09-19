@@ -1,32 +1,32 @@
 <div align="center">
 
-<img src="./assets/logo-mark.png" width="120" alt="SteamEdge">
+<img src="../../assets/logo-mark.svg" width="120" alt="SteamEdge">
 
 # SteamEdge
 
 **Собирайте коллекционные карточки Steam, накапливайте время в играх и управляйте достижениями, ни разу не открыв клиент Steam.**
 
-[![Лицензия: AGPL v3](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](./LICENSE)
+[![Лицензия: AGPL v3](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](../../LICENSE)
 [![Версия](https://img.shields.io/github/v/release/Miabeyefendi/SteamEdge?style=for-the-badge&color=F59E0B&label=%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%8F)](https://github.com/Miabeyefendi/SteamEdge/releases/latest)
 [![Платформа](https://img.shields.io/badge/Windows-1E293B?style=for-the-badge&logo=windows&logoColor=white)](#-установка)
 [![Статус](https://img.shields.io/badge/%D1%81%D1%82%D0%B0%D1%82%D1%83%D1%81-%D0%B0%D0%BA%D1%82%D0%B8%D0%B2%D0%B5%D0%BD-22C55E?style=for-the-badge)](#)
 [![Автор](https://img.shields.io/badge/%D0%B0%D0%B2%D1%82%D0%BE%D1%80-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · **Русский**
+[English](../../README.md) · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · **Русский**
 
-[Установка](#-установка) · [Возможности](#-главное) · [Использование](#-быстрый-старт) · [Руководство](./TUTORIAL_RU.md) · [Изменения](./CHANGELOG.md)
+[Установка](#-установка) · [Возможности](#-главное) · [Использование](#-быстрый-старт) · [Руководство](./TUTORIAL_RU.md) · [Изменения](../../CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
-  <img src="./assets/btn-download.svg" height="52" alt="Скачать последнюю версию">
+  <img src="../../assets/btn-download.svg" height="52" alt="Скачать последнюю версию">
 </a>
 <a href="./TUTORIAL_RU.md">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
-    <img src="./assets/btn-tutorial.svg" height="52" alt="Прочитать руководство">
+    <img src="../../assets/btn-tutorial.svg" height="52" alt="Прочитать руководство">
   </picture>
 </a>
 
-<img src="./screenshots/main-showcase.jpg" width="92%" alt="SteamEdge фармит карточки, накручивает часы и управляет достижениями без клиента Steam">
+<img src="../../design/screenshots/Overview.png" width="92%" alt="SteamEdge фармит карточки, накручивает часы и управляет достижениями без клиента Steam">
 
 </div>
 
@@ -48,6 +48,22 @@
 - **Несколько аккаунтов** - Несколько аккаунтов подключены одновременно, каждый фармит в фоне, переключение не теряет прогресс.
 - **Без клиента Steam** - Работает по собственному сетевому протоколу Steam. Клиент никогда не запускается и не нужен.
 - **Портативность** - Распакуйте и запустите. Без установщика, без реестра, всё лежит рядом с исполняемым файлом.
+
+---
+
+## 📸 Скриншоты
+
+<div align="center">
+
+| | |
+|:-:|:-:|
+| <img src="../../design/screenshots/CardFarming.png" alt="Фарм карточек"><br><sub>Фарм карточек</sub> | <img src="../../design/screenshots/HourBoostr.png" alt="Накрутка часов"><br><sub>Накрутка часов</sub> |
+| <img src="../../design/screenshots/Achievements.png" alt="Достижения"><br><sub>Достижения</sub> | <img src="../../design/screenshots/RealisticMode.png" alt="Реалистичный режим"><br><sub>Реалистичный режим</sub> |
+| <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="Реалистичный режим, расширенный"><br><sub>Реалистичный режим, расширенный</sub> | <img src="../../design/screenshots/Market.png" alt="Инвентарь и торговая площадка"><br><sub>Инвентарь и торговая площадка</sub> |
+| <img src="../../design/screenshots/Market2.png" alt="Площадка, стакан заявок"><br><sub>Площадка, стакан заявок</sub> | <img src="../../design/screenshots/Chat.png" alt="Чат Steam"><br><sub>Чат Steam</sub> |
+| <img src="../../design/screenshots/SettingsGeneral.png" alt="Настройки"><br><sub>Настройки</sub> |  |
+
+</div>
 
 ---
 
@@ -121,9 +137,9 @@ npm start
 ## 📖 Документация
 
 - [**Руководство**](./TUTORIAL_RU.md) - каждая возможность и каждая настройка, полностью
-- [**Изменения**](./CHANGELOG.md) - что поменялось в каждом выпуске
-- [**Участие**](./CONTRIBUTING.md) - как прислать правку
-- [**Безопасность**](./SECURITY.md) - как приватно сообщить об уязвимости
+- [**Изменения**](../../CHANGELOG.md) - что поменялось в каждом выпуске
+- [**Участие**](../../CONTRIBUTING.md) - как прислать правку
+- [**Безопасность**](../../SECURITY.md) - как приватно сообщить об уязвимости
 
 ---
 
@@ -180,21 +196,21 @@ npm start
 
 ## 🤝 Участие
 
-Вклад приветствуется. Сначала прочитайте [CONTRIBUTING.md](./CONTRIBUTING.md) и
-[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Присылая правку, вы соглашаетесь
+Вклад приветствуется. Сначала прочитайте [CONTRIBUTING.md](../../CONTRIBUTING.md) и
+[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md). Присылая правку, вы соглашаетесь
 лицензировать свою работу под AGPL-3.0.
 
 <div align="center">
 <a href="https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-report-bug-dark.svg">
-    <img src="./assets/btn-report-bug.svg" height="52" alt="Сообщить об ошибке">
+    <img src="../../assets/btn-report-bug.svg" height="52" alt="Сообщить об ошибке">
   </picture>
 </a>
 <a href="https://github.com/Miabeyefendi/SteamEdge/stargazers">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-star-dark.svg">
-    <img src="./assets/btn-star.svg" height="52" alt="Поставить звезду репозиторию">
+    <img src="../../assets/btn-star.svg" height="52" alt="Поставить звезду репозиторию">
   </picture>
 </a>
 </div>
@@ -204,14 +220,14 @@ npm start
 ## 🛡️ Безопасность
 
 Нашли уязвимость? Не открывайте публичную задачу. Следуйте приватной процедуре
-из [SECURITY.md](./SECURITY.md).
+из [SECURITY.md](../../SECURITY.md).
 
 ---
 
 ## 📜 Лицензия
 
 Проект распространяется под **GNU Affero General Public License v3.0
-(AGPL-3.0)** вместе с дополнительными условиями из файла [NOTICE](./NOTICE).
+(AGPL-3.0)** вместе с дополнительными условиями из файла [NOTICE](../../NOTICE).
 Вкратце:
 
 - Вы можете бесплатно использовать, изучать, изменять, распространять и даже
@@ -222,7 +238,7 @@ npm start
 - Чтобы использовать эту работу в закрытом или проприетарном продукте либо
   запускать её как закрытый SaaS, нужна **отдельная письменная коммерческая
   лицензия**, которая может включать отчисления или долю от дохода. Смотрите
-  [NOTICE](./NOTICE), раздел 8, и свяжитесь со мной.
+  [NOTICE](../../NOTICE), раздел 8, и свяжитесь со мной.
 
 ### Указание авторства (обязательно)
 
@@ -240,8 +256,8 @@ npm start
 связаны с автором и не поддерживают проект; их названия и товарные знаки
 принадлежат их владельцам. Автор не несёт ответственности за блокировки
 аккаунтов, потерю данных и любой иной ущерб в максимальной степени, допустимой
-применимым законодательством. Полные условия в файлах [LICENSE](./LICENSE) и
-[NOTICE](./NOTICE).
+применимым законодательством. Полные условия в файлах [LICENSE](../../LICENSE) и
+[NOTICE](../../NOTICE).
 
 ---
 

@@ -2,9 +2,9 @@
 
 # 📖 SteamEdge Anleitung
 
-[English](./TUTORIAL.md) · [Türkçe](./TUTORIAL_TR.md) · **Deutsch** · [Español](./TUTORIAL_ES.md) · [简体中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
+[English](../guides/TUTORIAL.md) · [Türkçe](./TUTORIAL_TR.md) · **Deutsch** · [Español](./TUTORIAL_ES.md) · [简体中文](./TUTORIAL_ZH.md) · [Русский](./TUTORIAL_RU.md)
 
-[Zurück zur README](./README.md) · [Änderungen](./CHANGELOG.md)
+[Zurück zur README](../../README.md) · [Änderungen](../../CHANGELOG.md)
 
 </div>
 
@@ -363,6 +363,6 @@ Kopiere den Ordner, alles steckt darin. Denk daran, dass in `settings/` dein Sit
 
 <div align="center">
 
-[Zurück zur README](./README.md) · [Fehler melden](https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml)
+[Zurück zur README](../../README.md) · [Fehler melden](https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml)
 
 </div>

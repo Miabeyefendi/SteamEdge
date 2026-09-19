@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/logo-mark.png" width="120" alt="SteamEdge">
+<img src="./assets/logo-mark.svg" width="120" alt="SteamEdge">
 
 # SteamEdge
 
@@ -12,21 +12,21 @@
 [![Status](https://img.shields.io/badge/status-active-22C55E?style=for-the-badge)](#)
 [![Author](https://img.shields.io/badge/by-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-**English** · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
+**English** · [Türkçe](./docs/locales/README_TR.md) · [Español](./docs/locales/README_ES.md) · [简体中文](./docs/locales/README_ZH.md) · [Русский](./docs/locales/README_RU.md)
 
-[Install](#-installation) · [Features](#-highlights) · [Usage](#-quick-start) · [Tutorial](./TUTORIAL.md) · [Changelog](./CHANGELOG.md)
+[Install](#-installation) · [Features](#-highlights) · [Usage](#-quick-start) · [Tutorial](./docs/guides/TUTORIAL.md) · [Changelog](./CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
   <img src="./assets/btn-download.svg" height="52" alt="Download the latest release">
 </a>
-<a href="./TUTORIAL.md">
+<a href="./docs/guides/TUTORIAL.md">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
     <img src="./assets/btn-tutorial.svg" height="52" alt="Read the tutorial">
   </picture>
 </a>
 
-<img src="./screenshots/main-showcase.jpg" width="92%" alt="SteamEdge farming cards, boosting hours and managing achievements without the Steam client">
+<img src="./design/screenshots/Overview.png" width="92%" alt="SteamEdge farming cards, boosting hours and managing achievements without the Steam client">
 
 </div>
 
@@ -43,6 +43,22 @@
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+| | |
+|:-:|:-:|
+| <img src="./design/screenshots/CardFarming.png" alt="Card Farming"><br><sub>Card Farming</sub> | <img src="./design/screenshots/HourBoostr.png" alt="Hour Booster"><br><sub>Hour Booster</sub> |
+| <img src="./design/screenshots/Achievements.png" alt="Achievements"><br><sub>Achievements</sub> | <img src="./design/screenshots/RealisticMode.png" alt="Realistic Mode"><br><sub>Realistic Mode</sub> |
+| <img src="./design/screenshots/RealisticModeAdvanced.png" alt="Realistic Mode, advanced"><br><sub>Realistic Mode, advanced</sub> | <img src="./design/screenshots/Market.png" alt="Inventory & Market"><br><sub>Inventory & Market</sub> |
+| <img src="./design/screenshots/Market2.png" alt="Market, order book"><br><sub>Market, order book</sub> | <img src="./design/screenshots/Chat.png" alt="Steam chat"><br><sub>Steam chat</sub> |
+| <img src="./design/screenshots/SettingsGeneral.png" alt="Settings"><br><sub>Settings</sub> |  |
+
+</div>
 
 ---
 
@@ -90,7 +106,7 @@ npm start
 
 On first launch you get the login screen. Scan the QR code with the Steam mobile app, or switch to the password tab and enter your credentials plus a Steam Guard code. Nothing is stored anywhere except a session token in `settings/`, next to the executable.
 
-Once you are in, the Overview shows what is running and what is available. Open **Card Farming**, refresh the list, pick a mode and press Start. Everything else can wait until you have read the [tutorial](./TUTORIAL.md).
+Once you are in, the Overview shows what is running and what is available. Open **Card Farming**, refresh the list, pick a mode and press Start. Everything else can wait until you have read the [tutorial](./docs/guides/TUTORIAL.md).
 
 ---
 
@@ -109,13 +125,13 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes |
 | `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
-Every key is documented in the [configuration reference](./TUTORIAL.md#️-configuration-reference).
+Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference).
 
 ---
 
 ## 📖 Documentation
 
-- [**Tutorial**](./TUTORIAL.md) - every feature, every setting, explained in full
+- [**Tutorial**](./docs/guides/TUTORIAL.md) - every feature, every setting, explained in full
 - [**Changelog**](./CHANGELOG.md) - what changed in each release
 - [**Contributing**](./CONTRIBUTING.md) - how to send a change
 - [**Security**](./SECURITY.md) - how to report a vulnerability privately
@@ -167,7 +183,7 @@ Some achievements are written by the game server, not the client, and Steam refu
 <details>
 <summary><b>It stopped working after an update. What now?</b></summary>
 
-Check the [troubleshooting section](./TUTORIAL.md#-troubleshooting) of the tutorial first, then the log at `cache/steamedge.log`. If it is still broken, open a bug report and attach that log.
+Check the [troubleshooting section](./docs/guides/TUTORIAL.md#-troubleshooting) of the tutorial first, then the log at `cache/steamedge.log`. If it is still broken, open a bug report and attach that log.
 
 </details>
 

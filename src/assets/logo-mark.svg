@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 200 1280 620">
+  <defs>
+    <linearGradient id="se-s" x1="15.45" y1="511.67" x2="718.23" y2="511.67" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f3f3f4"/>
+      <stop offset="1" stop-color="#e7e7e7"/>
+    </linearGradient>
+    <linearGradient id="se-e1" x1="674.48" y1="290.72" x2="1264.55" y2="290.72" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5300f5"/>
+      <stop offset=".51" stop-color="#6b00dd"/>
+      <stop offset="1" stop-color="#6709e9"/>
+    </linearGradient>
+    <linearGradient id="se-e2" x1="730.17" y1="515.65" x2="1202.23" y2="515.65" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5300f5"/>
+      <stop offset=".51" stop-color="#6b00dd"/>
+      <stop offset="1" stop-color="#6709e9"/>
+    </linearGradient>
+    <linearGradient id="se-e3" x1="674.48" y1="744.04" x2="1264.55" y2="744.04" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5300f5"/>
+      <stop offset=".51" stop-color="#6b00dd"/>
+      <stop offset="1" stop-color="#6709e9"/>
+    </linearGradient>
+  </defs>
+  <polygon fill="url(#se-s)" points="592.26 347.24 222.31 347.24 197.11 375.09 197.11 465.26 588.29 465.26 649.28 528.91 649.28 697.31 544.53 802.06 15.45 802.06 135.46 682.06 484.86 682.06 524.64 656.2 524.64 572.66 152.03 572.66 65.84 486.47 65.84 326.03 170.59 221.27 718.23 221.27"/>
+  <path fill="url(#se-e1)" d="M674.48,348.57l118.68-118.68h471.39l-121.66,121.66s-468.41-6.96-468.41-2.98Z"/>
+  <polygon fill="url(#se-e2)" points="730.17 526.25 800.45 455.98 1202.23 455.98 1082.89 575.32 730.17 575.32 730.17 526.25"/>
+  <path fill="url(#se-e3)" d="M785.86,685.38h478.69l-117.35,117.35h-472.72s113.37-119.34,111.38-117.35Z"/>
+</svg>

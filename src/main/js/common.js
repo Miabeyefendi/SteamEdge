@@ -480,7 +480,7 @@
       set('lifeCards', (lifeStats.cardsDropped||0));
       set('lifeSold', (lifeStats.cardsSold||0));
       set('lifeBoost', fmtHrs(lifeStats.boostRuntimeMs||0));
-      set('lifeSince', 'Kayıt başlangıcı: ' + new Date(lifeStats.since||Date.now()).toLocaleDateString('tr-TR'));
+      set('lifeSince', t('Kayıt başlangıcı:') + ' ' + new Date(lifeStats.since||Date.now()).toLocaleDateString('tr-TR'));
     }
     async function addLifeStats(patch){ lifeStats = await window.imu.stats.add(patch).catch(()=>lifeStats); renderLifeStats(); }
     // 16:9 - Kütüphane Logosu (logo.png). contain: saydam logo kırpılmadan sığar.
@@ -555,11 +555,10 @@
         const tarih = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString('tr-TR') : '';
         const ac = await edgeConfirm({
           tag: 'Güncelleme',
-          title: 'Yeni sürüm yayımlandı: v' + d.son,
-          body: 'Kurulu sürüm v' + d.kurulu + (tarih ? ('  ·  yayımlanma tarihi ' + tarih) : '')
-                + '\nDeğişiklikleri yayın sayfasında okuyabilirsin.',
-          warn: 'İndirmeyi uygulama yapmaz. Yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ '
-                + 'bir klasöre çıkarır, eski klasördeki settings klasörünü yanına kopyalarsın.',
+          title: t('Yeni sürüm yayımlandı:') + ' v' + d.son,
+          body: t('Kurulu sürüm') + ' v' + d.kurulu + (tarih ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + tarih) : '')
+                + '\n' + t('Değişiklikleri yayın sayfasında okuyabilirsin.'),
+          warn: 'İndirmeyi uygulama yapmaz. Yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yanına kopyalarsın.',
           confirmText: 'Yayın Sayfasını Aç',
           cancelText: 'Şimdi Değil',
         });
@@ -576,12 +575,12 @@
       // Düğmenin üstündeki nokta: yeni sürüm varken yanar, güncelken söner.
       if (rozet) rozet.style.display = yeniVar ? 'block' : 'none';
       const btn = document.getElementById('tbUpdate');
-      if (btn) btn.title = yeniVar ? ('Yeni sürüm var: v' + d.son) : 'Güncellemeleri denetle';
+      if (btn) btn.title = yeniVar ? (t('Yeni sürüm var:') + ' v' + d.son) : 'Güncellemeleri denetle';
       if (yeniVar){ guncellemePenceresi(d); return; }
       // Güncel ya da bakılamadı: yalnızca kullanıcı elle sorduysa cevap ver.
       if (!elleBakildi || !d || typeof toast !== 'function') return;
-      if (d.ok) toast('Güncelleme').done('En güncel sürümü kullanıyorsun (v' + d.kurulu + ').');
-      else toast('Güncelleme').fail((d.hata || 'Sürüm bilgisi alınamadı.') + ' Kurulu sürümün çalışmaya devam eder.');
+      if (d.ok) toast('Güncelleme').done(tf('En güncel sürümü kullanıyorsun (v#).', d.kurulu));
+      else toast('Güncelleme').fail(t(d.hata || 'Sürüm bilgisi alınamadı.') + ' ' + t('Kurulu sürümün çalışmaya devam eder.'));
     }
 
     if (window.imu && window.imu.guncelleme){
@@ -663,7 +662,7 @@
 
     function kimlikKopyala(metin, etiket){
       navigator.clipboard.writeText(metin).then(()=>{
-        if (typeof toast === 'function') toast('Kopyalandı').done((etiket || 'Değer') + ' panoya kopyalandı.');
+        if (typeof toast === 'function') toast('Kopyalandı').done(t(etiket || 'Değer') + ' ' + t('panoya kopyalandı.'));
       }).catch(()=>{});
     }
 
@@ -679,13 +678,13 @@
       e.stopPropagation();
       if (!kimlikler) return;
       kimlikKopyala([
-        'SteamID64      : ' + kimlikler.idSteam64,
-        'SteamID        : ' + kimlikler.idKlasik,
-        'SteamID3       : ' + kimlikler.idSteam3,
-        'Hesap numarası : ' + kimlikler.idHesap,
-        'Hex            : ' + kimlikler.idHex,
-        'Profil adresi  : ' + kimlikler.idProfil,
-        'Özel adres     : ' + (kimlikler.idOzel || 'tanımlı değil'),
+        'SteamID64'.padEnd(15) + ': ' + kimlikler.idSteam64,
+        'SteamID'.padEnd(15) + ': ' + kimlikler.idKlasik,
+        'SteamID3'.padEnd(15) + ': ' + kimlikler.idSteam3,
+        t('Hesap numarası').padEnd(15) + ': ' + kimlikler.idHesap,
+        'Hex'.padEnd(15) + ': ' + kimlikler.idHex,
+        t('Profil adresi').padEnd(15) + ': ' + kimlikler.idProfil,
+        t('Özel adres').padEnd(15) + ': ' + (kimlikler.idOzel || t('tanımlı değil')),
       ].join('\n'), 'Tüm kimlik biçimleri');
     };
     const idOpenProfileBtn = document.getElementById('idOpenProfile');
@@ -849,7 +848,7 @@
     async function switchAccount(steamID){
       closeAcct();
       const r = await window.imu.accounts.switch(steamID).catch(()=>null);
-      if (!r || !r.ok){ alert('Hesap değiştirilemedi.' + (r && r.error ? '\n'+r.error : '')); return; }
+      if (!r || !r.ok){ alert(t('Hesap değiştirilemedi.') + (r && r.error ? '\n'+r.error : '')); return; }
       resetPageCaches();
       imuProfile = null; imuProfilTaze = false; loadProfile();
       reloadActiveTab();
@@ -860,18 +859,18 @@
       const ok = await edgeConfirm({
         tag:'Hesabı Kaldır', danger:true,
         title:'Bu hesap listeden kaldırılacak',
-        body:'Silinecekler:\n'
-             + '  · Kayıtlı Steam oturumu (giriş anahtarı)\n'
-             + '  · O hesaba ait saat yükseltici listesi, kuyruk sırası ve başarım geçmişi\n'
-             + '  · O hesaba ait istatistikler\n\n'
-             + 'Arka planda çalışan kart toplama ve saat yükseltme işi durdurulur.\n\n'
-             + 'Steam hesabının kendisine hiçbir şey olmaz; istersen tekrar giriş yapabilirsin.',
+        body:t('Silinecekler:') + '\n'
+             + '  · ' + t('Kayıtlı Steam oturumu (giriş anahtarı)') + '\n'
+             + '  · ' + t('O hesaba ait saat yükseltici listesi, kuyruk sırası ve başarım geçmişi') + '\n'
+             + '  · ' + t('O hesaba ait istatistikler') + '\n\n'
+             + t('Arka planda çalışan kart toplama ve saat yükseltme işi durdurulur.') + '\n\n'
+             + t('Steam hesabının kendisine hiçbir şey olmaz; istersen tekrar giriş yapabilirsin.'),
         warn:'Bu işlem geri alınamaz.',
         confirmText:'Hesabı Kaldır', cancelText:'Vazgeç',
       });
       if (!ok) return;
       const r = await window.imu.accounts.remove(steamID).catch(()=>null);
-      if (!r || !r.ok) { alert('Hesap kaldırılamadı.'); return; }
+      if (!r || !r.ok) { alert(t('Hesap kaldırılamadı.')); return; }
       if (r.loggedOut) return; // main.js zaten giriş ekranına geçti
       resetPageCaches();
       imuProfile = null; imuProfilTaze = false; loadProfile();
@@ -892,8 +891,8 @@
       }
       const who = m.persona || m.from;
       if (typeof pushFeed === 'function'){
-        pushFeed('mesaj', 'Steam mesajı · ' + who,
-                 m.message.slice(0,140) + (m.replied ? '  ·  otomatik yanıtlandı' : ''), 'Mesaj');
+        pushFeed('mesaj', t('Steam mesajı') + ' · ' + who,
+                 m.message.slice(0,140) + (m.replied ? '  ·  ' + t('otomatik yanıtlandı') : ''), 'Mesaj');
       }
       if (typeof toast === 'function') toast(who).done(m.message.slice(0,120));
       if (typeof playNotifSound === 'function' && appSettings && appSettings.notifications) playNotifSound();
@@ -910,9 +909,8 @@
       edgeConfirm({
         tag:'Çıkış Yap',
         title:'Bu hesaptan çıkış yapılacak',
-        body:'Oturum kapatılır ve giriş ekranına dönersin.\n\n'
-             + 'Ayarların, saat yükseltici listen, başarım geçmişin ve istatistiklerin SİLİNMEZ; '
-             + 'tekrar giriş yaptığında yerinde olur.',
+        body:t('Oturum kapatılır ve giriş ekranına dönersin.') + '\n\n'
+             + t('Ayarların, saat yükseltici listen, başarım geçmişin ve istatistiklerin SİLİNMEZ; tekrar giriş yaptığında yerinde olur.'),
         warn:'Çalışan kart toplama ve saat yükseltme işi durur.',
         confirmText:'Çıkış Yap', cancelText:'Vazgeç',
       }).then(ok=>{ if (ok) window.imu.logout(); });

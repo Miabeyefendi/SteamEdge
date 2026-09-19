@@ -1,7 +1,7 @@
 {
   "name": "steamedge",
   "productName": "SteamEdge",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "description": "Headless Steam trading card farmer, hour booster, achievement manager and market tool. No Steam client required.",
   "keywords": [
     "steam",

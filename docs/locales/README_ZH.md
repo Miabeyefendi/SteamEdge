@@ -1,32 +1,32 @@
 <div align="center">
 
-<img src="./assets/logo-mark.png" width="120" alt="SteamEdge">
+<img src="../../assets/logo-mark.svg" width="120" alt="SteamEdge">
 
 # SteamEdge
 
 **不必开启 Steam 客户端，也能收集集换式卡牌、累积游玩时数并管理成就。**
 
-[![授权：AGPL v3](https://img.shields.io/badge/%E6%8E%88%E6%9D%83-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](./LICENSE)
+[![授权：AGPL v3](https://img.shields.io/badge/%E6%8E%88%E6%9D%83-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](../../LICENSE)
 [![版本](https://img.shields.io/github/v/release/Miabeyefendi/SteamEdge?style=for-the-badge&color=F59E0B&label=%E7%89%88%E6%9C%AC)](https://github.com/Miabeyefendi/SteamEdge/releases/latest)
 [![平台](https://img.shields.io/badge/Windows-1E293B?style=for-the-badge&logo=windows&logoColor=white)](#-安装)
 [![状态](https://img.shields.io/badge/%E7%8A%B6%E6%80%81-%E7%BB%B4%E6%8A%A4%E4%B8%AD-22C55E?style=for-the-badge)](#)
 [![作者](https://img.shields.io/badge/%E4%BD%9C%E8%80%85-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
 
-[English](./README.md) · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · **简体中文** · [Русский](./README_RU.md)
+[English](../../README.md) · [Türkçe](./README_TR.md) · [Español](./README_ES.md) · **简体中文** · [Русский](./README_RU.md)
 
-[安装](#-安装) · [功能](#-功能重点) · [使用](#-快速开始) · [教程](./TUTORIAL_ZH.md) · [更新记录](./CHANGELOG.md)
+[安装](#-安装) · [功能](#-功能重点) · [使用](#-快速开始) · [教程](./TUTORIAL_ZH.md) · [更新记录](../../CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
-  <img src="./assets/btn-download.svg" height="52" alt="下载最新版本">
+  <img src="../../assets/btn-download.svg" height="52" alt="下载最新版本">
 </a>
 <a href="./TUTORIAL_ZH.md">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
-    <img src="./assets/btn-tutorial.svg" height="52" alt="閱读教程">
+    <img src="../../assets/btn-tutorial.svg" height="52" alt="閱读教程">
   </picture>
 </a>
 
-<img src="./screenshots/main-showcase.jpg" width="92%" alt="SteamEdge 在不使用 Steam 客戶端的情況下收集卡牌、提升時數並管理成就">
+<img src="../../design/screenshots/Overview.png" width="92%" alt="SteamEdge 在不使用 Steam 客戶端的情況下收集卡牌、提升時數並管理成就">
 
 </div>
 
@@ -43,6 +43,22 @@
 - **多账号** - 多个账号同时连线，各自在背景运行，切换时不会遺失进度。
 - **不需要 Steam 客户端** - 直接使用 Steam 自己的网络协定。客户端从不启动，也不需要。
 - **免安装** - 解压缩即可运行。沒有安装程序，不写登录档，所有资料都放在运行档旁边。
+
+---
+
+## 📸 截图
+
+<div align="center">
+
+| | |
+|:-:|:-:|
+| <img src="../../design/screenshots/CardFarming.png" alt="卡牌收集"><br><sub>卡牌收集</sub> | <img src="../../design/screenshots/HourBoostr.png" alt="时长提升"><br><sub>时长提升</sub> |
+| <img src="../../design/screenshots/Achievements.png" alt="成就"><br><sub>成就</sub> | <img src="../../design/screenshots/RealisticMode.png" alt="拟真模式"><br><sub>拟真模式</sub> |
+| <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="拟真模式，高级"><br><sub>拟真模式，高级</sub> | <img src="../../design/screenshots/Market.png" alt="库存与市场"><br><sub>库存与市场</sub> |
+| <img src="../../design/screenshots/Market2.png" alt="市场，订单簿"><br><sub>市场，订单簿</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam 聊天"><br><sub>Steam 聊天</sub> |
+| <img src="../../design/screenshots/SettingsGeneral.png" alt="设置"><br><sub>设置</sub> |  |
+
+</div>
 
 ---
 
@@ -116,9 +132,9 @@ npm start
 ## 📖 文件
 
 - [**教程**](./TUTORIAL_ZH.md) - 每项功能、每个设置的完整说明
-- [**更新记录**](./CHANGELOG.md) - 每个版本改了什麼
-- [**参与貢獻**](./CONTRIBUTING.md) - 如何提交修改
-- [**安全性**](./SECURITY.md) - 如何私下回报安全漏洞
+- [**更新记录**](../../CHANGELOG.md) - 每个版本改了什麼
+- [**参与貢獻**](../../CONTRIBUTING.md) - 如何提交修改
+- [**安全性**](../../SECURITY.md) - 如何私下回报安全漏洞
 
 ---
 
@@ -175,21 +191,21 @@ npm start
 
 ## 🤝 参与貢獻
 
-歡迎貢獻。请先閱读 [CONTRIBUTING.md](./CONTRIBUTING.md) 与
-[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)。提交貢獻即表示你同意以 AGPL-3.0
+歡迎貢獻。请先閱读 [CONTRIBUTING.md](../../CONTRIBUTING.md) 与
+[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md)。提交貢獻即表示你同意以 AGPL-3.0
 授权你的作品。
 
 <div align="center">
 <a href="https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-report-bug-dark.svg">
-    <img src="./assets/btn-report-bug.svg" height="52" alt="回报问题">
+    <img src="../../assets/btn-report-bug.svg" height="52" alt="回报问题">
   </picture>
 </a>
 <a href="https://github.com/Miabeyefendi/SteamEdge/stargazers">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-star-dark.svg">
-    <img src="./assets/btn-star.svg" height="52" alt="为这个儲存库加星">
+    <img src="../../assets/btn-star.svg" height="52" alt="为这个儲存库加星">
   </picture>
 </a>
 </div>
@@ -198,7 +214,7 @@ npm start
 
 ## 🛡️ 安全性
 
-发现安全漏洞了嗎？请勿开立公开的问题反馈，改依 [SECURITY.md](./SECURITY.md)
+发现安全漏洞了嗎？请勿开立公开的问题反馈，改依 [SECURITY.md](../../SECURITY.md)
 中的私下回报流程处理。
 
 ---
@@ -206,13 +222,13 @@ npm start
 ## 📜 授权
 
 本专案採用 **GNU Affero 通用公共授权条款第 3 版（AGPL-3.0）**，并搭配
-[NOTICE](./NOTICE) 文件中的補充条款。摘要如下：
+[NOTICE](../../NOTICE) 文件中的補充条款。摘要如下：
 
 - 你可以免費使用、研究、修改、再散布本软件，甚至用它获利，**前提是**你必須
   依 AGPL-3.0 持续提供完整原始碼，包含任何託管、SaaS 或网络型态的使用
   （AGPL 第 13 条），并保留下方的作者标示。
 - 若要将本作品用于闭源或专有产品，或作为封闭的 SaaS 營运，你需要**另行取得
-  書面商业授权**，该授权可能包含权利金或營收分潤。详见 [NOTICE](./NOTICE)
+  書面商业授权**，该授权可能包含权利金或營收分潤。详见 [NOTICE](../../NOTICE)
   第 8 节，并与我聯络。
 
 ### 作者标示（必要）
@@ -228,7 +244,7 @@ npm start
 負責一切使用行为，包括遵守本软件所互动之任何第三方平台的服务条款。Valve 与
 Steam 与作者并无隸屬关係，亦未为本专案背書；其名称与商标屬于各自所有人。
 在適用法律允許的最大範圍内，作者对账号封锁、资料遺失或任何其他損害概不負責。
-完整条款请见 [LICENSE](./LICENSE) 与 [NOTICE](./NOTICE) 文件。
+完整条款请见 [LICENSE](../../LICENSE) 与 [NOTICE](../../NOTICE) 文件。
 
 ---
 
