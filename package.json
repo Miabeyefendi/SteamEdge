@@ -1,7 +1,7 @@
 {
   "name": "steamedge",
   "productName": "SteamEdge",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "description": "Headless Steam trading card farmer, hour booster, achievement manager and market tool. No Steam client required.",
   "keywords": [
     "steam",
@@ -53,7 +53,8 @@
   },
   "overrides": {
     "ip-address": "^10.4.0",
-    "adm-zip": "^0.6.0",
+    "adm-zip": "^0.6.1",
+    "@xmldom/xmldom": "^0.9.12",
     "steam-appticket": "^2.0.1"
   }
 }

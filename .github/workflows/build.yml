@@ -7,6 +7,8 @@ name: Build
 # 1.1.8'de duzeltildi. Onceki hali iki ayri sebeple hic calismiyordu: etiket filtresi
 # "v*" idi ama surumler v'siz etiketleniyor (1.1.7), ve derleme ciktisini "Release V*"
 # adinda bir klasorde ariyordu - o isim depo yeniden adlandirilali beri yok.
+# 1.2.0'da tekrar: cikti klasoru ust dizinden releases/ altina tasindi, zip adimi
+# eski yeri ariyordu.
 
 on:
   workflow_dispatch:
@@ -49,7 +51,8 @@ jobs:
         shell: pwsh
         run: |
           $ad = "SteamEdge-v${{ steps.ver.outputs.v }}-win-x64"
-          $src = Join-Path (Split-Path $PWD -Parent) $ad
+          # build.js 1.1.11'den beri releases/ altina yaziyor (standart agac); ust klasor degil.
+          $src = Join-Path $PWD "releases\$ad"
           if (-not (Test-Path $src)) { throw "Build output folder not found: $src" }
           Compress-Archive -Path "$src\*" -DestinationPath "$ad.zip"
 

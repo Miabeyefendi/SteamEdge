@@ -8,12 +8,14 @@ Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and thei
 archives deleted on purpose. Their notes are not reproduced here.
 
 
-## [1.1.11](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.1.11)
+## [1.2.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.2.0)
 
-A vector logo, a language switch that stays where you left it, and the first big cut into the untranslated text.
+A vector logo, a language switch that stays where you left it, the first big cut into the untranslated text, and eleven dependency advisories closed.
 
 ### Fixed
 
+- **Eleven Dependabot advisories closed.** `@xmldom/xmldom` (nine high, two moderate; only used by the packager, never shipped in the exe) moves to 0.9.12, and `adm-zip` (one high, one moderate; used by `steam-user` for CDN compression, so this one does ship) moves to 0.6.1. Both through `overrides` in package.json, since neither is a direct dependency. The two that remain, `extract-zip` and Electron itself, have no fixed release yet and are build-time only; they wait.
+- **The CI build failed at the zip step.** The build output moved from the parent folder to `releases/` in 1.1.11 and the workflow was still zipping the old location. The build itself was fine; only the verification artifact was lost.
 - **Changing the app language threw you back to the Overview.** The switch reloads the page because a translated screen cannot be translated back, and the reload always landed on the first tab. The open Settings section is now carried across the reload, so you pick a language and stay in Settings, on the same section, reading it in the new language.
 - **Status badges, feed entries and figures stayed Turkish in every other language.** RUNNING, STOPPED, MESSAGE, "Steam message · name", "Started with 5 games", session time, next drop, the system indicator at the bottom of the sidebar, update dialogs, the account removal and sign-out prompts, backup and reset messages, and the Windows notifications. Text that is built in code with a number in it went past the translator, which only looks at finished text; those strings are now translated as templates before the number is filled in. 157 entries added to each of the five dictionaries; the count of untranslated code strings drops from 381 to 260. The rest is on the Inventory, Achievements, Realistic Mode, Hour Booster and Card Farming pages and follows in the next releases.
 - **Fourteen labels the language check could not see.** "Account no.", "Copy IDs", "Target hours", "Speed", "AUTO", "None", the hours suffix in Realistic Mode and a few more are plain ASCII, so the check that looks for Turkish letters walked past them. Found by rendering the English interface and listing what stayed Turkish; all translated now. One Hour Booster tooltip had drifted from its dictionary entry and showed Turkish; re-keyed.
