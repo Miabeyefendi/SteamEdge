@@ -8,6 +8,16 @@ Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and thei
 archives deleted on purpose. Their notes are not reproduced here.
 
 
+## [1.3.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.1)
+
+Three fixes on top of the new themes.
+
+### Fixed
+
+- **Saving a theme change threw you out of Settings.** Switching away from Midnight Purple or White reloads the page, and the reload landed on the Overview. It now returns to the Settings section you were on, the same way a language change does.
+- **The sidebar collapse tab stayed black in the White theme.** Icons that carry their colour in SVG `fill` and `stroke` attributes were not recoloured; they are now.
+- **The login screenshots showed an old version and untranslated QR labels.** The README images were taken with a test version number and before "QR code" and "Refresh code" were translated. Retaken.
+
 ## [1.3.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.0)
 
 Settings that wait for Save and then reach running jobs at once, selling that follows Steam's own fee rules and stops honestly at Steam's limit, statistics per account, a translation pass over all five languages, and a window that opens about twice as fast.

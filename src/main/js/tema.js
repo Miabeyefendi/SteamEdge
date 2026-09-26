@@ -27,14 +27,19 @@
       .replace(/#([0-9a-fA-F]{6})\b/g, (m, h) => { const y = esle[h.toLowerCase()]; return y ? '#' + y : m; })
       .replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g, (m, r, g, b) => { const y = esle[hex2(r) + hex2(g) + hex2(b)]; return y ? '#' + y : m; });
   }
+  // SVG ikonları rengi fill/stroke özniteliğinde taşıyor (kenar çubuğu düğmesi gibi).
+  const OZ = ['style', 'fill', 'stroke'];
   function eleman(el) {
-    const s = el.getAttribute && el.getAttribute('style');
-    if (s) { const y = donustur(s); if (y !== s) el.setAttribute('style', y); }
+    if (!el.getAttribute) return;
+    for (const o of OZ) {
+      const s = el.getAttribute(o);
+      if (s) { const y = donustur(s); if (y !== s) el.setAttribute(o, y); }
+    }
   }
   function agac(kok) {
     if (kok.nodeType !== 1) return;
     eleman(kok);
-    kok.querySelectorAll('[style]').forEach(eleman);
+    kok.querySelectorAll('[style],[fill],[stroke]').forEach(eleman);
   }
   function kurallar() {
     for (const sayfa of document.styleSheets) {
@@ -53,7 +58,11 @@
     const onceki = document.documentElement.getAttribute('data-tema') || 'dark';
     if (onceki === secim) return;
     // Başka bir temadan dönüş için sayfa yenilenir: eşleme geri alınamaz, kaynak koyu.
-    if (onceki !== 'dark') { location.reload(); return; }
+    // Ayarlar açıksa aynı bölüme dönülür (dil değişimiyle aynı anahtar, bkz i18n.js).
+    if (onceki !== 'dark') {
+      try { if (typeof currentSetSec === 'string' && typeof I18N_DONUS_ANAHTARI === 'string') sessionStorage.setItem(I18N_DONUS_ANAHTARI, currentSetSec); } catch (_) {}
+      location.reload(); return;
+    }
     esle = PALET[secim];
     document.documentElement.setAttribute('data-tema', secim);
     document.documentElement.style.colorScheme = secim === 'white' ? 'light' : 'dark';
@@ -70,7 +79,7 @@
     gozlem = new MutationObserver((ms) => { for (const m of ms) {
       if (m.type === 'attributes') eleman(m.target); else m.addedNodes.forEach(agac);
     } });
-    gozlem.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['style'] });
+    gozlem.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: OZ });
   }
   window.temaUygula = temaUygula;
   let ilk = 'dark'; try { ilk = localStorage.getItem('se_tema') || 'dark'; } catch (_) {}
