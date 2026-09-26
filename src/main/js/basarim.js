@@ -21,27 +21,26 @@
       // kullanıcı neden yüklenmediğini anlamıyordu. Artık sayfanın ortasında sebep +
       // "Tekrar Dene" düğmesi çıkıyor.
       const fail = (msg)=>{
-        input.value=''; input.placeholder = 'Yüklenemedi';
+        input.value=''; input.placeholder = t('Yüklenemedi');
         const body = document.getElementById('acBody');
         if (!body) return;
         body.innerHTML = '<div style="border:1px solid #B32453;border-radius:12px;background:#0D1118;padding:56px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#DCE2FA">Başarımlar yüklenemedi</span>'
           + '<span style="font-size:12px;color:#B32453;max-width:380px">'+esc(msg||'Bilinmeyen hata')+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E;max-width:420px">Steam oturumu başka bir yerde açıldıysa (Steam istemcisi ya da '
-          + 'uygulamanın ikinci bir penceresi) bu hesabın oturumu devralınır. Diğer oturumu kapatıp tekrar dene.</span>'
+          + '<span style="font-size:11px;color:#8B8F9E;max-width:420px">Steam oturumu başka bir yerde açıldıysa (Steam istemcisi ya da uygulamanın ikinci bir penceresi) bu hesabın oturumu devralınmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
           + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:34px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
           + '</div>';
         const rb = document.getElementById('acRetry');
         if (rb) rb.onclick = ()=>{ acLoaded = false; loadBasarim(); };
       };
-      input.placeholder = 'Steam\'e bağlanılıyor...';
+      input.placeholder = t('Steam\'e bağlanılıyor...');
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
       if (!con.ok){ fail(con.error); return; }
-      const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'kütüphane hatası' }));
+      const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'Kütüphane okunamadı.' }));
       if (!res.ok){ fail(res.error); return; }
       acGames = (res.games || []).filter(g=>g.hasStats);
       acLoaded = true;
-      input.placeholder = acGames.length + ' oyun · ara veya seç...';
+      input.placeholder = tf('# oyun · ara ya da seç...', acGames.length);
       renderAchievements();
     }
 
@@ -77,7 +76,7 @@
     function rarityTier(pct){ const r = rarityOf(pct); return r ? r.key : null; }
     function rarityLabel(a){ const r = rarityOf(a.rarityPct); return r ? r.label : 'Bilinmiyor'; }
     function rarityColor(a){ const r = rarityOf(a.rarityPct); return r ? r.color : AC.off; }
-    const acDate = (a) => a.achieved ? (a.unlockTime ? new Date(a.unlockTime).toLocaleDateString('tr-TR') : 'bilinmiyor') : '-';
+    const acDate = (a) => a.achieved ? (a.unlockTime ? new Date(a.unlockTime).toLocaleDateString(yerelKod()) : t('bilinmiyor')) : '-';
 
     // ---- aranabilir oyun seçici ----
     // acGameSelect gizli kaldı (geri uyumluluk için); görünen kutu acGameInput.
@@ -109,7 +108,7 @@
           + (on?'<span style="font-family:Geist Mono,monospace;font-size:11px;color:#5FB324;flex-shrink:0">✓</span>':'')
           + '</div>';
       }).join('') + (match.length > 200
-        ? '<div style="padding:8px 10px;font-size:11px;color:#656D80">+'+(match.length-200)+' oyun daha - aramayı daraltın</div>' : '');
+        ? '<div style="padding:8px 10px;font-size:11px;color:#656D80">'+esc(tf('# oyun daha var; aramayı daralt.', match.length-200))+'</div>' : '');
     }
     function openGameList(){ acGameListEl.style.display = 'block'; renderGameList(); }
     function closeGameList(){
@@ -184,7 +183,7 @@
       if (acCache.has(appid)){ acData = acCache.get(appid); renderAchievements(); return; }
       acData = null;
       document.getElementById('acBody').innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">Başarımlar Steam\'den çekiliyor...</div>';
-      const res = await E.achievements(appid).catch(e=>({ ok:false, error:(e&&e.message)||'başarım hatası' }));
+      const res = await E.achievements(appid).catch(e=>({ ok:false, error:(e&&e.message)||'Başarımlar okunamadı.' }));
       if (acAppid !== appid) return;
       if (!res.ok){
         // Gecici Steam hatalarinda kullanici yeniden deneyebilmeli; eskiden sadece ham hata
@@ -260,9 +259,9 @@
     // uzerinden acilamaz. Kullanici EResult 8 hatasinin sebebini gorsun diye isaretlenir.
     function acKorumaliRozet(a){
       if (!a || !a.korumali) return '';
-      return '<span title="Bu başarımı yalnızca oyunun kendi sunucusu açabilir" style="font-size:9px;'
+      return '<span title="'+esc(t('Bu başarımı yalnızca oyunun kendi sunucusu açabilir'))+'" style="font-size:9px;'
         + 'font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#B37E24;'
-        + 'border:1px solid #B37E24;border-radius:12px;padding:2px 6px;flex-shrink:0">Korumalı</span>';
+        + 'border:1px solid #B37E24;border-radius:12px;padding:2px 6px;flex-shrink:0">'+esc(t('Korumalı'))+'</span>';
     }
 
     function acCardHTML(a){
@@ -270,6 +269,7 @@
       const korumaliRozet = acKorumaliRozet(a);
       const dim = a.achieved ? 1 : 0.55;
       const pct = Number.isFinite(a.rarityPct) ? a.rarityPct.toFixed(1) : '?';
+      const pctYazi = Number.isFinite(a.rarityPct) ? fmtYuzde(yerelOndalik(a.rarityPct, 1)) : '?';
       const rare = rarityTier(a.rarityPct);
       const rareOn = (rare==='rare'||rare==='ultrarare') ? 1 : 0;
       return '<div data-ap="'+esc(a.apiName)+'" class="h-bd" style="border:1px solid '+(a.apiName===acSelAp?AC.brand:AC.bd)+';border-radius:12px;background:'+(a.achieved?'#0D1118':'#090C12')+';padding:16px;display:flex;gap:14px;align-items:flex-start;cursor:pointer">'
@@ -287,13 +287,13 @@
           + '<p style="margin:0;font-size:11px;line-height:1.5;color:#8B8F9E">'+esc(a.desc||'Açıklama yok.')+'</p>'
           + '<div style="display:flex;align-items:center;gap:8px;margin-top:2px">'
             + acBadge(rarityLabel(a), rarityColor(a), rarityColor(a), ';opacity:'+rareOn)
-            + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#24AEB3">%'+pct+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#24AEB3">'+pctYazi+'</span>'
             + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:'+(a.achieved?AC.muted:AC.off)+';margin-left:auto">'+acDate(a)+'</span>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:8px">'
             + '<div style="flex:1;height:4px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
               + '<div style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#C2AAEE;flex-shrink:0">%'+pct+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#C2AAEE;flex-shrink:0">'+pctYazi+'</span>'
           + '</div>'
         + '</div></div>';
     }
@@ -303,6 +303,7 @@
       const korumaliRozet = acKorumaliRozet(a);
       const dim = a.achieved ? 1 : 0.55;
       const pct = Number.isFinite(a.rarityPct) ? a.rarityPct.toFixed(1) : '?';
+      const pctYazi = Number.isFinite(a.rarityPct) ? fmtYuzde(yerelOndalik(a.rarityPct, 1)) : '?';
       const rare = rarityTier(a.rarityPct);
       const rareOn = (rare==='rare'||rare==='ultrarare') ? 1 : 0;
       return '<div data-ap="'+esc(a.apiName)+'" class="h-bd" style="border:1px solid '+(a.apiName===acSelAp?AC.brand:AC.bd)+';border-radius:12px;background:'+(a.achieved?'#0D1118':'#090C12')+';padding:10px 16px;display:flex;align-items:center;gap:14px;cursor:pointer">'
@@ -315,12 +316,12 @@
         + korumaliRozet
         + '<p style="margin:0;flex:1;min-width:0;font-size:11px;line-height:1.4;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:'+dim+'">'+esc(a.desc||'')+'</p>'
         + acBadge(rarityLabel(a), rarityColor(a), rarityColor(a), ';opacity:'+rareOn)
-        + '<span style="width:62px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#24AEB3;text-align:right">%'+pct+'</span>'
+        + '<span style="width:62px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#24AEB3;text-align:right">'+pctYazi+'</span>'
         + '<span style="width:88px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:'+(a.achieved?AC.muted:AC.off)+';text-align:right">'+acDate(a)+'</span>'
         + '<div style="width:110px;flex-shrink:0;display:flex;align-items:center;gap:6px">'
           + '<div style="flex:1;height:4px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
             + '<div style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#C2AAEE;flex-shrink:0">%'+pct+'</span></div>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#C2AAEE;flex-shrink:0">'+pctYazi+'</span></div>'
         + acBadge(busy?'İşleniyor':(a.achieved?'Açık':'Kilitli'), a.achieved?AC.ok:AC.warn, a.achieved?AC.ok:AC.warn)
         + '</div>';
     }
@@ -342,8 +343,8 @@
       const pct = total ? Math.round(unlocked/total*100) : 0;
       set('acStatTotal', total); set('acUnlockedNum', unlocked); set('acLockedNum', locked); set('acRareNum', rare);
       set('acGameName', acData.gameName);
-      set('acSummaryText', unlocked+' / '+total+' açıldı');
-      set('acPctBig', '%'+pct);
+      set('acSummaryText', tf('# / # açıldı', unlocked, total));
+      set('acPctBig', fmtYuzde(pct));
       document.getElementById('acBar').style.width = pct+'%';
       const logo = document.getElementById('acLogo');
       // kütüphane başlığı → yoksa kapsül (bkz common.js gameImg)
@@ -354,7 +355,7 @@
       };
 
       const list = acFilteredList();
-      set('acCount', list.length + ' / ' + total + ' başarım');
+      set('acCount', tf('# / # başarım', list.length, total));
       if (!list.length){
         body.innerHTML = '<div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:64px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#B9C0D6">Bu filtreyle başarım yok</span>'
@@ -391,6 +392,7 @@
         return;
       }
       const pct = Number.isFinite(a.rarityPct) ? a.rarityPct.toFixed(1) : '?';
+      const pctYazi = Number.isFinite(a.rarityPct) ? fmtYuzde(yerelOndalik(a.rarityPct, 1)) : '?';
       const row = (k,v,c) => '<div style="display:flex;align-items:center;justify-content:space-between">'
         + '<span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#8B8F9E">'+k+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(c||AC.title)+'">'+v+'</span></div>';
@@ -410,7 +412,7 @@
           + row('Nadirlik', rarityLabel(a), rarityColor(a))
           + row('İlerleme', a.achieved?'Tamam':'-', AC.teal)
           + row('Açılma tarihi', acDate(a), a.achieved?AC.title:AC.off)
-          + row('Oyuncularda oranı', '%'+pct, AC.sub)
+          + row('Oyuncularda oranı', pctYazi, AC.sub)
           + '<div style="height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
             + '<div style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
         + '</div>'
@@ -421,7 +423,7 @@
               + '<span style="width:7px;height:7px;border-radius:12px;background:'+rarityColor(r)+';flex-shrink:0"></span>'
               + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1">'
                 + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.name)+'</span>'
-                + '<span style="font-size:10px;color:#656D80">'+rarityLabel(r)+' · %'+(Number.isFinite(r.rarityPct)?r.rarityPct.toFixed(1):'?')+'</span></div>'
+                + '<span style="font-size:10px;color:#656D80">'+esc(t(rarityLabel(r)))+' · '+(Number.isFinite(r.rarityPct)?fmtYuzde(yerelOndalik(r.rarityPct, 1)):'?')+'</span></div>'
               + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E;flex-shrink:0">'+acDate(r)+'</span></div>').join('')
             : '<span style="font-size:11px;color:#656D80;padding:8px 0">Açılma tarihi bilinen başarım yok.</span>')
         + '</div>';
@@ -431,7 +433,7 @@
     function renderAcPick(){
       const n = acSelected.size;
       const set=(id,t)=>{ const e=document.getElementById(id); if(e) e.textContent=t; };
-      set('acPickLabel', n + ' başarım');
+      set('acPickLabel', tf('# başarım', n));
       // Acilislar HER ZAMAN ayarlardaki aralikla tek tek yapilir; guvenli mod yalnizca
       // araligin rastgele sapip sapmayacagini belirler. Tahmin iki durumda da ayni.
       const secs = Math.round(n * acBaseDelaySec());
@@ -448,9 +450,9 @@
       return Number.isFinite(v) && v > 0 ? v : 1;
     }
     function fmtDelay(sec){
-      if (sec < 60) return sec + ' saniye';
+      if (sec < 60) return sureBirim(sec, 'saniye');
       const m = Math.round(sec/60);
-      return m < 60 ? (m + ' dakika') : ((m/60).toFixed(m%60?1:0).replace('.',',') + ' saat');
+      return m < 60 ? sureBirim(m, 'dakika') : sureBirim(yerelOndalik(m/60, m%60?1:0), 'saat');
     }
     function acNextDelayMs(){
       const base = acBaseDelaySec() * 1000;
@@ -498,13 +500,13 @@
       if (!skipConfirm && needConfirm){
         const ok = await edgeConfirm({
           tag: unlock ? 'Başarım Aç' : 'Başarım Kilitle',
-          title: (unlock ? 'Açılacak: ' : 'Kilitlenecek: ') + ach.name,
-          body: 'Bu işlem Steam hesabını kalıcı olarak değiştirir'
-                + (unlock ? ' ve profilinde arkadaşlarına görünür' : '') + '.',
+          title: t(unlock ? 'Açılacak:' : 'Kilitlenecek:') + ' ' + ach.name,
+          body: unlock ? 'Bu işlem Steam hesabını kalıcı olarak değiştirir ve profilinde arkadaşlarına görünür.'
+                       : 'Bu işlem Steam hesabını kalıcı olarak değiştirir.',
           warn: unlock ? 'Geri almak için başarımı yeniden kilitleyebilirsin.' : '',
           confirmText: unlock ? 'Aç' : 'Kilitle',
           danger: !unlock,
-          dontAskKey: 'achSingle',
+          sormaAyari: 'achConfirmSingle',
         });
         if (!ok) return false;
       }
@@ -525,7 +527,7 @@
         acData.unlocked = acData.achievements.filter(a=>a.achieved).length;
         renderAchievements();
         edgeConfirm({ tag:'Hata', danger:true, title:'Başarım değiştirilemedi',
-                      body: res.error || 'Steam isteği reddetti.', confirmText:'Tamam', cancelText:'Kapat' });
+                      body: res.error || 'Steam isteği reddetti.', confirmText:'Tamam', tekDugme:true });
         return false;
       }
       acSelected.delete(apiName);   // işlem bitti, seçim işareti kalmasın
@@ -554,27 +556,24 @@
       if (!targets.length){
         if (korumaliSayi){
           edgeConfirm({ tag:'Bilgi', title:'Bu başarımlar dışarıdan açılamaz',
-            body: korumaliSayi + ' başarım oyun tarafından korunuyor. Steam bunları yalnızca '
-                  + 'oyunun kendi sunucusundan kabul eder; uygulama üzerinden açılamaz.',
-            confirmText:'Tamam', cancelText:'Kapat' });
-        } else alert('Değiştirilecek başarım yok.');
+            body: tf('# başarım oyun tarafından korunuyor. Steam bunları yalnızca oyunun kendi sunucusundan kabul eder; uygulama üzerinden açılamaz.', korumaliSayi),
+            confirmText:'Tamam', tekDugme:true });
+        } else toast('Başarımlar').fail('Değiştirilecek başarım yok.');
         return;
       }
       // Toplu işlemde "bir daha sorma" YOK - tek tıkla onlarca başarımı kalıcı değiştiriyor.
       const okBulk = await edgeConfirm({
         tag: unlock ? 'Toplu Aç' : 'Toplu Kilitle',
-        title: targets.length + ' başarım ' + (unlock ? 'açılacak' : 'kilitlenecek'),
-        body: (acSelected.size ? 'Seçtiğin' : 'Şu anki filtreye uyan') + ' başarımlar üzerinde işlem yapılacak.\n'
-              + 'Bu işlem Steam hesabını kalıcı olarak değiştirir.'
-              + (korumaliSayi ? ('\n\n' + korumaliSayi + ' başarım oyun tarafından korunduğu için atlanacak.') : ''),
+        title: tf(unlock ? '# başarım açılacak' : '# başarım kilitlenecek', targets.length),
+        body: t(acSelected.size ? 'İşlem seçtiğin başarımlara uygulanacak.' : 'İşlem şu anki filtreye uyan başarımlara uygulanacak.') + '\n'
+              + t('Bu işlem Steam hesabını kalıcı olarak değiştirir.')
+              + (korumaliSayi ? ('\n\n' + tf('# başarım oyun tarafından korunduğu için atlanacak.', korumaliSayi)) : ''),
         // Uc ayar ayri ayri anlatiliyor: hangisinin ne yaptigi onay ekraninda gorunmezse
         // kullanici araligi degistirip hicbir sey degismedigini saniyor.
         warn: ((appSettings && appSettings.achSafeMode !== false)
-          ? ('Aralık: ' + fmtDelay(acBaseDelaySec()) + '. Güvenli mod açık, bu aralık her açılışta '
-             + 'rastgele sapar - sabit bir ritim oluşmaz.')
-          : ('Aralık: ' + fmtDelay(acBaseDelaySec()) + '. Güvenli mod kapalı, aralık aynen uygulanır; '
-             + 'eşit aralıklı açılış profilde göze çarpar.'))
-          + '\nToplam süre yaklaşık ' + fmtDelay(Math.round(targets.length * acBaseDelaySec())) + '.',
+          ? tf('Aralık: #. Güvenli mod açık; aralık her açılışta rastgele sapar, sabit bir ritim oluşmaz.', fmtDelay(acBaseDelaySec()))
+          : tf('Aralık: #. Güvenli mod kapalı; aralık aynen uygulanır, eşit aralıklı açılışlar profilde göze çarpar.', fmtDelay(acBaseDelaySec())))
+          + '\n' + tf('Toplam süre yaklaşık #.', fmtDelay(Math.round(targets.length * acBaseDelaySec()))),
         confirmText: unlock ? 'Hepsini Aç' : 'Hepsini Kilitle',
         danger: !unlock,
       });
@@ -584,7 +583,7 @@
       acRunning = true; acStopIstendi = false;
       const basarisizlar = [];
       let ok = 0, fail = 0, ustUsteHata = 0;
-      paintRunBox(0, targets.length, 'başlıyor');
+      paintRunBox(0, targets.length, t('başlıyor'));
       renderAchievements();
 
       // Acilislar HER ZAMAN tek tek ve ayarlardaki aralikla gonderilir.
@@ -600,7 +599,7 @@
             break;
           }
           const a = targets[i];
-          paintRunBox(i, targets.length, 'gönderiliyor: ' + a.name);
+          paintRunBox(i, targets.length, t('gönderiliyor:') + ' ' + a.name);
           const r = await E.setAchievements(acAppid, [{ apiName:a.apiName, unlock }])
                            .catch(e=>({ ok:false, error:(e&&e.message)||'hata' }));
           acBusy.delete(a.apiName);
@@ -611,11 +610,11 @@
             window.imu.state.achLog({ appid: acAppid, game: acData.gameName, apiName: a.apiName, name: a.name, unlock }).catch(()=>{});
           } else {
             fail++; ustUsteHata++;
-            a.sonHata = r.error || 'Steam reddetti';
+            a.sonHata = r.error || t('Steam isteği reddetti.');
             basarisizlar.push({ ad: a.name, hata: a.sonHata });
           }
           acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
-          paintRunBox(i+1, targets.length, fail ? (ok+' açıldı, '+fail+' hata') : null);
+          paintRunBox(i+1, targets.length, fail ? tf('# başarılı, # hata', ok, fail) : null);
           renderAchievements();
 
           // MADDE 1: Steam kalici olarak reddediyorsa donguyu surdurmek anlamsiz. Eskiden
@@ -646,7 +645,7 @@
       // sadece birkaci acilmis oluyordu.
       let dogrulamaNotu = '';
       if (ok > 0){
-        paintRunBox(targets.length, targets.length, 'Steam ile doğrulanıyor');
+        paintRunBox(targets.length, targets.length, t('Steam ile doğrulanıyor'));
         const taze = await E.achievements(acAppid, true).catch(()=>null);
         gizleRunBox();
         if (taze && taze.ok && taze.data && Array.isArray(taze.data.achievements)){
@@ -655,11 +654,11 @@
           for (const a of targets){
             if (!gercek.has(a.apiName)) continue;
             const g = !!gercek.get(a.apiName);
-            if (a.achieved !== g){ a.achieved = g; a.sonHata = 'Steam kaydetmedi'; uyusmayan++; }
+            if (a.achieved !== g){ a.achieved = g; a.sonHata = t('Steam kaydetmedi'); uyusmayan++; }
           }
           if (uyusmayan){
             ok -= uyusmayan; fail += uyusmayan;
-            dogrulamaNotu = uyusmayan + ' başarım Steam tarafında kaydedilmemiş, işaretleri düzeltildi.';
+            dogrulamaNotu = tf('# başarım Steam tarafında kaydedilmemiş, işaretleri düzeltildi.', uyusmayan);
           }
           acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
         }
@@ -672,20 +671,21 @@
         const kalan = Math.max(0, basarisizlar.length-4);
         edgeConfirm({
           tag:'Sonuç', danger:true,
-          title: ok+' başarıldı, '+fail+' başarısız',
+          title: tf('# başarılı, # başarısız', ok, fail),
           body: (acDurdurmaSebebi === 'ustuste'
-                  ? 'Üst üste 3 hata alındı, işlem durduruldu.\n\n'
-                  : (acDurdurmaSebebi === 'kullanici' ? 'İşlemi sen durdurdun.\n\n' : ''))
+                  ? (t('Üst üste 3 hata alındı, işlem durduruldu.') + '\n\n')
+                  : (acDurdurmaSebebi === 'kullanici' ? (t('İşlemi sen durdurdun.') + '\n\n') : ''))
                 + (dogrulamaNotu ? dogrulamaNotu+'\n\n' : '')
-                + (ilk ? ('Hatalar:\n'+ilk+(kalan?('\n  · ve '+kalan+' tane daha'):'')) : ''),
+                + (ilk ? (t('Hatalar:') + '\n' + ilk + (kalan ? ('\n  · ' + tf('ve # tane daha', kalan)) : '')) : ''),
           warn: 'Bazı başarımlar oyun içi ilerlemeye bağlıdır ve doğrudan açılamaz; Steam bunları reddeder.',
-          confirmText:'Tamam', cancelText:'Kapat',
+          confirmText:'Tamam', tekDugme:true,
         });
       }
       acDurdurmaSebebi = null;
-      notify('ach', unlock?'Başarımlar Açıldı':'Başarımlar Kilitlendi', ok+' başarım'+(fail?(', '+fail+' hata'):''));
+      const ozet = fail ? tf('# başarılı, # hata', ok, fail) : tf('# başarım', ok);
+      notify('ach', unlock?'Başarımlar Açıldı':'Başarımlar Kilitlendi', ozet);
       pushFeed(fail?'hata':'kart', unlock?'Toplu başarım açma':'Toplu başarım kilitleme',
-               acData.gameName+' · '+ok+' başarım'+(fail?(', '+fail+' hata'):''), fail?'Hata':'Başarılı');
+               acData.gameName + ' · ' + ozet, fail?'Hata':'Başarılı');
     }
 
     // ---- MADDE 8: calisma durumu, ilerleme ve durdurma ----
@@ -740,7 +740,7 @@
           if (acStopIstendi){ temizle(); res(); return; }
           const kalan = Math.max(0, bitis - Date.now());
           if (kalan <= 0){ temizle(); res(); return; }
-          paintRunBox(yapilan, toplam, 'sıradaki ' + Math.ceil(kalan/1000) + ' sn sonra');
+          paintRunBox(yapilan, toplam, tf('sıradaki # sonra', sureBirim(Math.ceil(kalan/1000), 'sn')));
         };
         const iv = setInterval(tik, 250);
         const temizle = ()=>{ clearInterval(iv); acBeklemeIptal = null; };
@@ -756,6 +756,6 @@
         acStopIstendi = true;
         acDurdurmaSebebi = 'kullanici';
         if (acBeklemeIptal) acBeklemeIptal();
-        paintRunBox(0, 0, 'durduruluyor...');
+        paintRunBox(0, 0, t('durduruluyor...'));
       };
     })();

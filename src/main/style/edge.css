@@ -262,7 +262,10 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 .e-modal-ask.on .box svg{opacity:1}
 .e-modal-ask span{font-size:12px;color:#8B8F9E}
 .e-modal-ask:hover span{color:#B9C0D6}
-.e-modal-ft{padding:14px 18px;display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #1D2432;background:#090C12}
+.e-modal-ft{padding:14px 18px;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;border-top:1px solid #1D2432;background:#090C12}
+/* Uc dugmeli pencerede (kaydedilmemis degisiklik gibi) dugme metni iki satira kiriliyordu */
+.e-modal:has(.e-modal-ft .alt){width:560px}
+.e-modal-ft button{white-space:nowrap}
 .e-modal-ft button{height:36px;padding:0 18px;border-radius:999px;font-size:11px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
 .e-modal-ft .cancel{background:transparent;border:1px solid #2B3345;color:#8B8F9E}

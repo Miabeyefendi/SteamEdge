@@ -86,18 +86,27 @@ contextBridge.exposeInMainWorld('imu', {
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
     set: (patch) => ipcRenderer.invoke('settings:set', patch),
-    reset: () => ipcRenderer.invoke('settings:reset'),
+    // Ayarlar sayfasinin Kaydet dugmesi: yalnizca degisen anahtarlar gider; donuste hangi
+    // calisan islerin yeni ayarla surdurulecegi soylenir.
+    kaydet: (patch) => ipcRenderer.invoke('settings:kaydet', patch),
+    // Varsayilanlar: Sifirla bunlari sayfanin taslagina yukler, hicbir sey yazmaz.
+    varsayilanlar: () => ipcRenderer.invoke('settings:varsayilanlar'),
+    bilgi: () => ipcRenderer.invoke('settings:bilgi'),
     clearPriceCache: () => ipcRenderer.invoke('settings:clearPriceCache'),
     openConfigFolder: () => ipcRenderer.invoke('settings:openConfigFolder'),
     export: () => ipcRenderer.invoke('settings:export'),
     import: () => ipcRenderer.invoke('settings:import'),
     wipeAll: () => ipcRenderer.invoke('settings:wipeAll'),
   },
+  // Istatistikler ana surecte, hesap basina sayilir; arayuz yalnizca okur.
   stats: {
     get: () => ipcRenderer.invoke('stats:get'),
-    add: (patch) => ipcRenderer.invoke('stats:add', patch),
     reset: () => ipcRenderer.invoke('stats:reset'),
+    onDegisti: (cb) => ipcRenderer.on('stats:degisti', (_e, d) => cb(d)),
   },
+  // Hesap olaylari (kart dustu, kartlar bitti, basarim acildi, sure doldu...). Arka plandaki
+  // hesaplarin olaylari da gelir; bildirim buradan gosterilir.
+  onHesapOlayi: (cb) => ipcRenderer.on('hesap:olay', (_e, d) => cb(d)),
   // Hatırlanan veri (seçili oyunlar, başarım günlüğü). Saklama süresi Ayarlar > Yedekleme.
   state: {
     get: (key) => ipcRenderer.invoke('state:get', key),
@@ -150,6 +159,8 @@ contextBridge.exposeInMainWorld('imu', {
     onHistoryProgress: (cb) => ipcRenderer.on('history:progress', (_e, d) => cb(d)),
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
     sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
+    // Steam'in kendi ucret hesabi: alicinin odeyecegi tutarlar (kurus) -> saticiya kalan
+    satisUcreti: (toplamlar) => ipcRenderer.invoke('engine:satisUcreti', toplamlar),
     ownedGames: () => ipcRenderer.invoke('engine:ownedGames'),
     profile: () => ipcRenderer.invoke('engine:profile'),
     // Ozel profil adresi ayri: web istegi gerektiriyor, isim/avatar onu beklemesin.
@@ -161,12 +172,18 @@ contextBridge.exposeInMainWorld('imu', {
     startFarm: (mode, games, durationMs) => ipcRenderer.send('engine:startFarm', { mode, games, durationMs }),
     stopFarm: () => ipcRenderer.send('engine:stopFarm'),
     onTick: (cb) => ipcRenderer.on('farm:tick', (_e, data) => cb(data)),
-    // games: [{appid, playtimeMin}] - saat eşitleme kademelerini kurmak için gerekli
-    boostStart: (appids, durationMs, games) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games }),
+    // Ana surecteki rozet izleyicisinin guncel kart listesi (ekrandaki hesap icin).
+    onFarmListe: (cb) => ipcRenderer.on('farm:liste', (_e, data) => cb(data)),
+    // games: [{appid, playtimeMin}] - saat eşitleme kademelerini kurmak için gerekli.
+    // tumu: seçili oyunların tamamı; "aynı anda en fazla" iş sürerken değişirse liste buradan kesilir.
+    boostStart: (appids, durationMs, games, tumu) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games, tumu }),
     boostSyncPlan: (games, mode, targetHours) => ipcRenderer.invoke('engine:boostSyncPlan', { games, mode, targetHours }),
     onBoostSync: (cb) => ipcRenderer.on('boost:sync', (_e, d) => cb(d)),
-    // G3: Steam baglanti durumu (bagli | koptu | baglaniyor)
+    // G3: Steam baglanti durumu (bagli | koptu | baglaniyor | vazgecildi)
     onDurum: (cb) => ipcRenderer.on('engine:durum', (_e, d) => cb(d)),
+    baglantiDurumu: () => ipcRenderer.invoke('engine:baglantiDurumu'),
+    // Denemeler bitmis ya da kalici kopmus baglantiyi yeniden dener.
+    yenidenBaglan: () => ipcRenderer.invoke('engine:yenidenBaglan'),
     boostStop: () => ipcRenderer.send('engine:boostStop'),
     onBoostTick: (cb) => ipcRenderer.on('boost:tick', (_e, data) => cb(data)),
     boostStartSeq: (games, durationMs, loop) => ipcRenderer.send('engine:boostStartSeq', { games, durationMs, loop }),

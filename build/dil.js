@@ -13,10 +13,16 @@
  * ([SABIT]: 'deger') goremiyordu; Rusca eklenirken iki giris bu yuzden atlanmisti.
  * Sozluk artik JSON, ayristirici da gitti.
  *
- * BILINEN KORLUK: 6. ve 7. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan metinleri
+ * BILINEN KORLUK: 6., 7. ve 8. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan metinleri
  * bildiriyor. "Grafik arka ucu" gibi saf ASCII bir Turkce baslik gozden kacar. Daha
  * gevsek bir olcut, ingilizce kod parcalari ve sayilarla dolu yuzlerce yanlis alarm
  * uretiyordu; yeni metin eklerken bunu akilda tut.
+ *
+ * 1.3.0'da kapatilan korluklar: 6. bolum 80 karakterden uzun metinleri ve ipucu/baslik/yer
+ * tutucu ozniteliklerini hic gormuyordu (ayar aciklamalarinin cogu bu yuzden cevrilmeden
+ * kalmisti). 8. bolum ana surecin metinlerini (tepsi, pencereler, hata mesajlari) tariyor.
+ * 9. bolum HTML parcasi tasiyan anahtari yakaliyor: 1.2.0'da bir aciklamanin anahtarina
+ * '</span><div style=' karismisti ve metin bes dilde Turkce kalmisti.
  *
  * Calistirma:  npm run dil
  *              npm run dil -- --tam    (uzun listeleri kirpmadan)
@@ -164,30 +170,46 @@ function varlikCoz(metin) {
   return metin.replace(/&(?:amp|nbsp|lt|gt|quot|#39);/g, (v) => VARLIK[v]);
 }
 const eksikMetin = [];
+// Turkce harf tasimayan metin de Turkce olabilir ("DK", "SN", "dk"). Eskiden yalnizca
+// Turkce harfli metin taraniyordu; zamanlayicinin "DK : SN" etiketi bu yuzden her dilde
+// Turkce kaldi ve hic yakalanmadi. Artik harfli her metin taranir; bilerek cevrilmeyen
+// ozel adlar (dil adlari, marka, paket, surucu) asagidaki listede durur.
+const CEVRILMEZ = new Set(['English', 'Deutsch', 'Español', 'ms', 'MB', 'Direct3D 11', 'Direct3D 9', 'OpenGL',
+  'SteamEdge', 'Steam', 'Edge', 'Miabeyefendi', 'Idle Master', 'Idle Master Extended', 'HourBoostr',
+  'Steam Achievement Manager', 'ArchiSteamFarm', 'steam-user', 'steam-session', 'qrcode',
+  'SteamID', 'SteamID2', 'SteamID3', 'Hex', 'APP-ID', 'HEADLESS']);
+const cevrilmezMi = (t) => CEVRILMEZ.has(t) || /^@\w+$/.test(t) || /^[\w-]+ \d+(\.\d+)+$/.test(t);
 // Giris ekrani sayfa klasorunun disinda duruyor ve bu yuzden yillarca hic taranmadi;
 // icinde elle yazilmis "v1.0.8" gibi eskimis metinler kalmisti. Listeye alindi.
+// Kabuk (kenar cubugu, ust cubuk, durum satiri) da sayfa klasorunun disinda: main.html.
 const HTML_DOSYALAR = fs.readdirSync(SAYFA_DIZIN)
   .filter((f) => f.endsWith('.html'))
   .map((f) => ({ ad: f, yol: path.join(SAYFA_DIZIN, f) }))
-  .concat([{ ad: 'login.html', yol: path.join(KOK, 'src', 'login', 'login.html') }])
+  .concat([{ ad: 'login.html', yol: path.join(KOK, 'src', 'login', 'login.html') },
+           { ad: 'main.html', yol: path.join(KOK, 'src', 'main', 'main.html') }])
   .filter((x) => fs.existsSync(x.yol));
 HTML_DOSYALAR.forEach(({ ad: f, yol }) => {
   const html = fs.readFileSync(yol, 'utf8');
   const gorunur = ayikla(html);
-  const re = />([^<>{}]{4,80})</g;
+  // Metin dugumleri (uzunluk siniri yok) ve cevrilen oznitelikler (i18n.js ile ayni liste)
+  const parcalar = [];
+  const re = />([^<>{}]{2,})</g;
   let m;
-  while ((m = re.exec(gorunur))) {
-    const t = varlikCoz(m[1]).replace(/\s+/g, ' ').trim();
-    if (!t || !TR_HARF.test(t)) continue;               // Turkce harfi yoksa dokunma
-    if (/^[\d\s.,:/%+-]+$/.test(t)) continue;
+  while ((m = re.exec(gorunur))) parcalar.push(m[1]);
+  const oz = /\s(?:title|placeholder|data-tip)="([^"]+)"/g;
+  while ((m = oz.exec(gorunur))) parcalar.push(m[1]);
+  parcalar.forEach((ham) => {
+    const t = varlikCoz(ham).replace(/\s+/g, ' ').trim();
+    if (!t || !/[A-Za-zçğıöşüÇĞİÖŞÜ]{2}/.test(t)) return;   // harf yoksa (sayi, isaret) dokunma
+    if (!TR_HARF.test(t) && cevrilmezMi(t)) return;
     // Calisma zamaninda anahtar sayilardan arindiriliyor (i18nNormKey): "7 gun" ile
     // "30 gun" ayni girise duser. Ayni normalizasyon burada da uygulanmali, yoksa
     // sayi tasiyan her metin yanlislikla "eksik" gorunur.
     const norm = (x) => x.replace(/\d[\d.,]*/g, '#');
-    if (sozluk.en.has(t) || sozluk.en.has(norm(t))) continue;
-    if ([...sozluk.en.keys()].some((k) => norm(k) === norm(t))) continue;
-    eksikMetin.push(f + ': ' + t.slice(0, 60));
-  }
+    if (sozluk.en.has(t) || sozluk.en.has(norm(t))) return;
+    if ([...sozluk.en.keys()].some((k) => norm(k) === norm(t))) return;
+    eksikMetin.push(f + ': ' + (TAM ? t : t.slice(0, 60)));
+  });
 });
 if (eksikMetin.length) {
   uyari++;
@@ -212,24 +234,118 @@ fs.readdirSync(JS_DIZIN).filter((f) => f.endsWith('.js') && f !== 'i18n.js').for
   const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
   let m;
   while ((m = re.exec(kaynak))) {
-    const ham = m[1] !== undefined ? m[1] : m[2];
+    // Kacis dizileri calisma zamanindaki haline cevrilir: kaynakta \' yazan metin ekranda ' olur.
+    const ham = (m[1] !== undefined ? m[1] : m[2]);
     if (!ham || !TR_HARF.test(ham)) continue;
     // Etiketleri soyup yalnizca gorunur metni birak
-    ham.split(/<[^>]*>/).forEach((p) => {
+    ham.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ').split(/<[^>]*>/).forEach((p) => {
       const t = p.replace(/\s+/g, ' ').trim();
       if (t.length < 4 || !TR_HARF.test(t)) return;
       if (sozluk.en.has(t) || enNorm.has(normA(t))) return;
       if (!jsEksik.has(t)) jsEksik.set(t, f);
     });
   }
+  // Sablon dizeler (`...${x}...`): degisken yerleri ayrac sayilir
+  const sab = /`((?:\\.|[^`\\])*)`/g;
+  while ((m = sab.exec(kaynak))) {
+    m[1].split(/\$\{[^}]*\}|<[^>]*>/).forEach((p) => {
+      const t = p.replace(/\s+/g, ' ').trim();
+      if (t.length < 4 || !TR_HARF.test(t)) return;
+      if (sozluk.en.has(t) || enNorm.has(normA(t))) return;
+      if (!jsEksik.has(t)) jsEksik.set(t, f);
+    });
+  }
+  // Turkce harf tasimayan ama arayuze giden metin ("Sayfada Kal", "Kapat"): onay penceresi
+  // alanlari ve cevirinin gectigi cagrilar harf bakilmadan taranir.
+  const arayuz = /\b(?:confirmText|cancelText|altText|tag|title|body|warn)\s*:\s*'((?:\\.|[^'\\\n])+)'|\b(?:t|tf|toast)\(\s*'((?:\\.|[^'\\\n])+)'/g;
+  while ((m = arayuz.exec(kaynak))) {
+    const t = (m[1] !== undefined ? m[1] : m[2]).replace(/\\'/g, "'").replace(/\s+/g, ' ').trim();
+    if (t.length < 3 || /^#[0-9A-Fa-f]{3,8}$/.test(t) || !/[a-zA-Z]{3}/.test(t) || /^[\w.-]+$/.test(t) && !/\s/.test(t) && /[a-z][A-Z]|_|^[a-z]+$/.test(t)) continue;
+    if (sozluk.en.has(t) || enNorm.has(normA(t))) continue;
+    if (!jsEksik.has(t)) jsEksik.set(t, f);
+  }
 });
 if (jsEksik.size) {
   uyari++;
   yaz('  ' + jsEksik.size + ' metnin sozlukte karsiligi yok');
-  const liste = [...jsEksik].map(([t, f]) => f + ': ' + t.slice(0, 70));
+  const liste = [...jsEksik].map(([t, f]) => f + ': ' + (TAM ? t : t.slice(0, 70)));
   (TAM ? liste : liste.slice(0, 12)).forEach((x) => yaz('      ' + x));
   if (!TAM && liste.length > 12) yaz('      ... ve ' + (liste.length - 12) + ' tane daha (npm run dil -- --tam)');
 } else yaz('  JS icindeki her Turkce metnin karsiligi var');
+
+// ---- 8. ana surecin kullaniciya giden metni ----
+// Tepsi menusu, dosya pencereleri, bildirimler, arayuze donen hata mesajlari ve etkinlik
+// akisina giden metinler (main.js, src/core, src/services). Kayit satirlari (log) ve yorumlar
+// ayiklanir; kalan Turkce harfli her metnin sozlukte karsiligi olmali (bkz src/core/ceviri.js).
+bolum(8, 'Ana surec metinleri (sozlukte karsiligi yok)');
+const anaEksik = new Map();
+const anaDosyalar = [path.join(KOK, 'main.js')]
+  .concat(fs.readdirSync(path.join(KOK, 'src', 'core')).map((f) => path.join(KOK, 'src', 'core', f)))
+  .concat(fs.readdirSync(path.join(KOK, 'src', 'services')).map((f) => path.join(KOK, 'src', 'services', f)))
+  .filter((f) => f.endsWith('.js') && !f.endsWith('ceviri.js'));
+anaDosyalar.forEach((yol) => {
+  const f = path.relative(KOK, yol).replace(/\\/g, '/');
+  const kaynak = fs.readFileSync(yol, 'utf8')
+    .replace(/^\s*\/\/.*$/gm, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\blog\((?:[^()]|\([^()]*\))*\)/g, '')          // kayit satirlari kullaniciya gitmez
+    .replace(/\bcokmeYaz\((?:[^()]|\([^()]*\))*\)/g, '');
+  const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
+  let m;
+  while ((m = re.exec(kaynak))) {
+    const ham = m[1] !== undefined ? m[1] : m[2];
+    if (!ham || !TR_HARF.test(ham)) continue;
+    const t = ham.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ').replace(/\s+/g, ' ').trim();
+    if (t.length < 3) continue;
+    if (sozluk.en.has(t) || enNorm.has(normA(t))) continue;
+    if (!anaEksik.has(t)) anaEksik.set(t, f);
+  }
+});
+if (anaEksik.size) {
+  uyari++;
+  yaz('  ' + anaEksik.size + ' metnin sozlukte karsiligi yok');
+  const liste = [...anaEksik].map(([t, f]) => f + ': ' + (TAM ? t : t.slice(0, 70)));
+  (TAM ? liste : liste.slice(0, 12)).forEach((x) => yaz('      ' + x));
+  if (!TAM && liste.length > 12) yaz('      ... ve ' + (liste.length - 12) + ' tane daha (npm run dil -- --tam)');
+} else yaz('  ana surecin her Turkce metninin karsiligi var');
+
+// ---- 9. HTML parcasi tasiyan anahtar ----
+bolum(9, 'HTML parcasi tasiyan anahtar');
+let htmlAnahtar = 0;
+sozluk.en.forEach((_v, k) => {
+  if (/<\/?[a-z][^>]*>|style="/i.test(k)) { htmlAnahtar++; hata++; yaz('  HATA ' + k.slice(0, 90)); }
+});
+if (!htmlAnahtar) yaz('  temiz');
+
+// ---- 10. yer tutucu ----
+// Anahtardaki her '#' ceviride de bulunmali; eksikse deger kaybolur, fazlaysa ekranda '#'
+// kalir. Sirayi degistiren ceviri #1, #2 yazar (bkz i18n.js yerTutucuDoldur); duz '#' ile
+// karisik yazilirsa sayac kayar, o yuzden ikisi bir arada olamaz.
+// Istisna: tekil bicimi yalnizca 1'e dusen dillerde (en, de, es) tekil bicim sayiyi
+// yazmayabilir ("The game already has..."). Rusca tekil bicim 21, 31'i de kapsar, sayi sart.
+const TEKIL_BIR = new Set(['en', 'de', 'es']);
+bolum(10, 'Yer tutucu (# sayisi ve #1, #2 sirasi)');
+let ytHata = 0;
+DILLER.forEach((d) => {
+  sozluk[d].forEach((v, k) => {
+    const n = (k.match(/#/g) || []).length;
+    const bicimler = String(v).split('|');
+    bicimler.forEach((bicim, sira) => {
+      const tekilSayisiz = TEKIL_BIR.has(d) && bicimler.length > 1 && sira === 0;
+      const sirali = bicim.match(/#[1-9]/g) || [];
+      const duz = (bicim.match(/#(?![1-9])/g) || []).length;
+      let sorun = '';
+      if (sirali.length && duz) sorun = 'duz # ile #1 karisik';
+      else if (sirali.length) {
+        const kume = new Set(sirali);
+        if (sirali.some((x) => Number(x[1]) > n)) sorun = 'anahtarda olmayan sira';
+        else if (kume.size !== n) sorun = n + ' deger, ' + kume.size + ' sirali yer tutucu';
+      } else if (duz !== n && !(tekilSayisiz && duz === n - 1)) sorun = n + ' deger, ceviride ' + duz;
+      if (sorun) { ytHata++; hata++; yaz('  HATA ' + d + ' ' + JSON.stringify(k).slice(0, 70) + ': ' + sorun); }
+    });
+  });
+});
+if (!ytHata) yaz('  her ceviri anahtarin degerlerini tasiyor');
 
 // ---- ozet ----
 yaz('\n================================');

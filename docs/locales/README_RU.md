@@ -63,6 +63,13 @@
 | <img src="../../design/screenshots/Market2.png" alt="Площадка, стакан заявок"><br><sub>Площадка, стакан заявок</sub> | <img src="../../design/screenshots/Chat.png" alt="Чат Steam"><br><sub>Чат Steam</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Настройки"><br><sub>Настройки</sub> |  |
 
+**Темы: тёмная, полночный фиолетовый, белая (Настройки > Общие > Тема)**
+
+| Тёмная | Полночный фиолетовый | Белая |
+|---|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="Тёмная"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="Полночный фиолетовый"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Белая"> |
+| <img src="../../design/screenshots/themes/login-dark.png" alt="Тёмная"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="Полночный фиолетовый"> | <img src="../../design/screenshots/themes/login-white.png" alt="Белая"> |
+
 </div>
 
 ---

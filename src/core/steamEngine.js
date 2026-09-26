@@ -1,4 +1,5 @@
 const SteamUser = require('steam-user');
+const ceviri = require('./ceviri');
 // steam-user's internal protobufs map doesn't register the user-stats messages, so we encode/decode
 // them ourselves from its generated schema and hand raw buffers to _send.
 const Schema = require('steam-user/protobufs/generated/_load.js');
@@ -8,11 +9,16 @@ const Schema = require('steam-user/protobufs/generated/_load.js');
 // drops trading cards. No Steam client required.
 class SteamEngine {
   constructor() {
-    this.user = new SteamUser();
+    // Yeniden bağlanmayı steam-user'ın kendi döngüsü değil aşağıdaki döngü yapar. İkisi
+    // birlikte çalışınca aynı anda iki giriş denemesi oluyor, biri "Already attempting to log
+    // on" hatasıyla düşüyordu; Ayarlar'daki deneme sınırı ve "Kapalı" seçeneği de steam-user'ın
+    // kendi denemelerine işlemiyordu.
+    this.user = new SteamUser({ autoRelogin: false });
     this.cookies = null;
     this.steamID = null;
     this.persona = null;
     this._playing = [];
+    this._sahipler = new Map();    // is adi -> o isin actigi oyunlar (bkz play)
     this._offline = false;
     this._hideGameName = false;
     // Hesabın cüzdan para birimi. BİLİNMİYOR olarak başlar - varsayılan vermek, cüzdan
@@ -34,6 +40,11 @@ class SteamEngine {
     this._yenidenBaglanTimer = null;
     this._yenidenBaglanDeneme = 0;
     this._kapatildi = false;       // logOff() cagrildiysa yeniden baglanma
+    // Ayarlar > "Bağlantı koparsa yeniden bağlan" (main atar): null = sınırsız, 0 = kapalı,
+    // n = en fazla n deneme. Sınır dolunca 'vazgecildi' bildirilir, döngü durur.
+    this.yenidenBaglanmaSiniri = null;
+    this.vazgecti = false;
+    this.kaliciKopma = false;      // tekrar denemenin anlamsız olduğu kopma (aşağıda)
     this.onDurum = null;           // (durum) => void   durum: 'bagli'|'koptu'|'baglaniyor'|'vazgecildi'
     this._nabizTimer = null;
   }
@@ -48,15 +59,18 @@ class SteamEngine {
   // failed` gibi anlamsiz bir metin donuyor, gecici hatalarda da hic yeniden denenmiyordu;
   // "basarimlar bazen hic yuklenmiyor" sikayetinin kaynagi buydu.
   // Burada: zaman asimi, gecici hatalarda ustel geri cekilme ve anlasilir hata metni.
+  // Metin arayüz dilinde kurulur (ceviri: ana süreç sözlüğü). Eskiden Türkçe harf
+  // kullanılmadan yazılmıştı ve hiçbir dilde çevrilmiyordu.
   static hataMetni(e, nerede) {
     const m = String((e && (e.kod || e.message)) || e || '');
-    if (/abort|timeout|ETIMEDOUT/i.test(m)) return (nerede || 'Steam') + ': istek zaman asimina ugradi. Baglantini kontrol et.';
-    if (/ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(m)) return (nerede || 'Steam') + ': sunucuya ulasilamadi. Internet baglantin kesilmis olabilir.';
-    if (/ECONNRESET|ECONNREFUSED|socket hang up|fetch failed/i.test(m)) return (nerede || 'Steam') + ': baglanti koptu. Birazdan tekrar dene.';
-    if (/HTTP 429/.test(m)) return (nerede || 'Steam') + ': istek limiti asildi. Bir dakika bekleyip tekrar dene.';
-    if (/HTTP 401|HTTP 403/.test(m)) return (nerede || 'Steam') + ': oturum gecersiz. Cikip yeniden giris yap.';
-    if (/HTTP 5\d\d/.test(m)) return (nerede || 'Steam') + ': Steam sunucusu su an cevap veremiyor.';
-    return (nerede ? nerede + ': ' : '') + m;
+    const yer = ceviri.t(nerede || 'Steam') + ': ';
+    if (/abort|timeout|ETIMEDOUT/i.test(m)) return yer + ceviri.t('İstek zaman aşımına uğradı. Bağlantını kontrol et.');
+    if (/ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(m)) return yer + ceviri.t('Sunucuya ulaşılamadı. İnternet bağlantın kesilmiş olabilir.');
+    if (/ECONNRESET|ECONNREFUSED|socket hang up|fetch failed/i.test(m)) return yer + ceviri.t('Bağlantı koptu. Birazdan tekrar dene.');
+    if (/HTTP 429/.test(m)) return yer + ceviri.t('İstek sınırı aşıldı. Bir dakika bekleyip tekrar dene.');
+    if (/HTTP 401|HTTP 403/.test(m)) return yer + ceviri.t('Oturum geçersiz. Çıkış yapıp yeniden giriş yap.');
+    if (/HTTP 5\d\d/.test(m)) return yer + ceviri.t('Steam sunucusu şu an yanıt veremiyor.');
+    return (nerede ? yer : '') + ceviri.t(m);
   }
 
   // Steam topluluk sayfalari ve pazar uclari yaniti hesabin Steam diline gore
@@ -123,6 +137,7 @@ class SteamEngine {
     try {
       const r = await this._iste('https://steamcommunity.com/market/?l=english', { deneme: 2 }, 'Pazar kuru');
       const html = await r.text();
+      this._cuzdaniOku(html);
       const m = html.match(/"wallet_currency"\s*:\s*(\d+)/);
       if (!m) return null;
       const code = SteamEngine.currencyName(+m[1]);
@@ -131,6 +146,35 @@ class SteamEngine {
       this._currency = code;
       return code;
     } catch (_) { return null; }
+  }
+
+  // Satis ucretinin girdileri. Steam bunlari sayfaya `g_rgWalletInfo` olarak gomuyor ve kendi
+  // ucret hesabi (economy_common.js) bu nesneyle calisiyor. Yalnizca ucret alanlari tutulur;
+  // cuzdan bakiyesi gibi alanlar bellekte bile saklanmaz.
+  _cuzdaniOku(html) {
+    const m = String(html || '').match(/g_rgWalletInfo\s*=\s*(\{[\s\S]*?\});/);
+    if (!m) return null;
+    let ham;
+    try { ham = JSON.parse(m[1]); } catch (_) { return null; }
+    const alanlar = ['wallet_currency', 'wallet_fee', 'wallet_fee_minimum', 'wallet_fee_percent',
+      'wallet_publisher_fee_percent_default', 'wallet_fee_base', 'wallet_market_minimum', 'wallet_currency_increment'];
+    const c = {};
+    alanlar.forEach((k) => { if (ham[k] != null) c[k] = ham[k]; });
+    if (c.wallet_fee_percent == null && c.wallet_publisher_fee_percent_default == null) return null;
+    this._cuzdan = c;
+    this._cuzdanTs = Date.now();
+    return c;
+  }
+  // Ucret alanlari. Pazar sayfasinda bulunamazsa envanter sayfasina bakilir (satis
+  // penceresi orada). Bir saat bellekte tutulur.
+  async cuzdanBilgisi() {
+    if (this._cuzdan && Date.now() - (this._cuzdanTs || 0) < 3600000) return this._cuzdan;
+    if (!this.cookies) throw new Error('web oturumu yok');
+    const r1 = await this._iste('https://steamcommunity.com/market/?l=english', { deneme: 2 }, 'Pazar');
+    if (this._cuzdaniOku(await r1.text())) return this._cuzdan;
+    const r2 = await this._iste(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { deneme: 2 }, 'Envanter');
+    if (this._cuzdaniOku(await r2.text())) return this._cuzdan;
+    throw new Error(ceviri.t('Steam cüzdan bilgisi okunamadı'));
   }
   // Otomatik yanıt ayarı. text boşsa/kapalıysa sadece bildirim gösterilir, yanıt yazılmaz.
   setAutoReply(text, cooldownMinutes) {
@@ -188,13 +232,14 @@ class SteamEngine {
         done.web = true; maybe();
       });
       this.user.once('error', reject);
-      setTimeout(() => reject(new Error('CM logon zaman aşımı')), 25000);
+      setTimeout(() => reject(new Error(ceviri.t('Steam sunucusuna giriş zaman aşımına uğradı'))), 25000);
     }).then((r) => {
       // Giris basarili: kalici dinleyicileri kur (bir kez).
       this._refreshToken = refreshToken;
       this._offlineSecenek = !!offline;
       this.bagli = true;
       this._yenidenBaglanDeneme = 0;
+      this.vazgecti = false; this.kaliciKopma = false;
       this._kopmaDinleyicileriniKur();
       this._nabziBaslat();
       this._durumBildir('bagli');
@@ -211,21 +256,31 @@ class SteamEngine {
     if (this._dinleyiciKuruldu) return;
     this._dinleyiciKuruldu = true;
 
-    const kopdu = (sebep) => {
+    const kopdu = (sebep, eresult) => {
       if (this._kapatildi) return;
       this.bagli = false;
       this.cookies = null;             // web oturumu da dustu, yeniden alinacak
-      this._durumBildir('koptu', { sebep: String(sebep || '') });
+      // Tekrar denemenin anlamsız ya da zararlı olduğu kopmalar: giriş anahtarı artık geçersiz
+      // (denemek yalnızca ret toplar) ya da aynı hesap başka bir oturumla değiştirildi (iki
+      // uygulama birbirini sırayla düşürerek kavgaya girer). "Koptu, yeniden bağlanılıyor"
+      // denmez; doğrudan sebebiyle birlikte vazgeçildiği söylenir.
+      if (SteamEngine.KALICI_KOPMA.has(+eresult)) {
+        this.vazgecti = true; this.kaliciKopma = true;
+        this._durumBildir('vazgecildi', { kalici: true, eresult: +eresult, sebep: String(sebep || '') });
+        return;
+      }
+      this._durumBildir('koptu', { sebep: String(sebep || ''), eresult: eresult || null });
       this._yenidenBaglanmayiPlanla();
     };
 
-    this.user.on('disconnected', (eresult, msg) => kopdu(msg || ('EResult ' + eresult)));
-    this.user.on('error', (e) => kopdu((e && e.message) || 'bilinmeyen hata'));
+    this.user.on('disconnected', (eresult, msg) => kopdu(msg || ('EResult ' + eresult), eresult));
+    this.user.on('error', (e) => kopdu((e && e.message) || 'bilinmeyen hata', e && e.eresult));
 
     // Yeniden baglandiginda web oturumu ve oyunlar KENDILIGINDEN geri gelmez.
     this.user.on('loggedOn', () => {
       this.bagli = true;
       this._yenidenBaglanDeneme = 0;
+      this.vazgecti = false; this.kaliciKopma = false;
       try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
       try {
         this.user.setPersona(this._offlineSecenek ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
@@ -243,6 +298,12 @@ class SteamEngine {
   _yenidenBaglanmayiPlanla() {
     if (this._kapatildi || this._yenidenBaglanTimer) return;
     if (!this._refreshToken) return;
+    const sinir = this.yenidenBaglanmaSiniri;
+    if (sinir != null && this._yenidenBaglanDeneme >= sinir) {
+      this.vazgecti = true;
+      this._durumBildir('vazgecildi', { kalici: false, deneme: this._yenidenBaglanDeneme, sinir });
+      return;
+    }
     this._yenidenBaglanDeneme++;
     // Ustel geri cekilme, en fazla 5 dakika. Steam tarafi gecici sorunlarda hemen
     // kabul etmiyor; saniyede bir denemek isi kotulestiriyor.
@@ -254,6 +315,30 @@ class SteamEngine {
       try { this.user.logOn({ refreshToken: this._refreshToken }); }
       catch (_) { this._yenidenBaglanmayiPlanla(); }
     }, bekle);
+  }
+
+  // Vazgeçilmiş döngüyü baştan başlatır: kullanıcı "Yeniden bağlan" dedi ya da deneme sınırı
+  // ayarlardan büyütüldü. elle: kalıcı kopmada da dener (kullanıcı öbür oturumu kapatmış olabilir).
+  yenidenBaglanmayiDene(elle) {
+    if (this._kapatildi || this.bagli) return;
+    if (this.kaliciKopma && !elle) return;
+    this.vazgecti = false; this.kaliciKopma = false;
+    this._yenidenBaglanDeneme = 0;
+    if (this._yenidenBaglanTimer) { clearTimeout(this._yenidenBaglanTimer); this._yenidenBaglanTimer = null; }
+    const sinir = this.yenidenBaglanmaSiniri;
+    if (sinir === 0 && !elle) return;
+    // Elle istendiyse sınır 0 (kapalı) olsa da bir deneme yapılır.
+    if (sinir === 0) {
+      this._yenidenBaglanDeneme = 1;
+      this._durumBildir('baglaniyor', { deneme: 1, bekleMs: 1000 });
+      this._yenidenBaglanTimer = setTimeout(() => {
+        this._yenidenBaglanTimer = null;
+        if (this._kapatildi) return;
+        try { this.user.logOn({ refreshToken: this._refreshToken }); } catch (_) {}
+      }, 1000);
+      return;
+    }
+    this._yenidenBaglanmayiPlanla();
   }
 
   // Nabiz: "bagliyim" diyoruz ama oyunlar gercekten acik mi? steam-user'in kendi
@@ -306,19 +391,37 @@ class SteamEngine {
   // listeye ekleniyordu: 2 oyun -> 40 satir, 5 kart -> 100 kart gibi.
   // Simdi sayfa sayisi sayfalama kutusundan okunuyor, ayrica ayni appid kumesi tekrar
   // gelirse dongu kiriliyor ve sonuc appid uzerinden tekillestiriliyor.
-  async getDropGames() {
+  // `detay` verilirse { oyunlar, bitenler } doner: bitenler, rozet satirinda "No card drops
+  // remaining" yazan oyunlar. Kart izleyicisi bir oyunu ancak Steam bunu SOYLEYINCE kuyruktan
+  // cikarir; listede gorunmemek tek basina "bitti" demek degildir (kazima eksik kalabilir).
+  async getDropGames(detay) {
     if (!this.cookies) throw new Error('web oturumu yok');
     const bulunan = new Map();          // appid -> { appid, name, remaining }
+    const bitenler = new Set();
     let sonImza = null;
     let sonSayfa = 1;
 
     for (let p = 1; p <= sonSayfa && p <= 50; p++) {
       const url = `https://steamcommunity.com/profiles/${this.steamID}/badges/?l=english&p=${p}`;
-      const r = await this._iste(url, {}, 'Rozet sayfasi');
+      const r = await this._iste(url, {}, 'Rozet sayfası');
       const html = await r.text();
 
-      // Ilk sayfada gercek sayfa sayisini ogren: sayfalama baglantilarindaki en buyuk p degeri.
       if (p === 1) {
+        // SAHIBININ GORUNUMU MU? Web oturumu dustugunde rozet sayfasi yine aciliyor (profil
+        // herkese acik), ama kart dusus bilgisi YOK. O sayfa "hicbir oyunda kart kalmamis"
+        // gibi okunur ve kart dusurme butun kuyrugu bitti sanirdi. Sayfadaki oturum kimligi
+        // bizimkiyle eslesmiyorsa sonuc kullanilmaz, web oturumu tazelenir.
+        // Steam bu degiskenin bicimini degistirirse kilitlenmeyelim: hic bulunamazsa sayfada
+        // sahibine ozel dusus metni olup olmadigina bakilir.
+        const oturum = html.match(/g_steamID\s*=\s*("?)(\d{17}|false)\1/);
+        const sahibi = oturum
+          ? oturum[2] === String(this.steamID)
+          : (/card drops? remaining/i.test(html) || !html.includes('class="badge_row'));
+        if (!sahibi) {
+          try { this.user.webLogOn(); } catch (_) {}
+          throw new Error(ceviri.t('Rozet sayfası oturum açılmadan geldi'));
+        }
+        // Gercek sayfa sayisini ogren: sayfalama baglantilarindaki en buyuk p degeri.
         const sayfalar = [...html.matchAll(/[?&]p=(\d+)/g)].map((m) => +m[1]).filter((n) => n > 0 && n < 1000);
         if (sayfalar.length) sonSayfa = Math.max(...sayfalar);
       }
@@ -331,9 +434,15 @@ class SteamEngine {
         const app = row.match(/card_drop_info_gamebadge_(\d+)_/) || row.match(/steam:\/\/run\/(\d+)/);
         if (!app) continue;
         buSayfa.push(app[1]);
-        const drop = row.match(/(\d+)\s+card drops remaining/i);
-        if (!drop) continue;                        // "No card drops remaining" veya hic yok
         const appid = +app[1];
+        // TEKIL/COGUL: Steam tek kart kalinca "1 card drop remaining" yaziyor. Desen eskiden
+        // yalnizca "drops" ariyordu; son karti kalan oyun listeden dusuyor ve o kart hic
+        // toplanmiyordu. ASF de sayiyi bu yuzden metinden bagimsiz okuyor.
+        const drop = row.match(/(\d+)\s+card\s+drops?\s+remaining/i);
+        if (!drop) {
+          if (/No card drops remaining/i.test(row)) bitenler.add(appid);
+          continue;
+        }
         if (bulunan.has(appid)) continue;           // ayni oyun ikinci kez sayilmasin
         const nm = row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;\s*,/)
           || row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;/);
@@ -346,7 +455,9 @@ class SteamEngine {
       if (imza && imza === sonImza) break;
       sonImza = imza;
     }
-    return [...bulunan.values()];
+    const oyunlar = [...bulunan.values()];
+    bulunan.forEach((_, id) => bitenler.delete(id));
+    return detay ? { oyunlar, bitenler } : oyunlar;
   }
 
   // Own Steam profile: avatar, display name and account level - straight from the protocol
@@ -405,7 +516,7 @@ class SteamEngine {
   async getOwnedGames() {
     if (!this.cookies) throw new Error('web oturumu yok');
     const token = this._accessToken();
-    if (!token) throw new Error('steamLoginSecure çerezi yok');
+    if (!token) throw new Error(ceviri.t('Steam web oturumu henüz hazır değil'));
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&include_appinfo=true&include_played_free_games=true&format=json`;
     const r = await this._iste(url, {}, 'Oyun listesi');
     const j = await r.json();
@@ -599,8 +710,8 @@ class SteamEngine {
         'User-Agent': SteamEngine.UA,
       },
     });
-    if (r.status === 429) return { rateLimited: true, error: 'Steam istek limiti (429)' };
-    if (!r.ok) return { error: 'pazar sayfası HTTP ' + r.status };
+    if (r.status === 429) return { rateLimited: true, error: ceviri.t('Steam istek sınırı aşıldı (429)') };
+    if (!r.ok) return { error: ceviri.tf('pazar sayfası HTTP # döndürdü', r.status) };
     const html = await r.text();
 
     const strip = (x) => String(x).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
@@ -650,7 +761,7 @@ class SteamEngine {
     // olarak bu tür bir uyumsuzluk tutarları 40 kat şişirmişti).
     const beklenen = SteamEngine.SYMBOL[code];
     if (ornekRaw && beklenen && !String(ornekRaw).includes(beklenen)) {
-      return { error: 'pazar sayfası ' + code + ' dışında bir kurda geldi (' + ornekRaw + ')' };
+      return { error: ceviri.tf('pazar sayfası # dışında bir kurda geldi', code) + ' (' + ornekRaw + ')' };
     }
     return {
       sell, buy, sellCount, buyCount,
@@ -666,7 +777,7 @@ class SteamEngine {
   async sellItem(assetId, priceCents, amount = 1) {
     if (!this.cookies) throw new Error('web oturumu yok');
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
-    if (!sidCookie) throw new Error('sessionid çerezi yok');
+    if (!sidCookie) throw new Error(ceviri.t('Steam web oturumu henüz hazır değil'));
     const sessionid = sidCookie.split('=')[1];
     const body = new URLSearchParams({
       sessionid, appid: '753', contextid: '6',
@@ -683,9 +794,20 @@ class SteamEngine {
       body,
     });
     const j = await r.json().catch(() => null);
-    if (!j) throw new Error('Market yanıtı okunamadı (HTTP ' + r.status + ')');
-    if (!j.success) throw new Error(SteamEngine.steamMesaji(j.message, 'Listeleme reddedildi'));
-    return j; // { success, requires_confirmation, needs_mobile_confirmation, ... }
+    // Hata ayrintisi korunur: ana surec Steam'in mesajina ve HTTP durumuna bakip "limit"
+    // (dur), "atla" (bu oge olmaz, digerine gec) ya da genel hata diye ayirir.
+    if (!j) {
+      const e = new Error(ceviri.tf('Pazar yanıtı okunamadı (HTTP #)', r.status));
+      e.httpDurum = r.status;
+      throw e;
+    }
+    if (!j.success) {
+      const e = new Error(SteamEngine.steamMesaji(j.message, 'Listeleme reddedildi'));
+      e.steamMesaji = String(j.message || '');
+      e.httpDurum = r.status;
+      throw e;
+    }
+    return j; // { success, requires_confirmation, needs_mobile_confirmation, needs_email_confirmation, email_domain }
   }
 
   // Low-level: encode `msgType`→buffer, send EMsg, decode the job-response buffer with `respType`.
@@ -695,7 +817,7 @@ class SteamEngine {
   // Artik gecici sayilip bir kez daha deneniyor ve mesaj ne yapilmasi gerektigini soyluyor.
   _sendRecvTek(emsg, msgType, obj, respType, timeoutMs) {
     return new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(new Error('zaman asimi')), timeoutMs);
+      const t = setTimeout(() => reject(Object.assign(new Error('zaman aşımı'), { zamanAsimi: true })), timeoutMs);
       let payload;
       try { payload = Buffer.from(msgType.encode(obj).finish()); }
       catch (e) { clearTimeout(t); reject(e); return; }
@@ -714,13 +836,12 @@ class SteamEngine {
       try { return await this._sendRecvTek(emsg, msgType, obj, respType, timeoutMs); }
       catch (e) {
         son = e;
-        if (!/zaman asimi/i.test(String(e && e.message))) break;
+        if (!(e && e.zamanAsimi)) break;
         if (i === 0) await new Promise((r) => setTimeout(r, 1200));
       }
     }
-    if (/zaman asimi/i.test(String(son && son.message))) {
-      throw new Error('Steam bu oyunun basarim verisini zamaninda gondermedi. '
-        + 'Steam yogun olabilir; birkac saniye sonra Yeniden Dene.');
+    if (son && son.zamanAsimi) {
+      throw new Error(ceviri.t('Steam bu oyunun başarım verisini zamanında göndermedi. Steam yoğun olabilir; birkaç saniye sonra yeniden dene.'));
     }
     throw son;
   }
@@ -826,7 +947,7 @@ class SteamEngine {
       const token = this._accessToken();
       if (!token) return {};
       const url = `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&appid=${appid}&format=json`;
-      const r = await this._iste(url, { deneme: 2, zamanAsimiMs: 12000 }, 'Acilma tarihleri');
+      const r = await this._iste(url, { deneme: 2, zamanAsimiMs: 12000 }, 'Açılma tarihleri');
       const j = await r.json().catch(() => null);
       const list = (j && j.playerstats && j.playerstats.achievements) || [];
       const map = {};
@@ -913,7 +1034,7 @@ class SteamEngine {
 
   async _setAchievementsIc(appid, changes) {
     const raw = await this._statsCached(appid);
-    if (!raw) throw new Error('Bu oyunun başarım şeması yok');
+    if (!raw) throw new Error(ceviri.t('Bu oyunun başarım şeması yok'));
     const byName = new Map(raw.defs.map((d) => [d.apiName, d]));
     // G4: korumali basarimlari gondermeden once ayikla - Steam bunlari zaten reddediyor,
     // gondermek sadece hata sayacini sisiriyor ve donguyu bosuna mesgul ediyor.
@@ -922,7 +1043,7 @@ class SteamEngine {
       return d && d.korumali;
     });
     if (korumaliOlanlar.length === changes.length && changes.length) {
-      const e = new Error('Bu başarım oyun tarafından korunuyor, dışarıdan açılamaz.');
+      const e = new Error(ceviri.t('Bu başarım oyun tarafından korunuyor, dışarıdan açılamaz.'));
       e.korumali = true;
       throw e;
     }
@@ -944,7 +1065,7 @@ class SteamEngine {
     const eresult = resp && typeof resp.eresult !== 'undefined' ? resp.eresult : 2;
     if (eresult !== 1) {
       this.invalidateStats(appid);   // crc bayatlamış olabilir, sonraki denemede taze çek
-      throw new Error('Steam kaydı reddetti (EResult ' + eresult + ')');
+      throw new Error(ceviri.tf('Steam kaydı reddetti (EResult #)', eresult));
     }
     // Yazdığımız değerleri önbellekte de güncelle ki sıradaki işlem doğru tabandan hesaplasın
     dirty.forEach((val, statId) => raw.statValues.set(statId >>> 0, val));
@@ -971,8 +1092,40 @@ class SteamEngine {
     try { this.user.setPersona(hidden ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online); } catch (_) {}
   }
 
-  play(appids) { this._playing = appids.slice(); this.user.gamesPlayed(appids); this._applyPersona(); }
-  stop() { this._playing = []; this.user.gamesPlayed([]); this._applyPersona(); }
+  // ---- OYNANAN OYUNLAR ----
+  // Aynı hesapta birden fazla iş aynı anda oyun açabiliyor: kart düşürme, saat yükseltme,
+  // Gerçekçi Mod. Eskiden her iş motorun TEK listesini kendi listesiyle değiştiriyordu: saat
+  // yükseltme sürerken kart düşürmenin sıradaki oyuna geçmesi yükseltilen oyunların hepsini
+  // kapatıyordu, tersi de. Artık her iş kendi listesini adıyla ("sahip") tutar; Steam'e hepsinin
+  // birleşimi gider, en fazla 32 oyun (Steam üstünü saymıyor). Sıra: SAHIP_SIRASI.
+  play(appids, sahip) {
+    this._sahipler.set(sahip || 'genel', (appids || []).slice());
+    this._oyunlariGonder();
+  }
+  // sahip verilirse yalnızca o işin oyunları kapanır; verilmezse hepsi (çıkış, bağlantı kesme).
+  stop(sahip) {
+    if (sahip) this._sahipler.delete(sahip); else this._sahipler.clear();
+    this._oyunlariGonder();
+  }
+  // Bir işin oyunlarından 32 sınırına sığıp gerçekten açık olanlar.
+  calanlar(sahip) {
+    const acik = new Set(this._playing);
+    return (this._sahipler.get(sahip) || []).filter((id) => acik.has(id));
+  }
+  _oyunlariGonder() {
+    const birlesim = [];
+    const gorulen = new Set();
+    const sira = SteamEngine.SAHIP_SIRASI.concat([...this._sahipler.keys()]);
+    sira.forEach((k) => {
+      (this._sahipler.get(k) || []).forEach((id) => {
+        if (birlesim.length >= 32 || gorulen.has(id)) return;
+        gorulen.add(id); birlesim.push(id);
+      });
+    });
+    this._playing = birlesim;
+    try { this.user.gamesPlayed(birlesim); } catch (_) {}
+    this._applyPersona();
+  }
   get playing() { return this._playing; }
 
   // ================== SOHBET ==================
@@ -1004,7 +1157,7 @@ class SteamEngine {
       const k = kisiler[id] || {};
       return {
         steamid: id,
-        persona: k.player_name || ('Kullanıcı ' + id.slice(-4)),
+        persona: k.player_name || ceviri.tf('Kullanıcı #', id.slice(-4)),
         avatar: k.avatar_url_medium || k.avatar_url_icon || null,
         // 0 = cevrimdisi, 1 = cevrimici, digerleri mesgul/uzakta vb.
         durum: typeof k.persona_state === 'number' ? k.persona_state : 0,
@@ -1046,7 +1199,7 @@ class SteamEngine {
 
   async sendChat(steamid, metin) {
     const t = String(metin || '').trim();
-    if (!t) throw new Error('Boş mesaj gönderilemez.');
+    if (!t) throw new Error(ceviri.t('Boş mesaj gönderilemez.'));
     await this.user.chat.sendFriendMessage(steamid, t);
     return { ts: Date.now() };
   }
@@ -1075,6 +1228,15 @@ class SteamEngine {
 // buradan yapılıyor, elle liste tutmuyoruz.
 // Steam'in yeni SSR pazar sayfasi tarayici benzeri bir User-Agent bekliyor.
 SteamEngine.UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+// Yeniden denenmeyen kopmalar (EResult): InvalidPassword 5, AccessDenied 15, Revoked 26,
+// Expired 27 - giriş anahtarı geçersiz; LogonSessionReplaced 34 - aynı hesap başka bir
+// oturumla değiştirildi. LoggedInElsewhere (6) BURADA DEĞİL: kullanıcı başka yerde oyun
+// açınca gelir. Oyunlar 'force' olmadan bildirildiği için yeniden bağlanmak o oyunu kapatmaz;
+// Steam o sırada rölantiyi saymaz, oyun kapanınca nabız oyunları yeniden bildirir.
+SteamEngine.KALICI_KOPMA = new Set([5, 15, 26, 27, 34]);
+// 32 sınırı dolarsa önce hangi işin oyunları açık kalır: Gerçekçi Mod tek oyun açar ve
+// başarımlar o oyun açıkken yazılır; kart düşürme kart kazandırır; saat yükseltme en son.
+SteamEngine.SAHIP_SIRASI = ['gercekci', 'kart', 'saat', 'sirali', 'genel'];
 SteamEngine.CURRENCY = SteamUser.ECurrencyCode;
 // Steam fiyat metinlerini sayıya çevirir. Biçim para birimine göre değişiyor:
 //   "$1,084.65"  (virgül binlik, nokta ondalık)

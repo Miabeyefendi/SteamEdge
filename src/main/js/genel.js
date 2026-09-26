@@ -57,7 +57,7 @@
       }
       el.innerHTML = activityFeed.map(f=>{
         const s = FEED_STATUS[f.status] || FEED_STATUS['Başarılı'];
-        const t = new Date(f.ts).toLocaleTimeString('tr-TR');
+        const t = new Date(f.ts).toLocaleTimeString(yerelKod());
         return '<div class="h-row" style="display:grid;grid-template-columns:minmax(240px,1fr) 130px 100px;gap:0;padding:0 18px;height:60px;align-items:center;border-bottom:1px solid #101621">'
           + '<div style="display:flex;align-items:center;gap:12px;min-width:0">'
             + '<div style="width:30px;height:30px;flex-shrink:0;border-radius:12px;border:1px solid '+s.bd+';background:#101621;display:flex;align-items:center;justify-content:center">'
@@ -83,7 +83,7 @@
     // Sayaçlarda iki nokta üst üste vurgu rengiyle yazılır: 04<span #C2AAEE>:</span>12
     function monoTime(str){ return String(str).replace(/:/g, '<span style="color:#C2AAEE">:</span>'); }
 
-    document.getElementById('gStatSessionSub').textContent = t('Başlangıç:') + ' ' + new Date(sessionStartTs).toLocaleTimeString('tr-TR');
+    document.getElementById('gStatSessionSub').textContent = t('Başlangıç:') + ' ' + new Date(sessionStartTs).toLocaleTimeString(yerelKod());
     setInterval(()=>{
       if (typeof uiTickAllowed === 'function' && !uiTickAllowed()) return;
       const el=document.getElementById('gStatSession');
@@ -99,21 +99,31 @@
 
       // Toplam Kart
       const totalCards = dropGames.reduce((s,g)=>s+g.remaining,0);
-      c.textContent = kartLoaded ? totalCards.toLocaleString('tr-TR') : '-';
+      c.textContent = kartLoaded ? totalCards.toLocaleString(yerelKod()) : '-';
       set('gStatCardsSub', kartLoaded ? (dropGames.length+' oyunda kart var') : 'Kart Düşür sekmesinde yenile');
 
       // Kütüphane
-      set('gStatGames', (saatLoaded && ownedGames.length) ? ownedGames.length.toLocaleString('tr-TR') : '-');
+      set('gStatGames', (saatLoaded && ownedGames.length) ? ownedGames.length.toLocaleString(yerelKod()) : '-');
       set('gStatGamesSub', kartLoaded ? tf('# oyun toplamaya hazır', dropGames.length) : '-');
 
       // Envanter & Pazar - değer + Steam kesintisi sonrası net
       // Yedek dali SART: hesap degistiginde resetPageCaches() invMerged'i null yapiyor ama
       // kutu yazilmayinca ONCEKI HESABIN degeri ekranda kaliyordu.
       if (invMerged){
-        let value=0, units=0;
-        invMerged.forEach(i=>{ units+=i.count; if(i.marketable && i.marketHashName){ const v=priceVal(i); if(v!=null) value += v*i.count; } });
+        // Net: Steam'in kendi ücret hesabıyla (env.js > saticiTutari). Eskiden sabit %13
+        // düşülüyordu; ucuz kartlarda Steam'in taban ücreti yüzünden bu oran tutmuyor.
+        let value=0, units=0, net=0;
+        const eksik = [];
+        invMerged.forEach(i=>{
+          units+=i.count;
+          if(i.marketable && i.marketHashName){
+            const v=priceVal(i);
+            if(v!=null){ value += v*i.count; const sn = saticiTutari(v); if (sn==null) eksik.push(v); else net += sn*i.count; }
+          }
+        });
         set('gStatValue', fmtTL(value));
-        set('gStatValueSub', tf('# öğe · net #', units.toLocaleString('tr-TR'), fmtTL(value*0.87)));
+        set('gStatValueSub', eksik.length ? tf('# öğe', yerelSayi(units)) : tf('# öğe · net #', yerelSayi(units), fmtTL(net)));
+        if (eksik.length) netiHazirla(eksik);
       } else {
         set('gStatValue', '-');
         set('gStatValueSub', 'Envanter sekmesinde yükle');
@@ -196,78 +206,53 @@
       renderLifeStats();
     }
 
-    // Steam bize tek tek "kart düştü" olayı vermiyor; oturum boyunca kalan-kart toplamını periyodik
-    // ölçüp baştaki değerle farkını alarak dürüst bir "düşen kart" sayısı hesaplıyoruz (uydurma değil).
-    let farmBaselineCards = null, farmDroppedCount = 0, farmSessionStart = null, farmPollTimer = null, farmLifeDropped = 0;
-    let prevRemain = new Map();   // appid -> kalan kart (oyun bazında düşüş farkı için)
-    function farmSessionBegin(){
-      farmBaselineCards = dropGames.reduce((s,g)=>s+g.remaining,0);
-      farmDroppedCount = 0; farmSessionStart = Date.now(); farmLifeDropped = 0;
-      prevRemain = new Map(dropGames.map(g=>[g.appid, g.remaining]));
-      window.imu.stats.add({ sessions: 1 });
-      if (farmPollTimer) clearInterval(farmPollTimer);
-      farmPollTimer = setInterval(async ()=>{
-        if (!lastTick || !lastTick.running) return;
-        const r = await E.dropGames().catch(()=>null);
-        let cardDelta = 0;
-        if (r && r.ok){
-          // Hangi oyunda kaç kart düştüğünü kalan-kart farkından çıkar (Steam tek tek olay vermiyor).
-          r.games.forEach(g=>{
-            const before = prevRemain.get(g.appid);
-            if (before != null && g.remaining < before){
-              const n = before - g.remaining;
-              if (typeof pushDrop === 'function') pushDrop(g.appid, g.name, n);
-              if (appSettings && appSettings.notifyCardDrop) notify('farm', tf('# kart düştü', n), g.name);
-            }
-          });
-          dropGames = r.games;
-          prevRemain = new Map(dropGames.map(g=>[g.appid, g.remaining]));
-          const now = dropGames.reduce((s,g)=>s+g.remaining,0);
-          farmDroppedCount = Math.max(0, farmBaselineCards - now);
-          cardDelta = Math.max(0, farmDroppedCount - farmLifeDropped);
-          farmLifeDropped = farmDroppedCount;
-          if (cardDelta > 0) pushFeed('kart', tf('# kart düştü', cardDelta), tf('Toplam # kart · bu oturum', farmDroppedCount), 'Başarılı');
-          if (kartLoaded && typeof renderKart === 'function') renderKart();
-          renderGenelStats(); renderGenelActive();
-          // "Otomatik Pazarda Satış": kart düştüyse o oyunun yeni kartlarını listele
-          if (cardDelta > 0 && appSettings && appSettings.farmAutoSell && typeof autoSellDropped === 'function'){
-            const cur = dropGames.find(g=>g.appid === lastTick.currentAppid);
-            autoSellDropped(cur && cur.name);
-          }
-        }
-        // "Başarım Kilitlerini Aç": farm sürerken oynanan oyunun kilitli başarımlarını
-        // aralıklı olarak açar (Ayarlar > Başarımlar'daki güvenli mod aralığına uyar).
-        if (appSettings && appSettings.farmAchUnlock) await farmUnlockOne();
-        // kalıcı: her poll'de geçen 60sn + o aralıkta düşen kart farkı
-        addLifeStats({ totalRuntimeMs: 60000, cardsDropped: cardDelta });
-      }, 60000);
-    }
-    function farmSessionEnd(){ if (farmPollTimer){ clearInterval(farmPollTimer); farmPollTimer = null; } }
+    // KART DUSUSLERI ANA SURECTE OLCULUR (main.js > kartIzle). Eskiden bu dosya dakikada bir
+    // rozet sayfasini yokluyordu: yalnizca ekrandaki hesap icin, pencere acikken ve ikinci
+    // oturumda hic baslamiyordu (taban sifirlanmadigi icin). Arka plandaki hesabin dusen
+    // karti sayilmiyor, karti biten oyun kuyruktan cikmiyordu. Artik ana surec her hesabi
+    // ayri izliyor; buraya olay ve guncel liste geliyor.
+    let farmDroppedCount = 0;
+    E.onFarmListe((d)=>{
+      if (!d || !Array.isArray(d.games)) return;
+      dropGames = d.games; kartLoaded = true;
+      farmDroppedCount = d.oturumDusen || 0;
+      if (typeof renderKart === 'function' && designed.kart && !designed.kart.classList.contains('hidden')) renderKart();
+      renderGenelStats(); renderGenelActive();
+    });
 
-    // "Başarım Kilitlerini Aç" - oynanan oyunun kilitli başarımlarından BİRİNİ açar.
-    // Aralık, Ayarlar > Başarımlar > "Açılış aralığı"ndan gelir; güvenli mod kapalıysa bile
-    // burada tek tek ve aralıklı gidilir (toplu açmak profilde şüpheli görünür).
-    let lastAchUnlockTs = 0;
-    async function farmUnlockOne(){
-      const appid = lastTick && lastTick.currentAppid;
-      if (!appid) return;
-      const gapMs = Math.max(5, +((appSettings||{}).achDelay) || 5) * 1000;
-      if (Date.now() - lastAchUnlockTs < gapMs) return;
-      const res = await E.achievements(appid).catch(()=>null);
-      if (!res || !res.ok || !res.data) return;
-      const locked = res.data.achievements.filter(a=>!a.achieved);
-      if (!locked.length) return;
-      // "Açılışları zamana yay" açıksa rastgele biri, değilse ilki
-      const pick = (appSettings && appSettings.achSpread)
-        ? locked[Math.floor(Math.random()*locked.length)] : locked[0];
-      const r = await E.setAchievements(appid, [{ apiName: pick.apiName, unlock: true }]).catch(()=>null);
-      if (r && r.ok){
-        lastAchUnlockTs = Date.now();
-        if (typeof acCache !== 'undefined') acCache.delete(appid);
-        notify('ach', 'Başarım açıldı', pick.name);
-        pushFeed('kart', 'Başarım açıldı', pick.name, 'Başarılı');
+    // Hesap olaylari. Bildirim her hesap icin gosterilir (arka plandaki hesabin adi basta),
+    // aktivite akisina yalnizca ekrandaki hesabinki yazilir; arka plandakini ana surec o
+    // hesabin kendi akisina yaziyor.
+    const OLAY_BILDIRIM = {
+      kartDustu:     (o)=>['farm',  tf('# kart düştü', o.adet), o.ad],
+      kartlarBitti:  ()=>['farm',  'Kart Düşürme Bitti', 'Tüm kartlar toplandı.'],
+      basarimAcildi: (o)=>['ach',   'Başarım açıldı', o.ad],
+      boostBitti:    (o)=>['boost', 'Saat Yükseltme Bitti', o.akis ? o.akis.text : ''],
+      esitlemeBitti: ()=>['boost', 'Saat Eşitleme Tamamlandı', 'Tüm oyunlar hedefe ulaştı.'],
+      baglantiVazgecildi: (o)=>['error', 'Steam Bağlantısı', o.kalici
+        ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.'],
+      kartDurdu:     (o)=>['farm',  'Kart Düşürme Durdu', o.akis ? o.akis.text : ''],
+    };
+    window.imu.onHesapOlayi((o)=>{
+      if (!o || !o.tur) return;
+      const b = OLAY_BILDIRIM[o.tur];
+      // Kart dususu ayri bir ayara bagli ("Kart düşünce bildir")
+      const bildir = b && (o.tur !== 'kartDustu' || (appSettings && appSettings.notifyCardDrop));
+      if (bildir){
+        const [tur, baslik, govde] = b(o);
+        notify(tur, baslik, o.aktif ? t(govde || '') : ('[' + o.hesap + '] ' + t(govde || '')));
       }
-    }
+      if (!o.aktif) return;
+      if (o.tur === 'kartDustu'){
+        pushFeed('kart', tf('# kart düştü', o.adet), o.ad, 'Başarılı');
+        if (typeof pushDrop === 'function') pushDrop(o.appid, o.ad, o.adet);
+        // "Pazarda Otomatik Satış": o oyunun yeni kartlarını listele
+        if (appSettings && appSettings.farmAutoSell && typeof autoSellDropped === 'function') autoSellDropped(o.ad);
+      } else if (o.akis){
+        pushFeed(o.akis.kind, o.akis.title, o.akis.text, o.akis.status);
+      }
+      if (o.tur === 'basarimAcildi' && typeof acCache !== 'undefined') acCache.delete(o.appid);
+    });
 
     // "Aktif Görev" paneli.
     // Oyun kapsülünün yanında iki tür etiketi ("Aksiyon", "Çok Oyunculu") gösterilir; Steam'in
@@ -332,7 +317,7 @@
             + '<div style="height:100%;width:' + yuzde + '%;border-radius:12px;background:' + (g.renk || '#24AEB3') + '"></div>'
           + '</div>'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;flex-shrink:0;'
-            + 'min-width:38px;text-align:right;color:' + (g.renk || '#24AEB3') + '">%' + yuzde + '</span>'
+            + 'min-width:38px;text-align:right;color:' + (g.renk || '#24AEB3') + '">' + fmtYuzde(yuzde) + '</span>'
         + '</div>'
         + (g.basladi
             ? ('<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80">' + esc(t('Başlangıç:')) + ' '
@@ -377,10 +362,10 @@
           tab:'kart', appid:heroId, baslik:(cur?cur.name:'Kart Düşürme'),
           rozetler:[modeLabels[selectedMode]||selectedMode, tf('# oyun eşzamanlı', activeIds.length)],
           sutunlar:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
-                    ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(farmSessionStart||Date.now())))],
+                    ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(lastTick.oturumBaslangic||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
           yuzde: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
-          basladi: farmSessionStart || null,
+          basladi: lastTick.oturumBaslangic || null,
           renk:'#24AEB3', durdur: kartiDurdur,
         });
       }
@@ -618,7 +603,7 @@
       qbox.innerHTML = html;
     }
 
-    E.onTick((data)=>{ if (data.running && farmBaselineCards===null) farmSessionBegin(); if (!data.running) farmSessionEnd(); renderGenelActive(); renderGenelStats(); });
+    E.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
     E.onBoostTick(()=>{ renderGenelActive(); renderGenelStats(); });
     E.onSaatFarmTick(()=>{ renderGenelActive(); renderGenelStats(); });
     // gercekci.js kendi dinleyicisini ONCE kaydeder (dosya sirasi), yani buraya gelindiginde

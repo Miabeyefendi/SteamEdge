@@ -58,6 +58,13 @@
 | <img src="../../design/screenshots/Market2.png" alt="Pazar, sipariş defteri"><br><sub>Pazar, sipariş defteri</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam sohbeti"><br><sub>Steam sohbeti</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ayarlar"><br><sub>Ayarlar</sub> |  |
 
+**Temalar: Koyu, Gece Moru, Beyaz (Ayarlar > Genel > Tema)**
+
+| Koyu | Gece Moru | Beyaz |
+|---|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="Koyu"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="Gece Moru"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Beyaz"> |
+| <img src="../../design/screenshots/themes/login-dark.png" alt="Koyu"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="Gece Moru"> | <img src="../../design/screenshots/themes/login-white.png" alt="Beyaz"> |
+
 </div>
 
 ---

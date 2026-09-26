@@ -36,10 +36,10 @@ function surumKarsilastir(a, b) {
 // metinleri arayuzde hicbir sey ifade etmiyor.
 function hataMetni(e) {
   const kod = (e && (e.code || e.errno)) || '';
-  if (kod === 'ENOTFOUND' || kod === 'EAI_AGAIN') return 'Internet baglantisi yok gibi gorunuyor.';
-  if (kod === 'ETIMEDOUT' || kod === 'ESOCKETTIMEDOUT' || kod === 'ZAMANASIMI') return 'GitHub zamaninda yanit vermedi.';
-  if (kod === 'ECONNRESET' || kod === 'ECONNREFUSED') return 'Baglanti kesildi.';
-  if (kod === 'CERT_HAS_EXPIRED' || String(kod).indexOf('CERT') === 0) return 'Guvenli baglanti kurulamadi.';
+  if (kod === 'ENOTFOUND' || kod === 'EAI_AGAIN') return 'İnternet bağlantısı yok gibi görünüyor.';
+  if (kod === 'ETIMEDOUT' || kod === 'ESOCKETTIMEDOUT' || kod === 'ZAMANASIMI') return 'GitHub zamanında yanıt vermedi.';
+  if (kod === 'ECONNRESET' || kod === 'ECONNREFUSED') return 'Bağlantı kesildi.';
+  if (kod === 'CERT_HAS_EXPIRED' || String(kod).indexOf('CERT') === 0) return 'Güvenli bağlantı kurulamadı.';
   return (e && e.message) ? e.message : 'Bilinmeyen hata.';
 }
 
@@ -56,23 +56,23 @@ function istek(url) {
       // "simdi bakilamadi" diye anlatmak lazim, yoksa kullanici bozuk sandi.
       if (yanit.statusCode === 403 || yanit.statusCode === 429) {
         yanit.resume();
-        return hata(Object.assign(new Error('GitHub istek siniri asildi, biraz sonra tekrar dene.'), { code: 'LIMIT' }));
+        return hata(Object.assign(new Error('GitHub istek sınırı aşıldı, biraz sonra tekrar dene.'), { code: 'LIMIT' }));
       }
       if (yanit.statusCode < 200 || yanit.statusCode >= 300) {
         yanit.resume();
-        return hata(new Error('GitHub ' + yanit.statusCode + ' dondu.'));
+        return hata(new Error('GitHub beklenmeyen bir yanıt döndürdü (HTTP #).'.replace('#', yanit.statusCode)));
       }
       let govde = '';
       yanit.setEncoding('utf8');
       yanit.on('data', (p) => { govde += p; });
       yanit.on('end', () => {
         try { cozum(JSON.parse(govde)); }
-        catch (_) { hata(new Error('GitHub yaniti okunamadi.')); }
+        catch (_) { hata(new Error('GitHub yanıtı okunamadı.')); }
       });
     });
     r.on('error', hata);
     r.setTimeout(ZAMAN_ASIMI_MS, () => {
-      r.destroy(Object.assign(new Error('zaman asimi'), { code: 'ZAMANASIMI' }));
+      r.destroy(Object.assign(new Error('zaman aşımı'), { code: 'ZAMANASIMI' }));
     });
   });
 }
@@ -83,10 +83,10 @@ async function kontrolEt(kuruluSurum) {
   const temel = { kurulu: kuruluSurum, son: null, guncelMi: null, url: YAYIN_SAYFASI, yayinAdi: null, yayinTs: null };
   try {
     const liste = await istek(LISTE_URL);
-    if (!Array.isArray(liste)) return { ok: false, ...temel, hata: 'GitHub beklenmeyen bir yanit dondu.' };
+    if (!Array.isArray(liste)) return { ok: false, ...temel, hata: 'GitHub beklenmeyen bir yanıt döndürdü.' };
     // Taslak ve on-yayinlari atla: kullaniciya bitmemis surum onerilmez.
     const yayinlar = liste.filter((y) => y && !y.draft && !y.prerelease && y.tag_name);
-    if (!yayinlar.length) return { ok: false, ...temel, hata: 'Yayimlanmis surum bulunamadi.' };
+    if (!yayinlar.length) return { ok: false, ...temel, hata: 'Yayımlanmış sürüm bulunamadı.' };
     let enYeni = yayinlar[0];
     yayinlar.forEach((y) => { if (surumKarsilastir(y.tag_name, enYeni.tag_name) > 0) enYeni = y; });
     const son = String(enYeni.tag_name).replace(/^v/i, '');

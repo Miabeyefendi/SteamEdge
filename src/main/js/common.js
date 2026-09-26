@@ -17,6 +17,10 @@
         if (!ok) return;
       }
       if (tab === 'cikis') { window.imu.logout(); return; }
+      // Başka sayfaya ait açık pencereler kapanır (bkz edgeConfirm > o.sayfa).
+      document.querySelectorAll('.e-modal-back[data-sayfa]').forEach(m=>{
+        if (m.getAttribute('data-sayfa') !== tab && typeof m._kapat === 'function') m._kapat(false);
+      });
       document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
       // Sohbet'in kenar cubugunda baglantisi yok; o zaman hicbiri isaretli kalmaz.
       if (kaynakBaglanti) kaynakBaglanti.classList.add('active');
@@ -107,35 +111,43 @@
     // ================= TEMALI ONAY MODALI =================
     // Yerel confirm() kutusu Windows'un gri penceresini açıyordu (tema dışı). Bu, aynı işi
     // yapan tema uyumlu karşılığı. Promise döner: onaylandıysa true.
-    //   opts.dontAskKey → "Bir daha sorma" kutucuğu gösterir; işaretlenip onaylanırsa
-    //   ayarlara `dontAsk_<key>: true` yazılır ve sonraki çağrılar SORMADAN true döner.
-    //   Kullanıcı bunu Ayarlar > (ilgili bölüm) üzerinden geri açabilir.
+    //   opts.sormaAyari → "Bir daha sorma" kutucuğu gösterir. İşaretlenip onaylanırsa bu ayar
+    //   false yazılır (ör. achConfirmSingle) ve sonraki çağrılar SORMADAN true döner. Kullanıcı
+    //   ayarı Ayarlar'dan geri açabilir. Eskiden ayrı bir "dontAsk_" anahtarı yazılıyordu ve
+    //   aynı durumu iki ayar tutuyordu.
     function edgeConfirm(opts){
       const o = opts || {};
-      const key = o.dontAskKey ? ('dontAsk_' + o.dontAskKey) : null;
+      const key = o.sormaAyari || null;
       // Daha önce "bir daha sorma" denmişse hiç gösterme
-      if (key && typeof appSettings === 'object' && appSettings && appSettings[key]) return Promise.resolve(true);
+      if (key && typeof appSettings === 'object' && appSettings && appSettings[key] === false) return Promise.resolve(true);
 
       return new Promise((resolve)=>{
         const back = document.createElement('div');
         back.className = 'e-modal-back';
         const accent = o.danger ? '#B32453' : '#5624B3';
+        // o.sayfa: pencere bir sayfaya aittir; kullanıcı başka sekmeye geçerse kendiliğinden
+        // kapanır (vazgeçildi sayılır). Eskiden Envanter'in "fiyatlar getirilsin mi" sorusu,
+        // sekme değiştirildikten sonra başka sayfanın üstünde açılıyordu.
+        if (o.sayfa) back.setAttribute('data-sayfa', o.sayfa);
         back.innerHTML =
           '<div class="e-modal" role="dialog" aria-modal="true">'
           + '<div class="e-modal-hd"><span class="dot" style="background:'+accent+'"></span>'
-          + '<span class="ttl">'+esc(o.tag || (o.danger ? 'Dikkat' : 'Onay'))+'</span></div>'
+          + '<span class="ttl">'+esc(t(o.tag || (o.danger ? 'Dikkat' : 'Onay')))+'</span></div>'
           + '<div class="e-modal-body">'
-            + '<span class="h">'+esc(o.title || 'Emin misiniz?')+'</span>'
-            + (o.body ? '<span class="p">'+esc(o.body)+'</span>' : '')
-            + (o.warn ? '<span class="warn">'+esc(o.warn)+'</span>' : '')
+            + '<span class="h">'+esc(t(o.title || 'Emin misin?'))+'</span>'
+            + (o.body ? '<span class="p">'+esc(t(o.body))+'</span>' : '')
+            // Kırmızı uyarı: acele edilmemesi gereken durumlar (ör. fiyat 24 saatlik ortalamanın altında)
+            + (o.uyariKirmizi ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.uyariKirmizi)+'</span>' : '')
+            + (o.warn ? '<span class="warn">'+esc(t(o.warn))+'</span>' : '')
           + '</div>'
           + (key ? '<div class="e-modal-ask" data-ask><span class="box">'
               + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DCE2FA" stroke-width="3.4"><path d="M5 13l4 4L19 7"></path></svg>'
               + '</span><span>Bir daha sorma</span></div>' : '')
           + '<div class="e-modal-ft">'
-            + '<button class="cancel" data-no>'+esc(o.cancelText || 'Vazgeç')+'</button>'
-            + (o.altText ? '<button class="alt" data-alt>'+esc(o.altText)+'</button>' : '')
-            + '<button class="ok'+(o.danger?' danger':'')+'" data-yes>'+esc(o.confirmText || 'Devam Et')+'</button>'
+            // o.tekDugme: yalnızca bilgi veren pencere (sonuç özeti gibi), vazgeçilecek bir şey yok
+            + (o.tekDugme ? '' : '<button class="cancel" data-no>'+esc(t(o.cancelText || 'Vazgeç'))+'</button>')
+            + (o.altText ? '<button class="alt" data-alt>'+esc(t(o.altText))+'</button>' : '')
+            + '<button class="ok'+(o.danger?' danger':'')+'" data-yes>'+esc(t(o.confirmText || 'Devam Et'))+'</button>'
           + '</div></div>';
         document.body.appendChild(back);
         requestAnimationFrame(()=>back.classList.add('show'));
@@ -147,7 +159,7 @@
         async function close(result){
           if (done) return; done = true;
           if (result === true && ask && ask.classList.contains('on') && key){
-            try { appSettings = await window.imu.settings.set({ [key]: true }); } catch(_){}
+            try { appSettings = await window.imu.settings.set({ [key]: false }); } catch(_){}
           }
           back.classList.remove('show');
           setTimeout(()=>back.remove(), 140);
@@ -159,7 +171,9 @@
           else if (e.key === 'Enter') close(true);
         }
         document.addEventListener('keydown', onKey);
-        back.querySelector('[data-no]').onclick = ()=>close(false);
+        back._kapat = close;
+        const hayir = back.querySelector('[data-no]');
+        if (hayir) hayir.onclick = ()=>close(false);
         back.querySelector('[data-yes]').onclick = ()=>close(true);
         const alt = back.querySelector('[data-alt]');
         if (alt) alt.onclick = ()=>close('alt');
@@ -200,7 +214,7 @@
     function curSubunit(){ const c = curCode(); return c ? (CUR_SUBUNIT[c] || 'birim') : 'birim'; }
     function fmtMoney(n){
       const c = curCode();
-      const loc = CUR_LOCALE[c] || 'tr-TR';
+      const loc = CUR_LOCALE[c] || yerelKod();
       const v = +n || 0;
       // Steam pazarında en düşük satış 0,03'tür; 0,00 diye bir fiyat YOKTUR. Sıfırdan büyük
       // ama iki haneye yuvarlayınca 0,00 görünen değerleri (satış geçmişi ortalamaları
@@ -219,14 +233,15 @@
     // "Saat biçimi" - 24 saat / 12 saat (ÖÖ-ÖS)
     function fmtClock(d){
       const use12 = (typeof appSettings==='object' && appSettings && String(appSettings.timeFormat)==='12');
-      return new Date(d).toLocaleTimeString('tr-TR', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: use12 });
+      return new Date(d).toLocaleTimeString(yerelKod(), { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: use12 });
     }
-    function fmtDateShort(d){ return new Date(d).toLocaleDateString('tr-TR'); }
+    function fmtDateShort(d){ return new Date(d).toLocaleDateString(yerelKod()); }
 
     // "Arayüz yoğunluğu" - sıkışık modda satır yükseklikleri ve iç boşluklar daralır
     function applyDensity(){
       const compact = (typeof appSettings==='object' && appSettings && appSettings.density==='compact');
       document.body.classList.toggle('e-compact', !!compact);
+      if (typeof temaUygula === 'function' && appSettings) temaUygula(appSettings.theme || 'dark');
     }
 
     // ================= BİLDİRİM SESLERİ =================
@@ -471,18 +486,33 @@
 
     // ---- kalıcı istatistikler (main.js stats.json) ----
     let lifeStats = null;
-    function fmtHrs(ms){ const h=ms/3600000; return h>=1 ? (h.toFixed(1)+' saat') : (Math.round(ms/60000)+' dk'); }
-    async function renderLifeStats(){
-      lifeStats = await window.imu.stats.get().catch(()=>null);
+    function fmtHrs(ms){ const h=ms/3600000; return h>=1 ? (h.toLocaleString(yerelKod(), { maximumFractionDigits:1 })+' '+t('saat')) : (Math.round(ms/60000)+' '+t('dk')); }
+    // veri verilirse IPC'ye gidilmez (ana surecin 'stats:degisti' olayi zaten guncel veriyi tasir).
+    // Hepsi ekrandaki hesabin ana surecte sayilan gercek olcumu. "En verimli gun", "Ortalama
+    // satis" ve "Kesintisiz calisma" eskiden hic doldurulmuyor, hep tire gosteriyordu.
+    async function renderLifeStats(veri){
+      lifeStats = veri || await window.imu.stats.get().catch(()=>null);
       if (!lifeStats) return;
       const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
       set('lifeRuntime', fmtHrs(lifeStats.totalRuntimeMs||0));
-      set('lifeCards', (lifeStats.cardsDropped||0));
-      set('lifeSold', (lifeStats.cardsSold||0));
+      set('lifeCards', yerelSayi(lifeStats.cardsDropped||0));
+      set('lifeSold', yerelSayi(lifeStats.cardsSold||0));
       set('lifeBoost', fmtHrs(lifeStats.boostRuntimeMs||0));
-      set('lifeSince', t('Kayıt başlangıcı:') + ' ' + new Date(lifeStats.since||Date.now()).toLocaleDateString('tr-TR'));
+      const gunler = Object.entries(lifeStats.gunlukKart || {}).filter(x => x[1] > 0);
+      if (gunler.length){
+        const [gun, adet] = gunler.reduce((m, x) => (x[1] > m[1] ? x : m));
+        const [y, a, g] = gun.split('-').map(Number);
+        set('lifeBestDay', new Date(y, a - 1, g).toLocaleDateString(yerelKod()) + ' · ' + tf('# kart', adet));
+      } else set('lifeBestDay', '-');
+      set('lifeAvgSale', (lifeStats.satisFiyatli > 0 && typeof fmtMoney === 'function')
+        ? fmtMoney(lifeStats.satisTutar / lifeStats.satisFiyatli / 100) : '-');
+      set('lifeStreak', lifeStats.enUzunCalismaMs >= 60000 ? fmtHrs(lifeStats.enUzunCalismaMs) : '-');
+      set('lifeSince', lifeStats.since ? new Date(lifeStats.since).toLocaleDateString(yerelKod()) : '-');
+      const h = document.getElementById('lifeHesap');
+      if (h) h.textContent = (typeof appSettings === 'object' && appSettings && appSettings.persona) ? appSettings.persona : '';
     }
-    async function addLifeStats(patch){ lifeStats = await window.imu.stats.add(patch).catch(()=>lifeStats); renderLifeStats(); }
+    // Istatistik ana surecte sayilir; degistikce buraya gelir (yalnizca ekrandaki hesap icin).
+    if (window.imu.stats.onDegisti) window.imu.stats.onDegisti((d)=>renderLifeStats(d));
     // 16:9 - Kütüphane Logosu (logo.png). contain: saydam logo kırpılmadan sığar.
     function imgTag(appid){ return '<img src="'+gameImg(appid)+'" class="gt" style="width:85px;height:40px;object-fit:cover;border-radius:7px" onerror="this.style.background=\'#26313f\';this.src=\'\'">'; }
     function fmtDur(sec){ const m=Math.floor(sec/60), s=sec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
@@ -552,13 +582,13 @@
       if (guncellemePenceresiAcik) return;
       guncellemePenceresiAcik = true;
       try {
-        const tarih = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString('tr-TR') : '';
+        const tarih = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString(yerelKod()) : '';
         const ac = await edgeConfirm({
           tag: 'Güncelleme',
           title: t('Yeni sürüm yayımlandı:') + ' v' + d.son,
           body: t('Kurulu sürüm') + ' v' + d.kurulu + (tarih ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + tarih) : '')
                 + '\n' + t('Değişiklikleri yayın sayfasında okuyabilirsin.'),
-          warn: 'İndirmeyi uygulama yapmaz. Yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yanına kopyalarsın.',
+          warn: 'Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yeni klasöre kopyalarsın.',
           confirmText: 'Yayın Sayfasını Aç',
           cancelText: 'Şimdi Değil',
         });
@@ -726,7 +756,7 @@
       const feed = activityFeed || [];
       if (!feed.length){ box.innerHTML = '<div style="padding:14px;color:var(--muted2);font-size:12px;text-align:center">Henüz bildirim yok.</div>'; return; }
       box.innerHTML = feed.slice(0,8).map(f=>{
-        const t = new Date(f.ts).toLocaleTimeString('tr-TR');
+        const t = new Date(f.ts).toLocaleTimeString(yerelKod());
         return '<div class="notif-item"><div class="a">'+esc(f.title)+'</div><div class="b">'+esc(f.text)+'</div><div class="t">'+t+'</div></div>';
       }).join('');
     }
@@ -759,7 +789,31 @@
     }
     // G3: Steam baglanti durumu seridi. Kopma sessiz kalmasin diye ust barin altinda
     // kalici bir serit gosterilir; yeniden baglaninca kendiliginden kaybolur.
-    function baglantiSeridi(durum, mesaj){
+    // Metin ana süreçten değil buradan, arayüz dilinde kurulur; ana süreç yalnızca alanları
+    // (durum, sebep, deneme, bekleme, sınır) yollar. Eskiden şeritte her dilde ASCII Türkçe
+    // "yeniden baglaniyor (deneme 2, 10 sn sonra)" yazıyordu.
+    function baglantiMetni(d){
+      if (d.durum === 'koptu') return t('Steam bağlantısı koptu.') + (d.sebep ? (' (' + d.sebep + ')') : '');
+      if (d.durum === 'baglaniyor'){
+        const sn = Math.max(1, Math.round((d.bekleMs || 0) / 1000));
+        return d.sinir
+          ? tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).', sn, d.deneme || 1, d.sinir)
+          : tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).', sn, d.deneme || 1);
+      }
+      if (d.durum === 'vazgecildi'){
+        if (d.kalici) return +d.eresult === 34
+          ? t('Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.')
+          : t('Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.');
+        return d.deneme
+          ? tf('Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.', d.deneme)
+          : t('Steam bağlantısı koptu; yeniden bağlanma kapalı.');
+      }
+      if (d.durum === 'bagli' && d.yenidenBaglandi) return tf('Steam bağlantısı geri geldi, # oyun yeniden açıldı.', d.oyunlar || 0);
+      return '';
+    }
+    function baglantiSeridi(d){
+      const durum = d.durum;
+      const mesaj = baglantiMetni(d);
       let el = document.getElementById('baglantiSerit');
       if (durum === 'bagli'){
         if (el) el.remove();
@@ -778,21 +832,32 @@
         const hedef = (satir && satir.parentNode) ? satir : (ana || document.body);
         hedef.parentNode.insertBefore(el, hedef);
       }
-      const renk = durum === 'koptu' ? '#B32453' : '#B37E24';
+      const renk = (durum === 'koptu' || durum === 'vazgecildi') ? '#B32453' : '#B37E24';
       el.style.borderBottomColor = renk; el.style.color = renk;
       el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+renk+';flex-shrink:0;'
-        + 'animation:e-dotPulse 1.6s ease-in-out infinite"></span><span>'+esc(mesaj||'')+'</span>';
+        + (durum === 'vazgecildi' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(mesaj||'')+'</span>'
+        + (durum === 'vazgecildi'
+            ? '<button data-yeniden style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+renk+';color:'+renk
+              + ';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
+            : '');
+      const b = el.querySelector('[data-yeniden]');
+      if (b) b.onclick = async ()=>{
+        b.disabled = true;
+        const r = await window.imu.engine.yenidenBaglan().catch(()=>null);
+        if (!r || !r.ok){ b.disabled = false; toast('Steam Bağlantısı').fail(t((r && r.error) || 'Yeniden bağlanılamadı.')); }
+      };
     }
     if (window.imu.engine && window.imu.engine.onDurum){
       window.imu.engine.onDurum((d)=>{
         if (!d || !d.aktif) return;          // yalnizca ekranda acik olan hesap
-        baglantiSeridi(d.durum, d.mesaj);
+        baglantiSeridi(d);
         if (d.durum === 'koptu'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
-          if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', d.mesaj || 'Koptu.', 'Hata');
-          if (typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
+          if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', baglantiMetni(d), 'Hata');
+          // Yeniden bağlanma kapalıysa hemen ardından "vazgeçildi" gelir, bildirimi o verir.
+          if (d.sinir !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
         } else if (d.durum === 'bagli' && d.yenidenBaglandi){
-          if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', d.mesaj || 'Yeniden bağlandı.', 'Başarılı');
+          if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', baglantiMetni(d), 'Başarılı');
         }
       });
     }
@@ -835,20 +900,30 @@
       if (typeof genelLoaded !== 'undefined') genelLoaded = false;
       // Aktivite akisi hesaba ozeldir; eski hesabin gecmisi ekranda kalmasin
       if (typeof activityFeed !== 'undefined') activityFeed.length = 0;
+      // Son düşüşler de hesaba ozel
+      if (typeof recentDrops !== 'undefined') recentDrops.length = 0;
     }
+    // Görünen sekme DOM'dan bulunur. Ayarlar ve Sohbet'in kenar çubuğunda bağlantısı yok,
+    // Gerçekçi Mod da listede değildi: bunlar açıkken hesap değişince Genel Bakış yükleniyor,
+    // görünen sayfa ise iskelette kalıyordu.
     function reloadActiveTab(){
-      const active = document.querySelector('.nav a.active');
-      const tab = active ? active.getAttribute('data-tab') : 'genel';
+      const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'genel';
       if (tab === 'kart' && typeof loadKart === 'function') loadKart();
       else if (tab === 'saat' && typeof loadSaat === 'function') loadSaat();
       else if (tab === 'env' && typeof loadEnv === 'function') loadEnv();
       else if (tab === 'basarim' && typeof loadBasarim === 'function') loadBasarim();
+      else if (tab === 'gercekci' && typeof loadGercekci === 'function') loadGercekci();
+      else if (tab === 'sohbet' && typeof loadSohbet === 'function') loadSohbet();
+      else if (tab === 'ayarlar' && typeof loadAyarlar === 'function') loadAyarlar();
       else if (typeof loadGenel === 'function') loadGenel();
     }
     async function switchAccount(steamID){
       closeAcct();
       const r = await window.imu.accounts.switch(steamID).catch(()=>null);
-      if (!r || !r.ok){ alert(t('Hesap değiştirilemedi.') + (r && r.error ? '\n'+r.error : '')); return; }
+      if (!r || !r.ok){
+        edgeConfirm({ tag:'Hata', danger:true, title:'Hesap değiştirilemedi.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', tekDugme:true });
+        return;
+      }
       resetPageCaches();
       imuProfile = null; imuProfilTaze = false; loadProfile();
       reloadActiveTab();
@@ -870,7 +945,10 @@
       });
       if (!ok) return;
       const r = await window.imu.accounts.remove(steamID).catch(()=>null);
-      if (!r || !r.ok) { alert(t('Hesap kaldırılamadı.')); return; }
+      if (!r || !r.ok) {
+        edgeConfirm({ tag:'Hata', danger:true, title:'Hesap kaldırılamadı.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', tekDugme:true });
+        return;
+      }
       if (r.loggedOut) return; // main.js zaten giriş ekranına geçti
       resetPageCaches();
       imuProfile = null; imuProfilTaze = false; loadProfile();
@@ -895,7 +973,8 @@
                  m.message.slice(0,140) + (m.replied ? '  ·  ' + t('otomatik yanıtlandı') : ''), 'Mesaj');
       }
       if (typeof toast === 'function') toast(who).done(m.message.slice(0,120));
-      if (typeof playNotifSound === 'function' && appSettings && appSettings.notifications) playNotifSound();
+      if (typeof playNotifSound === 'function' && appSettings && appSettings.notifications
+          && appSettings.notifyChat !== false && !(typeof inQuietHours === 'function' && inQuietHours())) playNotifSound();
     });
     // Açılışta kayıtlı tüm hesapları arka planda bağla - paralel idle bunun üzerine kurulu
     window.imu.accounts.connectAll().then((res)=>{

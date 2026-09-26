@@ -58,6 +58,13 @@
 | <img src="./design/screenshots/Market2.png" alt="Market, order book"><br><sub>Market, order book</sub> | <img src="./design/screenshots/Chat.png" alt="Steam chat"><br><sub>Steam chat</sub> |
 | <img src="./design/screenshots/SettingsGeneral.png" alt="Settings"><br><sub>Settings</sub> |  |
 
+**Themes: Dark, Midnight Purple, White (Settings > General > Theme)**
+
+| Dark | Midnight Purple | White |
+|---|---|---|
+| <img src="./design/screenshots/themes/overview-dark.png" alt="Dark"> | <img src="./design/screenshots/themes/overview-midnight.png" alt="Midnight Purple"> | <img src="./design/screenshots/themes/overview-white.png" alt="White"> |
+| <img src="./design/screenshots/themes/login-dark.png" alt="Dark"> | <img src="./design/screenshots/themes/login-midnight.png" alt="Midnight Purple"> | <img src="./design/screenshots/themes/login-white.png" alt="White"> |
+
 </div>
 
 ---

@@ -39,6 +39,33 @@
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
 
+    // ÇOĞUL. Türkçede sayıdan sonra isim tekil kalır ("3 oyun"), diğer dillerde değişir:
+    // İngilizcede "1 game / 3 games", Rusçada üç biçim ("1 игра / 3 игры / 5 игр"). Sözlük
+    // değeri biçimleri '|' ile ayırarak taşır: iki biçimde "tekil|çoğul", Rusçada
+    // "one|few|many". Biçim, metindeki İLK sayıya göre seçilir. Eskiden tek biçim vardı ve
+    // ekranda "1 games", "2 игр" gibi yanlışlar çıkıyordu.
+    function cogulSec(deger, sayi) {
+      if (!deger || deger.indexOf('|') < 0) return deger;
+      const bicim = deger.split('|');
+      const n = Math.abs(Number(String(sayi == null ? '' : sayi).replace(/[^\d]/g, '')) || 0);
+      let kat = 'other';
+      try { kat = new Intl.PluralRules(yerelKod()).select(n); } catch (_) {}
+      if (bicim.length >= 3) return bicim[kat === 'one' ? 0 : kat === 'few' ? 1 : 2];
+      return bicim[kat === 'one' ? 0 : 1];
+    }
+
+    // Değerleri yer tutuculara koyar. Düz '#' sırayla dolar. Cümle yapısı Türkçeden farklı
+    // olan dil sırayı #1, #2 ile değiştirir: "# içinde # başarım açılır." İngilizcede
+    // "#2 achievements unlock within #1." olur. Eskiden yalnızca sıra vardı ve böyle bir
+    // çeviride süre ile sayı yer değiştiriyordu.
+    function yerTutucuDoldur(metin, degerler) {
+      let i = 0;
+      return String(metin).replace(/#([1-9])?/g, (_, n) => {
+        if (n) return Number(n) <= degerler.length ? String(degerler[n - 1]) : '#' + n;
+        return i < degerler.length ? String(degerler[i++]) : '#';
+      });
+    }
+
     // Ham Türkçe metni seçili dile çevirir. Karşılığı yoksa metni aynen döndürür.
     function t(src) {
       if (uiLang === 'tr' || !src) return src;
@@ -51,24 +78,47 @@
         const anahtar = i18nNormKey(duz);
         hedef = tablo[anahtar];
         if (hedef === undefined) return src;
-        // Sayıları sırayla geri koy
+        // Sayıları geri koy (çoğul biçimi ilk sayıya göre)
         const sayilar = i18nNums(duz);
-        let i = 0;
-        hedef = hedef.replace(/#/g, () => (i < sayilar.length ? sayilar[i++] : '#'));
-      }
+        hedef = yerTutucuDoldur(cogulSec(hedef, sayilar[0]), sayilar);
+      } else hedef = cogulSec(hedef, null);
       // Orijinaldeki baştaki/sondaki boşluğu koru (satır içi metinlerde önemli)
       const bas = (String(src).match(/^\s*/) || [''])[0];
       const son = (String(src).match(/\s*$/) || [''])[0];
       return bas + hedef + son;
     }
 
-    // Sayı taşıyan şablonlar için: t('# oyun sırada.', 5). Sayfa JS'leri metni sayıyla
+    // Sayı taşıyan şablonlar için: tf('# oyun sırada.', 5). Sayfa JS'leri metni sayıyla
     // birleştirince DOM gözlemcisi parçaları eşleştiremiyordu; şablon sözlükte '#' ile
-    // durur, çevrilir, sonra değerler sırayla yerine konur.
+    // durur, çevrilir, sonra değerler sırayla yerine konur. Çoğul biçimi ilk sayısal değere göre.
     function tf(sablon, ...degerler) {
-      let i = 0;
-      return t(sablon).replace(/#/g, () => (i < degerler.length ? String(degerler[i++]) : '#'));
+      const ham = (uiLang !== 'tr' && I18N[uiLang]) ? I18N[uiLang][String(sablon).replace(/\s+/g, ' ').trim()] : undefined;
+      let ceviri;
+      if (ham !== undefined){
+        // Değer HTML olabilir (<b>12</b>); sayı etiketler ayıklanarak aranır.
+        const sayi = degerler.map(v => String(v).replace(/<[^>]*>/g, '').trim()).find(v => /^\d[\d.,]*$/.test(v));
+        ceviri = cogulSec(ham, sayi);
+      } else ceviri = t(sablon);
+      return yerTutucuDoldur(ceviri, degerler);
     }
+
+    // Yüzde biçimi dile göre: Türkçede "%13", İngilizce/Almanca/İspanyolca/Rusçada "13%",
+    // Çincede "13%". Eskiden her yerde Türkçe biçim yazılıyordu.
+    function fmtYuzde(n){ return uiLang === 'tr' ? ('%' + n) : (n + '%'); }
+    // Tarih, saat ve sayı biçimi de arayüz diline göre. Eskiden her yerde 'tr-TR' yazıyordu:
+    // İngilizce arayüzde tarih "20.09.2026", binlik ayraç nokta çıkıyordu.
+    const YEREL_KOD = { tr:'tr-TR', en:'en-US', de:'de-DE', es:'es-ES', zh:'zh-TW', ru:'ru-RU' };
+    function yerelKod(){ return YEREL_KOD[uiLang] || 'tr-TR'; }
+    function yerelSayi(n){ return Number(n || 0).toLocaleString(yerelKod()); }
+    // Ondalık sayı arayüz dilinde: Türkçede "1,5", İngilizcede "1.5".
+    function yerelOndalik(n, basamak){
+      const b = basamak == null ? 1 : basamak;
+      return Number(n || 0).toLocaleString(yerelKod(), { minimumFractionDigits: b, maximumFractionDigits: b });
+    }
+    // Süre birimi arayüz dilinde: sureBirim(3, 'sa') -> "3 sa" / "3 h". Anahtar '#' desenli
+    // ("# sa"), aynı metin DOM çevirisinde de tanınır. Birimler: sa, dk, sn, gün, saat,
+    // dakika, saniye. Eskiden birimler her dilde Türkçe kalıyordu ("37 dk", "1 sa 14 dk").
+    function sureBirim(n, birim){ return tf('# ' + birim, n); }
 
     // DOM'u gezip metin düğümlerini ve metin taşıyan öznitelikleri çevirir.
     let i18nUyguluyor = false;

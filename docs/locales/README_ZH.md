@@ -58,6 +58,13 @@
 | <img src="../../design/screenshots/Market2.png" alt="市场，订单簿"><br><sub>市场，订单簿</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam 聊天"><br><sub>Steam 聊天</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="设置"><br><sub>设置</sub> |  |
 
+**主題：深色、午夜紫、白色（設定 > 一般 > 主題）**
+
+| 深色 | 午夜紫 | 白色 |
+|---|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="深色"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="午夜紫"> | <img src="../../design/screenshots/themes/overview-white.png" alt="白色"> |
+| <img src="../../design/screenshots/themes/login-dark.png" alt="深色"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="午夜紫"> | <img src="../../design/screenshots/themes/login-white.png" alt="白色"> |
+
 </div>
 
 ---

@@ -58,6 +58,13 @@
 | <img src="../../design/screenshots/Market2.png" alt="Mercado, libro de órdenes"><br><sub>Mercado, libro de órdenes</sub> | <img src="../../design/screenshots/Chat.png" alt="Chat de Steam"><br><sub>Chat de Steam</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ajustes"><br><sub>Ajustes</sub> |  |
 
+**Temas: Oscuro, Púrpura medianoche, Blanco (Ajustes > General > Tema)**
+
+| Oscuro | Púrpura medianoche | Blanco |
+|---|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="Oscuro"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="Púrpura medianoche"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Blanco"> |
+| <img src="../../design/screenshots/themes/login-dark.png" alt="Oscuro"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="Púrpura medianoche"> | <img src="../../design/screenshots/themes/login-white.png" alt="Blanco"> |
+
 </div>
 
 ---

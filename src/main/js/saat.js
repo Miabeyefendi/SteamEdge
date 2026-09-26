@@ -19,7 +19,7 @@
 
     function fmtHMS(sec){ const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=Math.max(0,sec%60); return [h,m,s].map(n=>String(n).padStart(2,'0')).join(':'); }
     function monoHMS(sec){ return fmtHMS(sec).replace(/:/g, '<span style="color:#C2AAEE">:</span>'); }
-    const hrsOf = (g) => ((g.playtimeForever||0)/60).toFixed(1);
+    const hrsOf = (g) => yerelOndalik((g.playtimeForever||0)/60, 1);
 
     async function loadSaat(){
       await applyBoostFlags();
@@ -28,7 +28,7 @@
       body.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
       if (!con.ok){ body.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
-      const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'kütüphane hatası' }));
+      const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'Kütüphane okunamadı.' }));
       if (!res.ok){ body.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(res.error)+'</div>'; return; }
       ownedGames = res.games; saatLoaded = true;
       restoreBoostList();
@@ -75,7 +75,7 @@
             + gameThumb(g.appid) + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+hrsOf(g)+' sa</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(sureBirim(hrsOf(g), 'sa'))+'</span>'
           + '</div>'
           + '<span style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+(on?'✓':'+')+'</span>'
           + '</div>';
@@ -187,7 +187,8 @@
         ? Math.max(0, Math.floor((boostState.durationMs - (Date.now()-(boostState.startedAt||Date.now())))/1000))
         : (selectedSaat.length ? (boostFlags.seqIdle ? saatDurSec*selectedSaat.length : saatDurSec) : 0);
       document.getElementById('statToplamSure').innerHTML = monoHMS(elapsed);
-      document.getElementById('saatRemain').innerHTML = monoHMS(left);
+      const sinirsiz = boostState.running ? (!boostState.durationMs && !boostState.sync && !syncOyunBilgi.size) : !saatDurSec;
+      document.getElementById('saatRemain').innerHTML = sinirsiz ? '∞' : monoHMS(left);
 
       if (!selectedSaat.length){
         box.innerHTML = '<div style="grid-column:1/-1;padding:48px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">'
@@ -229,10 +230,10 @@
                 + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+altSatir(g, on, i, elapsed)+'</span>'
               + '</div>'
               + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
-                + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">%'+p+'</span>'
+                + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+fmtYuzde(p)+'</span>'
                 // Tek oyunu kuyruktan cikar. Eskiden yalnizca "kuyrugu temizle" vardi,
                 // yani bir oyunu atmak icin butun secimi bozmak gerekiyordu.
-                + '<button data-saatdel="'+g.appid+'" class="h-stop" title="Kuyruktan çıkar" '
+                + '<button data-saatdel="'+g.appid+'" class="h-stop" title="'+esc(t('Kuyruktan Çıkar'))+'" '
                   + 'style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;'
                   + 'background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;'
                   + 'line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
@@ -268,18 +269,18 @@
     function altSatir(g, on, i, elapsed){
       const bilgi = syncOyunBilgi.get(g.appid);
       if (bilgi){
-        if (bilgi.bitti) return 'hedefe ulaştı · ' + fmtHours(bilgi.suankiMin) + ' ✓';
+        if (bilgi.bitti) return esc(tf('hedefe ulaştı · # ✓', fmtHours(bilgi.suankiMin)));
         const hedef = syncHedefMin ? (' → ' + fmtHours(syncHedefMin)) : '';
-        return fmtHours(bilgi.suankiMin) + hedef + (on ? ' · çalışıyor' : ' · sırada');
+        return esc(fmtHours(bilgi.suankiMin) + hedef + ' · ' + t(on ? 'çalışıyor' : 'sırada'));
       }
       // Esitleme calisiyor ama bu oyun listede yoksa zaten hedefin ustundedir
       if (syncHedefMin && (g.playtimeForever || 0) >= syncHedefMin){
-        return fmtHours(g.playtimeForever || 0) + ' · zaten hedefte';
+        return esc(fmtHours(g.playtimeForever || 0) + ' · ' + t('zaten hedefte'));
       }
       // Esitleme yokken: kutuphaneden gelen sure + bu oturumda gecen sure
       const tabanMin = g.playtimeForever || 0;
-      if (on) return fmtHours(tabanMin + Math.floor(elapsed/60)) + ' · çalışıyor ' + fmtHMS(elapsed);
-      return '#' + (i+1) + ' · ' + fmtHours(tabanMin);
+      if (on) return esc(fmtHours(tabanMin + Math.floor(elapsed/60)) + ' · ' + t('çalışıyor') + ' ' + fmtHMS(elapsed));
+      return '#' + (i+1) + ' · ' + esc(fmtHours(tabanMin));
     }
     let syncHedefMin = 0;
     // Isin toplam suresi (ms). Cubuklarin ortak paydasi; motor baslangicta bir kez
@@ -316,7 +317,10 @@
 
     // ---- yükseltme süresi ----
     const bH = document.getElementById('saatH'), bM = document.getElementById('saatM'), bS = document.getElementById('saatS');
+    // saatDurSec 0 = SINIRSIZ: oturum durdurulana kadar sürer (Ayarlar > "Varsayılan hedef
+    // süre" > Sınırsız ile aynı). Eskiden sayfa sınırsızı gösteremiyordu; ayar ölüydü.
     function writeSegs(){
+      if (!saatDurSec){ bH.value='∞'; bM.value='--'; bS.value='--'; paintBoostPresets(); return; }
       const h=Math.floor(saatDurSec/3600), m=Math.floor((saatDurSec%3600)/60), s=saatDurSec%60;
       bH.value=String(h).padStart(2,'0'); bM.value=String(m).padStart(2,'0'); bS.value=String(s).padStart(2,'0');
       paintBoostPresets();
@@ -326,6 +330,8 @@
       window.imu.settings.set({ boostDurationSec: saatDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
     }
     function commitDurInput(){
+      // Sınırsızken alana girip çıkmak süreyi 1 dakikaya çevirmesin
+      if (!saatDurSec && String(bH.value).trim() === '∞') return;
       const h=parseInt(bH.value,10)||0, m=Math.min(59,parseInt(bM.value,10)||0), s=Math.min(59,parseInt(bS.value,10)||0);
       saatDurSec = Math.max(60, h*3600 + m*60 + s);
       sureyiYaz();
@@ -340,28 +346,46 @@
       const hours = saatDurSec/3600;
       document.querySelectorAll('#saatPresets button[data-h]').forEach(b=>{
         const h = b.getAttribute('data-h');
-        const on = h==='custom' ? ![6,12,18,24].includes(hours) : (+h === hours);
+        const on = h==='inf' ? !saatDurSec
+                 : h==='custom' ? (!!saatDurSec && ![6,12,18,24].includes(hours)) : (+h === hours);
         Object.assign(b.style, on ? BSEG_ON : BSEG_OFF);
+        // Sıralı bekletmede süre OYUN BAŞINA; sınırsız, ilk oyunda sonsuza kadar kalmak olurdu.
+        if (h === 'inf'){
+          const kapali = !!boostFlags.seqIdle;
+          b.style.opacity = kapali ? '.35' : '1';
+          b.style.pointerEvents = kapali ? 'none' : '';
+          b.title = kapali ? t('Sıralı bekletmede süre oyun başınadır; sınırsız seçilemez.') : t('Sınırsız: sen durdurana kadar sürer');
+        }
       });
     }
     document.querySelectorAll('#saatPresets button[data-h]').forEach(b=>b.addEventListener('click', ()=>{
       const h = b.getAttribute('data-h');
-      if (h === 'custom'){ bH.focus(); return; }
-      saatDurSec = (+h)*3600; sureyiYaz(); writeSegs(); renderActiveBox();
+      if (h === 'custom'){ if (!saatDurSec){ saatDurSec = 3600; sureyiYaz(); writeSegs(); } bH.focus(); return; }
+      saatDurSec = h === 'inf' ? 0 : (+h)*3600; sureyiYaz(); writeSegs(); renderActiveBox();
     }));
     writeSegs();
 
     // ---- Davranış / Gizlilik anahtarları ----
     // Ayarlar > Saat Yükseltici tercihlerini uygular ("Varsayılan hedef süre" dahil).
     let boostUserTouched = false, concUserTouched = false;
-    function applyBoostSettings(){
+    // degisen: Ayarlar'da Kaydet ile değişen anahtarlar. "Varsayılan hedef süre" kaydedilince
+    // sayfadaki süre de ona geçer; eskiden sayfa son kullanılan süreyi okuduğu için bu ayar
+    // hiçbir şeyi değiştirmiyordu.
+    function applyBoostSettings(degisen){
       if (typeof appSettings !== 'object' || !appSettings) return;
-      if (!boostUserTouched){
-        // Once kaydedilmis sure, yoksa Ayarlar'daki "Varsayilan hedef sure". boostDurationSec
-        // eskiden yalnizca YAZILIYOR, hicbir yerde OKUNMUYORDU; preset'in sure kismi olu idi.
-        const kayitli = +appSettings.boostDurationSec || 0;
-        if (kayitli >= 60){
-          if (saatDurSec !== kayitli){ saatDurSec = kayitli; writeSegs(); }
+      const d = degisen || [];
+      if (d.includes('boostTarget')){
+        const hedef = appSettings.boostTarget === 'inf' ? 0 : (+appSettings.boostTarget || 0) * 3600;
+        const uygun = boostFlags.seqIdle && !hedef ? 3600 : hedef;
+        if (uygun !== saatDurSec || +appSettings.boostDurationSec !== uygun){
+          saatDurSec = uygun; writeSegs();
+          window.imu.settings.set({ boostDurationSec: saatDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
+        }
+      } else if (!boostUserTouched){
+        // Once kaydedilmis sure (0 = sinirsiz), yoksa Ayarlar'daki "Varsayilan hedef sure".
+        const kayitli = appSettings.boostDurationSec;
+        if (+kayitli >= 60 || (kayitli === 0 && !boostFlags.seqIdle)){
+          if (saatDurSec !== +kayitli){ saatDurSec = +kayitli; writeSegs(); }
         } else if (appSettings.boostTarget){
           // 'inf' = sınırsız → süre 0, "Süre dolunca otomatik durdur" kapalı gibi davranır
           const t = appSettings.boostTarget;
@@ -372,7 +396,7 @@
       // concUserTouched: kullanici bu oturumda limiti sectiyse diskten gelen eski deger
       // uzerine yazmaz. Eskiden kosulsuzdu; Saat sekmesinden cikip donunce secim 32'ye
       // donuyordu, cunku loadSaat her girişte applyBoostFlags -> applyBoostSettings cagiriyor.
-      if (!concUserTouched && appSettings.boostMaxGames) maxConcurrent = +appSettings.boostMaxGames;
+      if ((!concUserTouched || d.includes('boostMaxGames')) && appSettings.boostMaxGames) maxConcurrent = +appSettings.boostMaxGames;
       paintConc();
       renderActiveBox();
     }
@@ -411,6 +435,8 @@
         const val = !boostFlags[key];
         boostFlags[key] = val;
         el.classList.toggle('on', val);
+        if (key === 'seqIdle' && val && !saatDurSec){ saatDurSec = 3600; sureyiYaz(); }
+        if (key === 'seqIdle') writeSegs();
         const next = await window.imu.settings.set({ [key]: val }).catch(()=>null);
         if (next) appSettings = next;
         saatKapiBoya();
@@ -427,7 +453,8 @@
         boostGameIds: selectedSaat.map(g=>g.appid),
         ...boostFlags,
       }).catch(()=>{});
-      if (typeof toast === 'function') toast('Preset kaydedildi').done(selectedSaat.length+' oyun · '+fmtHMS(saatDurSec)+' · limit '+maxConcurrent);
+      if (typeof toast === 'function') toast('Preset kaydedildi').done(tf('# oyun', selectedSaat.length) + ' · '
+        + (saatDurSec ? fmtHMS(saatDurSec) : '∞') + ' · ' + tf('en fazla # eşzamanlı', maxConcurrent));
     };
 
     // ---- başlat / durdur ----
@@ -454,23 +481,21 @@
           if (plan.strateji === 'parallel'){
             // Ilk birkac bitisi goster - kullanici neyin ne zaman biteceğini gorsun
             const ilkler = (plan.bitisler||[]).slice(0,6).map(b=>
-              '  · '+b.name+': '+fmtHours(Math.round(b.bitisMs/60000))+' sonra').join('\n');
+              '  · ' + b.name + ': ' + tf('# sonra', fmtHours(Math.round(b.bitisMs/60000)))).join('\n');
             const kalanSayi = Math.max(0, (plan.bitisler||[]).length-6);
-            baslik = plan.behind+' oyun '+fmtHours(plan.targetMin)+' hedefine çekilecek';
-            govde = 'Seçili oyunların hepsi aynı anda çalışır. Hedefe ulaşan oyun listeden düşer, '
-                  + 'kalanlar devam eder.\n\n'
-                  + 'Aynı anda açık: ' + plan.ilkAktif + ' oyun\n\n'
-                  + 'Tahmini bitiş sırası:\n' + ilkler
-                  + (kalanSayi ? ('\n  · ve ' + kalanSayi + ' oyun daha') : '')
-                  + '\n\nHepsinin tamamlanması: ' + fmtHours(Math.round(plan.totalMs/60000));
+            baslik = tf('# oyun # hedefine çekilecek', plan.behind, fmtHours(plan.targetMin));
+            govde = t('Seçili oyunların hepsi aynı anda çalışır. Hedefe ulaşan oyun listeden çıkar, kalanlar devam eder.') + '\n\n'
+                  + tf('Aynı anda açık: # oyun', plan.ilkAktif) + '\n\n'
+                  + t('Tahmini bitiş sırası:') + '\n' + ilkler
+                  + (kalanSayi ? ('\n  · ' + tf('ve # oyun daha', kalanSayi)) : '')
+                  + '\n\n' + t('Hepsinin tamamlanması:') + ' ' + fmtHours(Math.round(plan.totalMs/60000));
           } else {
             const lines = (plan.steps||[]).map((st,i)=>
-              '  '+(i+1)+'. '+st.count+' oyun: '+fmtHours(st.fromMin)+' → '+fmtHours(st.toMin)
-              +'  ('+fmtHours(st.toMin-st.fromMin)+')').join('\n');
-            baslik = plan.behind+' oyun '+fmtHours(plan.targetMin)+' hedefine çekilecek';
-            govde = 'En geride kalan oyun tek başına öne çekilir; bir sonrakine yetişince ikisi '
-                  + 'birlikte devam eder ve sonunda hepsi aynı noktada buluşur.\n\n' + lines
-                  + '\n\nToplam süre: ' + fmtHours(Math.round(plan.totalMs/60000));
+              '  ' + (i+1) + '. ' + tf('# oyun: # → #', st.count, fmtHours(st.fromMin), fmtHours(st.toMin))
+              + '  (' + fmtHours(st.toMin-st.fromMin) + ')').join('\n');
+            baslik = tf('# oyun # hedefine çekilecek', plan.behind, fmtHours(plan.targetMin));
+            govde = t('En geride kalan oyun tek başına öne çekilir; bir sonrakine yetişince ikisi birlikte devam eder ve sonunda hepsi aynı noktada buluşur.') + '\n\n' + lines
+                  + '\n\n' + t('Toplam süre:') + ' ' + fmtHours(Math.round(plan.totalMs/60000));
           }
           const ok = await edgeConfirm({
             tag:'Saat Eşitleme', title: baslik, body: govde,
@@ -481,16 +506,21 @@
         }
       }
 
-      if (boostFlags.seqIdle) E.boostStartSeq(games, saatDurSec*1000, boostFlags.loopQueue);
-      else E.boostStart(games.map(g=>g.appid), saatDurSec*1000, games);
-      notify('boost', 'Saat Yükseltme Başladı', games.length+' oyun.');
-      pushFeed('saat', 'Saat Yükseltici', games.length+' oyun ile başladı.'+(syncOn?' (eşitleme açık)':''), 'Çalışıyor');
+      if (boostFlags.seqIdle) E.boostStartSeq(games, (saatDurSec || 3600)*1000, boostFlags.loopQueue);
+      else {
+        // Seçimin tamamı da gider: "aynı anda en fazla" iş sürerken değişirse ana süreç
+        // listeyi buradan yeniden keser (artırınca yeni oyunlar da açılır).
+        const tumu = selectedSaat.map(g=>({ appid:g.appid, name:g.name, playtimeMin: g.playtimeForever || 0 }));
+        E.boostStart(games.map(g=>g.appid), saatDurSec*1000, games, tumu);
+      }
+      notify('boost', 'Saat Yükseltme Başladı', tf('# oyun', games.length));
+      pushFeed('saat', 'Saat Yükseltici', syncOn ? tf('# oyunla başladı (eşitleme açık).', games.length) : tf('# oyunla başladı.', games.length), 'Çalışıyor');
     }
-    // Dakikayı "12 sa 30 dk" biçiminde yazar
+    // Dakikayı "12 sa 30 dk" biçiminde, arayüz dilinin birimleriyle yazar
     function fmtHours(min){
       const m = Math.max(0, Math.round(min||0));
       const h = Math.floor(m/60), r = m%60;
-      return h ? (h+' sa'+(r?(' '+r+' dk'):'')) : (r+' dk');
+      return h ? (sureBirim(h, 'sa') + (r ? (' ' + sureBirim(r, 'dk')) : '')) : sureBirim(r, 'dk');
     }
 
     // MADDE 14: esitleme durumu artik SABIT alt barda; sayfa duzenini itmiyor.
@@ -498,9 +528,9 @@
     function msKisa(ms){
       const dk = Math.max(0, Math.round(ms/60000));
       const g = Math.floor(dk/1440), sa = Math.floor((dk%1440)/60), m = dk%60;
-      if (g) return g+' gün '+sa+' sa';
-      if (sa) return sa+' sa '+m+' dk';
-      return m+' dk';
+      if (g) return sureBirim(g, 'gün') + ' ' + sureBirim(sa, 'sa');
+      if (sa) return sureBirim(sa, 'sa') + ' ' + sureBirim(m, 'dk');
+      return sureBirim(m, 'dk');
     }
     if (E.onBoostSync) E.onBoostSync((d)=>{
       const bar = document.getElementById('saatSyncBar');
@@ -508,10 +538,7 @@
       if (!d.running){
         bar.style.display = 'none';
         syncOyunBilgi = new Map(); syncHedefMin = 0; syncIsToplamMs = 0;
-        if (d.done){
-          notify('boost', 'Saat Eşitleme Tamamlandı', 'Tüm oyunlar hedefe ulaştı.');
-          pushFeed('saat', 'Saat Eşitleme', 'Tüm oyunlar hedefe ulaştı.', 'Başarılı');
-        }
+        // Tamamlanma bildirimi hesap olayıyla geliyor (genel.js > onHesapOlayi).
         renderActiveBox();
         return;
       }
@@ -526,11 +553,10 @@
         syncOyunBilgi = new Map((d.oyunlar||[]).map(o=>[o.appid, o]));
         const yuzde = d.toplam ? Math.round(d.biten/d.toplam*100) : 0;
         if (txt) txt.innerHTML =
-            '<span style="font-size:12px;font-weight:600;color:#DCE2FA">Saat eşitleme · hedef '+fmtHours(d.targetMin)+'</span>'
+            '<span style="font-size:12px;font-weight:600;color:#DCE2FA">'+esc(tf('Saat eşitleme · hedef #', fmtHours(d.targetMin)))+'</span>'
           + '<span style="font-size:11px;color:#8B8F9E">'
-          + '<b style="color:#5FB324">'+d.biten+'</b> / '+d.toplam+' oyun hedefte · '
-          + d.aktifSayi+' tanesi çalışıyor</span>';
-        if (eta) eta.textContent = d.kalanMs ? msKisa(d.kalanMs) : 'bitiyor';
+          + esc(tf('# / # oyun hedefte · # oyun çalışıyor', d.biten, d.toplam, d.aktifSayi)) + '</span>';
+        if (eta) eta.textContent = d.kalanMs ? msKisa(d.kalanMs) : t('bitiyor');
         if (fill) fill.style.width = yuzde + '%';
       } else {
         // G13: kademeli tarafta da oyun defteri geliyor. Eskiden burasi bosaltiliyordu ve
@@ -539,9 +565,9 @@
         syncOyunBilgi = new Map((d.oyunlar||[]).map(o=>[o.appid, o]));
         const yuzde = d.steps ? Math.round((d.step-1)/d.steps*100) : 0;
         if (txt) txt.innerHTML =
-            '<span style="font-size:12px;font-weight:600;color:#DCE2FA">Eşitleme adımı '+d.step+' / '+d.steps+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E">'+d.ids.length+' oyun · '
-          + fmtHours(d.fromMin)+' → '+fmtHours(d.toMin)+' · hedef '+fmtHours(d.targetMin)+'</span>';
+            '<span style="font-size:12px;font-weight:600;color:#DCE2FA">'+esc(tf('Eşitleme adımı # / #', d.step, d.steps))+'</span>'
+          + '<span style="font-size:11px;color:#8B8F9E">'+esc(tf('# oyun', d.ids.length) + ' · '
+          + fmtHours(d.fromMin) + ' → ' + fmtHours(d.toMin) + ' · ' + tf('hedef #', fmtHours(d.targetMin)))+'</span>';
         if (eta) eta.textContent = d.stepMs ? msKisa(Math.max(0, d.stepMs-(Date.now()-(d.startedAt||Date.now())))) : '-';
         if (fill) fill.style.width = yuzde + '%';
       }
@@ -549,26 +575,19 @@
     });
     document.getElementById('btnBoostStart').onclick = startBoost;
     document.getElementById('btnBoostStop').onclick = () => {
-      if (boostState && boostState.running && boostState.startedAt) addLifeStats({ boostRuntimeMs: Math.max(0, Date.now()-boostState.startedAt) });
-      autoRestartArmed = false;
       E.boostStop(); E.boostStopSeq();
       notify('boost', 'Saat Yükseltme Durdu', '');
       pushFeed('saat', 'Saat Yükseltici', 'Durduruldu.', 'Durdu');
     };
 
-    // "Oturumu otomatik yenile": süre dolup motor durunca kuyruğu yeniden başlatır.
-    let autoRestartArmed = false;
+    // "Oturumu otomatik yenile" artık ana süreçte ve hesap başına (main.js > boostSureDoldu).
+    // Burada durduğu sürece yalnızca ekrandaki hesapta ve pencere açıkken çalışıyordu; hesap
+    // değişince gelen "durdu" bilgisi yenilemeyi YANLIŞ hesapta tetikleyebiliyordu.
     function onSaatTick(data){
-      const wasRunning = boostState.running;
       boostState = data;
-      if (data.running) autoRestartArmed = true;
       if (boostTimerUI) clearInterval(boostTimerUI);
       if (data.running){
         boostTimerUI = setInterval(()=>{ if (typeof uiTickAllowed !== 'function' || uiTickAllowed()) renderActiveBox(); }, 1000);
-      } else if (wasRunning && autoRestartArmed && boostFlags.boostAutoRestart && selectedSaat.length){
-        autoRestartArmed = false;
-        pushFeed('saat', 'Saat Yükseltici', 'Süre doldu, oturum otomatik yenilendi.', 'Çalışıyor');
-        setTimeout(startBoost, 1500);
       }
       renderActiveBox();
     }

@@ -57,30 +57,32 @@
       grEl('grRM').value = iki(Math.floor((t % 3600) / 60));
       grEl('grRS').value = iki(t % 60);
     }
+    // Süre etiketleri arayüz dilinin birimleriyle (sureBirim, i18n.js)
     function grSureEtiket(ms){
       const sn = Math.round(ms / 1000);
-      if (sn < 60) return sn + ' sn';
+      if (sn < 60) return sureBirim(sn, 'sn');
       const dk = Math.round(sn / 60);
-      if (dk < 60) return dk + ' dk';
+      if (dk < 60) return sureBirim(dk, 'dk');
       const sa = Math.floor(dk / 60), kalanDk = dk % 60;
-      return kalanDk ? (sa + ' sa ' + kalanDk + ' dk') : (sa + ' sa');
+      return kalanDk ? (sureBirim(sa, 'sa') + ' ' + sureBirim(kalanDk, 'dk')) : sureBirim(sa, 'sa');
     }
     function grAralikEtiket(ms){
       if (!ms) return '-';
       const sn = Math.round(ms / 1000);
-      if (sn < 90) return sn + ' sn';
+      if (sn < 90) return sureBirim(sn, 'sn');
       const dk = Math.round(sn / 60);
-      if (dk < 90) return dk + ' dk';
-      return (dk / 60).toFixed(1) + ' sa';
+      if (dk < 90) return sureBirim(dk, 'dk');
+      return sureBirim(yerelOndalik(dk / 60, 1), 'sa');
     }
-    // Oturum başlangıcına göre ms -> "+1sa 12dk" biçimi (Açılma Sırası tablosundaki zaman)
+    // Oturum başlangıcına göre ms -> "+1 sa 12 dk" biçimi (Açılma Sırası tablosundaki zaman)
     function grZamanEtiket(ms){
       const sn = Math.round((ms || 0) / 1000);
       const sa = Math.floor(sn / 3600), dk = Math.floor((sn % 3600) / 60);
-      if (sa) return '+' + sa + 'sa ' + String(dk).padStart(2, '0') + 'dk';
+      if (sa) return '+' + sureBirim(sa, 'sa') + ' ' + sureBirim(String(dk).padStart(2, '0'), 'dk');
       const s = sn % 60;
-      return '+' + dk + 'dk ' + String(s).padStart(2, '0') + 'sn';
+      return '+' + sureBirim(dk, 'dk') + ' ' + sureBirim(String(s).padStart(2, '0'), 'sn');
     }
+    const grSaatYaz = (dk) => sureBirim(yerelOndalik((dk || 0) / 60, 1), 'sa');
 
     // ---- nadirlik rengi ----
     function grPctRenk(pct){
@@ -111,11 +113,11 @@
       grPresets = (grVal('grPresets', []) || []).slice();
       grPresetBoya();
       if (grLoaded){ grKutuphaneBoya(); grHesapBoya(); return; }
-      grEl('grSearch').placeholder = 'Steam\'e bağlanılıyor...';
+      grEl('grSearch').placeholder = t('Steam\'e bağlanılıyor...');
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
-      if (!con.ok){ grEl('grSearch').placeholder = 'Bağlanılamadı: ' + con.error; return; }
-      const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'kütüphane hatası' }));
-      if (!res.ok){ grEl('grSearch').placeholder = 'Kütüphane alınamadı'; return; }
+      if (!con.ok){ grEl('grSearch').placeholder = t('Bağlanılamadı:') + ' ' + t(con.error || ''); return; }
+      const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'Kütüphane okunamadı.' }));
+      if (!res.ok){ grEl('grSearch').placeholder = t('Kütüphane okunamadı.'); return; }
       const bs = await window.imu.gercekci.basarimsizlar().catch(()=>null);
       if (bs && bs.ok) grBasarimsiz = new Set((bs.appids||[]).map(Number));
       grGames = (res.games || []).map(g=>({
@@ -153,7 +155,7 @@
           + '<div style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1">'
           + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
           + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-          + (g.playtimeMin/60).toFixed(1)+' sa · '+(g.hasStats?'başarım var':'başarım yok')+'</span>'
+          + esc(grSaatYaz(g.playtimeMin) + ' · ' + t(g.hasStats ? 'başarım var' : 'başarım yok'))+'</span>'
           + '</div>'
           + '<button class="h-brand" style="width:24px;height:24px;flex-shrink:0;border-radius:12px;border:1px solid '
           + (icinde?GRC.brand:'#2B3345')+';background:'+(icinde?'#151C28':'#090C12')+';color:'+(icinde?GRC.sub:'#8B8F9E')
@@ -182,7 +184,7 @@
       grKuyrukKaydet();
       grKutuphaneBoya();
       grAramaBoya();
-      if (typeof toast === 'function') toast('Gerçekçi Mod').fail(oyun.name + ' - başarımı yok, listeden çıkarıldı.');
+      if (typeof toast === 'function') toast('Gerçekçi Mod').fail(tf('#: başarımı yok, listeden çıkarıldı.', oyun.name));
       return false;
     }
     grEl('grResults').addEventListener('click', async (e)=>{
@@ -230,7 +232,7 @@
           + gameThumb(g.appid) + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
           + '<span style="font-size:12px;font-weight:600;color:'+(on?GRC.title:'#B9C0D6')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+(g.playtimeMin/60).toFixed(1)+' sa</span>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(grSaatYaz(g.playtimeMin))+'</span>'
           + '</div>'
           + '<span style="font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:'+achFg
           + ';border:1px solid '+achFg+';border-radius:12px;padding:2px 7px;flex-shrink:0">'+achEt+'</span>'
@@ -314,8 +316,9 @@
         return;
       }
       const istek = ++grPlanIstek;
-      grSet('grNextName', 'Başarım şeması okunuyor…');
-      grSet('grNextMeta', esc(ilk.name));
+      grSet('grNextName', t('Başarım şeması okunuyor…'));
+      // textContent'e yazılıyor: esc() burada adı "&amp;" gibi gösteriyordu.
+      grSet('grNextMeta', ilk.name);
       const p = await window.imu.gercekci.plan(ilk.appid, grSureMs(), grSecenekler())
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (istek !== grPlanIstek) return;      // daha yeni bir istek var, bunu at
@@ -326,7 +329,7 @@
         grQueue = grQueue.filter(x=>x.appid!==ilk.appid);
         grKuyrukKaydet();
         grKutuphaneBoya();
-        if (typeof toast === 'function') toast('Gerçekçi Mod').fail(ilk.name + ' - başarımı yok, listeden çıkarıldı.');
+        if (typeof toast === 'function') toast('Gerçekçi Mod').fail(tf('#: başarımı yok, listeden çıkarıldı.', ilk.name));
         grPlan = null;
         grPlanCek();          // sıradaki oyunla devam
         return;
@@ -334,7 +337,7 @@
       grPlan = (p && p.ok) ? p : null;
       if (!grPlan){
         grSet('grNextName', '-');
-        grSet('grNextMeta', (p && p.error) || 'Plan alınamadı');
+        grSet('grNextMeta', t((p && p.error) || 'Plan alınamadı'));
       }
       grListeBoya(); grHesapBoya();
     }
@@ -364,7 +367,7 @@
       grSet('grOpened', acilan + ' / ' + toplam);
       grSet('grAvgGap', grAralikEtiket(calisiyor ? grDurum.ortalamaAralikMs : (grPlan ? grPlan.ortalamaAralikMs : 0)));
       const yuzde = toplam ? Math.round(acilan / toplam * 100) : 0;
-      grSet('grPct', '%' + yuzde);
+      grSet('grPct', fmtYuzde(yuzde));
       grEl('grPctFill').style.width = yuzde + '%';
 
       // Başarımsız oyun kartları
@@ -377,8 +380,8 @@
         grSet('grFallbackLabel', 'Listeden çıkarılacak');
         grSet('grDurLabel2', grSureEtiket(grSureMs()));
         grSet('grFallbackNote', grPlan && grPlan.uygunToplam === 0 && grPlan.toplamBasarim
-          ? ('Bu oyunun ' + grPlan.toplamBasarim + ' başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.')
-          : 'Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.');
+          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.', grPlan.toplamBasarim)
+          : t('Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.'));
       }
 
       // Sırada kartı
@@ -386,12 +389,12 @@
         const sira = calisiyor ? grDurum.siradaki : (grPlan.kuyruk[0] && grPlan.kuyruk[0].name);
         const siraPct = calisiyor ? grDurum.siradakiPct : (grPlan.kuyruk[0] && grPlan.kuyruk[0].rarityPct);
         const rank = calisiyor ? (grDurum.acilan + 1) : 1;
-        grSet('grNextName', grDurum.basarimlarBitti ? 'Başarımlar bitti' : (sira || '-'));
+        grSet('grNextName', grDurum.basarimlarBitti ? t('Başarımlar bitti') : (sira || '-'));
         grSet('grNextMeta', grDurum.basarimlarBitti
-          ? 'Süre sonuna kadar saat toplanıyor'
-          : ('~' + grAralikEtiket(calisiyor ? grDurum.ortalamaAralikMs : grPlan.ortalamaAralikMs) + ' içinde açılacak · #' + rank + ' sırada'));
+          ? t('Süre sonuna kadar saat toplanıyor')
+          : tf('yaklaşık # içinde açılacak · sıra: #', grAralikEtiket(calisiyor ? grDurum.ortalamaAralikMs : grPlan.ortalamaAralikMs), rank));
         const pctEl = grEl('grNextPct');
-        pctEl.textContent = Number.isFinite(siraPct) ? ('%' + siraPct.toFixed(1)) : '-';
+        pctEl.textContent = Number.isFinite(siraPct) ? fmtYuzde(yerelOndalik(siraPct, 1)) : '-';
         pctEl.style.color = grPctRenk(siraPct);
         pctEl.style.borderColor = grPctRenk(siraPct);
       }
@@ -427,23 +430,33 @@
           + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(acildi?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')+'</span>'
           + '<span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+renk+';border:1px solid '+renk+';border-radius:12px;padding:2px 8px;flex-shrink:0">'+esc(grNadirEtiket(a.rarityPct))+'</span>'
           + '<span style="width:52px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+renk+';text-align:right">'
-          + (Number.isFinite(a.rarityPct) ? ('%'+a.rarityPct.toFixed(1)) : '-')+'</span>'
-          + '<span style="width:70px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;text-align:right">'
+          + (Number.isFinite(a.rarityPct) ? fmtYuzde(yerelOndalik(a.rarityPct, 1)) : '-')+'</span>'
+          + '<span style="width:92px;flex-shrink:0;white-space:nowrap;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;text-align:right">'
           + (acildi ? 'AÇILDI' : grZamanEtiket(a.zaman))+'</span>'
           + '</div>';
       });
       el.innerHTML = html;
     }
 
+    // Plan özeti tek şablondan yazılır. Eskiden "2 sa" + " süresinde " + "12" +
+    // " başarım açılacaktır" diye dört parçaydı; her dil Türkçe söz dizimine mahkûm
+    // kalıyor, İngilizcesi "2 h over 12 achievements will unlock" çıkıyordu.
+    function grPlanCumleYaz(sureMs, hedef){
+      const el = grEl('grPlanCumle');
+      if (!el) return;
+      el.innerHTML = tf('# içinde # başarım açılacak',
+        '<span style="font-family:Geist Mono,monospace;color:#C2AAEE">' + esc(grSureEtiket(sureMs)) + '</span>',
+        '<span style="font-family:Geist Mono,monospace;font-weight:700;color:#DCE2FA">' + (Number(hedef) || 0) + '</span>');
+    }
+
     // ---- hedef + HLTB hesapları ----
     function grHesapBoya(){
       const oyun = grQueue[0];
       let sureMs = grSureMs();
-      const uygun = grPlan ? grPlan.uygunToplam : 0;
+      const uygun = grPlan ? (grPlan.uygunToplam || 0) : 0;
       const oto = !!grVal('grTargetAuto', true);
 
       grSet('grTargetTotal', String(uygun));
-      grSet('grDurLabel', grSureEtiket(sureMs));
 
       const crRaw = grVal('grCR', '2.0');
       const { tcSa: tc, zorluk: diff, elleGirildi, oynanmisSa: playtimeSa } = grTcVeZorluk(oyun);
@@ -476,7 +489,6 @@
           grSureYaz(yeniMs);
           sureMs = yeniMs;
           sureSa = gerekenSa;
-          grSet('grDurLabel', grSureEtiket(sureMs));
           grKaydet({ grDurationSec: Math.round(sureMs / 1000) });
         }
       }
@@ -490,7 +502,7 @@
         const el = grEl(id); if (el) el.style.color = hedefRengi;
       });
       const hedef = oto ? otoHedef : Math.max(0, Math.min(uygun, +grEl('grTarget').value || 0));
-      grSet('grTargetVal', String(hedef || (grPlan ? grPlan.toplam : 0)));
+      grPlanCumleYaz(sureMs, hedef || (grPlan ? grPlan.toplam : 0));
 
       // Gecikme birikimi notu
       const not = grEl('grCatchUpNote');
@@ -499,9 +511,8 @@
         if (bir > 0 && grVal('grCatchUp', true)){
           not.style.display = 'block';
           not.textContent = oyun
-            ? (oyun.name + ' ' + (oyun.playtimeMin/60).toFixed(0) + ' saat oynanmış ve '
-               + bir + ' başarım geride kalmış. Bunlar oturumun ilk beşte birinde açılır, sonrası normal ritimde.')
-            : (bir + ' başarım geride kalmış; oturumun ilk beşte birinde açılır.');
+            ? tf('#: # saat oynanmış, # başarım geride kalmış. Geride kalanlar oturumun ilk beşte birinde açılır, sonrası normal ritimde sürer.', oyun.name, Math.round((oyun.playtimeMin||0)/60), bir)
+            : tf('# başarım geride kalmış; oturumun ilk beşte birinde açılır.', bir);
         } else not.style.display = 'none';
       }
 
@@ -513,18 +524,16 @@
       grEl('grTargetBox').style.borderColor = oto ? GRC.brand : '#2B3345';
 
       // Basit paneldeki açıklama
-      const crEtiket = { '1.5':'kısa hikaye oyunu', '2.0':'orta uzunlukta', '2.5':'uzun, açık dünya', '4.0':'bitmeyen sandbox', 'auto':'elle girilen süre' };
+      const crEtiket = { '1.5':'kısa hikâye oyunu', '2.0':'orta uzunlukta oyun', '2.5':'uzun açık dünya oyunu', '4.0':'bitmeyen sandbox oyunu', 'auto':'elle girilen süre' };
       const diffEtiket = { '0.8':'kolay', '1.2':'normal', '2.0':'zor', '3.5':'çok zor' };
-      // Sayi denetlenebilir olsun: hangi degerden nasil cikti yaziyor.
-      const tcKaynak = elleGirildi ? 'girdiğin değer' : ((crEtiket[crRaw]||'tür tahmini') + ' varsayımı');
+      // Sayi denetlenebilir olsun: hangi degerden nasil cikti yaziyor. Cumleler ayri
+      // sablonlar: tek bir uzun birlestirme her dilde parcali ve bozuk cikiyordu.
+      const tcKaynak = elleGirildi ? t('girdiğin değer') : tf('# varsayımı', t(crEtiket[crRaw] || 'tür tahmini'));
       grSet('grSimpleNote', oyun
-        ? (oyun.name + ' ' + playtimeSa.toFixed(0) + ' saat oynanmış. Bitiş süresi '
-           + tc.toFixed(0) + ' saat kabul edildi (' + tcKaynak + '), zorluk '
-           + (diffEtiket[String(grVal('grDiff','1.2'))]||'-') + '. Bu kadar oynanmışken '
-           + Math.round(beklenen) + ' başarım açılmış olmalıydı, açılan ' + acilmisB + '; '
-           + gerideKalan + ' tanesi geride. ' + grSureEtiket(sureMs) + ' içinde '
-           + hedef + ' başarım açılır.')
-        : 'Önce soldan bir oyun ekle.');
+        ? (tf('#: # saat oynanmış. Bitiş süresi # saat kabul edildi (#), zorluk: #.', oyun.name, Math.round(playtimeSa), Math.round(tc), tcKaynak, t(diffEtiket[String(grVal('grDiff','1.2'))] || '-'))
+           + ' ' + tf('Bu kadar oynanmışken # başarım açılmış olmalıydı; açılan #, geride kalan #.', Math.round(beklenen), acilmisB, gerideKalan)
+           + ' ' + tf('# içinde # başarım açılır.', grSureEtiket(sureMs), hedef))
+        : t('Önce soldan bir oyun ekle.'));
 
       // Dağıtım modeli açıklaması
       const modelNot = {
@@ -541,16 +550,16 @@
         el.placeholder = tc.toFixed(0);
         if (document.activeElement !== el) el.value = tcDeger > 0 ? String(tcDeger) : '';
       });
-      grSet('grPlaytime', oyun ? (playtimeSa.toFixed(1) + ' sa') : '-');
+      grSet('grPlaytime', oyun ? sureBirim(yerelOndalik(playtimeSa, 1), 'sa') : '-');
       // beklenen yukarida bir kez hesaplandi (otomatik hedefin ilk parcasi), burada
       // yeniden hesaplanmiyor - iki yerde farkli sayi gorunmesin.
       const beklenenB = Math.round(beklenen);
       grSet('grExpected', toplamB ? (beklenenB + ' / ' + toplamB) : '-');
-      grSet('grPace', playtimeSa > 0 && beklenenB ? (beklenenB / playtimeSa).toFixed(1) : '-');
+      grSet('grPace', playtimeSa > 0 && beklenenB ? yerelOndalik(beklenenB / playtimeSa, 1) : '-');
       grSet('grLeft', grPlan ? String(uygun) : '-');
       // Kalan başarımların gerçek oyunda ne kadar sürede açılacağı (tahmin)
       const kalanSa = (uygun && toplamB) ? (uygun / toplamB) * tc * diff : 0;
-      grSet('grRemainEst', kalanSa ? (kalanSa < 1 ? (Math.round(kalanSa*60) + ' dk') : (kalanSa.toFixed(0) + ' sa')) : '-');
+      grSet('grRemainEst', kalanSa ? (kalanSa < 1 ? sureBirim(Math.round(kalanSa*60), 'dk') : sureBirim(Math.round(kalanSa), 'sa')) : '-');
       grHizBoya();
     }
 
@@ -569,16 +578,13 @@
       const oyun = grQueue[0];
       const not = grEl('grHizNote');
       if (!not) return;
-      if (!oyun){ not.textContent = 'Önce soldan bir oyun ekle.'; return; }
+      if (!oyun){ not.textContent = t('Önce soldan bir oyun ekle.'); return; }
       const { tcSa, oynanmisSa } = grTcVeZorluk(oyun);
       const bitmis = oynanmisSa > 0 && oynanmisSa >= tcSa;
       const sik = +grVal('grBitmisSik', 50) || 50;
       not.textContent = bitmis
-        ? (oyun.name + ' zaten bitmiş sayılıyor (' + oynanmisSa.toFixed(0) + ' sa oynanmış, bitiş '
-           + tcSa.toFixed(0) + ' sa). Çizelge %' + sik + ' oranına sıkıştırıldı.')
-        : ('Oyun henüz bitmemiş (' + oynanmisSa.toFixed(0) + ' / ' + tcSa.toFixed(0)
-           + ' sa), sıkıştırma uygulanmıyor. Ultra nadirler ' + (+grVal('grUltraCarpan', 3) || 3)
-           + ' kat daha uzun bekler.');
+        ? tf('# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Çizelge %# oranına sıkıştırıldı.', oyun.name, Math.round(oynanmisSa), Math.round(tcSa), sik)
+        : tf('Oyun henüz bitmemiş (# / # saat), sıkıştırma uygulanmıyor. Ultra nadir başarımlar # kat daha uzun bekler.', Math.round(oynanmisSa), Math.round(tcSa), (+grVal('grUltraCarpan', 3) || 3));
     }
     GR_HIZ_ALAN.forEach(([id, anahtar, varsayilan, alt, ust])=>{
       const el = grEl(id); if (!el) return;
@@ -686,6 +692,13 @@
     grEl('grLvlAdv').onclick = async ()=>{ await grKaydet({ grLevel: 'advanced' }); grSeviyeBoya(); };
 
     // ---- presetler ----
+    // Preset özeti çizim anında kurulur: kaydederken yazılan metin, dil sonradan
+    // değişince eski dilde kalıyordu. Eski presetlerde alan yoksa kayıtlı metne düşülür.
+    const GR_MODEL_AD = { linear:'doğrusal', exp:'üstel (önden yüklemeli)', pareto:'Pareto (80/20)' };
+    function grPresetMeta(p){
+      if (!p || !p.sureSec || !Array.isArray(p.oyunlar)) return (p && p.meta) || '';
+      return grSureEtiket(p.sureSec * 1000) + ' · ' + tf('# oyun', p.oyunlar.length) + ' · ' + t(GR_MODEL_AD[p.model] || p.model || '-');
+    }
     function grPresetBoya(){
       const box = grEl('grPresetsBox');
       box.style.display = grPresets.length ? 'block' : 'none';
@@ -694,7 +707,7 @@
         + '<span style="width:20px;height:20px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;display:flex;align-items:center;justify-content:center;font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#C2AAEE">'+(i+1)+'</span>'
         + '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">'
         + '<span style="font-size:12px;color:#B9C0D6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.baslik||'-')+'</span>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(p.meta||'')+'</span>'
+        + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(grPresetMeta(p))+'</span>'
         + '</div>'
         + '<button data-grpdel="'+i+'" class="h-stop" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
         + '</div>').join('');
@@ -705,13 +718,13 @@
     grEl('grSavePreset').onclick = async ()=>{
       if (!grQueue.length){ if (typeof toast === 'function') toast('Preset').fail('Önce sıraya oyun ekle.'); return; }
       if (grPresets.length >= GR_PRESET_SINIR){
-        if (typeof toast === 'function') toast('Preset').fail('En fazla ' + GR_PRESET_SINIR + ' preset tutulur. Önce birini sil.');
+        if (typeof toast === 'function') toast('Preset').fail(tf('En fazla # preset tutulur. Önce birini sil.', GR_PRESET_SINIR));
         return;
       }
       const sureMs = grSureMs();
       const p = {
         baslik: grQueue.map(g=>g.name).join(', ').slice(0, 60),
-        meta: grSureEtiket(sureMs) + ' · ' + grQueue.length + ' oyun · ' + grVal('grModel','linear'),
+        meta: '',
         oyunlar: grQueue.map(g=>g.appid),
         sureSec: Math.round(sureMs/1000),
         model: grVal('grModel','linear'),
@@ -757,18 +770,18 @@
       const sec = grSecenekler();
       const hedef = grPlan ? grPlan.toplam : 0;
       const ilkler = (grPlan && grPlan.kuyruk ? grPlan.kuyruk.slice(0,5) : [])
-        .map(a=>'  · '+a.name+(Number.isFinite(a.rarityPct)?(' (%'+a.rarityPct.toFixed(1)+')'):'')).join('\n');
+        .map(a=>'  · '+a.name+(Number.isFinite(a.rarityPct)?(' ('+fmtYuzde(yerelOndalik(a.rarityPct, 1))+')'):'')).join('\n');
       const ok = await edgeConfirm({
         tag:'Gerçekçi Mod',
-        title: (hedef ? (hedef + ' başarım ') : '') + grSureEtiket(sureMs) + ' süreye yayılacak',
+        title: hedef ? tf('# başarım # süreye yayılacak', hedef, grSureEtiket(sureMs)) : tf('Başarımlar # süreye yayılacak', grSureEtiket(sureMs)),
         body: grQueue.map(g=>g.name).join(', ')
-              + '\n\nOyun sayısı: ' + grQueue.length
-              + '\nDağıtım: ' + (sec.model === 'exp' ? 'üstel (önden yüklemeli)' : sec.model === 'pareto' ? 'Pareto (80/20)' : 'doğrusal')
-              + (grPlan ? ('\nOrtalama aralık: ' + grAralikEtiket(grPlan.ortalamaAralikMs)) : '')
-              + (sec.rastgeleAralik ? ' (her seferinde rastgele sapmalı)' : ' (sabit)')
-              + (ilkler ? ('\n\nİlk açılacaklar:\n' + ilkler) : '')
-              + (grPlan && grPlan.korumali ? ('\n\n' + grPlan.korumali + ' başarım oyun tarafından korunduğu için atlanacak.') : '')
-              + (grPlan && grPlan.ultraAtlanan ? ('\n' + grPlan.ultraAtlanan + ' ultra nadir başarım ayara göre atlanacak.') : ''),
+              + '\n\n' + t('Oyun sayısı:') + ' ' + grQueue.length
+              + '\n' + t('Dağıtım:') + ' ' + t(GR_MODEL_AD[sec.model] || GR_MODEL_AD.linear)
+              + (grPlan ? ('\n' + t('Ortalama aralık:') + ' ' + grAralikEtiket(grPlan.ortalamaAralikMs)
+                          + ' ' + t(sec.rastgeleAralik ? '(her seferinde rastgele sapmalı)' : '(sabit)')) : '')
+              + (ilkler ? ('\n\n' + t('İlk açılacaklar:') + '\n' + ilkler) : '')
+              + (grPlan && grPlan.korumali ? ('\n\n' + tf('# başarım oyun tarafından korunduğu için atlanacak.', grPlan.korumali)) : '')
+              + (grPlan && grPlan.ultraAtlanan ? ('\n' + tf('# ultra nadir başarım ayara göre atlanacak.', grPlan.ultraAtlanan)) : ''),
         warn: 'Bu işlem Steam hesabını kalıcı olarak değiştirir. Süre boyunca uygulama açık kalmalı; istediğin an durdurabilirsin.',
         confirmText:'Başlat', cancelText:'Vazgeç',
       });
@@ -777,13 +790,13 @@
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
         edgeConfirm({ tag:'Hata', danger:true, title:'Başlatılamadı',
-                      body:(r&&r.error)||'Bilinmeyen hata.', confirmText:'Tamam', cancelText:'Kapat' });
+                      body:(r&&r.error)||'Bilinmeyen hata.', confirmText:'Tamam', tekDugme:true });
         return;
       }
       grAcilanlar = [];
-      notify('boost', 'Gerçekçi Mod Başladı', (r.oyunAdi||'') + ' · ' + r.toplam + ' başarım');
+      notify('boost', 'Gerçekçi Mod Başladı', (r.oyunAdi||'') + ' · ' + tf('# başarım', r.toplam));
       pushFeed('saat', 'Gerçekçi Mod',
-               r.oyunSayisi + ' oyun · ' + r.toplam + ' başarım ' + grSureEtiket(sureMs) + ' süreye yayıldı.', 'Çalışıyor');
+               tf('# oyun', r.oyunSayisi) + ' · ' + tf('# başarım # süreye yayıldı.', r.toplam, grSureEtiket(sureMs)), 'Çalışıyor');
     };
     grEl('grStop').onclick = ()=>{
       if (!grDurum.calisiyor) return;
@@ -806,9 +819,9 @@
         if (!d || !d.calisiyor){
           grSaatBoya(0);
           if (d && d.bitti){
-            notify('boost', 'Gerçekçi Mod Bitti', d.acilan + ' / ' + d.toplam + ' başarım açıldı');
+            notify('boost', 'Gerçekçi Mod Bitti', tf('# / # başarım açıldı', d.acilan, d.toplam));
             pushFeed(d.hata?'hata':'kart', 'Gerçekçi Mod',
-                     (d.sebep||'bitti') + ' · ' + d.acilan + ' / ' + d.toplam + ' başarım', d.hata?'Hata':'Başarılı');
+                     t(d.sebep || 'Bitti') + ' · ' + tf('# / # başarım', d.acilan, d.toplam), d.hata?'Hata':'Başarılı');
           }
           grKutuphaneBoya();
           grListeBoya();

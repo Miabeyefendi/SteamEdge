@@ -1,23 +1,55 @@
 const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const SteamAuth = require('./src/services/steamAuth');
-const SteamEngine = require('./src/core/steamEngine');
 const FarmController = require('./src/core/farmController');
+// steam-user ilk yüklemede ~0,8 sn, steam-session ~0,2 sn sürüyor (protobuf şemaları derleniyor).
+// Tepede require edildiklerinde pencere bu süreyi bekliyordu. Artık ilk örnek kurulurken
+// yüklenirler, o ilk kurulum da pencere ekrana geldikten sonraya bırakılır: motoru hemen
+// kurmak ana süreci kilitliyor, 'ready-to-show' olayı da bu kilide takılıp pencere geç açılıyordu.
+let SteamAuthSinifi = null, SteamEngineSinifi = null;
+const steamAuthSinifi = () => SteamAuthSinifi || (SteamAuthSinifi = require('./src/services/steamAuth'));
+const steamEngineSinifi = () => SteamEngineSinifi || (SteamEngineSinifi = require('./src/core/steamEngine'));
+let pencereAcildiCoz = null;
+const pencereAcildi = new Promise((r) => { pencereAcildiCoz = r; });
+setTimeout(() => pencereAcildiCoz(), 2500);   // pencere hiç gelmezse de bağlantı başlasın
 const defter = require('./src/core/esitlemeDefteri');
 const guncelleme = require('./src/services/guncelleme');
+// Ana sürecin ürettiği metin de arayüz dilinde: tepsi menüsü, dosya pencereleri, masaüstü
+// bildirimleri ve arayüze dönen hata mesajları (sözlük arayüzle ortak).
+const ceviri = require('./src/core/ceviri');
+const ct = ceviri.t;
+// Arayüze dönen her yanıttaki `error` ve `hata` metni seçili dile çevrilir. Tek tek her
+// dönüş noktasını sarmak yerine burada: yeni eklenen bir hata mesajı da kendiliğinden
+// çevrilir (sözlükte karşılığı varsa; yoksa Türkçe kalır ve `npm run dil` bunu yakalar).
+{
+  const asilHandle = ipcMain.handle.bind(ipcMain);
+  ipcMain.handle = (kanal, fn) => asilHandle(kanal, async (...a) => {
+    const r = await fn(...a);
+    if (r && typeof r === 'object' && !Array.isArray(r)) {
+      if (typeof r.error === 'string') r.error = ct(r.error);
+      if (typeof r.hata === 'string') r.hata = ct(r.hata);
+    }
+    return r;
+  });
+}
+// Satis ucreti penceresi yalnizca satis yapilinca kurulur.
+let steamUcretModulu = null;
+function steamUcret() { if (!steamUcretModulu) steamUcretModulu = require('./src/services/steamUcret'); return steamUcretModulu; }
 
 // hwAccel ayarı 'gpu hızlandırmayı kapat' derse app.whenReady()'den ÖNCE etki etmesi gerekir -
 // normal settings.json yüklemesi (loadSettings) whenReady içinde olduğu için burada senkron,
 // erken bir okuma yapıyoruz (sadece bu tek bayrak için).
+let erkenAyarlar = null;
 try {
-  // Paketlenmis surumde ayarlar exe'nin yanindaki settings/ klasorunde; gelistirmede AppData'da.
-  // (Ayni yol asagida DATA_ROOT olarak yeniden kuruluyor; burada app hazir olmadan gerekiyor.)
-  const erkenKok = app.isPackaged ? path.dirname(app.getPath('exe')) : app.getPath('userData');
-  const erkenYol = app.isPackaged
-    ? path.join(erkenKok, 'settings', 'settings.json')
-    : path.join(erkenKok, 'config', 'settings.json');
-  const early = JSON.parse(fs.readFileSync(erkenYol, 'utf8'));
+  // Ayarlar DATA_ROOT/settings altinda (asagida kuruluyor; burada app hazir olmadan gerekiyor):
+  // paketlenmis surumde exe'nin yani, oraya yazilamiyorsa ve gelistirmede AppData. Eskiden
+  // gelistirmede 'config' klasorune bakiliyordu; dosya orada olmadigi icin grafik ayarlari
+  // gelistirmede hic uygulanmiyordu.
+  const erkenYollar = [path.join(app.getPath('userData'), 'settings', 'settings.json')];
+  if (app.isPackaged) erkenYollar.unshift(path.join(path.dirname(app.getPath('exe')), 'settings', 'settings.json'));
+  const erkenYol = erkenYollar.find((p) => fs.existsSync(p));
+  const early = erkenYol ? JSON.parse(fs.readFileSync(erkenYol, 'utf8')) : null;
+  erkenAyarlar = early;
   if (early && early.hwAccel === false) app.disableHardwareAcceleration();
 
   // GRAFIK UYUMLULUGU. Uc anahtar da whenReady'den ONCE verilmek zorunda; sonra
@@ -87,7 +119,7 @@ let addingAccountMode = false;
 function getAuthSlot(slotId) {
   const id = String(slotId == null ? '0' : slotId);
   if (!authSlots.has(id)) {
-    const inst = new SteamAuth(CONFIG_DIR, makeAuthSend(id));
+    const inst = new (steamAuthSinifi())(CONFIG_DIR, makeAuthSend(id));
     inst.addingAccount = addingAccountMode || id !== '0';
     authSlots.set(id, inst);
   }
@@ -211,8 +243,7 @@ const DEFAULT_SETTINGS = {
   language: 'tr',
   // Kart Düşürme
   cardPriorityMode: 'sequential',
-  cardMaxGames: 10,      // aynı anda kaç oyun açık sayılır
-  autoReconnect: true,      // bağlantı koparsa yeniden bağlan
+  cardMaxGames: 32,         // hızlı modda aynı anda açık oyun (Steam'in bilinen üst sınırı 32)
   notifyCardDrop: false,    // kart düştükçe masaüstü bildirimi (Kart Düşür > Otomasyon)
   // Kart Düşür > Otomasyon. Üçü de gerçekten çalışır; ikisi hesabı kalıcı etkilediği için
   // varsayılan KAPALI ve satış akışı "Satış öncesi onay iste" ayarına uyar.
@@ -222,7 +253,11 @@ const DEFAULT_SETTINGS = {
   // Satış (Envanter içinde - ayrı Pazar sekmesi kaldırıldı)
   saleMode: 'median',       // median | lowest
   confirmBeforeSell: true,  // satış öncesi onay iste
-  bulkSellLimit: 50,        // tek toplu satışta en fazla kaç öğe listelenir
+  // Satış partileri. Steam listelemeyi hesabın yaşına ve güvenilirliğine göre sınırlıyor:
+  // yeni hesap 10-15 ilanda durdurulabiliyor, eski hesap tek seferde 80+ listeleyebiliyor.
+  bulkSellLimit: 50,        // parti büyüklüğü (0 = bölme, Steam durdurana kadar listele)
+  sellBatchWaitMin: 0,      // partiler arası bekleme (dk); 0 = her parti bitince sor
+  priceDropThreshold: 10,   // en düşük ilan 24 saatlik ortalamanın yüzde kaç altındaysa uyarılır
   priceRefreshHours: 24,    // fiyat önbelleği kaç saat sonra bayatlar
   historyRefreshHours: 72,  // satış geçmişi (ortalama) önbelleği kaç saat sonra bayatlar
   // Bir eşyanın en düşük fiyatı çekilirken ortalaması da aynı turda çekilsin mi.
@@ -251,7 +286,6 @@ const DEFAULT_SETTINGS = {
   hafifMod: true,           // pencere odakta değilken çizimi ve animasyonları durdur
   gpuArkaUc: 'auto',        // ANGLE arka ucu: auto | d3d11 | d3d9 | gl (yeniden başlatma ister)
   gpuKompozisyon: true,     // false = pencereyi işlemci birleştirsin (oyunla çakışmayı azaltır)
-  debugLogs: false,
 
   // ---- Ayarlar ekranının geri kalan alanları ----
   // Hepsi kalıcı yazılır/okunur. Yanında (*) olanlar HENÜZ bir davranışa bağlı değil -
@@ -266,6 +300,7 @@ const DEFAULT_SETTINGS = {
   chatReplyText: 'Şu an bilgisayarımın başında değilim, en kısa sürede döneceğim.',
   chatReplyCooldown: 60,    // aynı kişiye en fazla bu dakikada bir otomatik yanıt
   startPage: 'overview',
+  theme: 'dark',            // dark | midnight | white (bkz src/main/js/tema.js)
   density: 'comfortable',   // (*)
   timeFormat: '24',
   sidebarCollapsed: false,
@@ -277,25 +312,26 @@ const DEFAULT_SETTINGS = {
   fastMinPlaytimeMin: 120,
   fastRotateMinSec: 90,
   fastRotateMaxSec: 120,
-  farmRetry: 3,             // (*) yeniden deneme mantığı yok
   autoNextGame: true,
+  // Bağlantı koparsa: 'sinirsiz' | '10' | '3' | 'kapali'. Eskiden "otomatik yeniden bağlan"
+  // ve "yeniden deneme" iki ayrı ayardı ve ikisi de yalnızca ilk girişi etkiliyordu.
+  yenidenBaglanma: 'sinirsiz',
   // feeMode KALDIRILDI: liste fiyatlari her zaman Steam pazarindaki tutardir.
   // Komisyon sonrasi ele gececek tutar, satis akisinda ayri satir olarak gosterilir.
   priceRefreshMin: 15,      // Envanter açıkken fiyatların arka planda tazelenme aralığı
-  bookDepth: 5,             // (*) Steam sipariş defterini API'den vermiyor
+  bookDepth: 5,             // detay panelindeki sipariş defterinde kaç kademe
   undercutCents: 1,
   autoRefreshPrices: false,
   hideAfterSell: true,
   invDefaultSort: 'value',
-  dblAction: 'open',        // envanterde çift tıklama davranışı (env.js okuyor)
+  dblAction: 'steam',       // envanterde çift tıklama davranışı (env.js okuyor)
   invLowValue: 1,
   hideUnsellable: false,
-  groupByGame: false,       // (*) envanterde gruplama yok
+  groupByGame: false,       // envanter "Grupla" düğmesi basılı açılır
   compactRows: false,
   boostTarget: '2',
-  boostStagger: 5,          // (*) sıralı başlatma aralığı uygulanmıyor
-  autoStopBoost: true,
-  shuffleBoost: false,
+  boostStagger: 5,          // eşzamanlı yükseltmede oyunlar bu aralıkla (sn) sırayla açılır
+  shuffleBoost: false,      // yalnızca sıralı bekletmede: her turda oyun sırası karışır
   // Saat Yükseltici sayfasındaki Davranış/Gizlilik anahtarları ve preset
   // Saat eşitleme - seçili oyunların toplam sürelerini aynı noktada buluşturur (varsayılan KAPALI)
   boostSync: false,
@@ -337,28 +373,29 @@ const DEFAULT_SETTINGS = {
   achOrder: 'default',
   achSafeMode: true,
   achSpread: false,
-  dontAsk_achSingle: false, // onay penceresinde "bir daha sorma" işaretlendiyse true
-  notifyPriceDrop: false,   // (*) takip listesi altyapısı yok
+  notifyPriceDrop: false,   // envanterdeki öğe 24 saatlik ortalamanın eşik kadar altına inince
   notifSound: 'chime',      // 20 ton, Web Audio ile üretiliyor (common.js > NOTIF_SOUNDS)
-  sessionTimeout: 'never',  // boşta kalma süresi (dk) - 'never' = kapalı
+  sessionTimeout: 'never',  // boşta kalma süresi (dk), iş çalışırken işlemez - 'never' = kapalı
   hideGameName: false,      // oynarken görünmez ol (oyun adı profilde görünmesin)
-  twoStepSell: false,       // toplu satışta yazarak ek onay
-  logLevel: 'error',
+  logLevel: 'error',        // kayıt dosyası: off | error | warn | info | debug
+  ayarSurumu: 2,            // ayar dosyasının biçimi; geçişler ayarlariGecir içinde
 };
 let settings = { ...DEFAULT_SETTINGS };
 
-// ---- seviyeli kayıt (Ayarlar > Gelişmiş: "Kayıt seviyesi" + "Hata ayıklama kayıtlarını tut") ----
-// debugLogs açıkken kayıtlar config klasöründeki steamedge.log dosyasına da yazılır.
+// ---- seviyeli kayıt (Ayarlar > Gelişmiş > "Kayıt dosyası") ----
+// Tek seçim: kapalı / hatalar / uyarılar / olaylar / ayrıntılı. Eskiden seviye ile "dosyaya
+// yaz" iki ayrı ayardı: seviye seçilip dosya kapalı kalınca hiçbir şey kaydedilmiyordu.
 const LOG_FILE = path.join(CACHE_DIR, 'steamedge.log');   // kayit dosyasi onbellek tarafinda
 const LOG_RANK = { error: 0, warn: 1, info: 2, debug: 3 };
 function log(level, msg) {
-  const want = LOG_RANK[settings.logLevel] != null ? LOG_RANK[settings.logLevel] : 0;
+  const seviye = settings.logLevel;
+  const want = LOG_RANK[seviye] != null ? LOG_RANK[seviye] : 0;
   if ((LOG_RANK[level] != null ? LOG_RANK[level] : 0) > want) return;
   const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${msg}`;
   if (level === 'error') console.error(line); else console.log(line);
-  if (!settings.debugLogs) return;
+  if (seviye === 'off') return;
   try {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true });
+    fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
     // 2 MB'ı aşarsa döndür (tek yedek) - disk şişmesin
     try { if (fs.statSync(LOG_FILE).size > 2 * 1024 * 1024) fs.renameSync(LOG_FILE, LOG_FILE + '.1'); } catch (_) {}
     fs.appendFileSync(LOG_FILE, line + '\n');
@@ -369,7 +406,13 @@ function log(level, msg) {
 // Steam'de gördüğü sayı ile uygulamada gördüğü sayının farklı olmasına yol açıyordu.
 
 ipcMain.handle('log:write', (_e, { level, msg }) => { log(level || 'info', '[ui] ' + msg); return true; });
-ipcMain.handle('log:open', () => { shell.openPath(LOG_FILE); return { ok: true }; });
+// Kayıt dosyası henüz yoksa (kayıt kapalı ya da hiç olay yazılmadı) bunu söyler; eskiden
+// düğme sessizce hiçbir şey yapmıyordu.
+ipcMain.handle('log:open', async () => {
+  if (!fs.existsSync(LOG_FILE)) return { ok: false, error: 'Kayıt dosyası henüz oluşmadı.' };
+  const hata = await shell.openPath(LOG_FILE);
+  return hata ? { ok: false, error: hata } : { ok: true };
+});
 
 // Masaüstü bildirimi - renderer'daki HTML5 Notification yerine ana süreçten gönderilir.
 // Sonuç renderer'a döner ki "Test bildirimi" butonu gerçekten ne olduğunu söyleyebilsin.
@@ -395,36 +438,108 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
     return { ok: false, error: (e && e.message) || 'bilinmeyen hata' };
   }
 });
+// ---- AYAR GEÇİŞLERİ ----
+// Kaldırılan ve birleştirilen ayarlar eski dosyadan buraya taşınır: kullanıcının eski seçimi
+// kaybolmaz, dosyada ölü anahtar kalmaz. ayarSurumu bir kez yükseltilir.
+const KALDIRILAN_AYARLAR = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs'];
+function ayarlariGecir(v) {
+  if (!v || typeof v !== 'object') return false;
+  let degisti = false;
+  if ((+v.ayarSurumu || 1) < 2) {
+    // "Otomatik yeniden bağlan" + "yeniden deneme" tek seçim oldu. Çalışma sırasındaki
+    // yeniden bağlanma zaten sınırsızdı; kapatılmışsa kapalı kalır.
+    if (v.autoReconnect === false) v.yenidenBaglanma = 'kapali';
+    // "Bir daha sorma" ile "tekli işlemde onay iste" aynı şeyi iki anahtarda tutuyordu.
+    if (v.dontAsk_achSingle === true) v.achConfirmSingle = false;
+    // Eski varsayılan 10'du; Steam'in bilinen sınırı 32 (kullanıcı yine düşürebilir).
+    if (+v.cardMaxGames === 10) v.cardMaxGames = 32;
+    // Seçim listesinde karşılığı olmayan eski değerler: kutu boş görünüyordu.
+    if (v.dblAction === 'open') v.dblAction = 'steam';
+    if (v.saleMode === 'lowest') v.saleMode = 'match';
+    // "Hata ayıklama kayıtlarını tut" kaldırıldı: seçilen seviye artık dosyaya da yazılır.
+    v.ayarSurumu = 2;
+    degisti = true;
+  }
+  KALDIRILAN_AYARLAR.forEach((k) => { if (k in v) { delete v[k]; degisti = true; } });
+  return degisti;
+}
+// Ayarların kullanıcı tarafından en son kaydedildiği an (Ayarlar > Yapılandırma > Son kayıt).
+let ayarKayitZamani = null;
 function loadSettings() {
   const r = jsonOku(SETTINGS_FILE);
   if (r.ok) {
-    settings = { ...DEFAULT_SETTINGS, ...r.veri };
+    const ham = { ...r.veri };
+    const gecti = ayarlariGecir(ham);
+    settings = { ...DEFAULT_SETTINGS, ...ham };
     if (r.yedekten) okumaHatalari.push({ ad: 'Ayarlar', kurtarildi: true });
+    if (gecti) saveSettings();
+    try { ayarKayitZamani = fs.statSync(SETTINGS_FILE).mtimeMs; } catch (_) {}
   } else {
     settings = { ...DEFAULT_SETTINGS };
     // yok = ilk calistirma, normal. bozuk = gercek sorun, kullaniciya soyle.
     if (r.bozuk) okumaHatalari.push({ ad: 'Ayarlar', kurtarildi: false });
   }
+  ceviri.dilSec(settings.language);
 }
-function saveSettings() { jsonYaz(SETTINGS_FILE, settings, true); }
+// Başarısızsa false döner: dosya okunamamışsa (bozuk) yazım bilerek engellenir ve "Kaydet"
+// bunu kullanıcıya söylemeli, "kaydedildi" dememeli.
+function saveSettings() { return jsonYaz(SETTINGS_FILE, settings, true); }
+// "Uyku modunu engelle": yalnızca bir hesapta iş çalışırken. Eskiden ayar açıkken uygulama
+// hiçbir şey yapmasa da bilgisayar hiç uyumuyordu.
+function uykuEngeliniGuncelle() {
+  let calisan = false;
+  accounts.forEach((s) => { if (hesapCalisiyor(s)) calisan = true; });
+  const iste = !!settings.preventSleep && calisan;
+  try {
+    if (iste && psbId === null) psbId = powerSaveBlocker.start('prevent-app-suspension');
+    else if (!iste && psbId !== null) { powerSaveBlocker.stop(psbId); psbId = null; }
+  } catch (_) {}
+}
+// "Bağlantı koparsa yeniden bağlan". null = sınırsız, 0 = kapalı, n = en fazla n deneme.
+function yenidenBaglanmaSiniri() {
+  const v = settings.yenidenBaglanma;
+  if (v === 'kapali') return 0;
+  const n = parseInt(v, 10);
+  return n > 0 ? n : null;
+}
 function applySettings() {
   try { app.setLoginItemSettings({ openAtLogin: !!settings.autoLaunch }); } catch (_) {}
-  try {
-    if (settings.preventSleep && psbId === null) psbId = powerSaveBlocker.start('prevent-app-suspension');
-    else if (!settings.preventSleep && psbId !== null) { powerSaveBlocker.stop(psbId); psbId = null; }
-  } catch (_) {}
-  // Çevrimdışı görün / oyun adını gizle - bağlıyken anında uygulanır
-  try { if (engineReady && engine) engine.applyPrivacy(settings.offlineMode, settings.hideGameName); } catch (_) {}
+  uykuEngeliniGuncelle();
+  // Yeniden bağlanma sınırı bütün motorlara. Deneme sınırı dolup vazgeçmiş bir motor varsa
+  // ve yeni ayar izin veriyorsa denemeler baştan başlar.
+  const sinir = yenidenBaglanmaSiniri();
+  accounts.forEach((s) => {
+    if (!s.engine) return;
+    s.engine.yenidenBaglanmaSiniri = sinir;
+    if (s.engine.vazgecti && !s.engine.kaliciKopma && sinir !== 0) s.engine.yenidenBaglanmayiDene();
+  });
+  // Çevrimdışı görün / oyun adını gizle - bağlıyken anında uygulanır. TÜM bağlı hesaplara:
+  // eskiden yalnızca ekrandaki hesaba uygulanıyordu, arka plandaki hesap görünür kalıyordu.
+  accounts.forEach((s) => { try { if (s.ready && s.engine) s.engine.applyPrivacy(settings.offlineMode, settings.hideGameName); } catch (_) {} });
   // Sohbet otomatik yanıtı - TÜM bağlı hesaplara uygulanır
   accounts.forEach((s) => { if (s.engine) applyChatSettings(s.engine); });
   if (typeof armIdleTimer === 'function') armIdleTimer();
 }
 
+// Ana süreçten giden bildirimler de arayüzle aynı kurala uyar: ana anahtar, türün kendi
+// anahtarı ve sessiz saatler. Sohbet bildirimi eskiden yalnızca kendi anahtarına bakıyordu.
+function sessizSaatMi() {
+  if (!settings.quietHoursEnabled) return false;
+  const [fh, fm] = String(settings.quietFrom || '23:00').split(':').map(Number);
+  const [th, tm] = String(settings.quietTo || '08:00').split(':').map(Number);
+  const d = new Date(), cur = d.getHours() * 60 + d.getMinutes();
+  const f = fh * 60 + (fm || 0), t = th * 60 + (tm || 0);
+  return f <= t ? (cur >= f && cur < t) : (cur >= f || cur < t);
+}
+
 // Otomatik yanıt yalnızca `chatAutoReply` açıkken ve metin doluyken devreye girer;
 // aynı kişiye `chatReplyCooldown` dakika içinde ikinci kez yazılmaz (spam olmasın).
+// Varsayılan yanıt metni değiştirilmediyse arayüz dilinde gider; eskiden her dilde Türkçe
+// metin arkadaşlara gönderiliyordu. Kullanıcının kendi yazdığı metne dokunulmaz.
 function applyChatSettings(eng) {
   try {
-    eng.setAutoReply(settings.chatAutoReply ? settings.chatReplyText : null, settings.chatReplyCooldown);
+    const metin = settings.chatReplyText === DEFAULT_SETTINGS.chatReplyText ? ct(DEFAULT_SETTINGS.chatReplyText) : settings.chatReplyText;
+    eng.setAutoReply(settings.chatAutoReply ? metin : null, settings.chatReplyCooldown);
   } catch (_) {}
 }
 
@@ -434,12 +549,20 @@ function ensureTray() {
     const img = nativeImage.createFromPath(path.join(__dirname, 'src', 'assets', 'icon.png'));
     tray = new Tray(img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 }));
     tray.setToolTip('SteamEdge');
-    tray.setContextMenu(Menu.buildFromTemplate([
-      { label: 'Göster', click: () => { if (win) { win.show(); win.focus(); } } },
-      { type: 'separator' },
-      { label: 'Çıkış', click: () => { isQuitting = true; app.quit(); } },
-    ]));
+    tepsiMenusunuKur();
     tray.on('click', () => { if (win) { win.isVisible() ? win.hide() : (win.show(), win.focus()); } });
+  } catch (_) {}
+}
+// Dil değişince menü yeniden kurulur; eskiden her dilde "Göster / Çıkış" yazıyordu.
+function tepsiMenusunuKur() {
+  if (!tray) return;
+  try {
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: ct('Pencereyi göster'), click: () => { if (win) { win.show(); win.focus(); } } },
+      { type: 'separator' },
+      // "Çıkış" anahtarı gezinmedeki "oturumu kapat" anlamında çevriliyor; burası uygulamayı kapatır.
+      { label: ct("SteamEdge'i kapat"), click: () => { isQuitting = true; app.quit(); } },
+    ]));
   } catch (_) {}
 }
 
@@ -530,7 +653,8 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, ...(sess ? ['src', 'main', 'main.html'] : ['src', 'login', 'login.html'])));
-  win.once('ready-to-show', () => { win.center(); win.show(); });
+  // Pencere göründükten sonra bir kare bekleyip motor kurulumuna izin ver (bkz pencereAcildi).
+  win.once('ready-to-show', () => { win.center(); win.show(); setTimeout(() => pencereAcildiCoz(), 50); });
   win.on('close', (e) => {
     if (!isQuitting && settings.closeToTray) { e.preventDefault(); win.hide(); }
   });
@@ -559,11 +683,13 @@ ipcMain.on('win:setWidth', (_e, w) => {
 
 // auth - her çağrı {slotId, ...} taşır; her (+) kutusu login.html'de kendi bağımsız
 // SteamAuth örneğini kullanır (bkz getAuthSlot).
-ipcMain.on('auth:startQR', (_e, { slotId } = {}) => getAuthSlot(slotId).startQR());
-ipcMain.on('auth:startCredentials', (_e, { slotId, accountName, password }) => getAuthSlot(slotId).startCredentials(accountName, password));
-ipcMain.on('auth:submitGuard', (_e, { slotId, code }) => getAuthSlot(slotId).submitGuard(code));
-ipcMain.on('auth:cancel', (_e, { slotId } = {}) => getAuthSlot(slotId).cancel());
-ipcMain.on('auth:loginCookie', (_e, { slotId, sessionid, steamLoginSecure, steamparental }) => getAuthSlot(slotId).loginCookie(sessionid, steamLoginSecure, steamparental));
+// Giriş ekranı QR'ı açılır açılmaz istiyor; steam-session yüklemesi pencereyi bekletmesin diye
+// istekler pencere göründükten sonra işlenir (sıra korunur: hepsi aynı sözü bekliyor).
+ipcMain.on('auth:startQR', (_e, { slotId } = {}) => pencereAcildi.then(() => getAuthSlot(slotId).startQR()));
+ipcMain.on('auth:startCredentials', (_e, { slotId, accountName, password }) => pencereAcildi.then(() => getAuthSlot(slotId).startCredentials(accountName, password)));
+ipcMain.on('auth:submitGuard', (_e, { slotId, code }) => pencereAcildi.then(() => getAuthSlot(slotId).submitGuard(code)));
+ipcMain.on('auth:cancel', (_e, { slotId } = {}) => pencereAcildi.then(() => getAuthSlot(slotId).cancel()));
+ipcMain.on('auth:loginCookie', (_e, { slotId, sessionid, steamLoginSecure, steamparental }) => pencereAcildi.then(() => getAuthSlot(slotId).loginCookie(sessionid, steamLoginSecure, steamparental)));
 
 // logout: clear saved session, back to login
 ipcMain.on('auth:logout', () => {
@@ -606,7 +732,7 @@ ipcMain.handle('accounts:list', () => {
       accountName: a.accountName,
       active: a.steamID === activeSteamID,        // arayüzde görüntülenen
       connected: !!(s && s.ready),                // Steam oturumu açık
-      running: !!(s && s.lastTick && s.lastTick.running),   // kart/saat çalışıyor
+      running: hesapCalisiyor(s),                            // kart/saat/gerçekçi çalışıyor
     };
   });
 });
@@ -622,9 +748,10 @@ ipcMain.handle('accounts:switch', async (_e, steamID) => {
   const r = await connectAccount(entry);
   syncActive();
   if (!r.ok) return r;
-  const s = accounts.get(steamID);
-  // Renderer geçtiği hesabın mevcut durumunu hemen görsün
-  if (s && s.lastTick) sendRaw('farm:tick', s.lastTick);
+  // Renderer geçtiği hesabın bütün işlerinin CANLI durumunu hemen görsün; önceki hesabın
+  // çalışan işi ekranda asılı kalmasın.
+  isDurumunuYolla(steamID);
+  sendRaw('stats:degisti', istatistikGorunumu(steamID));
   return { ok: true, persona: r.persona, steamID, softSwitch: true };
 });
 
@@ -644,8 +771,7 @@ ipcMain.handle('accounts:connectAll', async () => {
 ipcMain.handle('accounts:disconnect', (_e, steamID) => {
   const s = accounts.get(steamID);
   if (!s) return { ok: false, error: 'Hesap bağlı değil.' };
-  try { if (s.farm) s.farm.stop(); } catch (_) {}
-  try { if (s.farmSaat) s.farmSaat.stop(); } catch (_) {}
+  hesapIsleriniDurdur(s, steamID);
   try { if (s.engine) s.engine.logOff(); } catch (_) {}
   accounts.delete(steamID);
   syncActive();
@@ -657,21 +783,23 @@ ipcMain.handle('accounts:remove', async (_e, steamID) => {
   const list = loadAccounts();
   const idx = list.findIndex((a) => a.steamID === steamID);
   if (idx < 0) return { ok: false, error: 'Hesap bulunamadı.' };
+  const wasActive = steamID === activeSteamID;
+  // Once isler durur: durdurma istatistik ve akis yaziyor, veri silindikten SONRA
+  // yazsaydi dosya yeniden olusurdu.
+  const s = accounts.get(steamID);
+  if (s) {
+    hesapIsleriniDurdur(s, steamID);
+    try { if (s.engine) s.engine.logOff(); } catch (_) {}
+    accounts.delete(steamID);
+  }
+  const bek = bekleyenYazim.get(steamID);
+  if (bek) { clearTimeout(bek); bekleyenYazim.delete(steamID); }
   // Hesabin kendi verisi de gitsin, yoksa ayni hesap tekrar eklendiginde eski
   // kuyrugu/istatistigi geri gelir ve kullanici sildim sanir.
   hesapVerileri.delete(steamID);
   ['', '.bak', '.bozuk', '.tmp'].forEach((ek) => {
     try { fs.unlinkSync(hesapDosyasi(steamID) + ek); } catch (_) {}
   });
-  const wasActive = steamID === activeSteamID;
-  // Silinen hesabın arka plan işini de durdur
-  const s = accounts.get(steamID);
-  if (s) {
-    try { if (s.farm) s.farm.stop(); } catch (_) {}
-    try { if (s.farmSaat) s.farmSaat.stop(); } catch (_) {}
-    try { if (s.engine) s.engine.logOff(); } catch (_) {}
-    accounts.delete(steamID);
-  }
   list.splice(idx, 1);
   saveAccounts(list);
   if (!wasActive) { syncActive(); return { ok: true, softSwitch: true }; }
@@ -714,8 +842,371 @@ let farm = null;
 let farmSaat = null;
 
 function slotOf(steamID) {
-  if (!accounts.has(steamID)) accounts.set(steamID, { engine: null, farm: null, farmSaat: null, ready: false, accountName: null });
+  if (!accounts.has(steamID)) {
+    accounts.set(steamID, {
+      engine: null, farm: null, farmSaat: null, ready: false, accountName: null,
+      son: {},             // kanal -> son durum; hesap degisince arayuze yeniden yollanir
+      boost: null,         // eszamanli saat yukseltme ve esitleme
+      gercekci: null,      // Gercekci Mod
+      izleyici: null,      // kart dusus izleyicisi
+      istSaati: null,      // calisma suresi sayaci
+      bekleyenFarm: null,  // saat yukseltme suresince duraklatilan kart dusurme
+    });
+  }
   return accounts.get(steamID);
+}
+
+// ================== HESABA OZEL ISLER ==================
+// Kart dusurme, saat yukseltme, esitleme ve Gercekci Mod eskiden ekranda acik hesabin
+// motoruna (modul duzeyindeki `engine`) bagliydi. Zamanlayicilar da ayni degiskeni
+// kullaniyordu: A hesabinda saat yukseltme surerken B'ye gecilirse sure dolunca B'nin
+// oyunlari kapaniyor, A sonsuza kadar acik kaliyordu. Istatistikler de arayuzden, yalnizca
+// ekrandaki hesap icin sayiliyordu. Simdi her is kendi hesabinin yuvasinda yasar.
+const IS_KANALLARI = ['farm:tick', 'boost:tick', 'saatFarm:tick', 'boost:sync', 'gercekci:tick'];
+const BOS_DURUM = {
+  'farm:tick': { running: false }, 'boost:tick': { running: false }, 'saatFarm:tick': { running: false },
+  'boost:sync': { running: false }, 'gercekci:tick': { calisiyor: false },
+};
+function hesapAdi(steamID) {
+  const s = accounts.get(steamID);
+  return (s && s.accountName) || String(steamID || '');
+}
+function hesapBoostCalisiyor(s) {
+  return !!(s && ((s.boost && s.boost.calisiyor) || (s.farmSaat && s.farmSaat.running)));
+}
+function hesapCalisiyor(s) {
+  return !!(s && ((s.farm && s.farm.running) || hesapBoostCalisiyor(s) || s.gercekci));
+}
+// Bir hesabin is olaylari. Arayuze yalnizca ekranda acik hesabinkiler gider; hepsi saklanir.
+function hesapYayini(steamID) {
+  return (kanal, veri) => {
+    const s = accounts.get(steamID);
+    if (s) s.son[kanal] = veri;
+    if (steamID === activeSteamID) sendRaw(kanal, { ...veri, steamID });
+    if (s) {
+      const calisiyor = hesapCalisiyor(s);
+      if (calisiyor !== s.sonCalisma) {
+        s.sonCalisma = calisiyor;
+        sendRaw('accounts:activity', { steamID, running: calisiyor });
+        uykuEngeliniGuncelle();
+        kesintisizCalismaIsle(steamID, calisiyor);
+      }
+      istatistikSaatiniGuncelle(steamID);
+    }
+  };
+}
+// Hesap degisince o hesabin CANLI durumu arayuze yollanir. Duran isler bos durumla gider;
+// "bitti" gibi tek seferlik bayraklar tekrar yollanmaz, yoksa bildirimler yinelenirdi.
+function isDurumunuYolla(steamID) {
+  const s = accounts.get(steamID);
+  IS_KANALLARI.forEach((k) => {
+    const d = s && s.son[k];
+    const calisiyor = d && (d.running || d.calisiyor);
+    sendRaw(k, calisiyor ? { ...d, steamID } : { ...BOS_DURUM[k], steamID });
+  });
+}
+// Kullaniciya ait olaylar (kart dustu, kartlar bitti, basarim acildi...). Bildirimi arayuz
+// gosterir (sessiz saat, ses, ayar kapilari orada). Arka plandaki hesabin olayi, o hesabin
+// kendi aktivite akisina da yazilir; hesaba gecildiginde gecmis eksik kalmaz.
+function hesapOlayi(steamID, olay) {
+  sendRaw('hesap:olay', { steamID, hesap: hesapAdi(steamID), aktif: steamID === activeSteamID, ...olay });
+  if (steamID !== activeSteamID && olay.akis) akisEkle(steamID, olay.akis);
+}
+const AKTIVITE_ANAHTARI = 'aktiviteAkisi';
+function akisEkle(steamID, kayit) {
+  const v = hesapVerisi(steamID);
+  const e = v.entries[AKTIVITE_ANAHTARI];
+  const liste = (e && Array.isArray(e.v)) ? e.v : [];
+  liste.unshift({ ...kayit, ts: Date.now() });
+  if (liste.length > 30) liste.length = 30;
+  v.entries[AKTIVITE_ANAHTARI] = { v: liste, ts: Date.now() };
+  hesapVerisiYazGecikmeli(steamID);
+}
+
+// ---- Istatistik (hesap basina) ----
+// "En Verimli Gün" icin gun gun dusen kart. Yerel tarih: kullanicinin gunu UTC'ye gore degil.
+function gunAnahtari(t) {
+  const d = new Date(t || Date.now());
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function gunlukKartEkle(steamID, adet) {
+  const st = hesapIstatistik(steamID);
+  if (!st.gunlukKart || typeof st.gunlukKart !== 'object') st.gunlukKart = {};
+  const gun = gunAnahtari();
+  st.gunlukKart[gun] = (st.gunlukKart[gun] || 0) + adet;
+  const gunler = Object.keys(st.gunlukKart).sort();
+  while (gunler.length > 400) delete st.gunlukKart[gunler.shift()];
+}
+// "Kesintisiz Çalışma": bir hesapta işin (kart, saat, Gerçekçi Mod) ara vermeden sürdüğü en
+// uzun süre. Bir dakikadan kısa aralar kesinti sayılmaz (ayar kaydedilince işin birkaç
+// saniye duraklatılması, kısa bir bağlantı kopması gibi).
+function kesintisizCalismaIsle(steamID, calisiyor) {
+  const s = accounts.get(steamID);
+  if (!s) return;
+  const simdi = Date.now();
+  if (calisiyor) {
+    if (!s.kesintisizBas || (s.kesintisizSon && simdi - s.kesintisizSon > 60000)) s.kesintisizBas = simdi;
+    s.kesintisizSon = null;
+    return;
+  }
+  if (!s.kesintisizBas || s.kesintisizSon) return;
+  s.kesintisizSon = simdi;
+  const st = hesapIstatistik(steamID);
+  const sure = simdi - s.kesintisizBas;
+  if (sure > (+st.enUzunCalismaMs || 0)) { st.enUzunCalismaMs = sure; hesapVerisiYazGecikmeli(steamID); }
+}
+function hesapIstatistik(steamID) {
+  const v = hesapVerisi(steamID);
+  if (!v.stats) v.stats = { ...DEFAULT_STATS, since: Date.now() };
+  return v.stats;
+}
+function istatistikEkle(steamID, patch) {
+  if (!steamID) return;
+  const st = hesapIstatistik(steamID);
+  Object.keys(patch || {}).forEach((k) => {
+    if (typeof st[k] !== 'number') st[k] = 0;
+    st[k] += (+patch[k] || 0);
+  });
+  hesapVerisiYazGecikmeli(steamID);
+  if (steamID === activeSteamID) sendRaw('stats:degisti', istatistikGorunumu(steamID));
+}
+// Calisma suresi sayaci. Kart dusurme suresi `totalRuntimeMs`, saat yukseltme (eszamanli ya
+// da sirali) `boostRuntimeMs`. Eskiden saat yukseltme suresi yalnizca Durdur'a ELLE
+// basilinca yaziliyordu: sure dolup kendiliginden biten ya da arka plandaki hesabin isi hic
+// sayilmiyordu. Baglanti koptugu surede sayilmaz; Steam de o sureyi saymaz.
+function istatistikSaati(steamID) {
+  const s = accounts.get(steamID);
+  if (!s) return;
+  const simdi = Date.now();
+  const dt = s.istSon ? simdi - s.istSon : 0;
+  s.istSon = simdi;
+  const patch = {};
+  if (dt > 0 && dt < 10 * 60000 && s.istHazir) {
+    if (s.istFarm) patch.totalRuntimeMs = dt;
+    if (s.istBoost) patch.boostRuntimeMs = dt;
+  }
+  s.istFarm = !!(s.farm && s.farm.running);
+  s.istBoost = hesapBoostCalisiyor(s);
+  s.istHazir = !!s.ready;
+  if (Object.keys(patch).length) istatistikEkle(steamID, patch);
+  if (!s.istFarm && !s.istBoost && s.istSaati) { clearInterval(s.istSaati); s.istSaati = null; s.istSon = 0; }
+}
+// Isin durumu degisince sayac o ana kadarki sureyi eski duruma yazar, sonra yenisine gecer.
+function istatistikSaatiniGuncelle(steamID) {
+  const s = accounts.get(steamID);
+  if (!s) return;
+  const farmNow = !!(s.farm && s.farm.running);
+  const boostNow = hesapBoostCalisiyor(s);
+  if (farmNow === !!s.istFarm && boostNow === !!s.istBoost && (s.istSaati || (!farmNow && !boostNow))) return;
+  if (s.istSaati) istatistikSaati(steamID);
+  else { s.istSon = Date.now(); s.istFarm = farmNow; s.istBoost = boostNow; s.istHazir = !!s.ready; }
+  if ((farmNow || boostNow) && !s.istSaati) s.istSaati = setInterval(() => istatistikSaati(steamID), 30000);
+}
+
+// ---- Kart dusurme (hesap basina) ----
+// Rozet sayfasi ANA SURECTE ve hesap basina izlenir. Eskiden arayuz dakikada bir yalnizca
+// ekrandaki hesabi yokluyordu; arka plandaki hesabin dusen karti sayilmiyor, karti biten
+// oyun kuyruktan hic cikmiyordu. Aralik bilerek 3 dakika: rozet sayfasi buyuk kutuphanede
+// birden fazla sayfa ve birden fazla hesap ayni anda calisiyor olabilir.
+const KART_IZLEME_MS = 3 * 60 * 1000;
+function kartFarmSecenekleri() {
+  return {
+    autoNext: settings.autoNextGame !== false,
+    maxGames: settings.cardMaxGames,
+    fastMinPlaytimeMin: settings.fastMinPlaytimeMin,
+    fastRotateMinSec: settings.fastRotateMinSec,
+    fastRotateMaxSec: settings.fastRotateMaxSec,
+  };
+}
+function farmYayini(steamID) {
+  const yay = hesapYayini(steamID);
+  return (kanal, veri) => {
+    yay(kanal, veri);
+    if (kanal !== 'farm:tick' || !veri || veri.running) return;
+    const s = accounts.get(steamID);
+    kartIzleyiciDurdur(s);
+    if (veri.sebep === 'bitti' && veri.calisiyordu) {
+      log('info', '[' + hesapAdi(steamID) + '] kart dusurme bitti: tum kartlar toplandi');
+      hesapOlayi(steamID, {
+        tur: 'kartlarBitti',
+        akis: { kind: 'kart', title: 'Kart Düşürme', text: 'Tüm kartlar toplandı.', status: 'Başarılı' },
+      });
+      farmiSurdur(steamID);
+    } else if ((veri.sebep === 'sure' || veri.sebep === 'oyunBitti') && veri.calisiyordu) {
+      // "Oyun bitince sıradakine geç" kapalı: neden durduğu söylenir, yoksa kullanıcı işin
+      // kendiliğinden kapandığını sanıyordu.
+      hesapOlayi(steamID, {
+        tur: 'kartDurdu',
+        akis: { kind: 'kart', title: 'Kart Düşürme', status: 'Durdu',
+          text: veri.sebep === 'sure'
+            ? 'Oyunun süresi doldu; sıradakine geçme kapalı olduğu için durdu.'
+            : 'Oyunun kartları bitti; sıradakine geçme kapalı olduğu için durdu.' },
+      });
+    }
+  };
+}
+function kartFarmBaslat(steamID, mode, games, durationMs, ek) {
+  const s = slotOf(steamID);
+  if (!s.engine || !s.ready) return false;
+  if (!s.farm) s.farm = new FarmController(s.engine, farmYayini(steamID), 'kart');
+  s.farm.engine = s.engine;
+  const devam = !!(ek && ek.devam);
+  log('info', `[${hesapAdi(steamID)}] farm ${devam ? 'devam' : 'start'}: mode=${mode} oyun=${(games || []).length} süre=${durationMs}ms`);
+  s.farm.start(mode, games || [], durationMs, { ...kartFarmSecenekleri(), ...(ek || {}) });
+  if (!devam && s.farm.running) istatistikEkle(steamID, { sessions: 1 });
+  if (s.farm.running) kartIzleyiciBaslat(steamID, games || []);
+  return true;
+}
+function kartIzleyiciBaslat(steamID, oyunlar) {
+  const s = accounts.get(steamID);
+  if (!s) return;
+  const eski = s.izleyici;
+  kartIzleyiciDurdur(s);
+  s.izleyici = {
+    timer: null, basarimTimer: null, mesgul: false, basarimMesgul: false, hata: 0,
+    // Devam ederken (ayar degisikligi) onceki olcum korunur, yoksa aradaki dusus kaybolurdu.
+    kalan: eski && eski.kalan ? eski.kalan : new Map((oyunlar || []).map((g) => [g.appid, g.remaining])),
+    adlar: new Map((oyunlar || []).map((g) => [g.appid, g.name])),
+    oturumDusen: eski ? eski.oturumDusen || 0 : 0,
+    sonBasarim: eski ? eski.sonBasarim || 0 : 0,
+  };
+  s.izleyici.timer = setInterval(() => kartIzle(steamID), KART_IZLEME_MS);
+  s.izleyici.basarimTimer = setInterval(() => kartBasarimAc(steamID), 60000);
+}
+function kartIzleyiciDurdur(s) {
+  if (!s || !s.izleyici) return;
+  if (s.izleyici.timer) clearInterval(s.izleyici.timer);
+  if (s.izleyici.basarimTimer) clearInterval(s.izleyici.basarimTimer);
+  s.izleyici.timer = null; s.izleyici.basarimTimer = null;
+}
+async function kartIzle(steamID) {
+  const s = accounts.get(steamID);
+  if (!s || !s.izleyici || !s.farm || !s.farm.running || !s.engine || !s.ready) return;
+  const iz = s.izleyici;
+  if (iz.mesgul) return;
+  iz.mesgul = true;
+  try {
+    const { oyunlar, bitenler } = await s.engine.getDropGames(true);
+    iz.hata = 0;
+    // Oynama suresi rozet sayfasinda yok; son bilinen listeden tasinir (hizli mod ister).
+    const dk = new Map();
+    const v = hesapVerisi(steamID);
+    ((v.listeler && v.listeler.drop) || []).forEach((g) => dk.set(g.appid, g.playtimeMin || 0));
+    (s.farm.games || []).forEach((g) => dk.set(g.appid, g.playtimeMin || dk.get(g.appid) || 0));
+    const guncel = oyunlar.map((g) => ({ ...g, playtimeMin: dk.get(g.appid) || 0 }));
+    const yeni = new Map(guncel.map((g) => [g.appid, g]));
+    let dusen = 0;
+    iz.kalan.forEach((once, appid) => {
+      let simdi = yeni.has(appid) ? yeni.get(appid).remaining : null;
+      if (simdi == null && bitenler.has(appid)) simdi = 0;
+      if (simdi == null || !(simdi < once)) return;
+      const adet = once - simdi;
+      dusen += adet;
+      const ad = (yeni.get(appid) && yeni.get(appid).name) || iz.adlar.get(appid) || ('App ' + appid);
+      hesapOlayi(steamID, {
+        tur: 'kartDustu', appid, ad, adet,
+        akis: { kind: 'kart', title: '# kart düştü'.replace('#', adet), text: ad, status: 'Başarılı' },
+      });
+    });
+    guncel.forEach((g) => { iz.kalan.set(g.appid, g.remaining); iz.adlar.set(g.appid, g.name); });
+    bitenler.forEach((id) => iz.kalan.set(id, 0));
+    if (dusen) {
+      iz.oturumDusen += dusen;
+      gunlukKartEkle(steamID, dusen);
+      istatistikEkle(steamID, { cardsDropped: dusen });
+    }
+    listeleriSakla('drop', guncel, steamID);
+    if (steamID === activeSteamID) sendRaw('farm:liste', { steamID, games: guncel, oturumDusen: iz.oturumDusen, dusen });
+    s.farm.oyunlariGuncelle(guncel, bitenler);
+  } catch (e) {
+    iz.hata++;
+    log('warn', '[' + hesapAdi(steamID) + '] rozet izleme: ' + (e && e.message));
+  } finally {
+    iz.mesgul = false;
+  }
+}
+// "Kart düşerken başarımları aç" (farmAchUnlock). Arayuzdeydi ve yalnizca ekrandaki hesapta,
+// pencere acikken calisiyordu. Aralik: basarim acilis araligi, en az bir dakika.
+async function kartBasarimAc(steamID) {
+  if (!settings.farmAchUnlock) return;
+  const s = accounts.get(steamID);
+  if (!s || !s.izleyici || !s.farm || !s.farm.running || !s.engine || !s.ready) return;
+  const iz = s.izleyici;
+  const aralikMs = Math.max(60, +settings.achDelay || 60) * 1000;
+  if (iz.basarimMesgul || Date.now() - (iz.sonBasarim || 0) < aralikMs) return;
+  const appid = s.farm.aktifAppid;
+  if (!appid) return;
+  iz.basarimMesgul = true;
+  try {
+    const data = await s.engine.getAchievements(appid);
+    const kilitli = ((data && data.achievements) || []).filter((a) => !a.achieved && !a.korumali);
+    if (!kilitli.length) return;
+    const secilen = settings.achSpread ? kilitli[Math.floor(Math.random() * kilitli.length)] : kilitli[0];
+    await s.engine.setAchievements(appid, [{ apiName: secilen.apiName, unlock: true }]);
+    iz.sonBasarim = Date.now();
+    const v = hesapVerisi(steamID);
+    v.achLog.unshift({ appid, game: data.gameName || null, apiName: secilen.apiName, name: secilen.name, unlock: true, ts: Date.now() });
+    if (v.achLog.length > 2000) v.achLog.length = 2000;
+    hesapVerisiYazGecikmeli(steamID);
+    hesapOlayi(steamID, {
+      tur: 'basarimAcildi', appid, ad: secilen.name,
+      akis: { kind: 'kart', title: 'Başarım açıldı', text: secilen.name, status: 'Başarılı' },
+    });
+  } catch (e) {
+    log('warn', '[' + hesapAdi(steamID) + '] farm sirasinda basarim acilamadi: ' + (e && e.message));
+  } finally {
+    iz.basarimMesgul = false;
+  }
+}
+// "Saat yükseltirken kart düşürmeyi duraklat". Ayarin aciklamasi "saat yukseltme bitince
+// kart dusurme kaldigi yerden surer" diyordu ama kod yalnizca durduruyordu; hic geri
+// baslamiyordu. Artik duraklatilan is saklanir ve saat yukseltme bitince surdurulur.
+function farmiBeklet(steamID, neden) {
+  const s = accounts.get(steamID);
+  if (!s || !s.farm || !s.farm.running) return false;
+  const konum = s.farm.konum();          // once: hizli modda isitma ilerlemesini oyunlara isler
+  s.bekleyenFarm = {
+    mode: s.farm.mode, games: s.farm.games.map((g) => ({ ...g })),
+    durationMs: s.farm.durationMs, konum,
+  };
+  s.farm.stop('boost');
+  log('info', '[' + hesapAdi(steamID) + '] kart dusurme duraklatildi: ' + neden);
+  hesapOlayi(steamID, {
+    tur: 'kartDuraklatildi',
+    akis: { kind: 'kart', title: 'Kart Düşürme', text: 'Saat yükseltme sürerken duraklatıldı.', status: 'Uyarı' },
+  });
+  return true;
+}
+// zorla: saat yukseltme surse de surdur ("duraklat" ayari kapatildi).
+function farmiSurdur(steamID, zorla) {
+  const s = accounts.get(steamID);
+  if (!s || !s.bekleyenFarm || s.gercekci) return;
+  if (!zorla && hesapBoostCalisiyor(s)) return;
+  if (!s.ready || !s.engine) return;
+  const b = s.bekleyenFarm;
+  s.bekleyenFarm = null;
+  // Secenekler GUNCEL ayarlardan gelir (kartFarmSecenekleri); eskiden duraklatilan isin eski
+  // secenekleri geri yukleniyordu, arada degisen ayar surdurulen ise islemiyordu.
+  kartFarmBaslat(steamID, b.mode, b.games, b.durationMs, { devam: b.konum });
+  hesapOlayi(steamID, {
+    tur: 'kartSurdu',
+    akis: { kind: 'kart', title: 'Kart Düşürme', text: 'Kaldığı yerden sürüyor.', status: 'Çalışıyor' },
+  });
+}
+// Bir hesabin tum islerini durdurur (cikis, hesap silme, baglanti kesme).
+function hesapIsleriniDurdur(s, steamID) {
+  if (!s) return;
+  s.bekleyenFarm = null;
+  ayarBeklemeleriniIptalEt(s);
+  try { if (s.farm && s.farm.running) s.farm.stop('kullanici'); } catch (_) {}
+  try { if (s.farmSaat && s.farmSaat.running) s.farmSaat.stop('kullanici'); } catch (_) {}
+  kartIzleyiciDurdur(s);
+  if (steamID) {
+    try { boostDurdurHesap(steamID, 'kullanici'); } catch (_) {}
+    try { if (s.gercekci) gercekciBitir(steamID, 'kullanici durdurdu'); } catch (_) {}
+    try { istatistikSaati(steamID); } catch (_) {}
+  }
+  if (s.istSaati) { clearInterval(s.istSaati); s.istSaati = null; }
 }
 
 // G3: Motor baglanti durumunu arayuze tasir. Eskiden calisma aninda kopan baglanti
@@ -724,19 +1215,54 @@ function slotOf(steamID) {
 function baglantiDurumunuBagla(eng, steamID) {
   eng.onDurum = (durum, ek) => {
     const s = accounts.get(steamID);
-    if (s) s.ready = (durum === 'bagli');
+    if (s) {
+      // Sayaclar kopukluk suresini saymasin: once o ana kadarki sure yazilir.
+      if (durum !== 'bagli') istatistikSaati(steamID);
+      s.ready = (durum === 'bagli');
+      if (s.ready) { s.sonBaglanti = Date.now(); s.istSon = Date.now(); s.istHazir = true; }
+      // Uzun kopma kesintisiz çalışmayı böler; bir dakikadan kısası bölmez (bkz kesintisizCalismaIsle).
+      if (hesapCalisiyor(s)) kesintisizCalismaIsle(steamID, s.ready);
+      esitlemeBaglantiDegisti(steamID, s.ready);
+    }
     if (steamID === activeSteamID) { engineReady = (durum === 'bagli'); }
+    // Kayıt metni. Arayüz kendi dilindeki metni alanlardan (durum, sebep, deneme, bekleMs,
+    // sinir, oyunlar) kendisi kurar; buradaki metin yalnızca kayıt dosyası için.
     const mesaj = durum === 'koptu'
       ? ('Steam baglantisi koptu: ' + (ek.sebep || '?'))
       : durum === 'baglaniyor'
         ? ('yeniden baglaniyor (deneme ' + ek.deneme + ', ' + Math.round((ek.bekleMs || 0) / 1000) + ' sn sonra)')
-        : durum === 'bagli' && ek.yenidenBaglandi
-          ? ('yeniden baglandi, ' + (ek.oyunlar || 0) + ' oyun geri acildi')
-          : 'baglandi';
-    log(durum === 'koptu' ? 'warn' : 'info', '[' + steamID + '] ' + mesaj);
-    sendRaw('engine:durum', { steamID, durum, mesaj, aktif: steamID === activeSteamID, ...ek });
+        : durum === 'vazgecildi'
+          ? ('yeniden baglanma durdu' + (ek.kalici ? (' (kalici: ' + (ek.sebep || '?') + ')') : (' (' + (ek.deneme || 0) + ' deneme)')))
+          : durum === 'bagli' && ek.yenidenBaglandi
+            ? ('yeniden baglandi, ' + (ek.oyunlar || 0) + ' oyun geri acildi')
+            : 'baglandi';
+    log(durum === 'koptu' || durum === 'vazgecildi' ? 'warn' : 'info', '[' + steamID + '] ' + mesaj);
+    const s2 = accounts.get(steamID);
+    if (s2) s2.baglantiDurumu = { durum, ts: Date.now(), ...ek };
+    sendRaw('engine:durum', { steamID, durum, mesaj, aktif: steamID === activeSteamID, sinir: eng.yenidenBaglanmaSiniri, ...ek });
+    if (durum === 'vazgecildi') {
+      hesapOlayi(steamID, {
+        tur: 'baglantiVazgecildi', kalici: !!ek.kalici, deneme: ek.deneme || 0, sebep: ek.sebep || '',
+        akis: { kind: 'hata', title: 'Steam Bağlantısı', text: ek.kalici ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.', status: 'Hata' },
+      });
+    }
   };
 }
+// Arayüzdeki "Yeniden bağlan" düğmesi: vazgeçmiş motorun denemelerini baştan başlatır.
+ipcMain.handle('engine:yenidenBaglan', () => {
+  const s = accounts.get(activeSteamID);
+  if (!s || !s.engine) return { ok: false, error: 'Bağlı değil.' };
+  if (s.ready) return { ok: true, zatenBagli: true };
+  s.engine.yenidenBaglanmayiDene(true);
+  return { ok: true };
+});
+// Ekrandaki hesabın bağlantısı (Ayarlar > Hesap Statüsü). Tahmin değil, motorun son bildirdiği.
+ipcMain.handle('engine:baglantiDurumu', () => {
+  const s = activeSteamID ? accounts.get(activeSteamID) : null;
+  if (!s || !s.engine) return { durum: 'yok' };
+  if (s.ready) return { durum: 'bagli', ts: s.sonBaglanti || null };
+  return s.baglantiDurumu || { durum: 'baglaniyor' };
+});
 
 // ================== HESABA OZEL VERI DEPOSU ==================
 // Eskiden saat yukseltici oyun listesi, kuyruk sirasi, basarim gunlugu ve istatistikler
@@ -774,7 +1300,24 @@ function hesapVerisi(steamID) {
 }
 function hesapVerisiYaz(steamID) {
   if (!steamID) return;
-  jsonYaz(hesapDosyasi(steamID), hesapVerisi(steamID), true);
+  const t = bekleyenYazim.get(steamID);
+  if (t) { clearTimeout(t); bekleyenYazim.delete(steamID); }
+  jsonYaz(hesapDosyasi(steamID), hesapVerisi(steamID), false);
+}
+// HIZ: hesap dosyasi her yazimda tamamen serilestiriliyor, diske zorla indiriliyor ve
+// yedegi aliniyor. 5000 kayitlik basarim gunlugunde bu yazim basina ~25 ms ve ana sureci
+// kilitliyor; toplu basarim acmada her basarim icin ayri yaziliyordu. Sik degisen veri
+// (istatistik, akis, durum, gunluk) artik toplanip 1,5 saniyede bir yaziliyor.
+const bekleyenYazim = new Map();   // steamID -> zamanlayici
+function hesapVerisiYazGecikmeli(steamID) {
+  if (!steamID || bekleyenYazim.has(steamID)) return;
+  bekleyenYazim.set(steamID, setTimeout(() => {
+    bekleyenYazim.delete(steamID);
+    hesapVerisiYaz(steamID);
+  }, 1500));
+}
+function bekleyenYazimlariBosalt() {
+  [...bekleyenYazim.keys()].forEach((id) => hesapVerisiYaz(id));
 }
 // Aktif hesabin verisi. Hicbir hesap yoksa gecici bir kap doner (diske yazilmaz).
 function aktifHesapVerisi() { return hesapVerisi(activeSteamID); }
@@ -812,23 +1355,13 @@ function syncActive() {
   farm = s ? s.farm : null;
   farmSaat = s ? s.farmSaat : null;
 }
-// Bir hesabın farm/boost olayları - sadece AKTİF hesabınkiler arayüze gider; arka plandakiler
-// yalnızca "hangi hesap çalışıyor" rozetini besler.
-function accountEmit(steamID) {
-  return (channel, data) => {
-    const s = accounts.get(steamID);
-    if (s) s.lastTick = data;
-    if (steamID === activeSteamID) sendRaw(channel, data);
-    sendRaw('accounts:activity', { steamID, running: !!(data && data.running) });
-  };
-}
 // Tüm hesapların işini durdurup oturumlarını kapatır (çıkış / zaman aşımı / veri silme).
 function disconnectAll() {
-  accounts.forEach((s) => {
-    try { if (s.farm) s.farm.stop(); } catch (_) {}
-    try { if (s.farmSaat) s.farmSaat.stop(); } catch (_) {}
+  accounts.forEach((s, id) => {
+    hesapIsleriniDurdur(s, id);
     try { if (s.engine) s.engine.logOff(); } catch (_) {}
   });
+  bekleyenYazimlariBosalt();
   accounts.clear();
   activeSteamID = null;
   syncActive();
@@ -846,13 +1379,18 @@ async function connectAccount(entry) {
   // kalıyor ve sayfalar "Bağlı değil." diyordu. Devam eden bağlantı varsa onun sonucu paylaşılır.
   if (s.connecting) return s.connecting;
   s.connecting = (async () => {
-  const tries = settings.autoReconnect ? Math.max(1, +settings.farmRetry || 1) : 1;
+  // İlk giriş: yeniden bağlanma kapalıysa tek deneme, açıksa üç (2 sn, 4 sn arayla). Giriş
+  // kurulduktan sonraki kopmaları motorun kendi döngüsü yakalar (Ayarlar'daki sınırla).
+  const tries = settings.yenidenBaglanma === 'kapali' ? 1 : 3;
   let lastErr = null;
+  await pencereAcildi;
+  const SteamEngine = steamEngineSinifi();
   for (let i = 0; i < tries; i++) {
     if (i > 0) await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, i - 1)));
     // Kur AYARDAN değil, hesabın cüzdanından gelir (logon'daki 'wallet' olayı doldurur).
     // Kur, Steam pazar oturumundan okunur; ayarlardan seçilemez.
     const eng = new SteamEngine();
+    eng.yenidenBaglanmaSiniri = yenidenBaglanmaSiniri();
     // G3: kopma/yeniden baglanma olaylarini arayuze tasi
     baglantiDurumunuBagla(eng, entry.steamID);
     applyChatSettings(eng);
@@ -862,11 +1400,11 @@ async function connectAccount(entry) {
       if (win && !win.isDestroyed()) {
         win.webContents.send('chat:message', { ...m, account: entry.accountName, steamID: entry.steamID });
       }
-      if (settings.notifyChat !== false) {
+      if (settings.notifications !== false && settings.notifyChat !== false && !sessizSaatMi()) {
         try {
           if (Notification.isSupported()) {
             new Notification({
-              title: (m.persona || 'Steam') + (m.replied ? ' · otomatik yanıtlandı' : ''),
+              title: (m.persona || 'Steam') + (m.replied ? ' · ' + ct('otomatik yanıtlandı') : ''),
               body: m.message.slice(0, 220),
               icon: fs.existsSync(NOTIF_ICON) ? NOTIF_ICON : undefined,
             }).show();
@@ -897,7 +1435,7 @@ async function connectAccount(entry) {
 // Aktif hesabı bağlar. (Diğer hesaplar accounts:connectAll / hesap değiştirme ile bağlanır.)
 ipcMain.handle('engine:connect', async () => {
   const sess = hasSession();
-  if (!sess) return { ok: false, error: 'Oturum yok, tekrar giriş yapın.' };
+  if (!sess) return { ok: false, error: 'Oturum yok, tekrar giriş yap.' };
   if (!activeSteamID) { activeSteamID = sess.steamID; hesapVerisiGecisi(); }
   const entry = loadAccounts().find((a) => a.steamID === activeSteamID) || sess;
   const r = await connectAccount(entry);
@@ -909,10 +1447,11 @@ ipcMain.handle('engine:connect', async () => {
 // bos beklememesi. Rozet sayfasi ve kutuphane cagrisi birkac saniye suruyor; o sure
 // boyunca "Toplam Kart" ve "Kutuphane" tire gosteriyordu. Artik son bilinen degerler
 // aninda ciziliyor, taze veri gelince ustune yaziliyor.
-function listeleriSakla(alan, veri) {
-  const v = aktifHesapVerisi();
+function listeleriSakla(alan, veri, steamID) {
+  const id = steamID || activeSteamID;
+  const v = hesapVerisi(id);
   v.listeler = { ...(v.listeler || {}), [alan]: veri, [alan + 'Ts']: Date.now() };
-  hesapVerisiYaz(activeSteamID);
+  hesapVerisiYazGecikmeli(id);
 }
 ipcMain.handle('engine:sonListeler', () => {
   const v = aktifHesapVerisi();
@@ -1256,37 +1795,53 @@ ipcMain.handle('engine:vanity', async () => {
 
 // ---- persistent lifetime stats (survive app restarts) ----
 const STATS_FILE = path.join(CONFIG_DIR, 'stats.json');
-const DEFAULT_STATS = { totalRuntimeMs: 0, cardsDropped: 0, cardsSold: 0, boostRuntimeMs: 0, sessions: 0, since: Date.now() };
+const DEFAULT_STATS = {
+  totalRuntimeMs: 0, cardsDropped: 0, cardsSold: 0, boostRuntimeMs: 0, sessions: 0, since: Date.now(),
+  gunlukKart: {},        // 'YYYY-AA-GG' -> o gun dusen kart (En Verimli Gun)
+  satisTutar: 0,         // satisa sunulan ogelerin saticiya kalacak toplami (kurus)
+  satisFiyatli: 0,       // tutari bilinen ilan sayisi (Ortalama Satis = satisTutar / satisFiyatli)
+  enUzunCalismaMs: 0,    // Kesintisiz Calisma
+};
 let lifeStats = { ...DEFAULT_STATS };
 function loadStats() {
   const r = jsonOku(STATS_FILE);
   if (r.ok) {
     lifeStats = { ...DEFAULT_STATS, ...r.veri };
-    if (r.yedekten) okumaHatalari.push({ ad: 'Istatistikler', kurtarildi: true });
+    if (r.yedekten) okumaHatalari.push({ ad: 'İstatistikler', kurtarildi: true });
   } else {
     lifeStats = { ...DEFAULT_STATS, since: Date.now() };
-    if (r.bozuk) okumaHatalari.push({ ad: 'Istatistikler', kurtarildi: false });
+    if (r.bozuk) okumaHatalari.push({ ad: 'İstatistikler', kurtarildi: false });
   }
 }
-function saveStats() { jsonYaz(STATS_FILE, lifeStats, false); }
-// Istatistikler de hesaba ozeldir: iki hesabin dusen karti tek sayacta toplanmamali.
-function aktifIstatistik() {
-  const v = aktifHesapVerisi();
-  if (!v.stats) v.stats = { ...DEFAULT_STATS, since: Date.now() };
-  return v.stats;
+// stats.json artik yazilmiyor: istatistikler hesap basina, hesap dosyasinda. Eski dosya yalnizca
+// ilk acilista ekrandaki hesaba tasinmak icin okunur (hesapVerisiGecisi).
+// Istatistikler hesaba ozeldir ve ANA SURECTE sayilir (bkz istatistikEkle): iki hesabin
+// dusen karti tek sayacta toplanmaz, arka plandaki hesabin isi de sayilir. Arayuz
+// yalnizca okur; eskiden ekleme de arayuzdeydi ve sadece ekrandaki hesap sayiliyordu.
+function istatistikGorunumu(steamID) {
+  const st = { ...DEFAULT_STATS, ...hesapIstatistik(steamID) };
+  // Suren isin kesintisiz suresi de hesaba katilir; yoksa en uzun calisma ancak is bitince gorunurdu.
+  const s = accounts.get(steamID);
+  if (s && s.kesintisizBas && !s.kesintisizSon && hesapCalisiyor(s)) {
+    st.enUzunCalismaMs = Math.max(+st.enUzunCalismaMs || 0, Date.now() - s.kesintisizBas);
+  }
+  return { steamID, ...st };
 }
-ipcMain.handle('stats:get', () => ({ ...aktifIstatistik() }));
-ipcMain.handle('stats:add', (_e, patch) => {
-  const st = aktifIstatistik();
-  Object.keys(patch || {}).forEach((k) => { if (typeof st[k] === 'number') st[k] += (+patch[k] || 0); });
-  hesapVerisiYaz(activeSteamID);
-  return { ...st };
+ipcMain.handle('stats:get', () => {
+  if (!activeSteamID) return { ...DEFAULT_STATS, since: null };
+  istatistikSaati(activeSteamID);          // calisan isin son dakikasi da gorunsun
+  return istatistikGorunumu(activeSteamID);
 });
 ipcMain.handle('stats:reset', () => {
+  if (!activeSteamID) return { ...DEFAULT_STATS, since: null };
   const v = aktifHesapVerisi();
-  v.stats = { ...DEFAULT_STATS, since: Date.now() };
+  v.stats = { ...DEFAULT_STATS, gunlukKart: {}, since: Date.now() };
+  const s = accounts.get(activeSteamID);
+  if (s) { s.kesintisizBas = hesapCalisiyor(s) ? Date.now() : null; s.kesintisizSon = null; }
   hesapVerisiYaz(activeSteamID);
-  return { ...v.stats };
+  const gorunum = istatistikGorunumu(activeSteamID);
+  sendRaw('stats:degisti', gorunum);
+  return gorunum;
 });
 
 // ================== KALICI DURUM DEPOSU (state.json) ==================
@@ -1357,7 +1912,7 @@ ipcMain.handle('state:get', (_e, key) => {
 ipcMain.handle('state:set', (_e, { key, value }) => {
   const v = aktifHesapVerisi();
   v.entries[key] = { v: value, ts: Date.now() };
-  hesapKayitlariniBudama(v); hesapVerisiYaz(activeSteamID);
+  hesapKayitlariniBudama(v); hesapVerisiYazGecikmeli(activeSteamID);
   return { ok: true };
 });
 // Açılan/kilitlenen başarımlar: hangi oyunda ne zaman ne yaptığımızın kalıcı kaydı.
@@ -1365,7 +1920,7 @@ ipcMain.handle('state:achLog', (_e, entry) => {
   const v = aktifHesapVerisi();
   v.achLog.unshift({ ...entry, ts: Date.now() });
   if (v.achLog.length > 2000) v.achLog.length = 2000;
-  hesapKayitlariniBudama(v); hesapVerisiYaz(activeSteamID);
+  hesapKayitlariniBudama(v); hesapVerisiYazGecikmeli(activeSteamID);
   return { ok: true };
 });
 ipcMain.handle('state:achLogGet', (_e, appid) => {
@@ -1387,16 +1942,59 @@ ipcMain.handle('engine:setAchievements', async (_e, { appid, changes }) => {
   catch (e) { return { ok: false, error: e.message }; }
 });
 
-ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) => {
+// ---- SATIS ----
+// Steam'in ucret hesabi (bkz src/services/steamUcret.js). toplamlar: alicinin odeyecegi
+// tutarlar, kurus cinsinden. Donus: her biri icin Steam'e gidecek tutar ve ilanin pazarda
+// gorunecek gercek fiyati.
+ipcMain.handle('engine:satisUcreti', async (_e, toplamlar) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  try { return { ok: true, result: await engine.sellItem(assetId, priceCents, amount || 1) }; }
-  catch (e) { return { ok: false, error: e.message }; }
+  try {
+    const cuzdan = await engine.cuzdanBilgisi();
+    const sonuc = await steamUcret().hesapla(cuzdan, Array.isArray(toplamlar) ? toplamlar.slice(0, 5000) : []);
+    return { ok: true, sonuc, kur: engine.currencyCode() };
+  } catch (e) {
+    log('warn', 'satis ucreti hesaplanamadi: ' + (e && e.message));
+    return { ok: false, error: ct('Steam ücret hesabı yüklenemedi:') + ' ' + ct((e && e.message) || '') };
+  }
+});
+
+// Steam'in listeleme hatasi ne demek. HESAP GUVENILIRLIGI Steam'in listeleme sinirini
+// belirliyor: yeni bir hesap 10-15 ilandan sonra durdurulabiliyor, eski bir hesap tek
+// seferde 80+ listeleyebiliyor. Sinira takilinca devam etmek yalnizca hata biriktirir;
+// en guvenli yol durmak ve kullaniciya soylemek.
+//   limit : Steam listelemeyi durdurdu (onay bekleyen fazla ilan, cok istek, cuzdan tavani)
+//   atla  : bu oge olmaz (zaten onay bekleyen ilani var, envanterde degil); digerine gec
+//   genel : sebebi belirsiz; ust uste iki kez olursa limit gibi davranilir
+function satisHatasiTuru(e) {
+  const m = String((e && (e.steamMesaji || e.message)) || '');
+  const http = e && e.httpDurum;
+  if (/already have a listing|no longer in your inventory|not allowed to be traded|specified item/i.test(m)) return 'atla';
+  if (http === 429 || http === 503 || http === 502
+      || /too many|pending confirmation|previous action|wallet|maximum|exceed|rate limit|try again later/i.test(m)) return 'limit';
+  return 'genel';
+}
+ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) => {
+  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.', tur: 'limit' };
+  const steamID = activeSteamID;
+  try {
+    const result = await engine.sellItem(assetId, priceCents, amount || 1);
+    // Istatistik "satisa sunulan" oge sayisidir: ilan verildi, satildigi bilinmiyor. Tutar,
+    // saticiya kalacak olan (Steam kesintisi dusulmus); "Ortalama Satis" bundan hesaplanir.
+    const adet = amount || 1;
+    istatistikEkle(steamID, { cardsSold: adet, satisTutar: (+priceCents || 0) * adet, satisFiyatli: adet });
+    return { ok: true, result };
+  } catch (e) {
+    return { ok: false, error: (e && e.message) || 'Listeleme reddedildi', tur: satisHatasiTuru(e), http: (e && e.httpDurum) || null };
+  }
 });
 
 // Dış bağlantılar - yalnızca beklenen alan adları (rastgele URL açılmasın).
 ipcMain.on('open:external', (_e, url) => {
   if (typeof url !== 'string') return;
-  if (/^https:\/\/steamcommunity\.com\//.test(url) || /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/?$/.test(url)) {
+  // Güncelleme penceresinin "Yayın Sayfasını Aç" düğmesi yayın adresini açar; eskiden izin
+  // listesi yalnızca profil adresini tanıyordu ve düğme sessizce hiçbir şey yapmıyordu.
+  if (/^https:\/\/steamcommunity\.com\//.test(url) || /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/?$/.test(url)
+      || /^https:\/\/github\.com\/Miabeyefendi\/SteamEdge\/releases(\/[A-Za-z0-9_.\/-]*)?$/.test(url)) {
     shell.openExternal(url);
   }
 });
@@ -1410,11 +2008,27 @@ ipcMain.handle('engine:ownedGames', async () => {
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-// Saat Yükseltici: simple simultaneous boost (no rotation) - play the whole selection at once
-// for a fixed session length, unlike the card-farm's per-mode round robin.
-let boostTimer = null;
-let staggerTimers = [];
-function clearStagger() { staggerTimers.forEach((t) => clearTimeout(t)); staggerTimers = []; }
+// ================== SAAT YUKSELTME (hesap basina) ==================
+// Durum hesabin yuvasinda (s.boost). Zamanlayicilar motoru DEGIL hesabi hatirlar; hangi
+// hesap ekranda acik olursa olsun sure dolunca dogru hesabin oyunlari kapanir.
+function boostDurumu(s) {
+  if (!s.boost) {
+    s.boost = { calisiyor: false, timer: null, stagger: [], sync: null, syncTimer: null, syncKalp: null,
+                istek: null, baslangic: 0, sureMs: 0, appids: [] };
+  }
+  return s.boost;
+}
+function boostTemizle(s) {
+  const b = s && s.boost;
+  if (!b) return;
+  if (b.timer) { clearTimeout(b.timer); b.timer = null; }
+  b.stagger.forEach((t) => clearTimeout(t));
+  b.stagger = [];
+  if (b.syncTimer) { clearTimeout(b.syncTimer); b.syncTimer = null; }
+  if (b.syncKalp) { clearInterval(b.syncKalp); b.syncKalp = null; }
+  b.sync = null;
+}
+
 // ================== SAAT EŞİTLEME ==================
 // Amaç: seçili oyunların TOPLAM oynanma sürelerini aynı noktada buluşturmak.
 // Steam eşzamanlı açık her oyuna süre işlediği için, en geride kalan grubu birlikte
@@ -1423,22 +2037,20 @@ function clearStagger() { staggerTimers.forEach((t) => clearTimeout(t)); stagger
 //   sonra ikisi birlikte 101sa'ya çıkarılır, ardından üçü birden devam eder.
 // Hedef: 'highest' (seçililerin en yükseği) · 'manual' (elle girilen saat) ·
 //        'library' (kütüphanedeki en yüksek süre).
-let syncState = null;    // { steps:[{ids,fromMin,toMin}], i, startedAt, stepMs, targetMin }
-let syncTimer = null;
 // G13: KALP ATISI. Esitleme saatler surer ve eskiden arayuze yalnizca bir oyun hedefe
 // ulastiginda haber gidiyordu: 47 saatlik bir iste ekrandaki yuzdeler 47 saat boyunca
 // baslangic degerinde donuyordu. Artik duzenli araliklarla guncel durum yollaniyor.
-let syncKalp = null;
 const SYNC_KALP_MS = 30000;
-function syncKalbiKur() {
-  if (syncKalp) clearInterval(syncKalp);
-  syncKalp = setInterval(() => { if (syncState) syncEmit(true); else syncKalbiDurdur(); }, SYNC_KALP_MS);
-}
-function syncKalbiDurdur() { if (syncKalp) { clearInterval(syncKalp); syncKalp = null; } }
-function clearSync() {
-  if (syncTimer) { clearTimeout(syncTimer); syncTimer = null; }
-  syncKalbiDurdur();
-  syncState = null;
+function esitlemeKalbiKur(steamID) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  if (!b) return;
+  if (b.syncKalp) clearInterval(b.syncKalp);
+  b.syncKalp = setInterval(() => {
+    const x = accounts.get(steamID);
+    if (x && x.boost && x.boost.sync) syncEmit(steamID, true);
+    else if (b.syncKalp) { clearInterval(b.syncKalp); b.syncKalp = null; }
+  }, SYNC_KALP_MS);
 }
 
 // ---- PARALEL ESITLEME (varsayilan) ----
@@ -1474,41 +2086,70 @@ function esitlemeSimule(games, targetMin, limit) {
   return { toplamMs, asamalar };
 }
 
-const esitlemeDefteriKur = defter.defterKur;
-const esitlemeDefteriIsle = () => defter.defteriIsle(syncState, Date.now());
+// BAGLANTI KOPUNCA. Eskiden esitleme baglanti koptugu an sessizce birakiliyordu; motor
+// yeniden baglanip oyunlari geri acsa da esitleme ortada yoktu. Simdi kopukluk suresi
+// deftere islenmez (Steam o sureyi saymaz), kademeli stratejide adim suresi o kadar uzar.
+function esitlemeBaglantiDegisti(steamID, bagli) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  const st = b && b.sync;
+  if (!st) return;
+  const simdi = Date.now();
+  if (!bagli) {
+    if (!st.kopuk) {
+      defter.defteriIsle(st, simdi);
+      st.kopuk = true;
+      st.kopmaAni = simdi;
+    }
+    return;
+  }
+  if (!st.kopuk) return;
+  st.kopuk = false;
+  const kayip = Math.max(0, simdi - (st.kopmaAni || simdi));
+  st.sonHesap = simdi;
+  if (st.strateji === 'staged' && st.adimBitis && b.syncTimer) {
+    st.adimBitis += kayip;
+    st.startedAt += kayip;
+    clearTimeout(b.syncTimer);
+    b.syncTimer = setTimeout(() => kademeIlerle(steamID), Math.max(1000, st.adimBitis - simdi));
+  }
+}
 
 // Calisan paralel esitlemenin bir adimini planlar: gecen sureyi aktif oyunlardan duser,
 // hedefe ulasanlari listeden cikarir, kalanlardan yeni aktif kumeyi kurar.
-function esitlemePlanla() {
-  if (!syncState || syncState.strateji !== 'parallel') return;
-  if (!engineReady || !engine) { clearSync(); return; }
-  const yeniBitenler = esitlemeDefteriIsle();
-  yeniBitenler.forEach((o) => log('info', 'saat esitleme: ' + o.name + ' hedefe ulasti, listeden cikarildi'));
+function esitlemePlanla(steamID) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  const st = b && b.sync;
+  if (!st || st.strateji !== 'parallel') return;
+  if (!s.engine) { boostBitir(steamID, 'baglanti'); return; }
+  // Baglanti yoksa bekle; motor yeniden baglaninca oyunlari kendisi geri aciyor.
+  if (!s.ready) { b.syncTimer = setTimeout(() => esitlemePlanla(steamID), 30000); return; }
+  const yeniBitenler = defter.defteriIsle(st, Date.now());
+  yeniBitenler.forEach((o) => log('info', '[' + hesapAdi(steamID) + '] saat esitleme: ' + o.name + ' hedefe ulasti'));
 
-  const kalanlar = [...syncState.oyunlar.values()].filter((o) => !o.bitti);
+  const kalanlar = [...st.oyunlar.values()].filter((o) => !o.bitti);
   if (!kalanlar.length) {
-    log('info', 'saat esitleme tamamlandi: tum oyunlar hedefe ulasti');
-    engine.stop();
-    syncEmit(false, { done: true });
-    clearSync();
-    sendRaw('boost:tick', { running: false });
+    log('info', '[' + hesapAdi(steamID) + '] saat esitleme tamamlandi: tum oyunlar hedefe ulasti');
+    syncEmit(steamID, false, { done: true });
+    hesapOlayi(steamID, {
+      tur: 'esitlemeBitti',
+      akis: { kind: 'saat', title: 'Saat Eşitleme', text: 'Tüm oyunlar hedefe ulaştı.', status: 'Başarılı' },
+    });
+    boostBitir(steamID, 'esitleme');
     return;
   }
-  syncState.aktif = defter.siradakiAktifKume(syncState);
-  engine.play(syncState.aktif);
+  st.aktif = defter.siradakiAktifKume(st);
+  s.engine.play(st.aktif, 'saat');
 
-  const enKisa = Math.min(...syncState.aktif.map((id) => syncState.oyunlar.get(id).kalanMs));
-  syncEmit(true);
-  sendRaw('boost:tick', {
-    running: true, appids: syncState.aktif, activeAppids: engine.playing,
-    startedAt: syncState.baslangic, durationMs: 0, sync: true,
+  const enKisa = Math.min(...st.aktif.map((id) => st.oyunlar.get(id).kalanMs));
+  syncEmit(steamID, true);
+  hesapYayini(steamID)('boost:tick', {
+    running: true, appids: st.aktif, activeAppids: s.engine.calanlar('saat'),
+    startedAt: st.baslangic, durationMs: 0, sync: true,
   });
-  syncTimer = setTimeout(esitlemePlanla, Math.max(1000, enKisa));
+  b.syncTimer = setTimeout(() => esitlemePlanla(steamID), Math.max(1000, enKisa));
 }
-
-// Arayuze giden oyun listesi: her oyunun GUNCEL toplam suresi ve hedefe kalani.
-// (Madde 15: eskiden yalniz o oturumda gecen sure gorunuyordu.)
-function esitlemeOyunlari() { return defter.arayuzListesi(syncState, Date.now()); }
 
 function buildSyncSteps(games, targetMin) {
   // games: [{appid, playtimeMin}] - hedefi zaten geçmiş olanlar en baştan "hazır" sayılır
@@ -1524,82 +2165,117 @@ function buildSyncSteps(games, targetMin) {
   }
   return steps;
 }
-function syncEmit(running, extra) {
-  const paralel = syncState && syncState.strateji === 'parallel';
-  if (paralel) {
-    const oyunlar = esitlemeOyunlari();
+function syncEmit(steamID, running, extra) {
+  const s = accounts.get(steamID);
+  const st = s && s.boost && s.boost.sync;
+  const yay = hesapYayini(steamID);
+  if (st && st.strateji === 'parallel') {
+    const oyunlar = defter.arayuzListesi(st, Date.now());
     const kalanlar = oyunlar.filter((o) => !o.bitti);
-    sendRaw('boost:sync', Object.assign({
+    yay('boost:sync', Object.assign({
       running,
       strateji: 'parallel',
-      targetMin: syncState.targetMin,
+      targetMin: st.targetMin,
       toplam: oyunlar.length,
       biten: oyunlar.length - kalanlar.length,
-      aktifSayi: (syncState.aktif || []).length,
-      ids: (syncState.aktif || []).slice(),
+      aktifSayi: (st.aktif || []).length,
+      ids: (st.aktif || []).slice(),
       oyunlar,
       // En geride kalan oyunun bitisi = tum isin bitisi (limit yeterliyse)
       kalanMs: kalanlar.length ? Math.max(...kalanlar.map((o) => o.kalanMs)) : 0,
-      startedAt: syncState.baslangic,
-      isToplamMs: syncState.isToplamMs || 0,
+      startedAt: st.baslangic,
+      isToplamMs: st.isToplamMs || 0,
     }, extra || {}));
     return;
   }
   // G13: oyun listesi kademeli stratejide de gonderiliyor. Eskiden gonderilmedigi icin
   // arayuz her oyuna AYNI yuzdeyi yaziyordu (oturumun ne kadarinin gectigi); hedefe bir
   // saati kalan oyun da 47 saati kalan oyun da ayni cubugu gosteriyordu.
-  sendRaw('boost:sync', Object.assign({
+  const adim = st && st.steps[st.i];
+  yay('boost:sync', Object.assign({
     running,
     strateji: 'staged',
-    step: syncState ? syncState.i + 1 : 0,
-    steps: syncState ? syncState.steps.length : 0,
-    targetMin: syncState ? syncState.targetMin : 0,
-    ids: syncState && syncState.steps[syncState.i] ? syncState.steps[syncState.i].ids : [],
-    fromMin: syncState && syncState.steps[syncState.i] ? syncState.steps[syncState.i].fromMin : 0,
-    toMin: syncState && syncState.steps[syncState.i] ? syncState.steps[syncState.i].toMin : 0,
-    startedAt: syncState ? syncState.startedAt : 0,
-    stepMs: syncState ? syncState.stepMs : 0,
-    oyunlar: esitlemeOyunlari(),
-    isToplamMs: syncState ? (syncState.isToplamMs || 0) : 0,
+    step: st ? st.i + 1 : 0,
+    steps: st ? st.steps.length : 0,
+    targetMin: st ? st.targetMin : 0,
+    ids: adim ? adim.ids : [],
+    fromMin: adim ? adim.fromMin : 0,
+    toMin: adim ? adim.toMin : 0,
+    startedAt: st ? st.startedAt : 0,
+    stepMs: st ? st.stepMs : 0,
+    oyunlar: st ? defter.arayuzListesi(st, Date.now()) : [],
+    isToplamMs: st ? (st.isToplamMs || 0) : 0,
   }, extra || {}));
 }
-function runSyncStep(allIds, afterDurationMs) {
-  if (!syncState || !engineReady || !engine) return;
+function kademeIlerle(steamID) {
+  const s = accounts.get(steamID);
+  const st = s && s.boost && s.boost.sync;
+  if (!st) return;
+  st.i++;
+  runSyncStep(steamID);
+}
+function runSyncStep(steamID) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  const st = b && b.sync;
+  if (!st || !s.engine) return;
+  if (!s.ready) { b.syncTimer = setTimeout(() => runSyncStep(steamID), 30000); return; }
   // Bir onceki adimda gecen sureyi deftere isle - yoksa arayuz her adimda sifirdan sayar.
-  esitlemeDefteriIsle().forEach((o) => log('info', 'saat esitleme: ' + o.name + ' hedefe ulasti'));
-  const st = syncState.steps[syncState.i];
-  if (!st) {
+  defter.defteriIsle(st, Date.now()).forEach((o) => log('info', '[' + hesapAdi(steamID) + '] saat esitleme: ' + o.name + ' hedefe ulasti'));
+  const adim = st.steps[st.i];
+  if (!adim) {
     // Tüm kademeler bitti → hepsi eşit, artık birlikte devam
-    log('info', 'saat esitleme tamamlandi, tum oyunlar birlikte calisiyor');
-    syncEmit(false, { done: true });
-    clearSync();
-    engine.play(allIds);
-    sendRaw('boost:tick', { running: true, appids: allIds, activeAppids: engine.playing, startedAt: Date.now(), durationMs: afterDurationMs || 0 });
-    if (afterDurationMs) boostTimer = setTimeout(() => { engine.stop(); sendRaw('boost:tick', { running: false }); }, afterDurationMs);
+    const allIds = st.hepsi;
+    const sonrakiSure = st.sonrakiSureMs || 0;
+    log('info', '[' + hesapAdi(steamID) + '] saat esitleme tamamlandi, tum oyunlar birlikte calisiyor');
+    syncEmit(steamID, false, { done: true });
+    hesapOlayi(steamID, {
+      tur: 'esitlemeBitti',
+      akis: { kind: 'saat', title: 'Saat Eşitleme', text: 'Tüm oyunlar hedefe ulaştı.', status: 'Başarılı' },
+    });
+    b.sync = null;
+    if (b.syncKalp) { clearInterval(b.syncKalp); b.syncKalp = null; }
+    s.engine.play(allIds, 'saat');
+    b.appids = allIds; b.baslangic = Date.now(); b.sureMs = sonrakiSure;
+    hesapYayini(steamID)('boost:tick', { running: true, appids: allIds, activeAppids: s.engine.calanlar('saat'), startedAt: b.baslangic, durationMs: b.sureMs });
+    if (sonrakiSure) b.timer = setTimeout(() => boostSureDoldu(steamID), sonrakiSure);
     return;
   }
-  syncState.stepMs = (st.toMin - st.fromMin) * 60000;
-  syncState.startedAt = Date.now();
-  syncState.aktif = st.ids.slice();      // defter bu kumeye sure isler
-  syncState.sonHesap = Date.now();
-  engine.play(st.ids);
-  log('info', `saat esitleme adim ${syncState.i + 1}/${syncState.steps.length}: ${st.ids.length} oyun ${st.fromMin}dk -> ${st.toMin}dk`);
-  syncEmit(true);
-  sendRaw('boost:tick', { running: true, appids: st.ids, activeAppids: engine.playing, startedAt: syncState.startedAt, durationMs: syncState.stepMs, sync: true });
-  syncTimer = setTimeout(() => { if (!syncState) return; syncState.i++; runSyncStep(allIds, afterDurationMs); }, syncState.stepMs);
+  st.stepMs = (adim.toMin - adim.fromMin) * 60000;
+  st.startedAt = Date.now();
+  st.adimBitis = st.startedAt + st.stepMs;
+  st.aktif = adim.ids.slice();      // defter bu kumeye sure isler
+  st.sonHesap = Date.now();
+  s.engine.play(adim.ids, 'saat');
+  log('info', `[${hesapAdi(steamID)}] saat esitleme adim ${st.i + 1}/${st.steps.length}: ${adim.ids.length} oyun ${adim.fromMin}dk -> ${adim.toMin}dk`);
+  syncEmit(steamID, true);
+  hesapYayini(steamID)('boost:tick', { running: true, appids: adim.ids, activeAppids: s.engine.calanlar('saat'), startedAt: st.startedAt, durationMs: st.stepMs, sync: true });
+  b.syncTimer = setTimeout(() => kademeIlerle(steamID), st.stepMs);
 }
 
-ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games }) => {
-  if (!engineReady || !engine) return;
-  if (settings.pauseFarmOnBoost && farm) farm.stop();
-  if (boostTimer) { clearTimeout(boostTimer); boostTimer = null; }
-  clearStagger();
-  clearSync();
+// Eszamanli saat yukseltmeyi baslatir. istek: { appids, durationMs, games, devam }
+// devam: { baslangic } - ayar degisince is ayni baslangic ve toplam sureyle surdurulur.
+function boostBaslat(steamID, istek) {
+  const s = accounts.get(steamID);
+  if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
+  const b = boostDurumu(s);
+  boostTemizle(s);
+  // Sirali ve eszamanli yukseltme ayni anda calismaz; ikisi de ayni oyun listesini yaziyor.
+  if (s.farmSaat && s.farmSaat.running) s.farmSaat.stop('boost');
+  if (settings.pauseFarmOnBoost) farmiBeklet(steamID, 'saat yukseltme');
+  const appids = (istek.appids || []).slice();
+  const games = Array.isArray(istek.games) ? istek.games : null;
+  const durationMs = +istek.durationMs || 0;
+  // tumu: sayfada secili oyunlarin tamami. "Ayni anda en fazla" ayari is surerken degisirse
+  // liste buradan yeniden kesilir; yalnizca ilk dilim saklansaydi limit artirilamazdi.
+  const tumu = Array.isArray(istek.tumu) && istek.tumu.length ? istek.tumu : null;
+  b.istek = { appids, durationMs, games, tumu };
+  b.calisiyor = true;
 
   // Eşitleme açıksa hedefe gore calis. Iki strateji var:
   //   parallel (varsayilan) - hepsi birlikte, hedefe ulasani listeden dus. En hizlisi.
   //   staged                - kademeli, oyunlari yol boyunca esit tutar. Yavas ama kademeli.
-  if (settings.boostSync && Array.isArray(games) && games.length) {
+  if (settings.boostSync && games && games.length) {
     const mode = settings.boostSyncMode || 'highest';
     let targetMin;
     if (mode === 'manual') targetMin = Math.max(0, Math.round((+settings.boostSyncTargetHours || 0) * 60));
@@ -1608,72 +2284,154 @@ ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games }) => {
 
     const geride = games.filter((g) => (g.playtimeMin || 0) < targetMin);
     if (!geride.length) {
-      log('info', 'saat esitleme: tum oyunlar zaten hedefte, dogrudan birlikte baslatiliyor');
+      log('info', '[' + hesapAdi(steamID) + '] saat esitleme: tum oyunlar zaten hedefte, dogrudan birlikte baslatiliyor');
     } else if ((settings.boostSyncStrategy || 'parallel') === 'staged') {
       const steps = buildSyncSteps(games, targetMin);
       if (steps.length) {
-        syncState = {
+        b.sync = {
           strateji: 'staged', steps, i: 0, startedAt: 0, stepMs: 0, targetMin,
+          hepsi: games.map((g) => g.appid), sonrakiSureMs: durationMs,
           // Kademeli strateji de ayni defteri tutar: arayuz oyun bazli ilerlemeyi
           // buradan okuyor, yoksa her oyuna oturum yuzdesini yaziyordu.
-          oyunlar: esitlemeDefteriKur(geride, targetMin),
+          oyunlar: defter.defterKur(geride, targetMin),
           aktif: [], baslangic: Date.now(), sonHesap: Date.now(),
           // Isin TOPLAM suresi, baslangicta bir kez. Arayuzdeki cubuklar ortak bu
           // zaman cizelgesine oturuyor: bir oyunun cubugu, o oyunun isin neresinde
           // bittigini gosterir. Sabit tutulur, yoksa cubuklar geri gidebilir.
-          isToplamMs: steps.reduce((s, st) => s + (st.toMin - st.fromMin) * 60000, 0),
+          isToplamMs: steps.reduce((t, st) => t + (st.toMin - st.fromMin) * 60000, 0),
         };
-        log('info', 'saat esitleme (sirali): ' + steps.length + ' adim, hedef ' + targetMin + ' dk');
-        syncKalbiKur();
-        runSyncStep(games.map((g) => g.appid), settings.autoStopBoost === false ? 0 : (durationMs || 0));
-        return;
+        log('info', '[' + hesapAdi(steamID) + '] saat esitleme (sirali): ' + steps.length + ' adim, hedef ' + targetMin + ' dk');
+        esitlemeKalbiKur(steamID);
+        runSyncStep(steamID);
+        return { ok: true };
       }
     } else {
       // Esitleme kendi suresini hesaplar; "yukseltme suresi" ayari burada gecersizdir.
       const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
-      const oyunlar = esitlemeDefteriKur(geride, targetMin);
-      syncState = {
-        strateji: 'parallel', targetMin, limit, oyunlar,
+      b.sync = {
+        strateji: 'parallel', targetMin, limit, oyunlar: defter.defterKur(geride, targetMin),
         aktif: [], baslangic: Date.now(), sonHesap: Date.now(),
       };
       // Isin TOPLAM suresi, baslangicta bir kez ve bir daha degismez. Arayuzdeki cubuklar
       // ortak bu zaman cizelgesine oturur: 34 saatlik bir iste 3 saat sonra bitecek oyunun
       // cubugu bastan doludur, sona kadar calisacak oyunun cubugu bostur.
-      syncState.isToplamMs = defter.kalanToplamMs(syncState);
-      log('info', 'saat esitleme (paralel): ' + oyunlar.size + ' oyun, hedef ' + targetMin
-        + ' dk, limit ' + limit + ', toplam is ' + Math.round(syncState.isToplamMs / 60000) + ' dk');
-      syncKalbiKur();
-      esitlemePlanla();
-      return;
+      b.sync.isToplamMs = defter.kalanToplamMs(b.sync);
+      log('info', '[' + hesapAdi(steamID) + '] saat esitleme (paralel): ' + b.sync.oyunlar.size + ' oyun, hedef ' + targetMin
+        + ' dk, limit ' + limit + ', toplam is ' + Math.round(b.sync.isToplamMs / 60000) + ' dk');
+      esitlemeKalbiKur(steamID);
+      esitlemePlanla(steamID);
+      return { ok: true };
     }
   }
 
-  let list = (appids || []).slice();
-  // "Oyun sırasını karıştır": her oturumda farklı sırayla başlat (süre listeye dengeli dağılsın)
-  if (settings.shuffleBoost) {
-    for (let i = list.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [list[i], list[j]] = [list[j], list[i]]; }
-  }
-  const startedAt = Date.now();
-  // "Süre dolunca otomatik durdur" kapalıysa süresiz çalışır
-  const dur = settings.autoStopBoost === false ? 0 : (durationMs || 0);
+  // "Süre dolunca otomatik durdur" ayarı kaldırıldı: süre seçildiyse süre dolunca durur,
+  // "Sınırsız" seçildiyse durdurulana kadar çalışır. İki ayrı anahtar aynı şeyi söylüyordu.
+  const devam = istek.devam || null;
+  const baslangic = devam && devam.baslangic ? devam.baslangic : Date.now();
+  const kalanMs = durationMs ? Math.max(1000, durationMs - (Date.now() - baslangic)) : 0;
   const stagger = Math.max(0, +settings.boostStagger || 0) * 1000;
+  b.appids = appids; b.baslangic = baslangic; b.sureMs = durationMs;
 
-  const emit = (running) => sendRaw('boost:tick', { running, appids: list, activeAppids: engine.playing, startedAt, durationMs: dur });
-  if (!stagger || list.length <= 1) {
-    engine.play(list);
-    emit(true);
+  const emit = () => hesapYayini(steamID)('boost:tick', { running: true, appids, activeAppids: s.engine.calanlar('saat'), startedAt: baslangic, durationMs });
+  if (!stagger || appids.length <= 1 || devam) {
+    s.engine.play(appids, 'saat');
+    emit();
   } else {
     // "Oyun başlatma aralığı": hepsi birden değil, bu aralıkla sırayla eklenir
-    log('info', `boost: ${list.length} oyun ${stagger}ms aralıkla başlatılıyor`);
-    list.forEach((id, i) => {
-      staggerTimers.push(setTimeout(() => {
-        engine.play(list.slice(0, i + 1));
-        emit(true);
+    log('info', `[${hesapAdi(steamID)}] boost: ${appids.length} oyun ${stagger}ms aralıkla başlatılıyor`);
+    appids.forEach((id, i) => {
+      b.stagger.push(setTimeout(() => {
+        if (!b.calisiyor) return;
+        s.engine.play(appids.slice(0, i + 1), 'saat');
+        emit();
       }, i * stagger));
     });
   }
-  if (dur) boostTimer = setTimeout(() => { clearStagger(); engine.stop(); sendRaw('boost:tick', { running: false }); }, dur);
-});
+  if (kalanMs) b.timer = setTimeout(() => boostSureDoldu(steamID), kalanMs);
+  return { ok: true };
+}
+
+// Süre doldu. "Oturumu otomatik yenile" açıksa aynı seçimle yeniden başlar; bu eskiden
+// arayüzdeydi, yalnızca ekrandaki hesapta ve pencere açıkken çalışıyordu. Hesap değişince
+// arayüz bunu yanlış hesapta yeniden başlatabiliyordu.
+function boostSureDoldu(steamID) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  if (!b || !b.calisiyor) return;
+  const istek = b.istek;
+  boostBitir(steamID, 'sure', true);
+  if (settings.boostAutoRestart && istek) {
+    hesapOlayi(steamID, {
+      tur: 'boostYenilendi',
+      akis: { kind: 'saat', title: 'Saat Yükseltici', text: 'Süre doldu, oturum otomatik yenilendi.', status: 'Çalışıyor' },
+    });
+    setTimeout(() => {
+      const x = accounts.get(steamID);
+      if (x && x.ready && !(x.boost && x.boost.calisiyor)) boostBaslat(steamID, { ...istek, devam: null });
+      else farmiSurdur(steamID);
+    }, 1500);
+    return;
+  }
+  hesapOlayi(steamID, {
+    tur: 'boostBitti',
+    akis: { kind: 'saat', title: 'Saat Yükseltici', text: 'Süre doldu.', status: 'Başarılı' },
+  });
+  farmiSurdur(steamID);
+}
+
+// Eszamanli saat yukseltmeyi durdurur. surdurmeyiErtele: kart dusurme hemen surdurulmesin
+// (otomatik yenileme ayni seçimle tekrar başlayacaksa).
+function boostBitir(steamID, sebep, surdurmeyiErtele) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  if (!b) return;
+  const calisiyordu = b.calisiyor;
+  boostTemizle(s);
+  b.calisiyor = false;
+  if (calisiyordu) {
+    try { if (s.engine) s.engine.stop('saat'); } catch (_) {}
+  }
+  const yay = hesapYayini(steamID);
+  yay('boost:sync', { running: false });
+  yay('boost:tick', { running: false, sebep: sebep || 'kullanici' });
+  if (calisiyordu && !surdurmeyiErtele) farmiSurdur(steamID);
+}
+function boostDurdurHesap(steamID, sebep) { boostBitir(steamID, sebep || 'kullanici'); }
+
+// Sirali bekletme (Saat Yükseltici, "eş zamanlı" kapalı): tek tek, `durationMs` her biri.
+// FarmController'ın 'sequential' modunu kullanır; kart düşürmeyle çakışmasın diye ayrı örnek.
+function siraliYayini(steamID) {
+  const yay = hesapYayini(steamID);
+  return (kanal, veri) => {
+    yay('saatFarm:tick', veri);
+    if (!veri || veri.running || !veri.calisiyordu) return;
+    const s = accounts.get(steamID);
+    if (s && !s.farmSaat.running) {
+      if (veri.sebep === 'bitti') {
+        hesapOlayi(steamID, {
+          tur: 'boostBitti',
+          akis: { kind: 'saat', title: 'Saat Yükseltici', text: 'Sıralı kuyruk tamamlandı.', status: 'Başarılı' },
+        });
+      }
+      if (veri.sebep !== 'boost' && veri.sebep !== 'ayar') farmiSurdur(steamID);
+    }
+  };
+}
+function siraliBaslat(steamID, istek) {
+  const s = accounts.get(steamID);
+  if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
+  if (s.boost && s.boost.calisiyor) boostBitir(steamID, 'sirali', true);
+  if (settings.pauseFarmOnBoost) farmiBeklet(steamID, 'sirali saat yukseltme');
+  if (!s.farmSaat) s.farmSaat = new FarmController(s.engine, siraliYayini(steamID), 'sirali');
+  s.farmSaat.engine = s.engine;
+  s.siraliIstek = { games: istek.games || [], durationMs: istek.durationMs, loop: istek.loop !== false };
+  // "Oyun sırasını karıştır" yalnızca burada anlamlı: oyunlar tek tek açıldığı için sıra
+  // profilde görünür. Eşzamanlı yükseltmede hepsi birlikte açık, sıranın etkisi yok.
+  s.farmSaat.start('sequential', s.siraliIstek.games, s.siraliIstek.durationMs, {
+    loop: s.siraliIstek.loop, karistir: !!settings.shuffleBoost, devam: istek.devam || null,
+  });
+  return { ok: true };
+}
 // ================== GERCEKCI MOD (G2) ==================
 // Amac: tek bir oyunu acik tutup, secilen sure boyunca basarimlari GENELDEN NADIRE dogru,
 // rastgele araliklarla acmak. Oyunu gercekten oynamis gibi bir iz birakir: once herkesin
@@ -1687,11 +2445,18 @@ ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games }) => {
 //   - HEDEF SAYI: kullanici "su kadar basarim acilsin" diyebilir; kuyruk basa dogru kirpilir.
 //   - DAGITIM MODELI: acilis zamanlari dogrusal, ustel ya da Pareto egrisine gore yerlesir.
 //   - BASARIMI OLMAYAN OYUN: sadece saat topla / atla / sirayi durdur.
-let gercekciDurum = null;
-
-function gercekciTemizle() {
-  if (gercekciDurum && gercekciDurum.timer) clearTimeout(gercekciDurum.timer);
-  gercekciDurum = null;
+// Durum hesabin yuvasinda (s.gercekci). Eskiden tek bir genel degiskendi ve basarimlari
+// o an ekranda acik hesabin motoruyla aciyordu: is surerken hesap degistirilirse sonraki
+// basarimlar YANLIS HESAPTA acilirdi.
+function gercekciDurumu(steamID) {
+  const s = accounts.get(steamID);
+  return s ? s.gercekci : null;
+}
+function gercekciTemizle(steamID) {
+  const s = accounts.get(steamID);
+  if (!s) return;
+  if (s.gercekci && s.gercekci.timer) clearTimeout(s.gercekci.timer);
+  s.gercekci = null;
 }
 
 // Modele gore i. acilisin oturum icindeki oransal zamani (0..1).
@@ -1781,12 +2546,10 @@ function gercekciZamanlariYerlestir(kuyruk, sureMs, model, birikim, ayar) {
   return kuyruk;
 }
 
-function gercekciAktif() { return gercekciDurum ? gercekciDurum.aktif : null; }
-
-function gercekciBildir(ek) {
-  const d = gercekciDurum;
-  const a = gercekciAktif();
-  sendRaw('gercekci:tick', Object.assign({
+function gercekciBildir(steamID, ek) {
+  const d = gercekciDurumu(steamID);
+  const a = d ? d.aktif : null;
+  hesapYayini(steamID)('gercekci:tick', Object.assign({
     calisiyor: !!d,
     appid: a ? a.appid : null,
     oyunAdi: a ? a.oyunAdi : null,
@@ -1824,53 +2587,66 @@ function gercekciSonrakiGecikme(d) {
   return Math.max(3000, Math.round(g));   // en az 3 saniye
 }
 
-async function gercekciAdim() {
-  const d = gercekciDurum;
-  if (!d || !engineReady || !engine) { gercekciTemizle(); gercekciBildir({ calisiyor: false }); return; }
+async function gercekciAdim(steamID) {
+  const s = accounts.get(steamID);
+  const d = s && s.gercekci;
+  if (!d) return;
+  if (!s.engine) { gercekciBitir(steamID, 'baglanti yok'); return; }
+  // Baglanti kopuksa basarim gonderilemez; motor yeniden baglaninca devam edilir.
+  if (!s.ready) { d.timer = setTimeout(() => gercekciAdim(steamID), 30000); return; }
   const a = d.aktif;
   const hedef = a.kuyruk[a.indeks];
   if (!hedef) {
     // Bu oyunun basarimlari bitti. Kuyrukta baska oyun varsa ona gecilir; yoksa "Basarimlar
     // bitince saati surdur" acikken oyun sure sonuna kadar acik kalir (saat kasmaya devam).
-    log('info', 'gercekci mod: ' + a.oyunAdi + ' basarimlari bitti');
-    gercekciBildir({ basarimlarBitti: true });
-    if (gercekciSonrakiOyun()) return;
+    log('info', '[' + hesapAdi(steamID) + '] gercekci mod: ' + a.oyunAdi + ' basarimlari bitti');
+    gercekciBildir(steamID, { basarimlarBitti: true });
+    if (gercekciSonrakiOyun(steamID)) return;
     if (d.secenekler.saatiSurdur && Date.now() < d.bitis) {
-      d.timer = setTimeout(() => { if (gercekciDurum) gercekciBitir('sure doldu'); }, d.bitis - Date.now());
+      d.timer = setTimeout(() => { if (gercekciDurumu(steamID) === d) gercekciBitir(steamID, 'sure doldu'); }, d.bitis - Date.now());
     } else {
-      gercekciBitir(Date.now() >= d.bitis ? 'sure doldu' : 'tum basarimlar acildi');
+      gercekciBitir(steamID, Date.now() >= d.bitis ? 'sure doldu' : 'tum basarimlar acildi');
     }
     return;
   }
 
   try {
-    await engine.setAchievements(a.appid, [{ apiName: hedef.apiName, unlock: true }]);
+    await s.engine.setAchievements(a.appid, [{ apiName: hedef.apiName, unlock: true }]);
     a.acilan++; d.toplamAcilan++;
-    log('info', 'gercekci mod: acildi -> ' + hedef.name + ' (%' + (hedef.rarityPct != null ? hedef.rarityPct.toFixed(1) : '?') + ')');
-    sendRaw('gercekci:acildi', {
+    log('info', '[' + hesapAdi(steamID) + '] gercekci mod: acildi -> ' + hedef.name + ' (%' + (hedef.rarityPct != null ? hedef.rarityPct.toFixed(1) : '?') + ')');
+    hesapYayini(steamID)('gercekci:acildi', {
       appid: a.appid, oyunAdi: a.oyunAdi, apiName: hedef.apiName,
       name: hedef.name, rarityPct: hedef.rarityPct,
     });
+    const v = hesapVerisi(steamID);
+    v.achLog.unshift({ appid: a.appid, game: a.oyunAdi, apiName: hedef.apiName, name: hedef.name, unlock: true, ts: Date.now() });
+    if (v.achLog.length > 2000) v.achLog.length = 2000;
+    hesapVerisiYazGecikmeli(steamID);
+    if (steamID !== activeSteamID) {
+      akisEkle(steamID, { kind: 'kart', title: 'Başarım açıldı', text: hedef.name + ' · ' + a.oyunAdi, status: 'Başarılı' });
+    }
   } catch (e) {
     a.hata++; d.toplamHata++;
-    log('warn', 'gercekci mod: acilamadi -> ' + hedef.name + ': ' + (e && e.message));
+    log('warn', '[' + hesapAdi(steamID) + '] gercekci mod: acilamadi -> ' + hedef.name + ': ' + (e && e.message));
   }
+  if (s.gercekci !== d) return;          // bu arada durduruldu
   a.indeks++;
 
   if (Date.now() >= d.bitis && a.indeks < a.kuyruk.length) {
     // Sure doldu ama basarim kaldi - kalanlari zorlamiyoruz, kullaniciya soyluyoruz.
-    gercekciBitir('sure doldu, ' + (a.kuyruk.length - a.indeks) + ' basarim acilmadi');
+    gercekciBitir(steamID, 'sure doldu, ' + (a.kuyruk.length - a.indeks) + ' basarim acilmadi');
     return;
   }
   const gecikme = gercekciSonrakiGecikme(d);
   d.siradakiZaman = Date.now() + gecikme;
-  gercekciBildir();
-  d.timer = setTimeout(gercekciAdim, gecikme);
+  gercekciBildir(steamID);
+  d.timer = setTimeout(() => gercekciAdim(steamID), gecikme);
 }
 
 // Kuyruktaki bir sonraki oyuna gecer. Gecis yapildiysa true doner.
-function gercekciSonrakiOyun() {
-  const d = gercekciDurum;
+function gercekciSonrakiOyun(steamID) {
+  const s = accounts.get(steamID);
+  const d = s && s.gercekci;
   if (!d) return false;
   if (!d.secenekler.otoSira) return false;             // "Sirayi otomatik baslat" kapali
   while (d.oyunIndeks + 1 < d.oyunlar.length) {
@@ -1897,26 +2673,40 @@ function gercekciSonrakiOyun() {
                                          gercekciZamanAyari(o.appid, d.secenekler)),
       indeks: 0, acilan: 0, hata: 0, baslangic: simdi, bitis: simdi + pay,
     };
-    try { engine.play([o.appid]); } catch (_) {}
-    log('info', 'gercekci mod: sirada ' + o.name + ' (' + hazir.kuyruk.length + ' basarim, '
+    try { s.engine.play([o.appid], 'gercekci'); } catch (_) {}
+    log('info', '[' + hesapAdi(steamID) + '] gercekci mod: sirada ' + o.name + ' (' + hazir.kuyruk.length + ' basarim, '
       + (pay / 60000).toFixed(0) + ' dk)');
     const gecikme = hazir.kuyruk.length ? gercekciSonrakiGecikme(d) : Math.max(0, d.aktif.bitis - Date.now());
     d.siradakiZaman = Date.now() + gecikme;
-    gercekciBildir({ oyunDegisti: true });
-    d.timer = setTimeout(hazir.kuyruk.length ? gercekciAdim : () => { if (gercekciDurum) gercekciAdim(); }, gecikme);
+    gercekciBildir(steamID, { oyunDegisti: true });
+    d.timer = setTimeout(() => { if (gercekciDurumu(steamID) === d) gercekciAdim(steamID); }, gecikme);
     return true;
   }
   return false;
 }
 
-function gercekciBitir(sebep) {
-  const d = gercekciDurum;
+// Bitis sebebi arayuzde gosterilir; metin sozlukte cevrilir (anahtar bu Turkce metin).
+const GERCEKCI_SEBEP = {
+  'sure doldu': 'Süre doldu', 'tum basarimlar acildi': 'Tüm başarımlar açıldı',
+  'kullanici durdurdu': 'Durduruldu', 'baglanti yok': 'Steam bağlantısı yok',
+};
+function gercekciBitir(steamID, sebep) {
+  const s = accounts.get(steamID);
+  const d = s && s.gercekci;
   if (!d) return;
-  const ozet = { acilan: d.toplamAcilan, hata: d.toplamHata, toplam: d.toplamHedef, sebep };
-  try { if (engine) engine.stop(); } catch (_) {}
-  gercekciTemizle();
-  log('info', 'gercekci mod bitti: ' + sebep + ' (' + ozet.acilan + '/' + ozet.toplam + ')');
-  sendRaw('gercekci:tick', Object.assign({ calisiyor: false, bitti: true }, ozet));
+  const kalanAcilmadi = /^sure doldu, (\d+)/.exec(sebep || '');
+  // Metin arayüzde çevrilir; sayı taşıyan hâli sözlükte '#' desenli anahtar.
+  const sebepMetni = kalanAcilmadi ? 'Süre doldu, # başarım açılmadı'.replace('#', kalanAcilmadi[1]) : (GERCEKCI_SEBEP[sebep] || sebep);
+  const ozet = { acilan: d.toplamAcilan, hata: d.toplamHata, toplam: d.toplamHedef, sebep: sebepMetni };
+  try { if (s.engine) s.engine.stop('gercekci'); } catch (_) {}
+  gercekciTemizle(steamID);
+  log('info', '[' + hesapAdi(steamID) + '] gercekci mod bitti: ' + sebep + ' (' + ozet.acilan + '/' + ozet.toplam + ')');
+  hesapYayini(steamID)('gercekci:tick', Object.assign({ calisiyor: false, bitti: true }, ozet));
+  if (steamID !== activeSteamID) {
+    akisEkle(steamID, { kind: ozet.hata ? 'hata' : 'kart', title: 'Gerçekçi Mod',
+      text: sebepMetni + ' · ' + ozet.acilan + ' / ' + ozet.toplam, status: ozet.hata ? 'Hata' : 'Başarılı' });
+  }
+  farmiSurdur(steamID);
 }
 
 // Bir oyunun acilabilir basarim kuyrugunu hazirlar (siralama + kirpma).
@@ -1957,8 +2747,8 @@ ipcMain.handle('gercekci:basarimsizTemizle', () => {
   return { ok: true, silinen: n };
 });
 
-async function gercekciKuyrukHazirla(appid, secenekler) {
-  const data = await engine.getAchievements(appid);
+async function gercekciKuyrukHazirla(motor, appid, secenekler) {
+  const data = await motor.getAchievements(appid);
   const hepsi = (data && Array.isArray(data.achievements)) ? data.achievements : null;
   if (!hepsi || !hepsi.length) {
     basarimsizIsaretle(appid);
@@ -2050,7 +2840,7 @@ ipcMain.handle('gercekci:plan', async (_e, arg) => {
   const sec = gercekciSecenekler(arg && arg.secenekler);
   const sure = Math.max(60000, +sureMs || (Math.max(1, +saat || 1) * 3600000));
   try {
-    const h = await gercekciKuyrukHazirla(appid, sec);
+    const h = await gercekciKuyrukHazirla(engine, appid, sec);
     if (!h.ok) return h;
     const birikim = gercekciBirikimHesapla(appid, h, sec);
     gercekciZamanlariYerlestir(h.kuyruk, sure, sec.model, birikim, gercekciZamanAyari(appid, sec));
@@ -2078,7 +2868,11 @@ ipcMain.handle('gercekci:plan', async (_e, arg) => {
 // Baslat. oyunlar: [appid, ...] - kuyruk. Tek oyun da ayni yoldan gecer.
 ipcMain.handle('gercekci:start', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  if (gercekciDurum) return { ok: false, error: 'Zaten çalışıyor.' };
+  const steamID = activeSteamID;
+  const s = accounts.get(steamID);
+  if (!s) return { ok: false, error: 'Bağlı değil.' };
+  if (s.gercekci) return { ok: false, error: 'Zaten çalışıyor.' };
+  const motor = s.engine;
   const { appid, saat, sureMs } = arg || {};
   const sec = gercekciSecenekler(arg && arg.secenekler);
   const sure = Math.max(60000, +sureMs || (Math.max(1, +saat || 1) * 3600000));
@@ -2092,7 +2886,7 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
     const hazirlanan = {};
     const oyunlar = [];
     for (const id of liste) {
-      const h = await gercekciKuyrukHazirla(id, sec);
+      const h = await gercekciKuyrukHazirla(motor, id, sec);
       // Basarimsiz cikan oyun deftere yazildi ve sessizce dusuruluyor - arayuz zaten
       // onu listeden cikaracak, sirayi durdurmanin ya da saat kasmanin anlami yok.
       if (!h.ok) continue;
@@ -2108,15 +2902,17 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
     const toplamHedef = calisacak.reduce((t, o) => t + hazirlanan[o.appid].kuyruk.length, 0);
     const toplamAdet = calisacak.reduce((t, o) => t + (hazirlanan[o.appid].kuyruk.length || 1), 0);
 
+    // Hazirlik suresince baska bir baslatma geldiyse ikinci is acilmaz.
+    if (s.gercekci) return { ok: false, error: 'Zaten çalışıyor.' };
     // Kart toplama ile ayni anda calisirsa ikisi de ayni oyun listesini yaziyor; carpismasin.
-    if (settings.pauseFarmOnBoost && farm) farm.stop();
+    if (settings.pauseFarmOnBoost) farmiBeklet(steamID, 'gercekci mod');
 
     const ilkOyun = calisacak[0];
     const ilkHazir = hazirlanan[ilkOyun.appid];
     const ilkPay = Math.max(60000, Math.round(sure * ((ilkHazir.kuyruk.length || 1) / toplamAdet)));
     const simdi = Date.now();
-    engine.play([ilkOyun.appid]);
-    gercekciDurum = {
+    motor.play([ilkOyun.appid], 'gercekci');
+    const d = {
       oyunlar: calisacak,
       oyunIndeks: 0,
       hazirlanan,
@@ -2138,28 +2934,34 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
         baslangic: simdi, bitis: simdi + ilkPay,
       },
     };
-    log('info', 'gercekci mod basladi: ' + calisacak.length + ' oyun, ' + toplamHedef + ' basarim, '
+    s.gercekci = d;
+    log('info', '[' + hesapAdi(steamID) + '] gercekci mod basladi: ' + calisacak.length + ' oyun, ' + toplamHedef + ' basarim, '
       + (sure / 3600000).toFixed(2) + ' saat, model=' + sec.model);
     // Ilk acilis hemen degil - oyunu acar acmaz basarim gelmesi gercekci degil.
     const ilk = ilkHazir.kuyruk.length
-      ? gercekciSonrakiGecikme(gercekciDurum)
-      : Math.max(0, gercekciDurum.aktif.bitis - Date.now());
-    gercekciDurum.siradakiZaman = Date.now() + ilk;
-    gercekciBildir();
-    gercekciDurum.timer = setTimeout(gercekciAdim, ilk);
+      ? gercekciSonrakiGecikme(d)
+      : Math.max(0, d.aktif.bitis - Date.now());
+    d.siradakiZaman = Date.now() + ilk;
+    gercekciBildir(steamID);
+    d.timer = setTimeout(() => { if (gercekciDurumu(steamID) === d) gercekciAdim(steamID); }, ilk);
     return { ok: true, toplam: toplamHedef, oyunSayisi: calisacak.length, oyunAdi: ilkOyun.name };
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-ipcMain.on('gercekci:stop', () => { if (gercekciDurum) gercekciBitir('kullanici durdurdu'); });
+ipcMain.on('gercekci:stop', () => { if (gercekciDurumu(activeSteamID)) gercekciBitir(activeSteamID, 'kullanici durdurdu'); });
 
+ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games, tumu }) => {
+  if (!activeSteamID) return;
+  const s = accounts.get(activeSteamID);
+  if (s) ayarBeklemeleriniIptalEt(s, 'boost');
+  boostBaslat(activeSteamID, { appids, durationMs, games, tumu });
+});
 ipcMain.on('engine:boostStop', () => {
-  if (boostTimer) { clearTimeout(boostTimer); boostTimer = null; }
-  clearStagger();
-  clearSync();
-  syncEmit(false);
-  if (engineReady && engine) engine.stop();
-  sendRaw('boost:tick', { running: false });
+  if (!activeSteamID) return;
+  // Ayar uygulanirken duraklatilmis is kullanici durdurdu diye birkac saniye sonra geri gelmesin
+  const s = accounts.get(activeSteamID);
+  if (s) ayarBeklemeleriniIptalEt(s, 'boost');
+  boostBitir(activeSteamID, 'kullanici');
 });
 
 // Eşitleme önizlemesi: başlatmadan önce kaç kademe ve ne kadar süre gerektiğini gösterir.
@@ -2218,40 +3020,31 @@ ipcMain.handle('engine:boostSyncPlan', async (_e, { games, mode, targetHours }) 
   };
 });
 
-// Saat Yükseltici, "eş zamanlı" kapalı: one game at a time, `durationMs` each, loops until stopped
-// (reuses FarmController's 'sequential' mode; a separate instance so it never collides with the
-// Kart Düşür farm running on the same engine).
 ipcMain.on('engine:boostStartSeq', (_e, { games, durationMs, loop }) => {
-  if (!engineReady || !engine) return;
-  if (settings.pauseFarmOnBoost && farm) farm.stop();
-  const s = slotOf(activeSteamID);
-  if (!s.farmSaat) s.farmSaat = new FarmController(s.engine, (_ev, data) => {
-    if (activeSteamID === s.engine.steamID) sendRaw('saatFarm:tick', data);
-    sendRaw('accounts:activity', { steamID: s.engine.steamID, running: !!(data && data.running) });
-  });
-  farmSaat = s.farmSaat;
-  farmSaat.start('sequential', games || [], durationMs, { loop: loop !== false });
+  if (!activeSteamID) return;
+  siraliBaslat(activeSteamID, { games, durationMs, loop });
 });
-ipcMain.on('engine:boostStopSeq', () => { if (farmSaat) farmSaat.stop(); });
+ipcMain.on('engine:boostStopSeq', () => {
+  const s = accounts.get(activeSteamID);
+  if (s && s.farmSaat && s.farmSaat.running) s.farmSaat.stop('kullanici');
+});
 
 ipcMain.on('engine:startFarm', (_e, { mode, games, durationMs }) => {
-  if (!engineReady || !engine) return;
-  const s = slotOf(activeSteamID);
-  if (!s.farm) s.farm = new FarmController(s.engine, accountEmit(activeSteamID));
-  farm = s.farm;
+  if (!engineReady || !engine || !activeSteamID) return;
   // Kart eşiği KALDIRILDI: kartı kalan her oyun kuyruğa girer. Eşik, tek kartı kalan
   // oyunları sessizce atlayıp "neden düşmüyor" sorusuna yol açıyordu.
-  const list = games || [];
-  log('info', `farm start: mode=${mode} oyun=${list.length} süre=${durationMs}ms`);
-  farm.start(mode, list, durationMs, {
-    autoNext: settings.autoNextGame !== false,
-    maxGames: settings.cardMaxGames,
-    fastMinPlaytimeMin: settings.fastMinPlaytimeMin,
-    fastRotateMinSec: settings.fastRotateMinSec,
-    fastRotateMaxSec: settings.fastRotateMaxSec,
-  });
+  const s = slotOf(activeSteamID);
+  s.bekleyenFarm = null;
+  ayarBeklemeleriniIptalEt(s, 'kart');
+  kartFarmBaslat(activeSteamID, mode, games || [], durationMs);
 });
-ipcMain.on('engine:stopFarm', () => { if (farm) farm.stop(); });
+ipcMain.on('engine:stopFarm', () => {
+  const s = accounts.get(activeSteamID);
+  if (!s) return;
+  s.bekleyenFarm = null;
+  ayarBeklemeleriniIptalEt(s, 'kart');
+  if (s.farm && s.farm.running) s.farm.stop('kullanici');
+});
 ipcMain.handle('engine:playing', () => (engineReady && engine) ? engine.playing : []);
 
 // ---- SOHBET ----
@@ -2302,16 +3095,20 @@ ipcMain.on('chat:typing', (_ev, steamid) => {
   if (e && steamid) e.sendTyping(steamid);
 });
 
-// ---- Oturum zaman aşımı (Ayarlar > Gizlilik) ----
+// ---- Oturum zaman aşımı (Ayarlar > Gelişmiş) ----
 // Renderer her kullanıcı etkileşiminde 'session:activity' yollar. Belirlenen süre boyunca
-// etkileşim olmazsa Steam oturumu kapatılır. Çalışan kart toplama/saat yükseltme sayacı
-// SIFIRLAMAZ - ayarın açıklaması "işlem yapılmazsa" diyor, arka plan işi değil kullanıcı işi.
+// etkileşim olmazsa Steam oturumları kapatılır. Bir hesapta kart düşürme, saat yükseltme ya
+// da Gerçekçi Mod çalışıyorsa KAPATILMAZ: arka planda iş yapan bir uygulamayı "boşta" diye
+// kapatmak işi yarıda keserdi. Süre dolduğunda iş hâlâ sürüyorsa sayaç yeniden kurulur.
 let idleTimer = null;
 function armIdleTimer() {
   if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
   const mins = parseInt(settings.sessionTimeout, 10);
   if (!mins || isNaN(mins)) return;             // 'never'
   idleTimer = setTimeout(() => {
+    let calisan = false;
+    accounts.forEach((s) => { if (hesapCalisiyor(s)) calisan = true; });
+    if (calisan) { armIdleTimer(); return; }
     log('warn', `Oturum ${mins} dk işlemsiz kaldı - TÜM hesaplar kapatılıyor`);
     disconnectAll();
     try { fs.unlinkSync(path.join(CONFIG_DIR, 'session.json')); } catch (_) {}
@@ -2348,9 +3145,14 @@ function hesapAyarlariEklenmis(temel) {
 ipcMain.handle('settings:get', () => {
   return hesapAyarlariEklenmis(publicSettings());
 });
-ipcMain.handle('settings:set', (_e, patch) => {
+// Ayar yamasını işler: hesaba özel anahtarlar hesap dosyasına, gerisi ayar dosyasına gider.
+// Yalnızca GERÇEKTEN değişen anahtarlar yazılır ve uygulanır; değişikliğin etkilediği çalışan
+// işler yeni ayarla sürdürülür. Oturuma ait alanlar (persona, steamID, kur) hiç yazılmaz:
+// eskiden "Geri Al" bütün ayar nesnesini geri gönderiyor ve bunlar ayar dosyasına giriyordu.
+const OTURUM_ALANLARI = ['persona', 'steamID', 'accountCurrency'];
+function ayarYamasiniIsle(patch) {
   const gelen = { ...(patch || {}) };
-  // Hesaba ozel anahtarlari ayikla, genel ayar dosyasina yazma
+  OTURUM_ALANLARI.forEach((k) => { delete gelen[k]; });
   let hesabaYazildi = false;
   HESAP_AYAR_ANAHTARLARI.forEach((k) => {
     if (k in gelen) {
@@ -2360,15 +3162,148 @@ ipcMain.handle('settings:set', (_e, patch) => {
     }
   });
   if (hesabaYazildi) hesapVerisiYaz(activeSteamID);
-  if (Object.keys(gelen).length) { settings = { ...settings, ...gelen }; saveSettings(); applySettings(); }
+  const degisen = Object.keys(gelen).filter((k) => JSON.stringify(settings[k]) !== JSON.stringify(gelen[k]));
+  if (!degisen.length) return { ok: true, degisen, uygulanan: [] };
+  const eski = settings;
+  settings = { ...settings };
+  degisen.forEach((k) => { settings[k] = gelen[k]; });
+  if (!saveSettings()) {
+    settings = eski;
+    return { ok: false, degisen: [], uygulanan: [], error: 'Ayar dosyası yazılamadı. Açılışta okunamadığı için korunuyor olabilir.' };
+  }
+  ayarKayitZamani = Date.now();
+  applySettings();
+  if (degisen.includes('language')) { ceviri.dilSec(settings.language); tepsiMenusunuKur(); }
   // Saklama süresi kısaldıysa fazlalık kayıtlar hemen silinir (açılışı beklemez).
-  if ('dataRetentionDays' in gelen) {
+  if (degisen.includes('dataRetentionDays')) {
     const n = hesapKayitlariniBudama(aktifHesapVerisi());
     if (n) { hesapVerisiYaz(activeSteamID); log('info', 'saklama suresi degisti, ' + n + ' kayit silindi'); }
   }
+  const uygulanan = ayarlariIslereUygula(degisen);
+  log('info', 'ayarlar kaydedildi: ' + degisen.join(', ') + (uygulanan.length ? (' (' + uygulanan.length + ' ise uygulandi)') : ''));
+  return { ok: true, degisen, uygulanan };
+}
+// Sayfalardaki anlık kontroller (Saat Yükseltici anahtarları, onay penceresindeki "bir daha
+// sorma" gibi) buradan yazar: bunlar zaten tek tıkla uygulanan tercihler.
+ipcMain.handle('settings:set', (_e, patch) => {
+  ayarYamasiniIsle(patch);
   return hesapAyarlariEklenmis(publicSettings());
 });
-ipcMain.handle('settings:reset', () => { settings = { ...DEFAULT_SETTINGS }; saveSettings(); applySettings(); return settings; });
+// Ayarlar sayfasının "Kaydet" düğmesi. Sayfa değişiklikleri taslakta tutar, buraya yalnızca
+// değişen anahtarlar gelir. Dönüşte hangi işlerin yeni ayarla sürdürüleceği de söylenir.
+ipcMain.handle('settings:kaydet', (_e, patch) => {
+  const r = ayarYamasiniIsle(patch);
+  return { ...r, settings: hesapAyarlariEklenmis(publicSettings()), kayitZamani: ayarKayitZamani, duraklamaMs: AYAR_DURAKLAMA_MS };
+});
+// "Varsayılana Sıfırla" artık hiçbir şey yazmaz: varsayılanlar sayfanın taslağına yüklenir,
+// kullanıcı Kaydet'e basarsa uygulanır. Eskiden anında yazıyordu ve dili de Türkçeye çekiyordu.
+ipcMain.handle('settings:varsayilanlar', () => {
+  const v = { ...DEFAULT_SETTINGS };
+  delete v.ayarSurumu;
+  return v;
+});
+ipcMain.handle('settings:bilgi', () => ({ kayitZamani: ayarKayitZamani }));
+
+// ---- AYAR DEĞİŞİNCE ÇALIŞAN İŞLER ----
+// Eskiden bu ayarlar iş başlarken bir kez okunuyordu: kullanıcı ayarı değiştirip kaydediyor,
+// çalışan işte hiçbir şey değişmiyordu. Artık değişiklikten etkilenen iş AYAR_DURAKLAMA_MS
+// boyunca durur, sonra kaldığı yerden yeni ayarla sürer: kart düşürmede sıra ve oyunun geçen
+// süresi, saat yükseltmede başlangıç anı korunur. Duraklatmaya gerek olmayanlar (eşitleme
+// sınırı, sıralı modda karıştırma) anında değişir.
+const AYAR_DURAKLAMA_MS = 5000;
+const KART_IS_AYARLARI = ['cardMaxGames', 'farmMaxMinutes', 'autoNextGame', 'fastMinPlaytimeMin', 'fastRotateMinSec', 'fastRotateMaxSec'];
+function ayarBeklemeleriniIptalEt(s, tur) {
+  if (!s || !s.ayarBekleme) return;
+  Object.keys(s.ayarBekleme).forEach((k) => {
+    if (tur && k !== tur) return;
+    if (s.ayarBekleme[k]) clearTimeout(s.ayarBekleme[k]);
+    delete s.ayarBekleme[k];
+  });
+}
+function ayarBeklemesiKur(s, tur, fn) {
+  s.ayarBekleme = s.ayarBekleme || {};
+  if (s.ayarBekleme[tur]) clearTimeout(s.ayarBekleme[tur]);
+  s.ayarBekleme[tur] = setTimeout(() => { delete s.ayarBekleme[tur]; fn(); }, AYAR_DURAKLAMA_MS);
+}
+function kartFarminiAyarlaSurdur(steamID, degisen) {
+  const s = accounts.get(steamID);
+  if (!s || !s.farm || !s.farm.running) return false;
+  const konum = s.farm.konum();
+  const mode = s.farm.mode;
+  const games = s.farm.games.map((g) => ({ ...g }));
+  // "Oyun başına süre" değiştiyse yeni süre, değişmediyse Kart Düşür sayfasında seçilen süre.
+  const dk = +settings.farmMaxMinutes;
+  const sure = degisen.has('farmMaxMinutes') && dk > 0 ? dk * 60000 : s.farm.durationMs;
+  s.farm.stop('ayar');
+  ayarBeklemesiKur(s, 'kart', () => {
+    const x = accounts.get(steamID);
+    if (!x || (x.farm && x.farm.running)) return;          // bu arada elle başlatıldı
+    if (!x.ready || !x.engine) {
+      // Bağlantı yok: iş kaybolmasın, bağlantı gelince/boost bitince sürdürülecek gibi saklanır
+      x.bekleyenFarm = { mode, games, durationMs: sure, konum };
+      return;
+    }
+    kartFarmBaslat(steamID, mode, games, sure, { devam: konum });
+  });
+  return true;
+}
+function boostuAyarlaSurdur(steamID) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  if (!b || !b.calisiyor || b.sync || !b.istek) return false;
+  const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+  const tumu = b.istek.tumu || b.istek.games || (b.istek.appids || []).map((appid) => ({ appid }));
+  const yeni = tumu.slice(0, limit);
+  const yeniIds = yeni.map((g) => g.appid);
+  if (yeniIds.join(',') === (b.appids || []).join(',')) return false;
+  const istek = { ...b.istek, appids: yeniIds, games: yeni, devam: { baslangic: b.baslangic } };
+  boostBitir(steamID, 'ayar', true);
+  ayarBeklemesiKur(s, 'boost', () => {
+    const x = accounts.get(steamID);
+    if (!x || (x.boost && x.boost.calisiyor)) return;
+    if (!x.ready || !x.engine) { farmiSurdur(steamID); return; }
+    boostBaslat(steamID, istek);
+  });
+  return true;
+}
+function ayarlariIslereUygula(degisen) {
+  const d = new Set(degisen || []);
+  const ozet = [];
+  if (!d.size) return ozet;
+  accounts.forEach((s, steamID) => {
+    if (!s) return;
+    const hesap = hesapAdi(steamID);
+    if (s.farm && s.farm.running && KART_IS_AYARLARI.some((k) => d.has(k))) {
+      if (kartFarminiAyarlaSurdur(steamID, d)) ozet.push({ steamID, hesap, is: 'kart', nasil: 'duraklatildi' });
+    }
+    const b = s.boost;
+    if (b && b.calisiyor && d.has('boostMaxGames')) {
+      if (b.sync && b.sync.strateji === 'parallel') {
+        b.sync.limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+        if (b.syncTimer) { clearTimeout(b.syncTimer); b.syncTimer = null; }
+        esitlemePlanla(steamID);
+        ozet.push({ steamID, hesap, is: 'saat', nasil: 'aninda' });
+      } else if (boostuAyarlaSurdur(steamID)) {
+        ozet.push({ steamID, hesap, is: 'saat', nasil: 'duraklatildi' });
+      }
+    }
+    // Sıralı bekletmede karıştırma bir sonraki turda devreye girer; duraklatmaya gerek yok.
+    if (s.farmSaat && s.farmSaat.running && d.has('shuffleBoost')) {
+      s.farmSaat.karistir = !!settings.shuffleBoost;
+      s.farmSaat.opts = { ...(s.farmSaat.opts || {}), karistir: s.farmSaat.karistir };
+      ozet.push({ steamID, hesap, is: 'sirali', nasil: 'aninda' });
+    }
+    if (d.has('pauseFarmOnBoost')) {
+      if (settings.pauseFarmOnBoost && (hesapBoostCalisiyor(s) || s.gercekci) && s.farm && s.farm.running) {
+        if (farmiBeklet(steamID, 'ayar: saat yukseltirken duraklat')) ozet.push({ steamID, hesap, is: 'kart', nasil: 'bekletildi' });
+      } else if (!settings.pauseFarmOnBoost && s.bekleyenFarm && !s.gercekci) {
+        farmiSurdur(steamID, true);
+        ozet.push({ steamID, hesap, is: 'kart', nasil: 'surduruldu' });
+      }
+    }
+  });
+  return ozet;
+}
 ipcMain.handle('settings:clearPriceCache', () => {
   ['', '.bak', '.bozuk', '.tmp'].forEach((ek) => {
     try { fs.unlinkSync(PRICE_FILE + ek); } catch (_) {}
@@ -2380,27 +3315,37 @@ ipcMain.handle('settings:clearPriceCache', () => {
 });
 ipcMain.handle('settings:openConfigFolder', () => { shell.openPath(DATA_ROOT); return { ok: true }; });
 // ---- Yedekleme (dışa/içe aktarma) ----
-// Yedeğe SADECE tercihler + kalıcı istatistikler girer. Oturum anahtarı, refresh token,
-// kayıtlı hesaplar ve o anki oturuma ait alanlar (persona/steamID/kur) BİLEREK dışarıda
-// bırakılır - yedek dosyası başkasının eline geçerse hesaba erişim vermemeli.
+// Yedeğe tercihler ve HESAP BAŞINA veri girer: istatistikler, Saat Yükseltici'de seçili oyunlar,
+// Gerçekçi Mod kuyruğu ve presetleri. Oturum anahtarı, refresh token, kullanıcı adları ve o
+// anki oturuma ait alanlar (persona/steamID/kur) BİLEREK dışarıda: yedek dosyası başkasının
+// eline geçerse hesaba erişim vermemeli. Eskiden yedeğe hesaptan kopuk eski ortak istatistik
+// dosyası giriyordu; hesap başına sayılan gerçek istatistik hiç yedeklenmiyordu.
 const EXPORT_SKIP = ['persona', 'steamID', 'accountCurrency'];
+const YEDEK_HESAP_ALANLARI = ['boostGameIds', 'grQueue', 'grPresets'];
 function exportPayload() {
   const out = {};
   Object.keys(settings).forEach((k) => { if (!EXPORT_SKIP.includes(k)) out[k] = settings[k]; });
+  const hesaplar = {};
+  loadAccounts().forEach((a) => {
+    const v = hesapVerisi(a.steamID);
+    const h = { stats: v.stats || null };
+    YEDEK_HESAP_ALANLARI.forEach((k) => { h[k] = Array.isArray(v[k]) ? v[k] : []; });
+    hesaplar[a.steamID] = h;
+  });
   return {
     app: 'SteamEdge',
-    format: 1,
+    format: 2,
     version: app.getVersion(),
     exportedAt: new Date().toISOString(),
     settings: out,
-    stats: lifeStats,
+    hesaplar,
   };
 }
 ipcMain.handle('settings:export', async () => {
   saveSettings();
   const stamp = new Date().toISOString().slice(0, 10);
   const r = await dialog.showSaveDialog(win, {
-    title: 'SteamEdge ayarlarını dışa aktar',
+    title: ct('SteamEdge ayarlarını dışa aktar'),
     defaultPath: path.join(app.getPath('documents'), 'steamedge-ayarlar-' + stamp + '.json'),
     filters: [{ name: 'JSON', extensions: ['json'] }],
   });
@@ -2416,7 +3361,7 @@ ipcMain.handle('settings:export', async () => {
 });
 ipcMain.handle('settings:import', async () => {
   const r = await dialog.showOpenDialog(win, {
-    title: 'SteamEdge yedeği seç',
+    title: ct('SteamEdge yedeğini seç'),
     properties: ['openFile'],
     filters: [{ name: 'JSON', extensions: ['json'] }],
   });
@@ -2429,25 +3374,49 @@ ipcMain.handle('settings:import', async () => {
     if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) {
       return { ok: false, error: 'Dosya bir SteamEdge yedeği değil.' };
     }
+    // Eski sürümün yedeği de kabul edilir: kaldırılan/birleştirilen ayarlar önce taşınır.
+    const gecici = { ...incoming };
+    ayarlariGecir(gecici);
     // Bilinmeyen anahtarlar atılır; oturuma ait alanlar korunur (yedekten gelmez).
     const clean = {};
     Object.keys(DEFAULT_SETTINGS).forEach((k) => {
       if (EXPORT_SKIP.includes(k)) return;
-      if (Object.prototype.hasOwnProperty.call(incoming, k)) clean[k] = incoming[k];
+      if (Object.prototype.hasOwnProperty.call(gecici, k)) clean[k] = gecici[k];
     });
     const applied = Object.keys(clean).length;
     if (!applied) return { ok: false, error: 'Dosyada tanınan hiçbir ayar yok.' };
-    const keep = {}; EXPORT_SKIP.forEach((k) => { if (k in settings) keep[k] = settings[k]; });
-    settings = { ...DEFAULT_SETTINGS, ...clean, ...keep };
-    saveSettings(); applySettings();
-    if (obj && obj.stats && typeof obj.stats === 'object') {
-      lifeStats = { ...DEFAULT_STATS, ...obj.stats };
-      saveStats();
+    const eski = settings;
+    settings = { ...DEFAULT_SETTINGS, ...clean };
+    const degisen = Object.keys(settings).filter((k) => JSON.stringify(eski[k]) !== JSON.stringify(settings[k]));
+    if (!saveSettings()) { settings = eski; return { ok: false, error: 'Ayar dosyası yazılamadı.' }; }
+    ayarKayitZamani = Date.now();
+    applySettings();
+    if (degisen.includes('language')) { ceviri.dilSec(settings.language); tepsiMenusunuKur(); }
+    ayarlariIslereUygula(degisen);
+    // Hesap verisi: yalnızca bu bilgisayarda kayıtlı hesaplara geri yüklenir.
+    let hesapSayisi = 0;
+    const kayitli = new Set(loadAccounts().map((a) => a.steamID));
+    if (obj && obj.hesaplar && typeof obj.hesaplar === 'object') {
+      Object.keys(obj.hesaplar).forEach((sid) => {
+        if (!kayitli.has(sid)) return;
+        const h = obj.hesaplar[sid] || {};
+        const v = hesapVerisi(sid);
+        if (h.stats && typeof h.stats === 'object') v.stats = { ...DEFAULT_STATS, ...h.stats };
+        YEDEK_HESAP_ALANLARI.forEach((k) => { if (Array.isArray(h[k])) v[k] = h[k]; });
+        hesapVerisiYaz(sid);
+        hesapSayisi++;
+      });
+    } else if (obj && obj.stats && typeof obj.stats === 'object' && activeSteamID) {
+      // Eski biçim (format 1): tek istatistik nesnesi, ekrandaki hesaba yazılır.
+      aktifHesapVerisi().stats = { ...DEFAULT_STATS, ...obj.stats };
+      hesapVerisiYaz(activeSteamID);
+      hesapSayisi = 1;
     }
-    log('info', 'ayarlar ice aktarildi (' + applied + ' anahtar): ' + file);
-    return { ok: true, applied, settings: publicSettings(), file };
+    if (activeSteamID) sendRaw('stats:degisti', istatistikGorunumu(activeSteamID));
+    log('info', 'ayarlar ice aktarildi (' + applied + ' anahtar, ' + hesapSayisi + ' hesap): ' + file);
+    return { ok: true, applied, hesapSayisi, settings: hesapAyarlariEklenmis(publicSettings()), file };
   } catch (e) {
-    return { ok: false, error: 'Dosya okunamadı: ' + ((e && e.message) || '') };
+    return { ok: false, error: ct('Dosya okunamadı:') + ' ' + ((e && e.message) || '') };
   }
 });
 // Tehlikeli bölge: tüm yerel veriyi (oturum, hesaplar, ayarlar, istatistik, fiyat önbelleği) siler
@@ -2467,7 +3436,7 @@ ipcMain.handle('settings:wipeAll', () => {
   ['prices.json', 'history.json', 'steamedge.log', 'steamedge.log.1'].forEach((f) => {
     try { fs.unlinkSync(path.join(CACHE_DIR, f)); } catch (_) {}
   });
-  settings = { ...DEFAULT_SETTINGS }; lifeStats = { ...DEFAULT_STATS, since: Date.now() }; priceCache = new Map();
+  settings = { ...DEFAULT_SETTINGS }; lifeStats = null; priceCache = new Map();
   activeSteamID = null;
   authSlots.clear(); addingAccountMode = false;
   if (win) {
@@ -2492,7 +3461,7 @@ let guncellemeCalisiyor = false;
 
 async function guncellemeKontrolEt(elle) {
   // Ayni anda iki kontrol calismasin: acilis kontrolu surerken kullanici dugmeye basabilir.
-  if (guncellemeCalisiyor) return guncellemeSonDurum || { ok: false, hata: 'Kontrol zaten suruyor.' };
+  if (guncellemeCalisiyor) return guncellemeSonDurum || { ok: false, hata: 'Kontrol zaten sürüyor.' };
   guncellemeCalisiyor = true;
   try {
     const sonuc = await guncelleme.kontrolEt(app.getVersion());
@@ -2551,7 +3520,12 @@ ipcMain.handle('app:bilgi', () => ({
   paketli: app.isPackaged,
 }));
 
-app.on('before-quit', () => { isQuitting = true; });
+app.on('before-quit', () => {
+  isQuitting = true;
+  // Calisan islerin son dakikasi ve bekleyen hesap yazimlari diske insin.
+  accounts.forEach((s, id) => { try { istatistikSaati(id); } catch (_) {} });
+  bekleyenYazimlariBosalt();
+});
 // Acilista bir veri dosyasi okunamadiysa kullaniciya SOYLE. Eskiden sessizce varsayilana
 // donuluyor, ardindan ilk degisiklik saglam dosyanin uzerine yaziyordu; kullanici ayarlarinin
 // neden gittigini hic ogrenemiyordu.
@@ -2561,21 +3535,20 @@ function okumaHatalariniBildir() {
   const kayip = okumaHatalari.filter((h) => !h.kurtarildi).map((h) => h.ad);
   let govde = '';
   if (kurtarilan.length) {
-    govde += 'Su dosyalar bozuktu ve yedekten kurtarildi:\n  ' + kurtarilan.join('\n  ') + '\n\n';
+    govde += ct('Şu dosyalar bozuktu ve yedekten kurtarıldı:') + '\n  ' + kurtarilan.map(ct).join('\n  ') + '\n\n';
   }
   if (kayip.length) {
-    govde += 'Su dosyalar okunamadi ve yedegi de yoktu:\n  ' + kayip.join('\n  ')
-      + '\n\nBu veriler varsayilana donduruldu. Bozuk dosyalar ".bozuk" uzantisiyla '
-      + 'settings klasorunde duruyor, uzerlerine YAZILMADI.\n\n'
-      + 'Genellikle sebebi, uygulama kayit yaparken bilgisayarin kapanmasidir.';
+    govde += ct('Şu dosyalar okunamadı ve yedekleri de yoktu:') + '\n  ' + kayip.map(ct).join('\n  ')
+      + '\n\n' + ct('Bu veriler varsayılana döndürüldü. Bozuk dosyalar ".bozuk" uzantısıyla settings klasöründe duruyor, üzerlerine yazılmadı.')
+      + '\n\n' + ct('Bunun sebebi genellikle uygulama kayıt yaparken bilgisayarın kapanmasıdır.');
   }
   try {
     dialog.showMessageBox(win || null, {
       type: kayip.length ? 'warning' : 'info',
-      title: 'SteamEdge - veri dosyalari',
-      message: kayip.length ? 'Bazi ayarlar okunamadi' : 'Ayarlar yedekten kurtarildi',
+      title: 'SteamEdge - ' + ct('veri dosyaları'),
+      message: kayip.length ? ct('Bazı ayarlar okunamadı') : ct('Ayarlar yedekten kurtarıldı'),
       detail: govde.trim(),
-      buttons: ['Tamam'],
+      buttons: [ct('Tamam')],
     });
   } catch (_) {}
   okumaHatalari.length = 0;
@@ -2625,21 +3598,21 @@ app.whenReady().then(() => {
   const kurulum = kurulumTutarliMi();
   if (!kurulum.ok) {
     log('error', 'karisik kurulum: version=' + kurulum.dosyaSurum + ' calisan=' + kurulum.calisan);
+    // Ayarlar henüz yüklenmedi; dil, pencere açılmadan okunan erken ayardan gelir.
+    ceviri.dilSec((erkenAyarlar && erkenAyarlar.language) || 'tr');
     try {
       dialog.showMessageBoxSync({
         type: 'error',
-        title: 'SteamEdge - kurulum bozuk',
-        message: 'Bu klasorde iki farkli surumun dosyalari karisik',
-        detail: 'Klasordeki bazi dosyalar eski surumden kalmis '
-          + '(beklenen ' + kurulum.calisan + ', bulunan ' + kurulum.dosyaSurum + ').\n\n'
-          + 'Bu genellikle yeni surum ESKI klasorun uzerine cikarildiginda ve uygulama o sirada '
-          + 'acik oldugunda olur: acik program bazi dosyalari kilitler, arsiv onlari atlar.\n\n'
-          + 'Cozum:\n'
-          + '  1. SteamEdge tamamen kapali olsun.\n'
-          + '  2. Arsivi BOS ve YENI bir klasore cikar.\n'
-          + '  3. Eski klasordeki settings klasorunu yeni klasore kopyala.\n\n'
-          + 'settings klasoru ayarlarini ve Steam oturumunu tasir; kopyalarsan hicbir sey kaybetmezsin.',
-        buttons: ['Tamam'],
+        title: 'SteamEdge - ' + ct('kurulum bozuk'),
+        message: ct('Bu klasörde iki farklı sürümün dosyaları karışmış'),
+        detail: ceviri.tf('Klasördeki bazı dosyalar eski sürümden kalmış (beklenen #, bulunan #).', kurulum.calisan, kurulum.dosyaSurum) + '\n\n'
+          + ct('Bu genellikle yeni sürüm eski klasörün üzerine çıkarıldığında ve uygulama o sırada açık olduğunda olur: açık program bazı dosyaları kilitler, arşiv onları atlar.') + '\n\n'
+          + ct('Çözüm:') + '\n'
+          + '  1. ' + ct('SteamEdge tamamen kapalı olsun.') + '\n'
+          + '  2. ' + ct('Arşivi boş ve yeni bir klasöre çıkar.') + '\n'
+          + '  3. ' + ct('Eski klasördeki settings klasörünü yeni klasöre kopyala.') + '\n\n'
+          + ct('settings klasörü ayarlarını ve Steam oturumunu taşır; kopyalarsan hiçbir şey kaybetmezsin.'),
+        buttons: [ct('Tamam')],
       });
     } catch (_) {}
     app.quit();

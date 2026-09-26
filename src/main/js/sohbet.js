@@ -67,7 +67,7 @@
       const q = (chEl('chAra').value || '').trim().toLowerCase();
       const liste = chEl('chListe');
       const suzulmus = q ? chArkadaslar.filter(a=>a.persona.toLowerCase().includes(q)) : chArkadaslar;
-      chEl('chSayi').textContent = suzulmus.length + ' kişi';
+      chEl('chSayi').textContent = tf('# kişi', suzulmus.length);
       chEl('chOnline').textContent = String(chArkadaslar.filter(a=>a.durum > 0).length);
       if (!suzulmus.length){
         liste.innerHTML = '<div style="color:#656D80;padding:14px;font-size:12px">'

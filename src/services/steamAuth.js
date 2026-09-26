@@ -43,7 +43,7 @@ class SteamAuth {
         if (codeAct) {
           this.emit('guard', { needCode: true, email: codeAct.type === EAuthSessionGuardType.EmailCode });
         } else {
-          this.emit('status', { message: 'Steam mobil uygulamasından girişi onaylayın...' });
+          this.emit('status', { message: 'Steam mobil uygulamasından girişi onayla...' });
         }
       }
       // otherwise the 'authenticated' event fires on its own
@@ -61,7 +61,7 @@ class SteamAuth {
     this.cancel();
     this.session = new LoginSession(EAuthTokenPlatformType.SteamClient);
     this.session.on('authenticated', () => this._onAuth());
-    this.session.on('timeout', () => this.emit('error', { message: 'Oturum zaman aşımına uğradı, tekrar deneyin.' }));
+    this.session.on('timeout', () => this.emit('error', { message: 'Oturum zaman aşımına uğradı, tekrar dene.' }));
     this.session.on('error', (e) => this.emit('error', { message: e.message }));
     this.session.on('remoteInteraction', () => this.emit('status', { message: 'QR tarandı - telefonda onay bekleniyor...' }));
   }

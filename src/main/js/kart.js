@@ -13,14 +13,14 @@
     const recentDrops = [];          // {appid,name,count,ts} - genel.js'in gerçek düşüş ölçümünden
 
     const modeLabels = { sequential:'Sıralı', most:'Çok Kart', least:'Az Kart', priority:'Öncelik', fast:'Hızlı' };
+    // Her ipucu TEK dizge: DOM çevirisi metni bütün olarak arar, parçalı birleştirme
+    // sözlükte hiçbir anahtara denk gelmiyordu.
     const modeHints = {
-      sequential: 'Kuyruk sırasına göre tek tek farmlar.',
-      most: 'En çok kartı olan oyunları önceliklendirir.',
-      least: 'Rozetleri hızlı tamamlamak için en az kart kalanlar.',
-      priority: 'Öncelik listendeki oyunları önce düşürür.',
-      fast: 'Steam kart düşürmeye oyun 2 saati geçince başlar. Hızlı mod önce 2 saatin '
-          + 'altındaki oyunları paralel çalıştırıp eşiğe çeker, sonra hepsini birlikte açık '
-          + 'tutup öne çıkan oyunu 1,5-2 dakikada bir değiştirir.'
+      sequential: 'Oyunları kuyruk sırasıyla tek tek çalıştırır.',
+      most: 'En çok kartı kalan oyunları öne alır.',
+      least: 'En az kartı kalan oyunları öne alır; rozetler daha çabuk tamamlanır.',
+      priority: 'Öncelik listendeki oyunları önce çalıştırır.',
+      fast: 'Steam kart düşürmeye oyun 2 saati geçince başlar. Hızlı mod önce 2 saatin altındaki oyunları birlikte çalıştırıp bu eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir.'
     };
     // listRow(on) / segSet(cur,key) seçili-stil yardımcıları
     const ROW_ON  = { bg:'#151C28', fg:'#DCE2FA', bd:'#5624B3' };
@@ -30,12 +30,18 @@
     function paint(el, s){ el.style.background = s.bg; el.style.color = s.fg; el.style.borderColor = s.bd; }
 
     // Ayarlar > Kart Düşürme tercihlerini sayfaya uygular (varsayılan mod, süre, kuyruk sıralaması).
-    // Kullanıcı sayfada elle değiştirdiyse üzerine yazmaz.
+    // Kullanıcı sayfada elle değiştirdiyse üzerine yazmaz; ANCAK Ayarlar'da Kaydet ile değişen
+    // değer (degisen) her durumda uygulanır, çünkü kullanıcı onu az önce açıkça seçti. Çalışan
+    // kuyruğun modu değişmez (sıra motorda kurulu); süre değişikliğini ana süreç çalışan işe de
+    // uygular (bkz main.js > ayarlariIslereUygula).
     let farmUserTouched = false;
-    function applyFarmSettings(){
+    function applyFarmSettings(degisen){
       if (typeof appSettings !== 'object' || !appSettings) return;
-      if (!farmUserTouched){
-        if (appSettings.cardPriorityMode && appSettings.cardPriorityMode !== selectedMode) setMode(appSettings.cardPriorityMode);
+      const d = degisen || [];
+      const calisiyor = !!(lastTick && lastTick.running);
+      if ((!farmUserTouched || (d.includes('cardPriorityMode') && !calisiyor))
+          && appSettings.cardPriorityMode && appSettings.cardPriorityMode !== selectedMode) setMode(appSettings.cardPriorityMode);
+      if (!farmUserTouched || d.includes('farmMaxMinutes')){
         const mins = +appSettings.farmMaxMinutes;
         if (mins > 0 && durationSec !== mins*60){ durationSec = mins*60; writeDur(); }
       }
@@ -51,7 +57,7 @@
       const q = document.getElementById('kartQueue');
       q.innerHTML = '<div style="padding:16px;color:#8B8F9E;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect();
-      if (!con.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">Bağlantı hatası: '+esc(con.error)+'</div>'; return; }
+      if (!con.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(t('Bağlantı hatası:') + ' ' + (con.error || ''))+'</div>'; return; }
       const res = await E.dropGames();
       if (!res.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
       dropGames = res.games; kartLoaded = true;
@@ -120,7 +126,7 @@
       const live = orderedForMode();
       const total = live.reduce((s,g)=>s+g.remaining,0);
       document.getElementById('kartKalan').textContent = total;
-      document.getElementById('listeLabel').textContent = 'Düşürme Kuyruğu · ' + live.length + ' Oyun';
+      document.getElementById('listeLabel').textContent = tf('Düşürme Kuyruğu · # Oyun', live.length);
       document.getElementById('dropCount').textContent = recentDrops.length + ' öğe';
 
       // sıralama okları
@@ -144,7 +150,9 @@
         const on = activeIds.has(g.appid);
         const bd = on ? '#5624B3' : '#2B3345';
         const pct = (g.appid===currentId) ? turnPct : 0;
-        const state = on ? '1. Sırada' : 'Bekliyor';
+        // Açık olan her oyun "Çalışıyor": hızlı modda havuzdaki oyunların hepsi açık,
+        // eskiden hepsi "1. Sırada" yazıyordu.
+        const state = on ? 'Çalışıyor' : 'Bekliyor';
         return '<div class="h-bd" data-row="'+g.appid+'" style="border:1px solid '+bd+';border-radius:12px;background:'+(on?'#0D1118':'#090C12')+';padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;opacity:'+(on?1:0.5)+'">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?'#B37E24':'#8B8F9E')+';border:1px solid '+bd+';border-radius:12px;padding:4px 0;width:34px;box-sizing:border-box;text-align:center;flex-shrink:0">#'+g.rank+'</span>'
           // Kutu oranı 920x430 (~2.14:1) - Steam Kütüphane Başlığı ölçütü.
@@ -152,10 +160,10 @@
             + gameThumb(g.appid)
           + '</div>'
           + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:150px;flex-shrink:0">'+esc(g.name)+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+g.remaining+' kalan</span>'
+          + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+esc(tf('# kalan', g.remaining))+'</span>'
           + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px;border-left:1px solid #1D2432;padding-left:8px">'+g.appid+'</span>'
           + '<div style="flex:1;min-width:60px;height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
-            + '<div style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
+            + '<div data-ilerleme style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
           + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
             + '<span style="height:26px;display:flex;align-items:center;padding:0 10px;border-radius:12px;border:1px solid '+bd+';color:'+(on?'#C2AAEE':'#8B8F9E')+';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">'+state+'</span>'
             + '<div style="display:flex;gap:4px;padding:3px;border-radius:12px;background:#090C12;border:1px solid #1D2432">'
@@ -287,8 +295,8 @@
           + '<div style="width:32px;height:32px;flex-shrink:0;border-radius:10px;border:1px solid #5FB324;background:#101621;display:flex;align-items:center;justify-content:center">'
             + '<span style="width:8px;height:8px;border-radius:999px;background:#5FB324"></span></div>'
           + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
-            + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+d.count+' kart düştü</span>'
-            + '<span style="font-size:10.5px;color:#656D80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString('tr-TR')+'</span></span>'
+            + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(tf('# kart düştü', d.count))+'</span>'
+            + '<span style="font-size:10.5px;color:#656D80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(yerelKod())+'</span></span>'
           + '</div></div>'
         + '<button class="h-brand" data-godrop="'+d.appid+'" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Envanter</button>'
         + '</div>').join('');
@@ -308,12 +316,12 @@
       if (!games.length) return;
       E.startFarm(selectedMode, games, durationSec*1000);
       setKartPill(true);
-      let sub = games.length+' oyun sırada.';
+      let sub = tf('# oyun sırada.', games.length);
       if (selectedMode === 'fast'){
         const cold = games.filter(g=>(g.playtimeMin||0) < 120);
         sub = cold.length
-          ? (cold.length+' oyun 2 saatin altında - önce eşiğe çekilecek, sonra düşüş başlayacak.')
-          : (games.length+' oyunun hepsi 2 saati geçmiş, düşüş hemen başlıyor.');
+          ? tf('# oyun 2 saatin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.', cold.length)
+          : tf('# oyunun hepsi 2 saati geçmiş; kart düşmeye hemen başlıyor.', games.length);
       }
       notify('farm', 'Kart Düşürme Başladı', sub);
       pushFeed('kart', 'Kart Düşürme', sub, 'Çalışıyor');
@@ -325,8 +333,19 @@
       pushFeed('kart', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
     };
 
+    // HIZ: tik saniyede bir geliyor. Eskiden her tikte BUTUN kuyruk yeniden ciziliyordu,
+    // sekme gizliyken bile: 400 oyunluk kuyrukta saniyede ~50 ms islemci ve gizli sekmenin
+    // bellekten dusurulen listesini her saniye geri dolduruyordu. Artik yalnizca calisan oyun
+    // degisince cizim yapiliyor; aradaki tiklerde yalnizca ilerleme cubugu guncelleniyor.
+    let sonKartImza = '';
     E.onTick((data) => {
+      // Kart düşürme yeni başladı: otomatik satış için envanter tabanı alınır (env.js).
+      if (data.running && !lastTick.running && typeof autoSellTaban === 'function') autoSellTaban();
       lastTick = data;
-      if (kartLoaded) renderKart();
       setKartPill(!!data.running);
+      if (!kartLoaded || !designed.kart || designed.kart.classList.contains('hidden')) { sonKartImza = ''; return; }
+      const imza = (data.running ? 1 : 0) + '|' + (data.activeAppids || []).join(',') + '|' + data.currentAppid;
+      if (imza !== sonKartImza){ sonKartImza = imza; renderKart(); return; }
+      const cubuk = document.querySelector('#kartQueue [data-row="' + data.currentAppid + '"] [data-ilerleme]');
+      if (cubuk && data.durationMs) cubuk.style.width = Math.min(100, Math.round((data.elapsedMs / data.durationMs) * 100)) + '%';
     });

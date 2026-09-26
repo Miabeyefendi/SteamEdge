@@ -118,6 +118,13 @@ for (const e of anaSurec.matchAll(/ipcMain\.(?:handle|on)\(\s*'([^']+)'/g)) tani
 // Ana surecten arayuze giden olaylar (ipcRenderer.on) main.js'te sendRaw/send ile atilir.
 const gonderilen = new Set();
 for (const e of anaSurec.matchAll(/send(?:Raw)?\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
+// Hesaba ozel isler olaylarini hesapYayini(...)('kanal', ...) ya da yay('kanal', ...) ile atar;
+// FarmController kendi 'farm:tick' olayini emit ile yollar. Onlar da gonderilmis sayilir.
+for (const e of anaSurec.matchAll(/(?:hesapYayini\([^)]*\)|yay)\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
+for (const e of anaSurec.matchAll(/IS_KANALLARI\s*=\s*\[([^\]]*)\]/g)) {
+  for (const k of e[1].matchAll(/'([^']+)'/g)) gonderilen.add(k[1]);
+}
+for (const e of oku(path.join(KOK, 'src', 'core', 'farmController.js')).matchAll(/this\.emit\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
 let cagri = 0;
 for (const e of preload.matchAll(/ipcRenderer\.(invoke|send)\(\s*'([^']+)'/g)) {
   cagri++;
@@ -132,7 +139,9 @@ console.log('  ' + cagri + ' kanal, main.js tarafinda ' + tanimli.size + ' tanim
 // ---- 6. Uzun cizgi ----
 bolum('6. Uzun cizgi (em/en dash)');
 let cizgi = 0;
-dosyalar(KOK, '.js').concat(dosyalar(KOK, '.html'), dosyalar(KOK, '.css')).forEach((f) => {
+// Sozlukler (.json) ve belgeler (.md) de taranir: Rusca sozlukte yedi uzun cizgi bu yuzden
+// fark edilmeden kalmisti.
+dosyalar(KOK, '.js').concat(dosyalar(KOK, '.html'), dosyalar(KOK, '.css'), dosyalar(KOK, '.json'), dosyalar(KOK, '.md')).forEach((f) => {
   if (kendisi(f)) return;
   const m = oku(f);
   for (const e of m.matchAll(/[–—]/g)) { cizgi++; hata(gorece(f) + ':' + satirNo(m, e.index) + ' uzun cizgi'); }
