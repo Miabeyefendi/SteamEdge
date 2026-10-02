@@ -608,10 +608,10 @@ const ACCOUNTS_FILE = path.join(CONFIG_DIR, 'accounts.json');
 function loadAccounts() {
   const r = jsonOku(ACCOUNTS_FILE);
   if (r.ok) {
-    if (r.yedekten) okumaHatalari.push({ ad: 'Kayitli hesaplar', kurtarildi: true });
+    if (r.yedekten) okumaHatalari.push({ ad: 'Kayıtlı hesaplar', kurtarildi: true });
     return Array.isArray(r.veri) ? r.veri : [];
   }
-  if (r.bozuk) okumaHatalari.push({ ad: 'Kayitli hesaplar', kurtarildi: false });
+  if (r.bozuk) okumaHatalari.push({ ad: 'Kayıtlı hesaplar', kurtarildi: false });
   return [];
 }
 function saveAccounts(list) { jsonYaz(ACCOUNTS_FILE, list, true); }
@@ -1877,10 +1877,10 @@ function loadState() {
       entries: (raw && typeof raw.entries === 'object' && raw.entries) || {},
       achLog: Array.isArray(raw && raw.achLog) ? raw.achLog : [],
     };
-    if (r.yedekten) okumaHatalari.push({ ad: 'Kayitli durum', kurtarildi: true });
+    if (r.yedekten) okumaHatalari.push({ ad: 'Kayıtlı durum', kurtarildi: true });
   } else {
     appState = { entries: {}, achLog: [] };
-    if (r.bozuk) okumaHatalari.push({ ad: 'Kayitli durum', kurtarildi: false });
+    if (r.bozuk) okumaHatalari.push({ ad: 'Kayıtlı durum', kurtarildi: false });
   }
   const dropped = pruneState();
   if (dropped) log('info', 'saklama suresi dolan ' + dropped + ' kayit silindi');
