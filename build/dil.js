@@ -13,10 +13,11 @@
  * ([SABIT]: 'deger') goremiyordu; Rusca eklenirken iki giris bu yuzden atlanmisti.
  * Sozluk artik JSON, ayristirici da gitti.
  *
- * BILINEN KORLUK: 6., 7. ve 8. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan metinleri
- * bildiriyor. "Grafik arka ucu" gibi saf ASCII bir Turkce baslik gozden kacar. Daha
- * gevsek bir olcut, ingilizce kod parcalari ve sayilarla dolu yuzlerce yanlis alarm
- * uretiyordu; yeni metin eklerken bunu akilda tut.
+ * BILINEN KORLUK: 7. ve 8. bolum yalnizca Turkce'ye ozgu harf (cgiosu) tasiyan JS
+ * metinlerini bildiriyor (onay alanlari ve t/tf/toast cagrilari harf bakilmadan taranir).
+ * Daha gevsek bir olcut kod parcalariyla dolu yuzlerce yanlis alarm uretiyordu. 6. bolum
+ * (HTML) 1.3.0'dan beri harfsiz metni de tariyor; bilerek cevrilmeyen adlar CEVRILMEZ'de.
+ * 10. bolum (1.3.0) her cevirinin anahtardaki # sayisini ve #1/#2 sirasini denetler.
  *
  * 1.3.0'da kapatilan korluklar: 6. bolum 80 karakterden uzun metinleri ve ipucu/baslik/yer
  * tutucu ozniteliklerini hic gormuyordu (ayar aciklamalarinin cogu bu yuzden cevrilmeden

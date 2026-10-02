@@ -38,9 +38,10 @@
 - **Hours booster** - Keeps up to 32 games open at once, with optional playtime syncing that pulls a selection up to the same total.
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
-- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency.
+- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches.
 - **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
-- **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress.
+- **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
+- **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
 
@@ -77,7 +78,7 @@
 |---|---|
 | Operating system | Windows 10 or newer, 64 bit |
 | Steam account | With Steam Guard set up, mobile or email |
-| Disk space | About 320 MB extracted |
+| Disk space | About 330 MB extracted |
 | Steam client | Not required, and not used |
 
 ### Built with
@@ -100,6 +101,7 @@ npm install
 1. Download the latest `.rar` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
 2. Extract it anywhere you like. A folder you own, not `Program Files`.
 3. Run `SteamEdge.exe`. There is nothing to install and nothing is written outside that folder.
+4. To update, extract the new version into an empty, new folder and copy the `settings/` folder from the old one into it. Extracting over the old folder while the app is open leaves a mix of two versions behind.
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
@@ -126,7 +128,7 @@ Once you are in, the Overview shows what is running and what is available. Open 
 
 ## ⚙️ Configuration
 
-Settings live in `settings/settings.json` next to the executable, and per-account data in `settings/accounts/<steamID>.json`. All of it is editable from the in-app Settings page; there is no reason to touch the files by hand.
+Settings live in `settings/settings.json` next to the executable, and per-account data in `settings/accounts/<steamID>.json`. All of it is editable from the in-app Settings page; there is no reason to touch the files by hand. Changes are applied only when you press Save, and running jobs pick them up within a few seconds.
 
 > **Never share the `settings/` folder.** It holds your Steam session token, which is enough to use your account.
 
@@ -135,8 +137,12 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `boostMaxGames` | `32` | How many games the hours booster keeps open at once |
 | `boostSync` | `false` | Pull selected games up to the same total playtime |
 | `fetchAvgWithPrice` | `true` | Fetch an item's sale average in the same pass as its price |
-| `pauseFarmOnBoost` | `false` | Stop card farming when the hours booster starts |
-| `sessionTimeout` | `never` | Disconnect after this many idle minutes |
+| `pauseFarmOnBoost` | `false` | Pause card farming while the hours booster or Realistic Mode runs |
+| `bulkSellLimit` | `50` | Bulk sales are split into batches of this many items; `0` lists until Steam stops it |
+| `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that marks a price drop |
+| `yenidenBaglanma` | `sinirsiz` | Reconnect after a dropped connection: `sinirsiz` (unlimited), `10`, `3` or `kapali` (off) |
+| `sessionTimeout` | `never` | Disconnect after this many idle minutes; running jobs do not count as idle |
+| `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
 | `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference).
@@ -156,9 +162,12 @@ Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.
 
 - [x] Steam chat: friend list, conversations and sending, in the app
 - [x] Russian interface language, matching the documentation
-- [ ] The remaining pages rebuilt to the design spec, one release at a time.
 - [x] Realistic Mode rebuilt to the design spec
 - [x] Item-based market queue, price and average fetched together
+- [x] Every runtime string translated, with plural forms in all languages (1.3.0)
+- [x] Themes: Dark, Midnight Purple, White (1.3.0)
+- [x] Electron 41 (1.3.2)
+- [ ] The remaining pages rebuilt to the design spec, one release at a time
 
 Nothing here is a promise. This is a personal project and the list moves when my priorities move.
 
@@ -197,7 +206,7 @@ Some achievements are written by the game server, not the client, and Steam refu
 <details>
 <summary><b>It stopped working after an update. What now?</b></summary>
 
-Check the [troubleshooting section](./docs/guides/TUTORIAL.md#-troubleshooting) of the tutorial first, then the log at `cache/steamedge.log`. If it is still broken, open a bug report and attach that log.
+Make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./docs/guides/TUTORIAL.md#-troubleshooting) of the tutorial and the log at `cache/steamedge.log` (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach that log.
 
 </details>
 

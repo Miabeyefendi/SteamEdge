@@ -28,6 +28,7 @@ cards still dropped" is worth more than "looks fine".
 -->
 
 - [ ] `npm start` runs with no console errors
+- [ ] `npm run dogrula` and `npm run dil` pass
 - [ ] I tested the affected screen by hand
 - [ ] Existing behaviour on other screens is unchanged
 
@@ -35,7 +36,8 @@ cards still dropped" is worth more than "looks fine".
 
 - [ ] Code follows the style of the surrounding file (2-space indent, Turkish identifiers where the file already uses them)
 - [ ] No em dashes anywhere in code, comments, or UI strings
-- [ ] New UI strings are added to all five languages in `src/main/js/i18n.js`
+- [ ] New UI strings are added to all five dictionaries in `src/main/js/lang/` (`en`, `de`, `es`, `zh`, `ru`)
+- [ ] Visual changes checked in all three themes (Dark, Midnight Purple, White)
 - [ ] No secrets, tokens, `settings/` files, or personal Steam data included
 - [ ] No new runtime dependency added without saying why below
 

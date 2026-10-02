@@ -19,6 +19,11 @@ on:
 permissions:
   contents: read
 
+# Ayni etiket ya da elle tetikleme ust uste gelirse yalnizca sonuncusu calisir.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   windows:
     runs-on: windows-latest

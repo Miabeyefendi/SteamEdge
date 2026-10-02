@@ -36,7 +36,7 @@ La aplicación habla el propio protocolo de red de Steam, el mismo que usa el cl
 De ahí se derivan dos consecuencias, y explican casi todo el comportamiento de la aplicación:
 
 - **Steam es la única fuente de verdad.** Nada se estima ni se inventa. Si un número no se puede obtener, la casilla muestra un guion en lugar de una suposición.
-- **Los límites de Steam son los límites de la aplicación.** Las peticiones de mercado están topadas en unas 20 cada 30 segundos por cuenta, y todas las partes de la aplicación que tocan el mercado comparten ese único presupuesto. Los cromos no empiezan a caer hasta que un juego supera las dos horas de tiempo total. Son hechos medidos, no ajustes.
+- **Los límites de Steam son los límites de la aplicación.** Las peticiones de mercado están topadas en unas 20 cada 30 segundos por cuenta, y todas las partes de la aplicación que tocan el mercado comparten ese único presupuesto. Los cromos no empiezan a caer hasta que un juego supera las dos horas de tiempo total. Son hechos medidos, no ajustes. Publicar anuncios tiene además un límite propio por cuenta que Steam no publica.
 
 ### Estructura de archivos
 
@@ -48,12 +48,15 @@ SteamEdge/
   settings/
     settings.json              ajustes generales
     accounts.json              cuentas guardadas
-    session.json               token de sesion activa
-    accounts/<steamID>.json    datos por cuenta: colas, presets, estadisticas
+    session.json               token de sesión activa
+    stats.json                 estadísticas acumuladas
+    state.json                 colas recordadas y registro de logros
+    accounts/<steamID>.json    datos por cuenta: colas, presets, estadísticas
   cache/
     prices.json                precios de mercado, 24 horas de vida
     history.json               medias de ventas realizadas, 72 horas de vida
     basarimsiz.json            juegos sin logros detectados
+    chromium/                  caché de imágenes y páginas
     steamedge.log              el registro que adjuntar a un informe de fallo
 ```
 
@@ -65,7 +68,7 @@ SteamEdge/
 
 ### Requisitos
 
-Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 320 MB de espacio en disco una vez extraído. El cliente de Steam no hace falta y no se abre en ningún momento.
+Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 330 MB de espacio en disco una vez extraído. El cliente de Steam no hace falta y no se abre en ningún momento.
 
 ### Paso a paso
 
@@ -76,11 +79,11 @@ Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Un
 
 ### Verificar la instalación
 
-Abajo a la izquierda aparece `SYSTEM: RUNNING` en cuanto hay sesión, y la insignia de cuenta arriba a la derecha se rellena con tu nombre, avatar y nivel. Si la insignia sigue en blanco, la sesión no llegó a levantarse; consulta [resolución de problemas](#-resolución-de-problemas).
+Abajo a la izquierda aparece `SISTEMA: LISTO` en cuanto hay sesión, y `SISTEMA: EN MARCHA` mientras una tarea funciona, y la insignia de cuenta arriba a la derecha se rellena con tu nombre, avatar y nivel. Si la insignia sigue en blanco, la sesión no llegó a levantarse; consulta [resolución de problemas](#-resolución-de-problemas).
 
 ### Actualizar
 
-La aplicación consulta el número de versión publicado y te avisa cuando existe una más nueva. No descarga ni instala nada, a propósito. Para actualizar, extrae el archivo nuevo encima de la carpeta antigua y conserva tus carpetas `settings/` y `cache/`.
+La aplicación consulta el número de versión publicado y avisa cuando hay una más nueva. A propósito, no descarga ni instala nada. Para actualizar, cierra SteamEdge, extrae el nuevo archivo en una **carpeta nueva y vacía** y copia en ella la carpeta `settings/` de la anterior. Extraer encima de la carpeta antigua con la aplicación abierta mezcla archivos de dos versiones; la aplicación detecta el caso habitual y lo indica al arrancar.
 
 ### Desinstalar
 
@@ -94,35 +97,39 @@ Borra la carpeta. Ese es todo el procedimiento.
 
 La página de inicio. El panel **Active Task** muestra lo que está realmente en marcha, un trabajo cada vez, con flechas para pasar entre ellos cuando hay varios. Start, Stop y Details actúan sobre el trabajo que estás mirando, no sobre una página fija.
 
-Debajo, la cola y el registro de actividad. A la derecha, las casillas de estadísticas de cromos, tamaño de la biblioteca, valor del inventario, horas acumuladas y logros. Una casilla muestra un guion cuando su página aún no se ha cargado, lo cual dice algo sobre lo que se ha consultado, no sobre tu cuenta.
+Encima, seis recuadros: cromos restantes, biblioteca, esta sesión, valor del inventario, impulsor de horas y logros. **Actividad reciente** a la izquierda lista lo ocurrido con estado y hora; **Acciones rápidas** bajo el panel de tarea activa actualizan la lista de juegos, el inventario o el mercado y abren los ajustes. Un recuadro muestra un guion mientras su página no se ha cargado; eso habla de lo que se ha obtenido, no de tu cuenta.
 
 ### Card Farming
 
-La lista de juegos a los que aún les quedan cromos por caer, extraída de tus páginas de insignias. Elige un modo, fija la duración de la sesión y pulsa Start.
+La cola de juegos con cromos pendientes, leída de tus páginas de insignias, con filtro para 1-2 o 3+ cromos. Reordena con las flechas o **Al principio**, quita un juego con ✕. A la derecha: el modo de farmeo, el temporizador de sesión con atajos, **Automatización** (publicar los cromos obtenidos, farmear en segundo plano, avisar al obtener un cromo, desbloquear logros mientras suben las horas) y **Últimas obtenciones**. Pulsa Iniciar.
 
 ### Inventory & Market
 
-Tu inventario de Steam, agrupado de modo que los duplicados cuentan como una fila. Los precios y las medias de ventas realizadas se obtienen en segundo plano, artículo a artículo, ambos valores juntos. El panel de detalle muestra el libro de órdenes y permite poner un artículo a la venta.
+Tu inventario de Steam, con los duplicados en una fila, filtrable por juego, nombre, tipo, estado y precio, y agrupable por juego. **Obtener precios** y **Obtener medias** cargan los datos del mercado objeto a objeto, ambos valores juntos. El panel de detalle muestra los anuncios en venta, el precio de venta inmediata y las ventas realizadas. La barra inferior suma la selección, el bruto y lo que recibes, y ofrece los modos de venta (desde la media, rebajar, igualar el más bajo, vender al instante, precio propio) antes de **Vender**.
 
 ### Hours Booster
 
-Toda tu biblioteca, con búsqueda. Selecciona juegos, fija un límite de simultaneidad y una duración, pulsa Start. La sincronización de horas opcional lleva una selección hasta un total común.
+A la izquierda toda tu biblioteca, con búsqueda; en el centro la cola activa. A la derecha: **Sincronización de horas** (objetivo y método), el límite simultáneo (2, 8, 16, 32 o personalizado), la duración con atajos, interruptores de comportamiento y aparecer desconectado. Una duración fijada detiene la sesión al agotarse; ∞ sigue hasta que la detengas. Una selección se puede guardar como preajuste.
 
 ### Realistic Mode
 
-Un espacio de trabajo de tres columnas. La cola y la duración de la sesión a la izquierda, el orden de desbloqueo en el centro, los ajustes a la derecha, repartidos entre un panel Simple y otro Advanced.
+Un espacio de tres columnas bajo una franja con el juego, los logros desbloqueados, el intervalo medio y el progreso general. A la izquierda la cola, la duración de la sesión y el objetivo AUTO; en el centro el orden de desbloqueo con el siguiente logro arriba; a la derecha los ajustes, divididos en Simple y Avanzado.
 
 ### Achievements
 
-Por juego, el estado real de bloqueado y desbloqueado leído desde el protocolo. Selecciona logros y desbloquéalos o vuelve a bloquearlos en bloque, con progreso en vivo y un botón de parada que surte efecto incluso en mitad de una espera.
+Por juego, el estado real bloqueado y desbloqueado leído del protocolo, con totales arriba, filtros de estado y rareza, vista de cuadrícula o lista y un panel de detalle. Selecciona logros y desbloquéalos o vuelve a bloquearlos en lote; la barra inferior muestra la selección, el tiempo estimado y si el modo seguro espacia los desbloqueos. El progreso es en vivo y Detener actúa incluso a mitad de una espera.
 
 ### Settings
 
-Todo lo que se le puede indicar a la aplicación, agrupado: general, farmeo de cromos, mercado, acumulador de horas, modo realista, privacidad, identidad de cuenta y copia de seguridad.
+Todo lo que se le puede pedir a la aplicación, agrupado: General, Farmeo de cromos, Mercado, Inventario, Impulsor de horas, Logros, Notificaciones, Privacidad y seguridad, Estadísticas, Avanzado y datos y Acerca de. La columna derecha muestra la cuenta (nivel, estado de conexión, IDs de Steam para copiar) y la configuración (último guardado, cambios sin guardar).
+
+Los cambios esperan en la página hasta que pulses **Guardar**. Antes no se escribe nada, y salir de la página con cambios sin guardar pregunta primero. Tras guardar, el farmeo o el impulso de horas en marcha se pausan unos cinco segundos y siguen desde el mismo juego con los nuevos valores. **Restablecer** carga los valores predeterminados en la página y también espera a Guardar; mantiene el idioma de la aplicación.
+
+El tema (Oscuro, Púrpura medianoche, Blanco) está en General y se aplica también a la pantalla de inicio de sesión.
 
 ### Chat
 
-Se abre desde el boton Chat de arriba a la derecha, no desde el menu lateral. A la izquierda los amigos, con los conectados primero; a la derecha la conversacion. Enter envia, Shift+Enter salta de linea. Los no leidos aparecen en la fila del amigo y en el boton de la barra superior.
+Se abre desde el botón Chat de arriba a la derecha, no desde el menú lateral. A la izquierda los amigos, con los conectados primero; a la derecha la conversacion. Enter envia, Shift+Enter salta de linea. Los no leidos aparecen en la fila del amigo y en el botón de la barra superior.
 
 ---
 
@@ -131,6 +138,8 @@ Se abre desde el boton Chat de arriba a la derecha, no desde el menu lateral. A 
 ### Farmeo de cromos
 
 Steam no suelta cromos hasta que un juego supera las **dos horas** de tiempo total. Todos los modos menos uno ignoran ese hecho y simplemente ejecutan juegos; el **modo Fast** lo tiene en cuenta y rota juegos que ya han pasado el umbral, para no gastar tiempo en juegos que todavía no pueden soltar nada.
+
+Cuando ningún juego de la cola tiene cromos, o **Pasar al siguiente al terminar un juego** está desactivado y el juego actual termina, el farmeo se detiene y explica por qué en lugar de reiniciar el último juego. El farmeo y el impulsor de horas pueden funcionar a la vez: cada uno mantiene sus propios juegos y Steam ve ambos, hasta su límite de 32.
 
 Los modos:
 
@@ -144,7 +153,7 @@ Los modos:
 
 Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación mide periódicamente el total de cromos restantes y reporta la diferencia honesta en lugar de un contador inventado.
 
-### Acumulador de horas
+### Impulsor de horas
 
 Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo de cada juego abierto por separado, así que 32 juegos abiertos durante una hora son 32 horas de tiempo jugado.
 
@@ -186,7 +195,11 @@ El valor de un artículo es la **mediana ponderada por cantidad de las ventas re
 
 Los precios llegan en la **moneda del monedero** de tu cuenta y se muestran exactamente como llegan. No hay conversión, deliberadamente: convertir significaría inventarse un tipo de cambio.
 
-El precio y la media de ventas se obtienen **por artículo, juntos**, y después la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en artículos.
+El precio y la media de ventas se obtienen **por artículo, juntos**, y después la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en artículos. El intervalo entre peticiones está en Ajustes > Avanzado y datos; la tolerancia de Steam varía según la cuenta.
+
+**Vender.** Tú eliges el precio que paga el comprador; lo que recibes lo calcula el propio script de comisiones de Steam (descargado de Steam y ejecutado en una ventana aislada), así que ambos coinciden con lo que mostraría la web de Steam. La venta en lote se detiene en cuanto Steam rechaza un anuncio y el diálogo cita el motivo de Steam: las cuentas nuevas pueden detenerse tras 10-15 anuncios, las antiguas publican 80 o más. **Tamaño del lote** y **Espera entre lotes** (Ajustes > Mercado) dividen una venta grande; sin espera, se te pregunta tras cada lote. Con el autenticador móvil activado, cada anuncio sigue necesitando confirmación en la aplicación de Steam.
+
+**Alerta de bajada de precio.** Cuando el anuncio más barato de un objeto queda al menos el **Umbral de bajada de precio** (10 % por defecto) por debajo de la media de 24 horas de Steam, se marca con un ▼ rojo, la confirmación de venta avisa en rojo y, con la alerta activada, recibes una notificación como mucho una vez al día por objeto.
 
 ### Chat
 
@@ -196,7 +209,11 @@ Los mensajes de amigos van por el mismo protocolo de red que todo lo demas, sin 
 
 ### Varias cuentas
 
-Se pueden conectar varias cuentas a la vez. Cada una mantiene su propio motor, sus propias colas y su propio archivo de datos. Cambiar de cuenta no reinicia la aplicación ni interrumpe lo que están haciendo las demás.
+Se pueden conectar varias cuentas a la vez. Cada una mantiene su propio motor, sus propias colas y su propio archivo de datos. Cambiar de cuenta no reinicia la aplicación ni interrumpe lo que están haciendo las demás. Las copias de seguridad exportadas desde Ajustes incluyen las estadísticas, la lista del impulsor de horas y la cola y preajustes del Modo realista de cada cuenta.
+
+### Conexión
+
+Cuando se cae la conexión, SteamEdge se reconecta solo y las tareas en marcha continúan donde estaban. **Reconectar si se pierde la conexión** (Ajustes > Avanzado y datos) fija el límite: sin límite, 10 intentos, 3 intentos o desactivado. Si Steam cierra la sesión definitivamente, por ejemplo porque la cuenta inició sesión en otro lugar, los intentos se detienen y un aviso ofrece un botón para reconectar.
 
 ---
 
@@ -210,17 +227,17 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 |---|---|---|
 | `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Arrancar con Windows |
-| `preventSleep` | `true` | Mantener el equipo despierto mientras algo esté en marcha |
-| `sessionTimeout` | `never` | Desconectar tras estos minutos de inactividad. Los trabajos en segundo plano no reinician el contador; solo tu interacción |
+| `theme` | `dark` | Tema de color: `dark`, `midnight` (Púrpura medianoche), `white` |
+| `preventSleep` | `true` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
 
 ### Farmeo de cromos
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
-| `autoNextGame` | `true` | Pasar al siguiente juego cuando uno termina |
+| `autoNextGame` | `true` | Pasa al siguiente juego cuando uno termina. Desactivado: el farmeo se detiene tras el juego actual |
 | `cardMaxGames` | `32` | Juegos abiertos a la vez |
 | `fastMinPlaytimeMin` | `120` | El modo Fast ignora juegos por debajo de este tiempo jugado |
-| `pauseFarmOnBoost` | `false` | Detener el farmeo cuando arranca el acumulador de horas |
+| `pauseFarmOnBoost` | `false` | Pausa el farmeo mientras funcionan el impulsor de horas o el Modo realista y luego sigue donde estaba |
 
 ### Mercado
 
@@ -230,8 +247,11 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 | `historyRefreshHours` | `72` | Cuánto sigue siendo fresca una media de ventas |
 | `fetchAvgWithPrice` | `true` | Obtener la media en la misma pasada que el precio. Desactivado significa una petición por artículo y medias solo mediante el botón Average |
 | `bookDepth` | `5` | Filas del libro de órdenes en el panel de detalle |
+| `bulkSellLimit` | `50` | La venta en lote se divide en lotes de este número de objetos. `0` publica hasta que Steam lo detenga |
+| `sellBatchWaitMin` | `0` | Minutos de espera entre lotes. `0` pregunta tras cada lote |
+| `priceDropThreshold` | `10` | Porcentaje por debajo de la media de 24 horas de Steam que cuenta como bajada de precio |
 
-### Acumulador de horas
+### Impulsor de horas
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
@@ -267,6 +287,15 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 
 > Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 
+### Avanzado
+
+| Clave | Por defecto | Qué hace |
+|---|---|---|
+| `yenidenBaglanma` | `sinirsiz` | Reconexión tras perder la conexión: `sinirsiz` (sin límite), `10`, `3`, `kapali` (desactivado) |
+| `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad. Las tareas en marcha no cuentan como inactividad |
+| `apiRequestDelayMs` | `350` | Intervalo mínimo entre peticiones al mercado. Más bajo es más rápido pero más cerca del límite de Steam (HTTP 429) |
+| `logLevel` | `error` | Qué se escribe en `cache/steamedge.log`: `off`, `error`, `warn`, `info`, `debug` |
+
 ### Dónde se guardan los ajustes
 
 Los ajustes generales en `settings/settings.json`. Todo lo que pertenece a una cuenta, la selección del acumulador de horas, la cola y los presets de Realistic Mode, el registro de logros y las estadísticas, vive en `settings/accounts/<steamID>.json`. Las cachés van aparte, bajo `cache/`, y se pueden borrar en cualquier momento sin perder configuración.
@@ -281,7 +310,11 @@ Ya hay otra copia en marcha. SteamEdge permite una sola instancia. Busca `SteamE
 
 ### La insignia de cuenta se queda vacía y no carga nada
 
-La sesión de Steam no llegó a levantarse. Aparece un aviso bajo la barra superior cuando la conexión se cae o se está reintentando. Si persiste, comprueba que Steam sea alcanzable y luego mira `cache/steamedge.log` para ver el motivo.
+La sesión de Steam no llegó a levantarse. Aparece un aviso bajo la barra superior cuando la conexión se cae o se está reintentando. Si persiste, comprueba que Steam sea alcanzable y luego mira `cache/steamedge.log` para ver el motivo. Si Steam cerró la sesión definitivamente, el aviso lo dice y ofrece un botón para reconectar.
+
+### La venta en lote se detuvo a medias
+
+Steam limita cuántos anuncios puede crear una cuenta, y el límite depende de su antigüedad, nivel y reputación. El diálogo cita lo que devolvió Steam. Confirma los anuncios pendientes en la aplicación de Steam, espera unas horas o elige un **Tamaño del lote** menor con espera entre lotes.
 
 ### Dice "quedan 40 cromos" pero solo cayeron unos pocos
 
@@ -301,7 +334,7 @@ El tiempo de completado es demasiado alto. Si se deja vacío se estima a partir 
 
 ### Recoger un registro para informar de un fallo
 
-El registro es `cache/steamedge.log`, junto al ejecutable, o ábrelo desde Settings. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo.
+El registro es `cache/steamedge.log`, junto al ejecutable, o ábrelo desde Settings. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo. Por defecto solo se escriben errores; pon Ajustes > Avanzado y datos > **Archivo de registro** en **Detallado (depuración)**, reproduce el problema y adjunta el archivo.
 
 ---
 
@@ -338,7 +371,7 @@ Porque así es como lo envía Steam. Convertir significaría inventarse un tipo 
 <details>
 <summary><b>¿Puedo llevarme mi configuración a otro equipo?</b></summary>
 
-Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado.
+Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado. La sección Copia de seguridad de Ajustes > General también puede exportar ajustes y datos por cuenta a un único archivo, sin el token de sesión.
 
 </details>
 

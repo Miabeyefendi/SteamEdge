@@ -38,9 +38,10 @@
 - **Impulsor de horas** - Mantiene hasta 32 juegos abiertos a la vez, con sincronización opcional que iguala las horas totales de una selección.
 - **Gestor de logros** - Lee el estado real de bloqueo y desbloqueo directamente del protocolo de Steam, y luego desbloquea o rebloquea en lote.
 - **Modo realista** - Mantiene un juego abierto y desbloquea sus logros del más común al más raro, repartidos por la sesión, de forma que el perfil parezca jugado de verdad.
-- **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera.
+- **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera. Los precios de venta usan el cálculo de comisión propio de Steam, y la venta en lote se detiene y avisa al llegar al límite de Steam por cuenta, o divide la venta en lotes.
 - **Chat** - Lista de amigos, conversaciones y envío, por el mismo protocolo de red. Los no leídos se ven en la pestaña, así no se escapa nada mientras corre una cola.
-- **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso.
+- **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso. Las estadísticas se guardan por cuenta.
+- **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
 
@@ -77,7 +78,7 @@
 |---|---|
 | Sistema operativo | Windows 10 o superior, 64 bits |
 | Cuenta de Steam | Con Steam Guard configurado, móvil o correo |
-| Espacio en disco | Unos 320 MB extraído |
+| Espacio en disco | Unos 330 MB extraído |
 | Cliente de Steam | No hace falta, y no se usa |
 
 ### Construido con
@@ -100,6 +101,7 @@ npm install
 1. Descarga el último `.rar` desde la [página de versiones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
 2. Extráelo donde quieras. Una carpeta tuya, no `Program Files`.
 3. Ejecuta `SteamEdge.exe`. No hay nada que instalar y no se escribe nada fuera de esa carpeta.
+4. Para actualizar, extrae la nueva versión en una carpeta nueva y vacía y copia en ella la carpeta `settings/` de la anterior. Extraer encima de la carpeta antigua con la app abierta mezcla archivos de dos versiones.
 
 </details>
 
@@ -119,7 +121,7 @@ Una vez dentro, el Resumen muestra qué está en marcha y qué está disponible.
 
 ## ⚙️ Configuración
 
-Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos por cuenta en `settings/accounts/<steamID>.json`. Todo se edita desde la página de Ajustes de la aplicación; no hay motivo para tocar los archivos a mano.
+Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos por cuenta en `settings/accounts/<steamID>.json`. Todo se edita desde la página de Ajustes de la aplicación; no hay motivo para tocar los archivos a mano. Los cambios solo se aplican al pulsar Guardar, y las tareas en marcha los recogen en pocos segundos.
 
 > **No compartas nunca la carpeta `settings/`.** Contiene tu token de sesión de Steam, suficiente para usar tu cuenta.
 
@@ -128,8 +130,12 @@ Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos p
 | `boostMaxGames` | `32` | Cuántos juegos mantiene abiertos el impulsor de horas |
 | `boostSync` | `false` | Iguala las horas totales de los juegos seleccionados |
 | `fetchAvgWithPrice` | `true` | Obtiene la media de ventas junto con el precio |
-| `pauseFarmOnBoost` | `false` | Detiene el farmeo cuando arranca el impulsor de horas |
-| `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad |
+| `pauseFarmOnBoost` | `false` | Pausa el farmeo mientras funciona el impulsor de horas o el Modo realista |
+| `bulkSellLimit` | `50` | La venta en lote se divide en lotes de este número de objetos; `0` publica hasta que Steam lo detenga |
+| `priceDropThreshold` | `10` | Porcentaje por debajo de la media de 24 horas de Steam que cuenta como bajada de precio |
+| `yenidenBaglanma` | `sinirsiz` | Reconexión tras perder la conexión: `sinirsiz` (sin límite), `10`, `3` o `kapali` (desactivado) |
+| `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad; las tareas en marcha no cuentan como inactividad |
+| `theme` | `dark` | Tema de color: `dark`, `midnight`, `white` |
 | `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Todas las claves están documentadas en la [referencia de configuración](./TUTORIAL_ES.md#️-referencia-de-configuración).
@@ -149,9 +155,12 @@ Todas las claves están documentadas en la [referencia de configuración](./TUTO
 
 - [x] Chat de Steam: lista de amigos, conversaciones y envío, dentro de la aplicación
 - [x] Interfaz en ruso, a la altura de la documentación
-- [ ] Las páginas restantes rehechas según el diseño, una por versión.
 - [x] Modo realista rehecho según el diseño
 - [x] Cola de mercado por objeto, precio y media juntos
+- [x] Todos los textos generados en ejecución traducidos, con formas de plural en todos los idiomas (1.3.0)
+- [x] Temas: Oscuro, Púrpura medianoche, Blanco (1.3.0)
+- [x] Electron 41 (1.3.2)
+- [ ] Las páginas restantes rehechas según el diseño, una por versión
 
 Nada de esto es una promesa. Es un proyecto personal y la lista se mueve cuando cambian mis prioridades.
 
@@ -190,7 +199,7 @@ Algunos logros los escribe el servidor del juego, no el cliente, y Steam no perm
 <details>
 <summary><b>Dejó de funcionar tras una actualización, ¿ahora qué?</b></summary>
 
-Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resolución-de-problemas) de la guía, y luego el registro en `cache/steamedge.log`. Si sigue roto, abre un informe de error y adjunta ese registro.
+Asegúrate de haber extraído la nueva versión en una carpeta nueva y vacía, copiando solo `settings/`; extraer encima de la carpeta antigua mezcla archivos de dos versiones. Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resolución-de-problemas) de la guía, y luego el registro en `cache/steamedge.log`. Si sigue roto, abre un informe de error y adjunta ese registro.
 
 </details>
 

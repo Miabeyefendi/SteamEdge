@@ -36,7 +36,7 @@ Uygulama, Steam'in kendi ağ protokolüyle konuşur; istemcinin kullandığı pr
 Buradan iki sonuç çıkıyor ve uygulamanın davranışının çoğunu bu ikisi açıklıyor:
 
 - **Tek doğru kaynağı Steam.** Hiçbir şey tahmin edilmez, uydurulmaz. Bir sayı çekilemiyorsa kutuda tahmin değil, tire görürsün.
-- **Steam'in sınırları uygulamanın da sınırı.** Pazar istekleri hesap başına kabaca 30 saniyede 20 istekle sınırlı ve uygulamanın pazara dokunan her parçası bu tek bütçeyi paylaşıyor. Kart düşürme, bir oyunun toplam süresi iki saati geçmeden başlamıyor. Bunlar ölçülmüş gerçekler, ayar değil.
+- **Steam'in sınırları uygulamanın da sınırı.** Pazar istekleri hesap başına kabaca 30 saniyede 20 istekle sınırlı ve uygulamanın pazara dokunan her parçası bu tek bütçeyi paylaşıyor. Kart düşürme, bir oyunun toplam süresi iki saati geçmeden başlamıyor. Bunlar ölçülmüş gerçekler, ayar değil. İlan vermenin de Steam'in yayımlamadığı, hesaba göre değişen ayrı bir sınırı var.
 
 ### Dosya düzeni
 
@@ -49,11 +49,14 @@ SteamEdge/
     settings.json              genel ayarlar
     accounts.json              kayıtlı hesaplar
     session.json               aktif oturum anahtarı
+    stats.json                 kalıcı istatistikler
+    state.json                 hatırlanan kuyruklar ve başarım günlüğü
     accounts/<steamID>.json    hesaba özel: kuyruklar, presetler, istatistikler
   cache/
     prices.json                pazar fiyatları, 24 saat ömürlü
     history.json               gerçekleşen satış ortalamaları, 72 saat ömürlü
     basarimsiz.json            başarımı olmadığı anlaşılan oyunlar
+    chromium/                  görsel ve sayfa önbelleği
     steamedge.log              hata bildirimine eklenecek kayıt
 ```
 
@@ -65,7 +68,7 @@ SteamEdge/
 
 ### Gereksinimler
 
-Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarılmış hâlde yaklaşık 320 MB disk alanı. Steam istemcisi gerekmez ve hiç açılmaz.
+Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarılmış hâlde yaklaşık 330 MB disk alanı. Steam istemcisi gerekmez ve hiç açılmaz.
 
 ### Adım adım
 
@@ -76,11 +79,11 @@ Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarı
 
 ### Kurulumu doğrulama
 
-Oturum ayağa kalkınca sol altta `SİSTEM: ÇALIŞIYOR` yazar, sağ üstteki hesap rozeti adın, avatarın ve seviyenle dolar. Rozet boş kalıyorsa oturum kurulmamıştır; [sorun gidermeye](#-sorun-giderme) bak.
+Oturum ayağa kalkınca sol altta `SİSTEM: HAZIR`, bir iş çalışırken `SİSTEM: ÇALIŞIYOR` yazar, sağ üstteki hesap rozeti adın, avatarın ve seviyenle dolar. Rozet boş kalıyorsa oturum kurulmamıştır; [sorun gidermeye](#-sorun-giderme) bak.
 
 ### Güncelleme
 
-Uygulama yayımlanmış sürüm numarasına bakar ve daha yenisi çıktığında haber verir. Bilerek hiçbir şey indirmez ve kurmaz. Güncellemek için yeni arşivi eski klasörün üstüne çıkar, `settings/` ve `cache/` klasörlerini koru.
+Uygulama yayımlanmış sürüm numarasına bakar ve daha yenisi çıktığında haber verir. Bilerek hiçbir şey indirmez, kurmaz. Güncellemek için SteamEdge'i kapat, yeni arşivi **boş ve yeni bir klasöre** çıkar ve eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır; uygulama yaygın durumu yakalar ve açılışta söyler.
 
 ### Kaldırma
 
@@ -94,31 +97,35 @@ Klasörü sil. İşlemin tamamı bu.
 
 Açılış sayfası. **Aktif Görev** paneli gerçekten ne çalışıyorsa onu gösterir; aynı anda birden çok iş varsa aralarında oklarla gezilir. Başlat, Durdur ve Detay sabit bir sayfaya değil, o an baktığın işe göre çalışır.
 
-Altında kuyruk ve aktivite akışı. Sağda kart, kütüphane, envanter değeri, saat yükseltici ve başarım kutuları. Bir kutu, sayfası henüz yüklenmediyse tire gösterir; bu hesabınla ilgili değil, neyin çekildiğiyle ilgili bir bilgidir.
+Üstünde altı kutu: kalan toplam kart, kütüphane, bu oturum, envanter değeri, saat yükseltici ve başarımlar. Soldaki **Son aktiviteler** olanları durum ve saatle listeler; Aktif Görev panelinin altındaki **Hızlı işlemler** oyun listesini, envanteri ya da pazarı yeniler ve Ayarlar'ı açar. Bir kutu, sayfası henüz yüklenmediyse tire gösterir; bu, hesabın hakkında değil neyin çekildiği hakkında bir bilgidir.
 
 ### Kart Düşür
 
-Rozet sayfalarından kazınan, hâlâ kartı olan oyunların listesi. Bir mod seç, oturum süresi belirle, Başlat'a bas.
+Rozet sayfalarından okunan, kartı kalmış oyunların kuyruğu; 1-2 ya da 3+ kart kalanlara göre süzülebilir. Oklarla ya da **En öne al** ile sırala, ✕ ile çıkar. Sağda: düşürme modu, hazır sürelerle oturum zamanlayıcısı, **Otomasyon** (düşen kartı pazarda otomatik sat, arka planda topla, kart düşünce bildir, saat artarken başarım tetikle) ve **Son düşüşler**. Başlat'a bas.
 
 ### Envanter & Pazar
 
-Steam envanterin, yinelenenler tek satırda birleştirilmiş hâlde. Fiyatlar ve gerçekleşen satış ortalamaları arka planda, öğe öğe ve ikisi birlikte çekilir. Detay paneli sipariş defterini gösterir ve eşyayı satışa koymanı sağlar.
+Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir** ve **Ortalamaları getir** pazar verisini öğe öğe, iki değer birlikte çeker. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim).
 
 ### Saat Yükseltici
 
-Aranabilir hâlde bütün kütüphanen. Oyunları seç, eşzamanlı limit ve süre belirle, Başlat'a bas. İsteğe bağlı saat eşitlemesi seçimi ortak bir toplama çeker.
+Solda aranabilir tüm kütüphane, ortada aktif kuyruk. Sağda: **Saat eşitleme** (hedef ve yöntem), eşzamanlı limit (2, 8, 16, 32 ya da özel), hazır süreler, davranış anahtarları ve çevrimdışı görünme. Süre seçilirse oturum süre dolunca durur; ∞ sen durdurana kadar sürer. Seçim hazır ayar olarak kaydedilebilir.
 
 ### Gerçekçi Mod
 
-Üç sütunlu bir çalışma alanı. Solda kuyruk ve oturum süresi, ortada açılma sırası, sağda Basit ve Gelişmiş olarak ikiye ayrılmış ayarlar.
+Oyunu, açılan sayıyı, ortalama aralığı ve genel ilerlemeyi gösteren bir şeridin altında üç sütunlu bir çalışma alanı. Solda kuyruk, oturum süresi ve OTO hedef; ortada sıradaki başarım üstte olmak üzere açılma sırası; sağda Basit ve Gelişmiş diye ikiye ayrılan ayarlar.
 
 ### Başarımlar
 
-Oyun bazında, protokolden okunan gerçek kilitli ve açık durum. Başarımları seçip toplu aç ya da yeniden kilitle; ilerleme canlı görünür ve Durdur bekleme sırasında bile anında keser.
+Her oyun için protokolden okunan gerçek kilitli ve açık durum; üstte toplamlar, durum ve nadirlik süzgeçleri, ızgara ya da liste görünümü ve detay paneli. Başarımları seçip toplu aç ya da yeniden kilitle; alttaki çubuk seçimi, tahmini süreyi ve güvenli modun açılışları aralıklandırıp aralıklandırmadığını gösterir. İlerleme canlıdır, Durdur beklemenin ortasında bile etki eder.
 
 ### Ayarlar
 
-Uygulamaya söylenebilecek her şey, gruplanmış hâlde: genel, kart düşürme, pazar, saat yükseltici, gerçekçi mod, gizlilik, hesap kimliği, yedekleme.
+Uygulamaya söylenebilecek her şey, gruplanmış hâlde: Genel, Kart Düşürme, Pazar, Envanter, Saat Yükseltici, Başarımlar, Bildirimler, Gizlilik & Güvenlik, İstatistikler, Gelişmiş & Veri ve Hakkında. Sağ sütun hesabı (seviye, bağlantı durumu, kopyalanabilir Steam kimlikleri) ve yapılandırmayı (son kayıt, kaydedilmemiş değişiklikler) gösterir.
+
+Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra çalışan kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
+
+Tema (Koyu, Gece Moru, Beyaz) Genel bölümündedir, giriş ekranına da uygulanır.
 
 ### Sohbet
 
@@ -131,6 +138,8 @@ Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkada�
 ### Kart düşürme
 
 Steam, bir oyunun toplam süresi **iki saati** geçmeden kart düşürmez. Bir mod dışında hepsi bunu yok sayıp oyunları çalıştırır; **Hızlı mod** bunu bilir ve yalnızca eşiği geçmiş oyunları döndürür, böylece henüz kart düşüremeyecek oyunlara zaman harcanmaz.
+
+Kuyruktaki her oyunun kartı bittiğinde ya da **Oyun bitince sıradakine geç** kapalıyken mevcut oyun bittiğinde, kart düşürme son oyunu yeniden başlatmak yerine durur ve sebebini söyler. Kart düşürme ve saat yükseltici birlikte çalışabilir: her biri kendi oyun kümesini tutar, Steam ikisini birden 32 sınırına kadar görür.
 
 Modlar:
 
@@ -186,7 +195,11 @@ Eşya değeri, en düşük aktif ilan değil, **gerçekleşen satışların mikt
 
 Fiyatlar hesabının **cüzdan kurunda** gelir ve aynen o kurda gösterilir. Çeviri bilerek yok: çevirmek bir kur uydurmak demek olurdu.
 
-Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk sıradaki öğeye geçer. İkisi Steam'in tek pazar bütçesini paylaşır ve limit öğe sayısıyla değil istek sayısıyla ölçülür.
+Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk sıradaki öğeye geçer. İkisi Steam'in tek pazar bütçesini paylaşır ve limit öğe sayısıyla değil istek sayısıyla ölçülür. İstekler arasındaki süre Ayarlar > Gelişmiş & Veri altında; Steam'in toleransı hesaba göre değişir.
+
+**Satış.** Alıcının ödeyeceği fiyatı sen seçersin; eline geçecek tutarı Steam'in kendi ücret betiği hesaplar (Steam'den indirilir, kum havuzlu bir pencerede çalışır), yani ikisi Steam sitesinin göstereceğiyle aynıdır. Toplu satış Steam bir ilanı reddettiği anda durur ve pencere Steam'in sebebini yazar: yeni hesaplar 10-15 ilanda durdurulabilir, eskileri 80 ve üzerini listeler. **Parti büyüklüğü** ve **Partiler arası bekleme** (Ayarlar > Pazar) büyük satışı böler; bekleme yoksa her partiden sonra sorulur. Mobil doğrulayıcı açıksa her ilan yine Steam uygulamasında onaylanmalıdır.
+
+**Fiyat düşüşü uyarısı.** Bir öğenin en ucuz ilanı Steam'in 24 saatlik ortalamasının **Fiyat düşüşü eşiği** (varsayılan %10) kadar altına inince listede kırmızı ▼ ile işaretlenir, satış onayı kırmızı uyarı verir ve uyarı açıksa günde en fazla bir kez bildirim gelir.
 
 ### Sohbet
 
@@ -196,7 +209,11 @@ Arkadaş mesajları buradaki her şeyle aynı ağ protokolü üzerinden gider, S
 
 ### Çoklu hesap
 
-Aynı anda birden çok hesap bağlanabilir. Her biri kendi motorunu, kendi kuyruklarını ve kendi veri dosyasını tutar. Hesap değiştirmek uygulamayı yeniden başlatmaz ve diğer hesapların işini kesmez.
+Aynı anda birden çok hesap bağlanabilir. Her biri kendi motorunu, kendi kuyruklarını ve kendi veri dosyasını tutar. Hesap değiştirmek uygulamayı yeniden başlatmaz ve diğer hesapların işini kesmez. Ayarlardan dışa aktarılan yedek her hesabın istatistiklerini, saat yükseltici listesini, Gerçekçi Mod kuyruğunu ve hazır ayarlarını içerir.
+
+### Bağlantı
+
+Bağlantı koptuğunda SteamEdge kendiliğinden yeniden bağlanır, çalışan işler kaldığı yerden sürer. **Bağlantı koparsa yeniden bağlan** (Ayarlar > Gelişmiş & Veri) sınırı belirler: sınırsız, 10 deneme, 3 deneme ya da kapalı. Steam oturumu kalıcı olarak kapatırsa (ör. hesap başka yerde açıldıysa) deneme durur ve şerit bir Yeniden bağlan düğmesi sunar.
 
 ---
 
@@ -210,17 +227,17 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 |---|---|---|
 | `language` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
-| `preventSleep` | `true` | Bir iş çalışırken makineyi uyutma |
-| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı kes. Arka plan işleri sayacı sıfırlamaz, yalnızca senin etkileşimin sıfırlar |
+| `theme` | `dark` | Renk teması: `dark`, `midnight` (Gece Moru), `white` |
+| `preventSleep` | `true` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
 
 ### Kart düşürme
 
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
-| `autoNextGame` | `true` | Bir oyun bitince sonrakine geç |
+| `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
 | `cardMaxGames` | `32` | Aynı anda açık oyun |
 | `fastMinPlaytimeMin` | `120` | Hızlı mod bu sürenin altındaki oyunları atlar |
-| `pauseFarmOnBoost` | `false` | Saat yükseltici başlayınca kart düşürmeyi durdur |
+| `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır, sonra kaldığı yerden sürdürür |
 
 ### Pazar
 
@@ -230,6 +247,9 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 | `historyRefreshHours` | `72` | Satış ortalaması kaç saat taze sayılır |
 | `fetchAvgWithPrice` | `true` | Ortalamayı fiyatla aynı turda çek. Kapalıyken öğe başına tek istek gider, ortalamalar yalnızca Ortalama düğmesiyle gelir |
 | `bookDepth` | `5` | Detay panelindeki sipariş defteri satırı |
+| `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür. `0` Steam durdurana kadar listeler |
+| `sellBatchWaitMin` | `0` | Partiler arası bekleme (dakika). `0` her partiden sonra sorar |
+| `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
 
 ### Saat yükseltici
 
@@ -267,6 +287,15 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 
 > Çevrimdışı görünmek arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
 
+### Gelişmiş
+
+| Anahtar | Varsayılan | Ne yapar |
+|---|---|---|
+| `yenidenBaglanma` | `sinirsiz` | Bağlantı koparsa yeniden bağlanma: `sinirsiz`, `10`, `3`, `kapali` |
+| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser. Çalışan işler boşta sayılmaz; sayacı yalnızca senin etkileşimin sıfırlar |
+| `apiRequestDelayMs` | `350` | Pazar istekleri arasındaki en kısa süre. Düşük değer hızlıdır ama Steam'in hız sınırına (HTTP 429) yaklaştırır |
+| `logLevel` | `error` | `cache/steamedge.log` içine ne yazılacağı: `off`, `error`, `warn`, `info`, `debug` |
+
 ### Ayarlar nerede durur
 
 Genel ayarlar `settings/settings.json` içinde. Tek bir hesaba ait olan her şey (saat yükseltici seçimi, Gerçekçi Mod kuyruğu ve presetleri, başarım günlüğü, istatistikler) `settings/accounts/<steamID>.json` içinde. Önbellekler ayrı, `cache/` altında; yapılandırmayı kaybetmeden istediğin zaman silinebilir.
@@ -281,7 +310,11 @@ Zaten açık bir kopya var. SteamEdge tek örneğe izin verir. Görev Yöneticis
 
 ### Hesap rozeti boş kalıyor, hiçbir şey yüklenmiyor
 
-Steam oturumu kurulmamış. Bağlantı koptuğunda ya da yeniden denenirken üst çubuğun altında bir şerit çıkar. Sürüyorsa önce Steam'e erişilebildiğini doğrula, sonra sebebi için `cache/steamedge.log` dosyasına bak.
+Steam oturumu kurulmamış. Bağlantı koptuğunda ya da yeniden denenirken üst çubuğun altında bir şerit çıkar. Sürüyorsa önce Steam'e erişilebildiğini doğrula, sonra sebebi için `cache/steamedge.log` dosyasına bak. Steam oturumu kalıcı olarak kapattıysa şerit bunu söyler ve bir Yeniden bağlan düğmesi sunar.
+
+### Toplu satış yarıda durdu
+
+Steam bir hesabın kaç ilan açabileceğini sınırlar; sınır hesabın yaşına, seviyesine ve güvenilirliğine göre değişir. Pencere Steam'in döndürdüğü sebebi yazar. Bekleyen ilanları Steam uygulamasında onayla, birkaç saat bekle ya da partiler arası beklemeyle daha küçük bir **Parti büyüklüğü** seç.
 
 ### "40 kart kaldı" yazıyor ama birkaç tane düştü
 
@@ -301,7 +334,7 @@ Bitiş süresi fazla yüksek. Boş bırakılınca oynadığın süreden tahmin e
 
 ### Hata bildirimi için kayıt toplama
 
-Kayıt exe'nin yanındaki `cache/steamedge.log` dosyasıdır, Ayarlar'dan da açılır. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at.
+Kayıt exe'nin yanındaki `cache/steamedge.log` dosyasıdır, Ayarlar'dan da açılır. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyayı ekle.
 
 ---
 
@@ -338,7 +371,7 @@ Steam öyle gönderdiği için. Çevirmek bir kur uydurmak olurdu.
 <details>
 <summary><b>Kurulumumu başka makineye taşıyabilir miyim?</b></summary>
 
-Klasörü kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın olduğunu unutma, gizli kopyala.
+Klasörü kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın olduğunu unutma, gizli kopyala. Ayarlar > Genel altındaki Yedekleme kutusu ayarları ve hesap verilerini oturum anahtarı olmadan tek dosyaya da aktarabilir.
 
 </details>
 

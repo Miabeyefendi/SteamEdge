@@ -38,9 +38,10 @@
 - **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar. İsteğe bağlı saat eşitlemesi seçili oyunları aynı toplam süreye çeker.
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
 - **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar. Profilde gerçekten oynanmış gibi bir iz bırakır.
-- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda.
+- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda. Satış fiyatı Steam'in kendi ücret hesabıyla belirlenir; toplu satış Steam'in hesap başına sınırına gelince durup söyler ya da satışı partilere böler.
 - **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
-- **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır.
+- **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır. İstatistikler hesap başına tutulur.
+- **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
 
@@ -77,7 +78,7 @@
 |---|---|
 | İşletim sistemi | Windows 10 ya da üstü, 64 bit |
 | Steam hesabı | Steam Guard kurulu, mobil ya da e-posta |
-| Disk alanı | Çıkarılmış hâlde yaklaşık 320 MB |
+| Disk alanı | Çıkarılmış hâlde yaklaşık 330 MB |
 | Steam istemcisi | Gerekmez, kullanılmaz |
 
 ### Kullanılan araçlar
@@ -100,6 +101,7 @@ npm install
 1. [Yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) en son `.rar` dosyasını indir.
 2. İstediğin yere çıkar. Kendi sahip olduğun bir klasöre, `Program Files` içine değil.
 3. `SteamEdge.exe` dosyasını çalıştır. Kurulacak bir şey yok; o klasörün dışına hiçbir şey yazılmaz.
+4. Güncellemek için yeni sürümü boş ve yeni bir klasöre çıkar, eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır.
 
 </details>
 
@@ -119,7 +121,7 @@ Girdikten sonra Genel Bakış neyin çalıştığını ve neyin hazır olduğunu
 
 ## ⚙️ Yapılandırma
 
-Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel veriler ise `settings/accounts/<steamID>.json` içinde durur. Hepsi uygulamadaki Ayarlar sayfasından düzenlenebilir; dosyalara elle dokunmak için bir sebep yok.
+Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel veriler ise `settings/accounts/<steamID>.json` içinde durur. Hepsi uygulamadaki Ayarlar sayfasından düzenlenebilir; dosyalara elle dokunmak için bir sebep yok. Değişiklikler yalnızca Kaydet'e basınca uygulanır, çalışan işler birkaç saniye içinde yeni değerlerle devam eder.
 
 > **`settings/` klasörünü kimseyle paylaşma.** İçinde Steam oturum anahtarın var ve o anahtar hesabını kullanmaya yeter.
 
@@ -128,8 +130,12 @@ Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel ve
 | `boostMaxGames` | `32` | Saat yükseltici aynı anda kaç oyunu açık tutar |
 | `boostSync` | `false` | Seçili oyunları aynı toplam süreye çeker |
 | `fetchAvgWithPrice` | `true` | Bir eşyanın ortalamasını fiyatıyla aynı turda çeker |
-| `pauseFarmOnBoost` | `false` | Saat yükseltici başlayınca kart düşürmeyi durdurur |
-| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser |
+| `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır |
+| `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür; `0` Steam durdurana kadar listeler |
+| `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
+| `yenidenBaglanma` | `sinirsiz` | Bağlantı koparsa yeniden bağlanma: `sinirsiz`, `10`, `3` ya da `kapali` |
+| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser; çalışan işler boşta sayılmaz |
+| `theme` | `dark` | Renk teması: `dark`, `midnight`, `white` |
 | `language` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapılandırma-başvurusu) yazılı.
@@ -149,9 +155,12 @@ Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapıl
 
 - [x] Steam sohbeti: arkadaş listesi, yazışma ve mesaj gönderme uygulamada
 - [x] Rusça arayüz dili, belgelerle aynı hizada
-- [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa.
 - [x] Gerçekçi Mod şablona göre yeniden yapıldı
 - [x] Öğe bazlı pazar kuyruğu, fiyat ve ortalama birlikte çekiliyor
+- [x] Çalışma anında yazılan tüm metinler çevrildi, her dilde çoğul biçimlerle (1.3.0)
+- [x] Temalar: Koyu, Gece Moru, Beyaz (1.3.0)
+- [x] Electron 41 (1.3.2)
+- [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa
 
 Buradakilerin hiçbiri söz değil. Bu kişisel bir proje ve öncelikler değişince liste de değişir.
 
@@ -190,7 +199,7 @@ Bazı başarımları oyun sunucusu yazar, istemci değil; Steam hiçbir istemcin
 <details>
 <summary><b>Güncellemeden sonra bozuldu, ne yapmalıyım?</b></summary>
 
-Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `cache/steamedge.log` dosyasına bak. Hâlâ bozuksa bir hata bildirimi aç ve o kaydı ekle.
+Yeni sürümün boş ve yeni bir klasöre çıkarıldığından, yalnızca `settings/` klasörünün kopyalandığından emin ol; eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır. Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `cache/steamedge.log` dosyasına bak. Hâlâ bozuksa bir hata bildirimi aç ve o kaydı ekle.
 
 </details>
 
