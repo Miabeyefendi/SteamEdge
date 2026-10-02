@@ -97,9 +97,20 @@ if (!eksikToplam) yaz('  tum diller ayni anahtar kumesine sahip');
 // ---- 3. cevrilmemis: deger anahtarin aynisi ----
 bolum(3, 'Cevrilmemis giris (deger anahtarla ayni)');
 let ayniToplam = 0;
+// These names and loanwords are correctly written the same way in these locales.
+const INTENTIONALLY_UNCHANGED = {
+  en: new Set(['Marimba', 'Siren', 'Radar ping', 'Bloop', 'Pareto · 80/20',
+    'Sandbox · 4.0×', 'normal', 'Pareto (80/20)', 'Preset']),
+  de: new Set(['Profil', 'Marimba', 'Bloop', 'Pareto · 80/20',
+    'Sandbox · 4.0×', 'normal', 'Pareto (80/20)']),
+  es: new Set(['Motor', 'Marimba', 'Bloop', 'Pareto · 80/20',
+    'Sandbox · 4.0×', 'normal', 'Pareto (80/20)', 'Tema']),
+};
 DILLER.forEach((d) => {
   const ayni = [];
-  sozluk[d].forEach((v, k) => { if (v === k && k.length > 3) ayni.push(k); });
+  sozluk[d].forEach((v, k) => {
+    if (v === k && k.length > 3 && !INTENTIONALLY_UNCHANGED[d]?.has(k)) ayni.push(k);
+  });
   if (ayni.length) {
     ayniToplam += ayni.length;
     uyari++;
@@ -175,7 +186,7 @@ const eksikMetin = [];
 // Turkce harfli metin taraniyordu; zamanlayicinin "DK : SN" etiketi bu yuzden her dilde
 // Turkce kaldi ve hic yakalanmadi. Artik harfli her metin taranir; bilerek cevrilmeyen
 // ozel adlar (dil adlari, marka, paket, surucu) asagidaki listede durur.
-const CEVRILMEZ = new Set(['English', 'Deutsch', 'Español', 'ms', 'MB', 'Direct3D 11', 'Direct3D 9', 'OpenGL',
+const CEVRILMEZ = new Set(['English', 'Deutsch', 'Español', 'ms', 'MB', 'BF', 'Direct3D 11', 'Direct3D 9', 'OpenGL',
   'SteamEdge', 'Steam', 'Edge', 'Miabeyefendi', 'Idle Master', 'Idle Master Extended', 'HourBoostr',
   'Steam Achievement Manager', 'ArchiSteamFarm', 'steam-user', 'steam-session', 'qrcode',
   'SteamID', 'SteamID2', 'SteamID3', 'Hex', 'APP-ID', 'HEADLESS']);

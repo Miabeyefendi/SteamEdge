@@ -99,7 +99,7 @@ after closing SteamEdge; the installer does not import it automatically.
 Keep that folder private.
 
 SHA-256 of the English installer:
-`4BA71026A2D5C11D7BA03E087028800477F11CC5DB2662DF942AAFE0FE316377`
+`2FA37ED96170F9C95A020BFFBA56DAE1B1F54805F6814A20BAA9ED82BDE7939E`
 
 To build this English edition from source on Windows x64:
 
