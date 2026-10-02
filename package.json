@@ -52,7 +52,7 @@
     "steam-user": "^5.3.0"
   },
   "overrides": {
-    "ip-address": "^10.4.0",
+    "ip-address": "^10.7.3",
     "adm-zip": "^0.6.1",
     "@xmldom/xmldom": "^0.9.12",
     "steam-appticket": "^2.0.1"
