@@ -228,8 +228,19 @@ bolum(7, 'Sayfa JS metinleri (sozlukte karsiligi yok)');
 const normA = (x) => x.replace(/\d[\d.,]*/g, '#');
 const enNorm = new Set([...sozluk.en.keys()].map(normA));
 const jsEksik = new Map();
-fs.readdirSync(JS_DIZIN).filter((f) => f.endsWith('.js') && f !== 'i18n.js').forEach((f) => {
-  const kaynak = fs.readFileSync(path.join(JS_DIZIN, f), 'utf8')
+// HTML icindeki <script> bloklari da taranir. Giris ekraninin butun mantigi login.html'in
+// icinde duruyor; 6. bolum script'leri ayikladigi icin "Kod gönderiliyor...", "Bağlanılıyor..." gibi
+// durum metinleri 1.3.3'e kadar hicbir bolumde gorunmedi ve her dilde Turkce kaldi.
+const jsKaynaklar = fs.readdirSync(JS_DIZIN).filter((f) => f.endsWith('.js') && f !== 'i18n.js')
+  .map((f) => ({ ad: f, metin: fs.readFileSync(path.join(JS_DIZIN, f), 'utf8') }));
+HTML_DOSYALAR.forEach(({ ad, yol }) => {
+  const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
+  const html = fs.readFileSync(yol, 'utf8');
+  let m;
+  while ((m = re.exec(html))) jsKaynaklar.push({ ad, metin: m[1] });
+});
+jsKaynaklar.forEach(({ ad: f, metin }) => {
+  const kaynak = metin
     .replace(/^\s*\/\/.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, '');
   const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
@@ -238,8 +249,11 @@ fs.readdirSync(JS_DIZIN).filter((f) => f.endsWith('.js') && f !== 'i18n.js').for
     // Kacis dizileri calisma zamanindaki haline cevrilir: kaynakta \' yazan metin ekranda ' olur.
     const ham = (m[1] !== undefined ? m[1] : m[2]);
     if (!ham || !TR_HARF.test(ham)) continue;
-    // Etiketleri soyup yalnizca gorunur metni birak
-    ham.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ').split(/<[^>]*>/).forEach((p) => {
+    // Etiketleri soyup yalnizca gorunur metni birak. Bir parca etiketin ortasinda baslayip
+    // bitebilir ('">Giriş yap', '<span style="'): yarim etiket kalintisi metin sayilmaz.
+    const gorunur = ham.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ')
+      .replace(/^[^<>]*"[^<>]*>/, '').replace(/<[^>]*$/, '');
+    gorunur.split(/<[^>]*>/).forEach((p) => {
       const t = p.replace(/\s+/g, ' ').trim();
       if (t.length < 4 || !TR_HARF.test(t)) return;
       if (sozluk.en.has(t) || enNorm.has(normA(t))) return;
@@ -290,7 +304,8 @@ anaDosyalar.forEach((yol) => {
     .replace(/^\s*\/\/.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\blog\((?:[^()]|\([^()]*\))*\)/g, '')          // kayit satirlari kullaniciya gitmez
-    .replace(/\bcokmeYaz\((?:[^()]|\([^()]*\))*\)/g, '');
+    .replace(/\bcokmeYaz\((?:[^()]|\([^()]*\))*\)/g, '')
+    .replace(/'\s*\+\s*'/g, '');                            // satira bolunmus metin tek anahtardir
   const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
   let m;
   while ((m = re.exec(kaynak))) {

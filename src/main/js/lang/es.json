@@ -1287,5 +1287,18 @@
  "Bu filtreye uyan oyun yok.": "No hay juegos que coincidan con este filtro.",
  "# öğe satışa sunuldu.": "# objeto puesto en venta.|# objetos puestos en venta.",
  "# öğe satışa sunuldu, # hata.": "Objetos puestos en venta: #1; errores: #2.",
- "Kayıtlı durum": "Estado guardado"
+ "Kayıtlı durum": "Estado guardado",
+ "Ultra Nadir": "Ultra raro",
+ "Bilinmeyen hata": "Error desconocido",
+ "Listeleme reddedildi": "Puesta en venta rechazada",
+ "Kod reddedildi:": "Código rechazado:",
+ "web oturumu yok": "sin sesión web",
+ "Steam oturumu yok": "Sin sesión de Steam",
+ "nabız: oturum yok": "latido: sin sesión",
+ "Oyun listesi boş döndü. Steam profilinde Gizlilik > \"Oyun ayrıntıları\" ayarını Herkese Açık yapman gerekiyor, aksi halde Steam kütüphaneni paylaşmıyor.": "La lista de juegos llegó vacía. En tu perfil de Steam, pon Privacidad > \"Detalles de juegos\" en Público; si no, Steam no comparte tu biblioteca.",
+ "Süre doldu · # / #": "Se acabó el tiempo · # / #",
+ "Tüm başarımlar açıldı · # / #": "Todos los logros desbloqueados · # / #",
+ "Durduruldu · # / #": "Detenido · # / #",
+ "Steam bağlantısı yok · # / #": "Sin conexión con Steam · # / #",
+ "Süre doldu, # başarım açılmadı · # / #": "Se acabó el tiempo; # logro sin desbloquear · # / #|Se acabó el tiempo; # logros sin desbloquear · # / #"
 }

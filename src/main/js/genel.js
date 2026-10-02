@@ -687,7 +687,7 @@
       };
       pasif(bas, !!g);
       pasif(dur, !g);
-      if (det) det.textContent = g ? ('Detay: ' + GOREV_ADI[g.tab]) : 'Detay';
+      if (det) det.textContent = g ? (t('Detay') + ': ' + t(GOREV_ADI[g.tab])) : 'Detay';
     }
     const GOREV_ADI = { kart:'Kart', saat:'Saat', gercekci:'Gerçekçi', basarim:'Başarım' };
 

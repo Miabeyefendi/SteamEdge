@@ -225,7 +225,7 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 
 | 键名 | 默认值 | 作用 |
 |---|---|---|
-| `language` | `tr` | 界面语言：`tr`、`en`、`de`、`es`、`zh`、`ru` |
+| `language` | `en` | 界面语言：`tr`、`en`、`de`、`es`、`zh`、`ru` |
 | `autoLaunch` | `false` | 随 Windows 启动 |
 | `theme` | `dark` | 配色主题：`dark`、`midnight`（午夜紫）、`white` |
 | `preventSleep` | `true` | 卡牌 farm、时长累积或 Realistic Mode 运行期间阻止电脑睡眠。屏幕仍可能关闭并锁定 |

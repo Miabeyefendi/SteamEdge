@@ -2,6 +2,7 @@ const { LoginSession, EAuthTokenPlatformType, EAuthSessionGuardType } = require(
 const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
+const ceviri = require('../core/ceviri');
 
 // All Steam authentication for the app. Runs in the MAIN process (renderer can't use node
 // modules). Talks back to the renderer through `emit(event, data)` (main.js forwards over IPC).
@@ -52,7 +53,7 @@ class SteamAuth {
 
   async submitGuard(code) {
     try { await this.session.submitSteamGuardCode(code); }
-    catch (e) { this.emit('error', { message: 'Kod reddedildi: ' + e.message }); }
+    catch (e) { this.emit('error', { message: ceviri.t('Kod reddedildi:') + ' ' + e.message }); }
   }
 
   cancel() { if (this.session) { try { this.session.cancelLoginAttempt(); } catch (_) {} this.session = null; } }

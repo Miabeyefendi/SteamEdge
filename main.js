@@ -240,7 +240,7 @@ const DEFAULT_SETTINGS = {
   autoLaunch: false,        // Windows açılışında başlat
   closeToTray: false,       // kapatınca sistem tepsisine küçült
   preventSleep: false,      // uygulama açıkken uykuyu engelle
-  language: 'tr',
+  language: 'en',
   // Kart Düşürme
   cardPriorityMode: 'sequential',
   cardMaxGames: 32,         // hızlı modda aynı anda açık oyun (Steam'in bilinen üst sınırı 32)
@@ -3599,7 +3599,7 @@ app.whenReady().then(() => {
   if (!kurulum.ok) {
     log('error', 'karisik kurulum: version=' + kurulum.dosyaSurum + ' calisan=' + kurulum.calisan);
     // Ayarlar henüz yüklenmedi; dil, pencere açılmadan okunan erken ayardan gelir.
-    ceviri.dilSec((erkenAyarlar && erkenAyarlar.language) || 'tr');
+    ceviri.dilSec((erkenAyarlar && erkenAyarlar.language) || 'en');
     try {
       dialog.showMessageBoxSync({
         type: 'error',

@@ -225,7 +225,7 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
-| `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Arrancar con Windows |
 | `theme` | `dark` | Tema de color: `dark`, `midnight` (Púrpura medianoche), `white` |
 | `preventSleep` | `true` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
