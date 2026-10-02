@@ -57,19 +57,19 @@
       }
       el.innerHTML = activityFeed.map(f=>{
         const s = FEED_STATUS[f.status] || FEED_STATUS['Başarılı'];
-        const t = new Date(f.ts).toLocaleTimeString(yerelKod());
+        const time = new Date(f.ts).toLocaleTimeString(yerelKod());
         return '<div class="h-row" style="display:grid;grid-template-columns:minmax(240px,1fr) 130px 100px;gap:0;padding:0 18px;height:60px;align-items:center;border-bottom:1px solid #101621">'
           + '<div style="display:flex;align-items:center;gap:12px;min-width:0">'
             + '<div style="width:30px;height:30px;flex-shrink:0;border-radius:12px;border:1px solid '+s.bd+';background:#101621;display:flex;align-items:center;justify-content:center">'
               + '<span style="width:8px;height:8px;border-radius:12px;background:'+s.color+'"></span>'
             + '</div>'
             + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
-              + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.title)+'</span>'
-              + '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.text)+'</span>'
+              + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t(f.title))+'</span>'
+              + '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(t(f.text))+'</span>'
             + '</div>'
           + '</div>'
-          + '<div><span style="display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:12px;border:1px solid '+s.bd+';color:'+s.color+';font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">'+esc(f.status)+'</span></div>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;text-align:right">'+t+'</span>'
+          + '<div><span style="display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:12px;border:1px solid '+s.bd+';color:'+s.color+';font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">'+esc(t(f.status))+'</span></div>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;text-align:right">'+time+'</span>'
           + '</div>';
       }).join('');
     }
@@ -617,17 +617,17 @@
       const box = document.getElementById('toastBox');
       const el = document.createElement('div');
       el.className = 'toast';
-      el.innerHTML = '<span class="tspin"></span><span class="tt">'+esc(text)+'</span>';
+      el.innerHTML = '<span class="tspin"></span><span class="tt">'+esc(t(text))+'</span>';
       box.appendChild(el);
       requestAnimationFrame(()=>el.classList.add('show'));
       return {
         done(text2){
-          el.innerHTML = '<span class="tick">✓</span><span class="tt">'+esc(text2)+'</span>';
+          el.innerHTML = '<span class="tick">✓</span><span class="tt">'+esc(t(text2))+'</span>';
           el.classList.remove('err'); el.classList.add('ok');
           setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),200); }, 2200);
         },
         fail(text2){
-          el.innerHTML = '<span class="terr">✕</span><span class="tt">'+esc(text2)+'</span>';
+          el.innerHTML = '<span class="terr">✕</span><span class="tt">'+esc(t(text2))+'</span>';
           el.classList.add('err');
           setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),200); }, 2800);
         },

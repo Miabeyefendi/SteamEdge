@@ -141,8 +141,8 @@
         }
         isler.forEach(([node, yeni]) => { node.nodeValue = yeni; });
 
-        alan.querySelectorAll('[placeholder],[title],[data-tip]').forEach((el) => {
-          ['placeholder', 'title', 'data-tip'].forEach((a) => {
+        alan.querySelectorAll('[placeholder],[title],[data-tip],[aria-label]').forEach((el) => {
+          ['placeholder', 'title', 'data-tip', 'aria-label'].forEach((a) => {
             const v = el.getAttribute(a);
             if (!v) return;
             const yeni = t(v);

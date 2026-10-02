@@ -16,6 +16,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 // @electron/packager 20 adlandirilmis disa aktarim kullaniyor (varsayilan degil).
 const { packager } = require('@electron/packager');
 
@@ -77,6 +78,10 @@ async function main() {
 
   // Windows exe ikonu .ico ister (build/make-icon.js uretiyor); yoksa png'ye duser.
   const ico = path.join(KOK, 'src', 'assets', 'icon.ico');
+  if (platform === 'win32' && !fs.existsSync(ico)) {
+    const result = spawnSync(require('electron'), [path.join(KOK, 'build', 'make-icon.js')], { stdio: 'inherit' });
+    if (result.status !== 0 || !fs.existsSync(ico)) throw new Error('Windows icon generation failed');
+  }
   const ikon = fs.existsSync(ico) ? ico : path.join(KOK, 'src', 'assets', 'icon.png');
   const yollar = await packager({
     dir: KOK,
@@ -198,13 +203,14 @@ function sozlukKontrol() {
 // Kaynak: build/changelog/<surum>.md . Dosya yoksa uyarir ama derlemeyi durdurmaz -
 // surum notu yazmayi unutmak derlemeyi engellememeli, sadece gorunur olmali.
 function changelogYaz(hedef) {
-  const kaynak = path.join(__dirname, 'changelog', pkg.version + '.md');
+  const english = path.join(__dirname, 'changelog', pkg.version + '-english.md');
+  const kaynak = fs.existsSync(english) ? english : path.join(__dirname, 'changelog', pkg.version + '.md');
   if (!fs.existsSync(kaynak)) {
     console.log('  UYARI: build/changelog/' + pkg.version + '.md yok, CHANGELOG.md yazilmadi');
     return;
   }
   fs.copyFileSync(kaynak, path.join(hedef, 'CHANGELOG.md'));
-  console.log('  changelog: ' + pkg.version + '.md -> CHANGELOG.md');
+  console.log('  changelog: ' + path.basename(kaynak) + ' -> CHANGELOG.md');
 }
 
 function yaz(hedef) {
@@ -212,30 +218,33 @@ function yaz(hedef) {
 `SteamEdge ${pkg.version}
 ================================================================
 
-HIZLI BASLANGIC
-  1. SteamEdge.exe dosyasina cift tikla.
-  2. QR kodu Steam mobil uygulamasiyla okut ya da kullanici adi + sifre gir.
-  3. Kart Dusur sekmesinde "Baslat" de. Hepsi bu.
+QUICK START
+  1. Double-click SteamEdge.exe.
+  2. Scan the QR code with the Steam mobile app, or sign in with your
+     username and password.
+  3. Open Card Farming and select Start.
 
-KLASOR YAPISI
-  SteamEdge.exe    Uygulama.
-  settings/        Ayarlarin, kayitli hesaplarin, oturumun ve istatistiklerin.
-  cache/           Fiyat onbellegi ve kayit dosyasi. Silmek zararsizdir.
-  resources/       Uygulamanin kendi dosyalari. Elleme.
+FOLDER CONTENTS
+  SteamEdge.exe    The application.
+  settings/        Your preferences, saved accounts, sessions and statistics.
+  cache/           Downloaded prices and logs. Safe to delete.
+  resources/       Application files. Leave these in place.
 
-TASINABILIR
-  Bu klasoru USB'ye kopyalayabilir, baska bir bilgisayarda calistirabilirsin.
-  Ayarlarin ve oturumun seninle gelir; kayit defterine hicbir sey yazilmaz.
+PORTABLE USE
+  Copy this folder to another location or a USB drive to take your
+  preferences with you. Keep the settings folder private.
 
-KALDIRMA
-  Klasoru sil. Baska bir iz birakmaz.
+UNINSTALLING THE PORTABLE APP
+  Delete the folder after SteamEdge is fully closed.
 
-GUVENLIK
-  Sifren hicbir yere kaydedilmez. Steam'in verdigi yenileme anahtari
-  settings/ altinda tutulur; bu klasoru kimseyle paylasma.
+SECURITY
+  Your password is not saved. Steam refresh tokens are stored in settings/.
+  Never share that folder, your session files or your account data.
 
-Lisans: AGPL-3.0-or-later.  Kaynak kod ve dokumantasyon:
-https://github.com/Miabeyefendi/steamedge
+Original SteamEdge creator: Miabeyefendi (Mustafa Ihsan Albayrak).
+English edition creator: @braxffa.
+License: AGPL-3.0-or-later. Source and documentation:
+https://github.com/Miabeyefendi/SteamEdge
 `, 'utf8');
 }
 

@@ -89,6 +89,19 @@
 
 ### Install
 
+The English edition starts in English on a fresh install. On Windows x64,
+build its portable app and installer with:
+
+```powershell
+npm ci
+npm run build:win
+.\installer\Build-Installer.ps1
+```
+
+The installer is written to `releases/SteamEdge-Setup-1.3.2-English.exe`.
+It excludes saved settings, account data, and Steam sessions. The portable
+app remains available in `releases/SteamEdge-v1.3.2-win-x64/`.
+
 ```bash
 git clone https://github.com/Miabeyefendi/SteamEdge.git
 cd SteamEdge
@@ -263,6 +276,10 @@ Per AGPL-3.0 Section 7(b), the following attribution must be preserved, visibly
 and unmodified, in any copy, fork or deployment of this project:
 
 > **Miabeyefendi (Mustafa Ihsan Albayrak)** - https://github.com/Miabeyefendi
+
+The English edition and its localization review were created by
+[@braxffa](https://github.com/braxffa). The original SteamEdge application and
+its required author attribution remain with Miabeyefendi.
 
 ### Disclaimer
 

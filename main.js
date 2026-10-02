@@ -84,10 +84,10 @@ if (!app.requestSingleInstanceLock()) {
   // sonlanıyordu. Açık olan ESKİ pencere ekranda durduğu için yeni kodun hiç çalışmadığı
   // anlaşılmıyordu. Artık sebep açıkça yazılıyor.
   console.log('\n============================================================');
-  console.log(' SteamEdge ZATEN AÇIK - bu ikinci kopya kapatıldı.');
-  console.log(' Açık olan pencere öne getirildi; o pencere ESKİ koddur.');
-  console.log(' Yaptığın değişiklikleri görmek için o pencereyi KAPAT,');
-  console.log(' sonra "npm start" komutunu tekrar çalıştır.');
+  console.log(' SteamEdge is already open - this second copy has closed.');
+  console.log(' The existing window was brought to the front. It is running the previous code.');
+  console.log(' Close that window to see your changes,');
+  console.log(' then run "npm start" again.');
   console.log('============================================================\n');
   app.quit();
 } else {
@@ -126,7 +126,15 @@ function getAuthSlot(slotId) {
   return authSlots.get(id);
 }
 function makeAuthSend(slotId) {
-  return (event, data) => { if (win && !win.isDestroyed()) win.webContents.send('auth:' + event, { ...data, slotId }); };
+  return (event, data) => {
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('auth:' + event, {
+        ...data,
+        message: data && typeof data.message === 'string' ? ct(data.message) : data && data.message,
+        slotId,
+      });
+    }
+  };
 }
 let tray = null;
 let isQuitting = false;
@@ -240,7 +248,7 @@ const DEFAULT_SETTINGS = {
   autoLaunch: false,        // Windows açılışında başlat
   closeToTray: false,       // kapatınca sistem tepsisine küçült
   preventSleep: false,      // uygulama açıkken uykuyu engelle
-  language: 'tr',
+  language: 'en',
   // Kart Düşürme
   cardPriorityMode: 'sequential',
   cardMaxGames: 32,         // hızlı modda aynı anda açık oyun (Steam'in bilinen üst sınırı 32)
@@ -424,8 +432,8 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
   }
   try {
     const n = new Notification({
-      title: title || 'SteamEdge',
-      body: body || '',
+      title: ct(title) || 'SteamEdge',
+      body: ct(body) || '',
       icon: fs.existsSync(NOTIF_ICON) ? NOTIF_ICON : undefined,
       silent: true,   // sesi kendimiz çalıyoruz (ayarlardan seçilen ton)
     });
@@ -608,10 +616,10 @@ const ACCOUNTS_FILE = path.join(CONFIG_DIR, 'accounts.json');
 function loadAccounts() {
   const r = jsonOku(ACCOUNTS_FILE);
   if (r.ok) {
-    if (r.yedekten) okumaHatalari.push({ ad: 'Kayitli hesaplar', kurtarildi: true });
+    if (r.yedekten) okumaHatalari.push({ ad: 'Kayıtlı hesaplar', kurtarildi: true });
     return Array.isArray(r.veri) ? r.veri : [];
   }
-  if (r.bozuk) okumaHatalari.push({ ad: 'Kayitli hesaplar', kurtarildi: false });
+  if (r.bozuk) okumaHatalari.push({ ad: 'Kayıtlı hesaplar', kurtarildi: false });
   return [];
 }
 function saveAccounts(list) { jsonYaz(ACCOUNTS_FILE, list, true); }
@@ -1051,7 +1059,7 @@ function kartFarmBaslat(steamID, mode, games, durationMs, ek) {
   if (!s.farm) s.farm = new FarmController(s.engine, farmYayini(steamID), 'kart');
   s.farm.engine = s.engine;
   const devam = !!(ek && ek.devam);
-  log('info', `[${hesapAdi(steamID)}] farm ${devam ? 'devam' : 'start'}: mode=${mode} oyun=${(games || []).length} süre=${durationMs}ms`);
+  log('info', `[${hesapAdi(steamID)}] farm ${devam ? 'devam' : 'start'}: mode=${mode} games=${(games || []).length} duration=${durationMs}ms`);
   s.farm.start(mode, games || [], durationMs, { ...kartFarmSecenekleri(), ...(ek || {}) });
   if (!devam && s.farm.running) istatistikEkle(steamID, { sessions: 1 });
   if (s.farm.running) kartIzleyiciBaslat(steamID, games || []);
@@ -1415,12 +1423,12 @@ async function connectAccount(entry) {
     try {
       const info = await eng.logOn(entry.refreshToken, settings.offlineMode);
       s.engine = eng; s.ready = true;
-      log('info', `[${entry.accountName}] oturum açıldı`);
+      log('info', `[${entry.accountName}] signed in`);
       syncActive();
       return { ok: true, persona: info.persona, steamID: info.steamID };
     } catch (e) {
       lastErr = e;
-      log('error', `[${entry.accountName}] logOn hatası: ${e.message}`);
+      log('error', `[${entry.accountName}] logOn error: ${e.message}`);
       // Başarısız denemenin soketi arkada açık kalmasın - sonraki deneme temiz başlasın
       try { eng.user.logOff(); } catch (_) {}
     }
@@ -2338,7 +2346,7 @@ function boostBaslat(steamID, istek) {
     emit();
   } else {
     // "Oyun başlatma aralığı": hepsi birden değil, bu aralıkla sırayla eklenir
-    log('info', `[${hesapAdi(steamID)}] boost: ${appids.length} oyun ${stagger}ms aralıkla başlatılıyor`);
+    log('info', `[${hesapAdi(steamID)}] boost: ${appids.length} games starting at ${stagger}ms intervals`);
     appids.forEach((id, i) => {
       b.stagger.push(setTimeout(() => {
         if (!b.calisiyor) return;
@@ -3109,7 +3117,7 @@ function armIdleTimer() {
     let calisan = false;
     accounts.forEach((s) => { if (hesapCalisiyor(s)) calisan = true; });
     if (calisan) { armIdleTimer(); return; }
-    log('warn', `Oturum ${mins} dk işlemsiz kaldı - TÜM hesaplar kapatılıyor`);
+    log('warn', `Session idle for ${mins} min - disconnecting all accounts`);
     disconnectAll();
     try { fs.unlinkSync(path.join(CONFIG_DIR, 'session.json')); } catch (_) {}
     if (win) {
@@ -3599,7 +3607,7 @@ app.whenReady().then(() => {
   if (!kurulum.ok) {
     log('error', 'karisik kurulum: version=' + kurulum.dosyaSurum + ' calisan=' + kurulum.calisan);
     // Ayarlar henüz yüklenmedi; dil, pencere açılmadan okunan erken ayardan gelir.
-    ceviri.dilSec((erkenAyarlar && erkenAyarlar.language) || 'tr');
+    ceviri.dilSec((erkenAyarlar && erkenAyarlar.language) || 'en');
     try {
       dialog.showMessageBoxSync({
         type: 'error',

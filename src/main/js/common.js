@@ -137,7 +137,7 @@
             + '<span class="h">'+esc(t(o.title || 'Emin misin?'))+'</span>'
             + (o.body ? '<span class="p">'+esc(t(o.body))+'</span>' : '')
             // Kırmızı uyarı: acele edilmemesi gereken durumlar (ör. fiyat 24 saatlik ortalamanın altında)
-            + (o.uyariKirmizi ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.uyariKirmizi)+'</span>' : '')
+            + (o.uyariKirmizi ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(t(o.uyariKirmizi))+'</span>' : '')
             + (o.warn ? '<span class="warn">'+esc(t(o.warn))+'</span>' : '')
           + '</div>'
           + (key ? '<div class="e-modal-ask" data-ask><span class="box">'
