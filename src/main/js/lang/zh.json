@@ -1287,5 +1287,18 @@
  "Bu filtreye uyan oyun yok.": "沒有符合此篩選條件的遊戲。",
  "# öğe satışa sunuldu.": "已上架 # 件物品。",
  "# öğe satışa sunuldu, # hata.": "已上架 #1 件物品；錯誤：#2 個。",
- "Kayıtlı durum": "已儲存的狀態"
+ "Kayıtlı durum": "已儲存的狀態",
+ "Ultra Nadir": "極稀有",
+ "Bilinmeyen hata": "未知錯誤",
+ "Listeleme reddedildi": "上架遭拒",
+ "Kod reddedildi:": "代碼遭拒：",
+ "web oturumu yok": "沒有網頁工作階段",
+ "Steam oturumu yok": "沒有 Steam 工作階段",
+ "nabız: oturum yok": "心跳檢查：沒有工作階段",
+ "Oyun listesi boş döndü. Steam profilinde Gizlilik > \"Oyun ayrıntıları\" ayarını Herkese Açık yapman gerekiyor, aksi halde Steam kütüphaneni paylaşmıyor.": "遊戲清單為空。請在 Steam 個人檔案的隱私設定中，將「遊戲詳細資料」設為「公開」，否則 Steam 不會分享你的遊戲庫。",
+ "Süre doldu · # / #": "時間到 · # / #",
+ "Tüm başarımlar açıldı · # / #": "所有成就皆已解鎖 · # / #",
+ "Durduruldu · # / #": "已停止 · # / #",
+ "Steam bağlantısı yok · # / #": "沒有 Steam 連線 · # / #",
+ "Süre doldu, # başarım açılmadı · # / #": "時間到，# 項成就未解鎖 · # / #"
 }

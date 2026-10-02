@@ -793,7 +793,7 @@
     // (durum, sebep, deneme, bekleme, sınır) yollar. Eskiden şeritte her dilde ASCII Türkçe
     // "yeniden baglaniyor (deneme 2, 10 sn sonra)" yazıyordu.
     function baglantiMetni(d){
-      if (d.durum === 'koptu') return t('Steam bağlantısı koptu.') + (d.sebep ? (' (' + d.sebep + ')') : '');
+      if (d.durum === 'koptu') return t('Steam bağlantısı koptu.') + (d.sebep ? (' (' + t(d.sebep) + ')') : '');
       if (d.durum === 'baglaniyor'){
         const sn = Math.max(1, Math.round((d.bekleMs || 0) / 1000));
         return d.sinir

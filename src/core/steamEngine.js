@@ -169,7 +169,7 @@ class SteamEngine {
   // penceresi orada). Bir saat bellekte tutulur.
   async cuzdanBilgisi() {
     if (this._cuzdan && Date.now() - (this._cuzdanTs || 0) < 3600000) return this._cuzdan;
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(ceviri.t('web oturumu yok'));
     const r1 = await this._iste('https://steamcommunity.com/market/?l=english', { deneme: 2 }, 'Pazar');
     if (this._cuzdaniOku(await r1.text())) return this._cuzdan;
     const r2 = await this._iste(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { deneme: 2 }, 'Envanter');
@@ -350,7 +350,7 @@ class SteamEngine {
       const gercektenBagli = !!(this.user && this.user.steamID);
       if (this.bagli && !gercektenBagli) {
         this.bagli = false;
-        this._durumBildir('koptu', { sebep: 'nabiz: oturum yok' });
+        this._durumBildir('koptu', { sebep: 'nabız: oturum yok' });
         this._yenidenBaglanmayiPlanla();
         return;
       }
@@ -395,7 +395,7 @@ class SteamEngine {
   // remaining" yazan oyunlar. Kart izleyicisi bir oyunu ancak Steam bunu SOYLEYINCE kuyruktan
   // cikarir; listede gorunmemek tek basina "bitti" demek degildir (kazima eksik kalabilir).
   async getDropGames(detay) {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(ceviri.t('web oturumu yok'));
     const bulunan = new Map();          // appid -> { appid, name, remaining }
     const bitenler = new Set();
     let sonImza = null;
@@ -464,7 +464,7 @@ class SteamEngine {
   // (getPersonas/getSteamLevels), no Web API key needed. Used to fill the sidebar/account card.
   getProfile() {
     const sid = this.steamID;
-    if (!sid) return Promise.reject(new Error('Steam oturumu yok'));
+    if (!sid) return Promise.reject(new Error(ceviri.t('Steam oturumu yok')));
     const personas = () => new Promise((res) => this.user.getPersonas([sid], (err, p) => res(err ? null : (p && p[sid]))));
     const levels = () => new Promise((res) => this.user.getSteamLevels([sid], (err, l) => res(err ? null : (l && l[sid]))));
     // Ozel adres BU CAGRIYA DAHIL DEGIL. Protokolden gelmiyor, profil sayfasindan
@@ -514,7 +514,7 @@ class SteamEngine {
   // Full game library (for Saat Yükseltici's game picker) via the Steam Web API, authenticated
   // with the JWT embedded in the steamLoginSecure cookie from webLogOn (same token shape ASF uses).
   async getOwnedGames() {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(ceviri.t('web oturumu yok'));
     const token = this._accessToken();
     if (!token) throw new Error(ceviri.t('Steam web oturumu henüz hazır değil'));
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&include_appinfo=true&include_played_free_games=true&format=json`;
@@ -527,8 +527,8 @@ class SteamEngine {
     if (!games.length) {
       const say = (j.response && typeof j.response.game_count === 'number') ? j.response.game_count : null;
       if (say === null || say === 0) {
-        throw new Error('Oyun listesi bos dondu. Steam profilinde Gizlilik > "Oyun ayrintilari" '
-          + 'ayarini Herkese Acik yapman gerekiyor, aksi halde Steam kutuphaneni paylasmiyor.');
+        throw new Error(ceviri.t('Oyun listesi boş döndü. Steam profilinde Gizlilik > "Oyun ayrıntıları" '
+          + 'ayarını Herkese Açık yapman gerekiyor, aksi halde Steam kütüphaneni paylaşmıyor.'));
       }
     }
     return games.map((g) => ({ appid: g.appid, name: g.name, playtimeForever: g.playtime_forever || 0, hasStats: !!g.has_community_visible_stats }))
@@ -539,7 +539,7 @@ class SteamEngine {
   // count=5000 returns HTTP 400 on some accounts; 2000 is the known-working cap (same limit the
   // old .NET app hit and fixed the same way).
   async getInventory() {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(ceviri.t('web oturumu yok'));
     const url = `https://steamcommunity.com/inventory/${this.steamID}/753/6?l=english&count=2000`;
     const r = await this._iste(url, {}, 'Envanter');
     const j = await r.json();
@@ -620,7 +620,7 @@ class SteamEngine {
   // medyan satış fiyatı ve adedi. Tutarlar hesabın cüzdan kurundadır (uç nokta kur
   // parametresi almaz, oturuma göre döner).
   async getPriceHistory(marketHashName) {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(ceviri.t('web oturumu yok'));
     const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
     const r = await fetch(url, { headers: { Cookie: this.cerezBasligi() } });
     if (r.status === 429) return { rateLimited: true };
@@ -775,7 +775,7 @@ class SteamEngine {
   // its fee on top for the buyer). If the account has a mobile authenticator, Steam still requires
   // the user to approve each listing in the Steam app - we do not auto-confirm.
   async sellItem(assetId, priceCents, amount = 1) {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(ceviri.t('web oturumu yok'));
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
     if (!sidCookie) throw new Error(ceviri.t('Steam web oturumu henüz hazır değil'));
     const sessionid = sidCookie.split('=')[1];
@@ -880,7 +880,7 @@ class SteamEngine {
   // Fetch raw stats+schema for one app: achievement definitions (statId+bit → name/desc/icon)
   // plus current stat values (the achievement bits) and the crc needed to store back.
   async _getUserStatsRaw(appid) {
-    if (!this.steamID) throw new Error('Steam oturumu yok');
+    if (!this.steamID) throw new Error(ceviri.t('Steam oturumu yok'));
     const resp = await this._sendRecv(818 /* ClientGetUserStats */,
       Schema.CMsgClientGetUserStats, { game_id: String(appid), crc_stats: 0, schema_local_version: 0, steam_id_for_user: this.steamID },
       Schema.CMsgClientGetUserStatsResponse);

@@ -13,7 +13,7 @@ let dil = 'tr';
 let tablo = null;
 
 function dilSec(kod) {
-  const yeni = DILLER.includes(kod) ? kod : 'tr';
+  const yeni = DILLER.includes(kod) ? kod : 'en';
   if (yeni === dil && (yeni === 'tr' || tablo)) return;
   dil = yeni;
   tablo = null;

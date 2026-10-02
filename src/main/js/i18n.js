@@ -179,7 +179,7 @@
     // ortasında kaybolmasın diye açık bölüm sessionStorage ile bir sonraki açılışa taşınır.
     const I18N_DONUS_ANAHTARI = 'se.dilDonusBolumu';
     function setUiLang(kod, yenidenYukle) {
-      const yeni = I18N_LANGS[kod] ? kod : 'tr';
+      const yeni = I18N_LANGS[kod] ? kod : 'en';
       if (yeni === uiLang) return;
       if (yenidenYukle !== false) {
         try { sessionStorage.setItem(I18N_DONUS_ANAHTARI, typeof currentSetSec === 'string' ? currentSetSec : 'general'); } catch (_) {}
@@ -190,7 +190,7 @@
       applyI18n();
     }
     function initI18n(kod) {
-      uiLang = I18N_LANGS[kod] ? kod : 'tr';
+      uiLang = I18N_LANGS[kod] ? kod : 'en';
       document.documentElement.setAttribute('lang', uiLang === 'zh' ? 'zh-Hant' : uiLang);
       // Sözlük okunamazsa Türkçeye düşülür: yarısı çevrilmiş bir ekran göstermektense
       // kaynak dilde bırakmak dürüst olan.

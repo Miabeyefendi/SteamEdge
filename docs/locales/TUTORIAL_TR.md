@@ -225,7 +225,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
-| `language` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
 | `theme` | `dark` | Renk teması: `dark`, `midnight` (Gece Moru), `white` |
 | `preventSleep` | `true` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |

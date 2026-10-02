@@ -225,7 +225,7 @@ Settings live in `settings/settings.json`. Everything below is editable from the
 
 | Key | Default | What it does |
 |---|---|---|
-| `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
 | `theme` | `dark` | Colour theme: `dark`, `midnight` (Midnight Purple), `white` |
 | `preventSleep` | `true` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |

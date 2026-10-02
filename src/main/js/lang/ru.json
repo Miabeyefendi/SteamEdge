@@ -1287,5 +1287,18 @@
  "Bu filtreye uyan oyun yok.": "Нет игр, подходящих под этот фильтр.",
  "# öğe satışa sunuldu.": "Выставлен # предмет.|Выставлено # предмета.|Выставлено # предметов.",
  "# öğe satışa sunuldu, # hata.": "Выставлено предметов: #1; ошибок: #2.",
- "Kayıtlı durum": "Сохранённое состояние"
+ "Kayıtlı durum": "Сохранённое состояние",
+ "Ultra Nadir": "Ультраредкие",
+ "Bilinmeyen hata": "Неизвестная ошибка",
+ "Listeleme reddedildi": "Выставление отклонено",
+ "Kod reddedildi:": "Код отклонён:",
+ "web oturumu yok": "нет веб-сессии",
+ "Steam oturumu yok": "Нет сессии Steam",
+ "nabız: oturum yok": "пульс: нет сессии",
+ "Oyun listesi boş döndü. Steam profilinde Gizlilik > \"Oyun ayrıntıları\" ayarını Herkese Açık yapman gerekiyor, aksi halde Steam kütüphaneni paylaşmıyor.": "Список игр пришёл пустым. В профиле Steam в разделе «Приватность» установите для «Игровая информация» значение «Открытый», иначе Steam не передаёт вашу библиотеку.",
+ "Süre doldu · # / #": "Время вышло · # / #",
+ "Tüm başarımlar açıldı · # / #": "Все достижения открыты · # / #",
+ "Durduruldu · # / #": "Остановлено · # / #",
+ "Steam bağlantısı yok · # / #": "Нет соединения со Steam · # / #",
+ "Süre doldu, # başarım açılmadı · # / #": "Время вышло, не открыто достижений: # · # / #"
 }

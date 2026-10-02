@@ -136,7 +136,7 @@ Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel ve
 | `yenidenBaglanma` | `sinirsiz` | Bağlantı koparsa yeniden bağlanma: `sinirsiz`, `10`, `3` ya da `kapali` |
 | `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser; çalışan işler boşta sayılmaz |
 | `theme` | `dark` | Renk teması: `dark`, `midnight`, `white` |
-| `language` | `tr` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapılandırma-başvurusu) yazılı.
 
