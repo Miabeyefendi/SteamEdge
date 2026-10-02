@@ -68,7 +68,7 @@ function tf(sablon, ...degerler) {
   const ham = (dil !== 'tr' && tablo) ? tablo[String(sablon).replace(/\s+/g, ' ').trim()] : undefined;
   let ceviri;
   if (ham !== undefined) {
-    const sayi = degerler.map((v) => String(v).replace(/<[^>]*>/g, '').trim()).find((v) => /^\d[\d.,]*$/.test(v));
+    const sayi = degerler.map((v) => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim()).find((v) => /^\d[\d.,]*$/.test(v));
     ceviri = cogulSec(ham, sayi);
   } else ceviri = t(sablon);
   return yerTutucuDoldur(ceviri, degerler);

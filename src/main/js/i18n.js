@@ -96,7 +96,7 @@
       let ceviri;
       if (ham !== undefined){
         // Değer HTML olabilir (<b>12</b>); sayı etiketler ayıklanarak aranır.
-        const sayi = degerler.map(v => String(v).replace(/<[^>]*>/g, '').trim()).find(v => /^\d[\d.,]*$/.test(v));
+        const sayi = degerler.map(v => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim()).find(v => /^\d[\d.,]*$/.test(v));
         ceviri = cogulSec(ham, sayi);
       } else ceviri = t(sablon);
       return yerTutucuDoldur(ceviri, degerler);

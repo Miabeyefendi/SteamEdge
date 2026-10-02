@@ -101,6 +101,13 @@ npm install
 2. Extract it anywhere you like. A folder you own, not `Program Files`.
 3. Run `SteamEdge.exe`. There is nothing to install and nothing is written outside that folder.
 
+The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
+
+SHA-256 of `SteamEdge-v1.3.2-win-x64.rar`:
+`38fc5a55d56be415a54ab734ee842e9b731dc4ab6ad8f926634919b64de2fe31`
+
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.3.2-win-x64.rar`.
+
 </details>
 
 ---

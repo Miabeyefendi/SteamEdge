@@ -8,6 +8,16 @@ Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and thei
 archives deleted on purpose. Their notes are not reproduced here.
 
 
+## [1.3.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.2)
+
+Security update: Electron 41 and patched build tools. No feature changes.
+
+### Fixed
+
+- **Electron 39 had five high severity advisories.** Popups and windows opened from sandboxed pages could drop the sandbox, file and HTTP handlers allowed cross-origin reads, and `<webview>` could enable Node.js in workers. SteamEdge moves to Electron 41.10.7, where all five are fixed. Electron 41 also drops the old download chain (`@electron/get`, `got`, `extract-zip`), which removes about sixty build-time packages.
+- **Build-time advisories.** `undici` (six advisories) and `brace-expansion` (one) are only used by the packager and never ship in the app; both are pinned to patched versions through `overrides`. `ip-address`, used by the Steam connection's proxy support, moves to 10.7.3.
+- **Two code scanning warnings.** The plural form picker strips markup from a value to find its number; the stripping now also removes stray angle brackets. The value was never written back as HTML, so this closes a warning rather than a hole.
+
 ## [1.3.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.1)
 
 Three fixes on top of the new themes.
