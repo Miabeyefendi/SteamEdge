@@ -72,10 +72,13 @@ Windows 10 or newer, 64 bit. A Steam account with Steam Guard enabled. About 330
 
 ### Step by step
 
-1. Download the latest `.rar` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
-2. Extract it to a folder you own. Not `Program Files`, because the app writes its settings next to itself.
-3. Run `SteamEdge.exe`.
-4. Log in. The QR tab is the easier route: scan the code with the Steam mobile app and approve. The password tab wants your username, password and a Steam Guard code.
+1. Download the [English Windows x64 installer](https://github.com/braxffa/SteamEdge/releases/tag/1.3.2-english) and run it. It installs SteamEdge for your Windows account without administrator rights.
+2. Open SteamEdge from the Start Menu or desktop shortcut. To use the source-built portable app instead, run `SteamEdge.exe` from its build folder.
+3. Log in. The QR tab is the easier route: scan the code with the Steam mobile app and approve. The password tab wants your username, password and a Steam Guard code.
+
+The installer includes no saved settings or Steam sessions. If you used a
+portable copy before, close SteamEdge and copy its private `settings/` folder
+into the installed app's folder yourself. The installer does not import it.
 
 ### Verifying the install
 
@@ -83,11 +86,19 @@ The bottom left of the window shows `SYSTEM: READY` once a session is live, and 
 
 ### Updating
 
-The app checks the published version number and tells you when a newer release exists. It does not download or install anything, on purpose. To update, close SteamEdge, extract the new archive into an **empty, new folder**, and copy the `settings/` folder from the old one into it. Extracting over the old folder while the app is open leaves files from two versions mixed; the app detects the common case and tells you at startup.
+The app checks the original upstream project's published version and tells
+you when a newer upstream release exists. That release may not contain this
+English edition. The app does not download or install updates. For an English
+edition installer update, use the [fork release page](https://github.com/braxffa/SteamEdge/releases/tag/1.3.2-english),
+close SteamEdge, and run the new installer in the same location to keep your
+settings. For a portable update, extract the new build into an **empty, new
+folder** and copy only `settings/` from the old folder. Keep it private.
 
 ### Uninstalling
 
-Delete the folder. That is the whole procedure.
+For an installed copy, use Windows Settings > Apps > Installed apps > SteamEdge.
+The uninstaller keeps settings by default and offers an option to delete them.
+For a portable copy, delete its folder.
 
 ---
 
@@ -225,7 +236,7 @@ Settings live in `settings/settings.json`. Everything below is editable from the
 
 | Key | Default | What it does |
 |---|---|---|
-| `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` on a fresh English-edition install | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
 | `theme` | `dark` | Colour theme: `dark`, `midnight` (Midnight Purple), `white` |
 | `preventSleep` | `true` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |

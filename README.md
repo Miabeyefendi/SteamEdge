@@ -99,7 +99,7 @@ after closing SteamEdge; the installer does not import it automatically.
 Keep that folder private.
 
 SHA-256 of the English installer:
-`F47807AD740D793A1C53058B0F3D2675D63390405FA31619CA423E5AE1E6B7E0`
+`4BA71026A2D5C11D7BA03E087028800477F11CC5DB2662DF942AAFE0FE316377`
 
 To build this English edition from source on Windows x64:
 
@@ -174,7 +174,7 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `yenidenBaglanma` | `sinirsiz` | Reconnect after a dropped connection: `sinirsiz` (unlimited), `10`, `3` or `kapali` (off) |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes; running jobs do not count as idle |
 | `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
-| `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` on a fresh English-edition install | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference).
 
@@ -237,7 +237,12 @@ Some achievements are written by the game server, not the client, and Steam refu
 <details>
 <summary><b>It stopped working after an update. What now?</b></summary>
 
-Make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./docs/guides/TUTORIAL.md#-troubleshooting) of the tutorial and the log at `cache/steamedge.log` (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach that log.
+For an installer upgrade, close SteamEdge and run the new English installer in
+the same location; it keeps `settings/`. For a portable update, extract the new
+build into an empty folder and copy only `settings/` from the old folder. Then
+check the [troubleshooting section](./docs/guides/TUTORIAL.md#-troubleshooting)
+and the log at `cache/steamedge.log` (set Settings > Advanced & data > Log file
+to Verbose first). If it is still broken, open a bug report and attach that log.
 
 </details>
 

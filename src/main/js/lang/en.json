@@ -1254,7 +1254,7 @@
  "sn": "s",
  "# içinde # başarım açılacak": "#2 achievement will unlock within #1|#2 achievements will unlock within #1",
  "Pazarda Otomatik Satış": "Auto-list on the market",
- "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "The app does not download anything. Get it from the release page yourself, extract the archive into an EMPTY and NEW folder, then copy the settings folder from the old folder into the new one.",
+ "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "This check follows the original upstream releases. For an English-edition update, get the installer from the fork release and run it in the same location to keep settings. For a portable build, extract into a new folder and copy settings privately.",
  "Windows oturumu açıldığında SteamEdge kendiliğinden başlar ve kayıtlı hesaplara bağlanır.": "SteamEdge starts on its own when you sign in to Windows and connects your saved accounts.",
  "Tema": "Theme",
  "Koyu": "Dark",
