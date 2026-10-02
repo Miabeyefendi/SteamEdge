@@ -16,8 +16,11 @@ uninstaller, and verifies that the setup contains both the app and uninstaller.
 It excludes `settings/` and `cache/` from the installer even if they exist in
 the portable folder, and stops if a session or account JSON file appears in
 the remaining payload. The setup preserves a user's existing settings during
-an upgrade. The uninstaller preserves them by default and offers an explicit
-option to delete them.
+an upgrade in the same install location. Moving from a portable copy requires
+closing SteamEdge and copying its `settings/` folder into the installed app's
+folder yourself; the installer does not import portable settings. The
+uninstaller preserves local settings by default and offers an explicit option
+to delete them.
 
 The installer uses the Windows .NET Framework C# compiler supplied with the
 operating system. No separate installer framework is required. It is not code

@@ -7,7 +7,7 @@
 **Collect Steam trading cards, bank playtime and manage achievements without ever opening the Steam client.**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-A78BFA?style=for-the-badge&logo=gnu&logoColor=white)](./LICENSE)
-[![Version](https://img.shields.io/github/v/release/Miabeyefendi/SteamEdge?style=for-the-badge&color=F59E0B&label=version)](https://github.com/Miabeyefendi/SteamEdge/releases/latest)
+[![English edition](https://img.shields.io/badge/English_edition-1.3.2-A78BFA?style=for-the-badge)](https://github.com/braxffa/SteamEdge/releases/tag/1.3.2-english)
 [![Platform](https://img.shields.io/badge/Windows-1E293B?style=for-the-badge&logo=windows&logoColor=white)](#-installation)
 [![Status](https://img.shields.io/badge/status-active-22C55E?style=for-the-badge)](#)
 [![Author](https://img.shields.io/badge/by-Miabeyefendi-0EA5E9?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Miabeyefendi)
@@ -16,7 +16,7 @@
 
 [Install](#-installation) · [Features](#-highlights) · [Usage](#-quick-start) · [Tutorial](./docs/guides/TUTORIAL.md) · [Changelog](./CHANGELOG.md)
 
-<a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
+<a href="https://github.com/braxffa/SteamEdge/releases/tag/1.3.2-english">
   <img src="./assets/btn-download.svg" height="52" alt="Download the latest release">
 </a>
 <a href="./docs/guides/TUTORIAL.md">
@@ -43,7 +43,7 @@
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
-- **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
+- **Windows installer or portable build** - Use the English edition installer, or build and run the portable app without installing it.
 
 ---
 
@@ -89,10 +89,23 @@
 
 ### Install
 
-The English edition starts in English on a fresh install. On Windows x64,
-build its portable app and installer with:
+Download the [SteamEdge 1.3.2 English installer](https://github.com/braxffa/SteamEdge/releases/download/1.3.2-english/SteamEdge-Setup-1.3.2-English.exe)
+for Windows x64. A fresh installation starts in English. The installer is
+unsigned, so Windows may show a publisher warning. It contains no saved
+settings, accounts, or Steam sessions. An upgrade in the same installer
+location keeps the existing `settings/` folder. If you previously used a
+portable copy, copy its `settings/` folder into the installed app's folder
+after closing SteamEdge; the installer does not import it automatically.
+Keep that folder private.
+
+SHA-256 of the English installer:
+`F47807AD740D793A1C53058B0F3D2675D63390405FA31619CA423E5AE1E6B7E0`
+
+To build this English edition from source on Windows x64:
 
 ```powershell
+git clone --branch braxffa/1.3.2-english-audit https://github.com/braxffa/SteamEdge.git
+cd SteamEdge
 npm ci
 npm run build:win
 .\installer\Build-Installer.ps1
@@ -100,23 +113,21 @@ npm run build:win
 
 The installer is written to `releases/SteamEdge-Setup-1.3.2-English.exe`.
 It excludes saved settings, account data, and Steam sessions. The portable
-app remains available in `releases/SteamEdge-v1.3.2-win-x64/`.
-
-```bash
-git clone https://github.com/Miabeyefendi/SteamEdge.git
-cd SteamEdge
-npm install
-```
+app remains available in `releases/SteamEdge-v1.3.2-win-x64/` after building.
 
 <details>
-<summary><b>Install from a release instead</b></summary>
+<summary><b>Original upstream portable release</b></summary>
 
-1. Download the latest `.rar` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+The following `.rar` is the original upstream release. It is separate from
+this English edition and does not contain this branch's translation updates
+or installer.
+
+1. Download the original 1.3.2 `.rar` from the [upstream release](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.2).
 2. Extract it anywhere you like. A folder you own, not `Program Files`.
 3. Run `SteamEdge.exe`. There is nothing to install and nothing is written outside that folder.
 4. To update, extract the new version into an empty, new folder and copy the `settings/` folder from the old one into it. Extracting over the old folder while the app is open leaves a mix of two versions behind.
 
-The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
+The `.rar` holds the upstream portable Windows x64 build, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR.
 
 SHA-256 of `SteamEdge-v1.3.2-win-x64.rar`:
 `38fc5a55d56be415a54ab734ee842e9b731dc4ab6ad8f926634919b64de2fe31`
@@ -129,11 +140,18 @@ Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.3.2-win-x64.rar`.
 
 ## 🚀 Quick Start
 
+When running from source:
+
 ```bash
 npm start
 ```
 
-On first launch you get the login screen. Scan the QR code with the Steam mobile app, or switch to the password tab and enter your credentials plus a Steam Guard code. Nothing is stored anywhere except a session token in `settings/`, next to the executable.
+For the installed app, open SteamEdge from its Start Menu or desktop shortcut.
+On first launch you get the login screen. Scan the QR code with the Steam mobile
+app, or switch to the password tab and enter your credentials plus a Steam
+Guard code. Settings, saved account data, and Steam session tokens are stored
+locally in `settings/` beside the installed or portable executable. Keep that
+folder private.
 
 Once you are in, the Overview shows what is running and what is available. Open **Card Farming**, refresh the list, pick a mode and press Start. Everything else can wait until you have read the [tutorial](./docs/guides/TUTORIAL.md).
 
