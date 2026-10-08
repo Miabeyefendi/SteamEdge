@@ -699,7 +699,7 @@
       acRunDone = doneItems; acRunTotal = sumTotal; acRunNote = not || '';
       // So the Genel Bakış panel shows the achievement job too; when it runs alone no other
       // event is triggered, so we notify from here.
-      if (typeof renderGenelActive === 'function') { try { renderGenelActive(); } catch (_) {} }
+      if (typeof renderOverviewActive === 'function') { try { renderOverviewActive(); } catch (_) {} }
       const box = document.getElementById('acRunBox');
       const stopBtn = document.getElementById('acStop');
       if (box){
@@ -716,7 +716,7 @@
     }
     function hideRunBox(){
       acRunDone = 0; acRunTotal = 0; acRunNote = '';
-      if (typeof renderGenelActive === 'function') { try { renderGenelActive(); } catch (_) {} }
+      if (typeof renderOverviewActive === 'function') { try { renderOverviewActive(); } catch (_) {} }
       const box = document.getElementById('acRunBox');
       if (box) box.style.display = 'none';
       const stopBtn = document.getElementById('acStop');

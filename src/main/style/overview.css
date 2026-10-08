@@ -70,7 +70,7 @@
   .gdet .r span{color:#7c8299;font-size:11px}
   .gdet .r b{color:#e8eaf0;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
 
-  /* Card drop-slot visual (the same component as .drop-slot in kart.css, airy spacing) */
+  /* Card drop-slot visual (the same component as .drop-slot in cards.css, airy spacing) */
   .gdropslots{margin-top:14px;padding-top:14px;border-top:1px solid #252a3a}
   .gdropslots-lbl{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#7c8299;margin-bottom:8px}
 

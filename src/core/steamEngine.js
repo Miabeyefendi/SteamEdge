@@ -1,5 +1,5 @@
 const SteamUser = require('steam-user');
-const translation = require('./ceviri');
+const translation = require('./translation');
 // steam-user's internal protobufs map doesn't register the user-stats messages, so we encode/decode
 // them ourselves from its generated schema and hand raw buffers to _send.
 const Schema = require('steam-user/protobufs/generated/_load.js');

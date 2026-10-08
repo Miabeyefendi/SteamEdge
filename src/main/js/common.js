@@ -10,7 +10,7 @@
     // has no counterpart in the sidebar it was moved to a separate function. The nav links call it too,
     // so there is only one path left.
     async function openTab(tab, sourceConnection) {
-      // If leaving the Ayarlar tab, the unsaved changes warning (ayarlar.js)
+      // If leaving the Ayarlar tab, the unsaved changes warning (settings.js)
       const leavingSettings = !designed.settings.classList.contains('hidden');
       if (leavingSettings && typeof confirmLeaveSettings === 'function') {
         const ok = await confirmLeaveSettings();
@@ -33,10 +33,10 @@
         emptyName.textContent = sourceConnection ? sourceConnection.textContent.trim() : tab;
       }
       flushHeavyLists(tab);
-      if (tab === 'overview') loadGenel();
-      if (tab === 'card') loadKart();
+      if (tab === 'overview') loadOverview();
+      if (tab === 'card') loadCards();
       if (tab === 'hours') loadHours();
-      if (tab === 'inventory') loadEnv();
+      if (tab === 'inventory') loadInventory();
       if (tab === 'realistic') loadRealistic();
       if (tab === 'achievements') loadAchievementsPage();
       if (tab === 'chat') loadChat();
@@ -57,8 +57,8 @@
     // sorting and filters stay on the JS side too, so nothing is lost on return.
     // Not a single extra request goes to Steam.
     const HEAVY_LISTS = {
-      card:    { container: 'cardQueue',    draw: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
-      inventory:     { container: 'envRows',      draw: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
+      card:    { container: 'cardQueue',    draw: () => (typeof renderCards === 'function' && typeof cardsLoaded !== 'undefined' && cardsLoaded) && renderCards() },
+      inventory:     { container: 'invRows',      draw: () => (typeof renderInventory === 'function' && typeof inventoryLoaded !== 'undefined' && inventoryLoaded) && renderInventory() },
       hours:    { container: 'hoursListBody', draw: () => (typeof renderHoursList === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) && renderHoursList() },
       achievements: { container: 'acBody',       draw: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
     };
@@ -401,7 +401,7 @@
         if (designed[t] && !designed[t].classList.contains('hidden')) redrawHeavyList(t);
       });
       try { if (typeof renderActiveBox === 'function' && !designed.hours.classList.contains('hidden')) renderActiveBox(); } catch (_) {}
-      try { if (typeof renderGenelStats === 'function' && !designed.overview.classList.contains('hidden')) renderGenelStats(); } catch (_) {}
+      try { if (typeof renderOverviewStats === 'function' && !designed.overview.classList.contains('hidden')) renderOverviewStats(); } catch (_) {}
     });
 
     // "Oturum zaman aşımı" - report real user interaction to main (resets the counter)
@@ -544,7 +544,7 @@
     // ---- top bar: Ayarlar (gear) ----
     document.getElementById('tbSettings').onclick = () => {
       document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
-      openAyarlar();
+      openSettingsPage();
     };
 
     // ---- top bar: Sohbet ----
@@ -732,7 +732,7 @@
     function closeNotif(){ notifDropdown.classList.remove('open'); }
 
     // Sidebar bottom status indicator: statusColor = running ? ok : warn,
-    // statusLabel = running ? 'ÇALIŞIYOR' : 'HAZIR'. genel.js calls it when the state changes.
+    // statusLabel = running ? 'ÇALIŞIYOR' : 'HAZIR'. overview.js calls it when the state changes.
     function setSysStatus(running){
       const d = document.getElementById('sysDot'), l = document.getElementById('sysLabel');
       const c = running ? 'var(--e-ok)' : 'var(--e-warn)';
@@ -741,7 +741,7 @@
     }
 
     // Notification badge (the red dot above the bell icon in the header): visible if there is unread
-    // activity. The count is reported by genel.js's renderFeed() - since activityFeed is defined there with `const`
+    // activity. The count is reported by overview.js's renderFeed() - since activityFeed is defined there with `const`
     // reading it directly from here carries a TDZ risk.
     let notifSeen = 0, notifCount = 0;
     function updateNotifBadge(n){
@@ -750,7 +750,7 @@
       if (b) b.style.display = notifCount > notifSeen ? 'block' : 'none';
     }
 
-    // reads from genel.js's real activityFeed (no made up data)
+    // reads from overview.js's real activityFeed (no made up data)
     function renderNotifList(){
       const box = document.getElementById('notifList');
       const feed = activityFeed || [];
@@ -873,7 +873,7 @@
     function placeSkeleton(){
       const goals = [
         ['cardRows', 'Oyun listesi yükleniyor...'],
-        ['envRows', 'Envanter yükleniyor...'],
+        ['invRows', 'Envanter yükleniyor...'],
         ['hoursListBody', 'Kütüphane yükleniyor...'],
         ['activeBoostBox', 'Kuyruk yükleniyor...'],
         ['acBody', 'Başarımlar yükleniyor...'],
@@ -887,9 +887,9 @@
     }
     function resetPageCaches(){
       placeSkeleton();
-      if (typeof kartLoaded !== 'undefined'){ kartLoaded = false; dropGames = []; }
+      if (typeof cardsLoaded !== 'undefined'){ cardsLoaded = false; dropGames = []; }
       if (typeof hoursLoaded !== 'undefined'){ hoursLoaded = false; ownedGames = []; selectedHours = []; }
-      if (typeof envLoaded !== 'undefined'){ envLoaded = false; invMerged = null; invItems = null; detailKey = null; }
+      if (typeof inventoryLoaded !== 'undefined'){ inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null; }
       if (typeof priceMap !== 'undefined') priceMap.clear();
       if (typeof selected !== 'undefined') selected.clear();
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
@@ -908,14 +908,14 @@
     // and the visible page stayed in the skeleton.
     function reloadActiveTab(){
       const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'overview';
-      if (tab === 'card' && typeof loadKart === 'function') loadKart();
+      if (tab === 'card' && typeof loadCards === 'function') loadCards();
       else if (tab === 'hours' && typeof loadHours === 'function') loadHours();
-      else if (tab === 'inventory' && typeof loadEnv === 'function') loadEnv();
+      else if (tab === 'inventory' && typeof loadInventory === 'function') loadInventory();
       else if (tab === 'achievements' && typeof loadAchievementsPage === 'function') loadAchievementsPage();
       else if (tab === 'realistic' && typeof loadRealistic === 'function') loadRealistic();
       else if (tab === 'chat' && typeof loadChat === 'function') loadChat();
       else if (tab === 'settings' && typeof loadSettingsPage === 'function') loadSettingsPage();
-      else if (typeof loadGenel === 'function') loadGenel();
+      else if (typeof loadOverview === 'function') loadOverview();
     }
     async function switchAccount(steamID){
       closeAcct();

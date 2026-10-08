@@ -12,16 +12,16 @@ const steamEngineClass = () => SteamEngineClass || (SteamEngineClass = require('
 let resolveWindowOpened = null;
 const windowOpened = new Promise((r) => { resolveWindowOpened = r; });
 setTimeout(() => resolveWindowOpened(), 2500);   // start the connection even if the window never comes
-const ledger = require('./src/core/esitlemeDefteri');
-const update = require('./src/services/guncelleme');
+const ledger = require('./src/core/syncLedger');
+const update = require('./src/services/updater');
 // The text the main process produces is in the interface language too: tray menu, file dialogs, desktop
 // notifications and the error messages returned to the interface (the dictionary is shared with the interface).
-const translation = require('./src/core/ceviri');
+const translation = require('./src/core/translation');
 const { migrateKeys } = require('./src/core/keyMigration');
 const ct = translation.t;
 // The `error` and `hata` text in every reply returned to the interface is translated to the selected language. Instead of
 // wrapping every return point one by one, it is done here: a newly added error message gets
-// translated on its own (if the dictionary has an entry; otherwise it stays Turkish and `npm run dil` catches it).
+// translated on its own (if the dictionary has an entry; otherwise it stays Turkish and `npm run lang` catches it).
 {
   const realHandle = ipcMain.handle.bind(ipcMain);
   ipcMain.handle = (channelName, fn) => realHandle(channelName, async (...a) => {
@@ -35,7 +35,7 @@ const ct = translation.t;
 }
 // The sale fee window is only created when a sale is made.
 let steamFeeModule = null;
-function steamFee() { if (!steamFeeModule) steamFeeModule = require('./src/services/steamUcret'); return steamFeeModule; }
+function steamFee() { if (!steamFeeModule) steamFeeModule = require('./src/services/steamFee'); return steamFeeModule; }
 
 // The hwAccel setting, if it says 'turn off GPU acceleration', has to take effect BEFORE app.whenReady() -
 // since the normal settings.json load (loadSettings) happens inside whenReady, we do a synchronous,
@@ -301,7 +301,7 @@ const DEFAULT_SETTINGS = {
   chatReplyText: 'Şu an bilgisayarımın başında değilim, en kısa sürede döneceğim.',
   chatReplyCooldown: 60,    // an automatic reply to the same person at most once in this many minutes
   startPage: 'overview',
-  theme: 'dark',            // dark | midnight | white (see src/main/js/tema.js)
+  theme: 'dark',            // dark | midnight | white (see src/main/js/theme.js)
   density: 'comfortable',   // (*)
   timeFormat: '24',
   sidebarCollapsed: false,
@@ -325,7 +325,7 @@ const DEFAULT_SETTINGS = {
   autoRefreshPrices: false,
   hideAfterSell: true,
   invDefaultSort: 'value',
-  dblAction: 'steam',       // double click behaviour in the inventory (env.js reads it)
+  dblAction: 'steam',       // double click behaviour in the inventory (inventory.js reads it)
   invLowValue: 1,
   hideUnsellable: false,
   groupByGame: false,       // the inventory "Grupla" button opens pressed
@@ -348,7 +348,7 @@ const DEFAULT_SETTINGS = {
   boostDurationSec: 3600,
   boostGameIds: [],         // the selected games when "Oyun listesini hatırla" is on
   // Achievement unlock interval (SECONDS). 1 = fastest; the real wait is computed with a random
-  // deviation on every unlock, so no fixed rhythm forms (basarim.js > acNextDelayMs).
+  // deviation on every unlock, so no fixed rhythm forms (achievements.js > acNextDelayMs).
   // Realistic Mode (G11: the page was renewed according to the template)
   grDurationSec: 7200,      // session duration (2 hours)
   grTargetAuto: true,       // let the app pick the target achievement count
@@ -2729,14 +2729,14 @@ function loadNoAchievements() {
   const listing = (r.ok && r.dataBlock && Array.isArray(r.dataBlock.appids)) ? r.dataBlock.appids : [];
   noAchievementsSet = new Set(listing.map((x) => +x).filter(Boolean));
 }
-function saveBasarimsiz() {
+function saveNoAchievements() {
   writeJson(NO_ACHIEVEMENTS_FILE, { appids: [...noAchievementsSet], upToDate: Date.now() }, false);
 }
 function markNoAchievements(appid) {
   const id = +appid;
   if (!id || noAchievementsSet.has(id)) return false;
   noAchievementsSet.add(id);
-  saveBasarimsiz();
+  saveNoAchievements();
   log('info', 'realistic mode: ' + id + ' marked as having no achievements, dropped from the list');
   return true;
 }
@@ -2746,7 +2746,7 @@ ipcMain.handle('realistic:noAchievementsList', () => ({ ok: true, appids: [...no
 ipcMain.handle('realistic:noAchievementsClear', () => {
   const n = noAchievementsSet.size;
   noAchievementsSet = new Set();
-  saveBasarimsiz();
+  saveNoAchievements();
   log('info', 'realistic mode: the no-achievement list was cleared (' + n + ' games)');
   return { ok: true, deleted: n };
 });

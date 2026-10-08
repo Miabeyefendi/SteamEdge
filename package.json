@@ -31,10 +31,10 @@
   "scripts": {
     "start": "electron .",
     "build": "node build/build.js",
-    "dogrula": "node build/dogrula.js",
+    "verify": "node build/verify.js",
     "build:win": "node build/build.js --platform=win32",
     "postinstall": "node -e \"console.log('SteamEdge: npm start ile calistirin, npm run build ile paketleyin.')\"",
-    "dil": "node build/dil.js",
+    "lang": "node build/lang.js",
     "changelog": "node build/changelog.js"
   },
   "author": "Miabeyefendi (Mustafa Ihsan Albayrak) <https://github.com/Miabeyefendi>",

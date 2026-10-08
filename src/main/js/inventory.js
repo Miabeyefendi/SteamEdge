@@ -1,14 +1,14 @@
     // ================= ENVANTER & PAZAR (INVENTORY & MARKET) =================
     // The order book in the right panel is parsed structurally from the market page;
     // the realised sales come from the pricehistory endpoint.
-    let invItems = null, invMerged = null, envLoaded = false;
+    let invItems = null, invMerged = null, inventoryLoaded = false;
     const priceMap = new Map();               // marketHashName -> price obj | null
     // Realised sale history and the current order book. They must be defined above:
     // helpers like medValRaw/realValue read them.
     const historyMap = new Map();
     const ordersMap  = new Map();
     const selected = new Set();               // dedupKey
-    let envView = 'list';
+    let inventoryView = 'list';
     let fType = 'all', fState = 'all', fPrice = 'all', fGame = 'all';
     let invSort = 'value', invSortDir = 'desc';
     let groupByGame = false;
@@ -53,19 +53,19 @@
       return { label:'Satılamaz', fg:EC.bad };
     }
 
-    async function loadEnv(){
-      if (envLoaded) return;
-      document.getElementById('envRows').innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">Steam\'e bağlanılıyor...</div>';
+    async function loadInventory(){
+      if (inventoryLoaded) return;
+      document.getElementById('invRows').innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
-      if (!con.ok){ document.getElementById('envRows').innerHTML = '<div style="padding:20px;color:#B32453;font-size:12px">'+esc(con.error)+'</div>'; return; }
+      if (!con.ok){ document.getElementById('invRows').innerHTML = '<div style="padding:20px;color:#B32453;font-size:12px">'+esc(con.error)+'</div>'; return; }
       const res = await E.inventory().catch(e=>({ ok:false, error:(e&&e.message)||'Envanter okunamadı.' }));
-      if (!res.ok){ document.getElementById('envRows').innerHTML = '<div style="padding:20px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
+      if (!res.ok){ document.getElementById('invRows').innerHTML = '<div style="padding:20px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
       invItems = res.items;
       invMerged = mergeDuplicates(invItems);
-      envLoaded = true;
+      inventoryLoaded = true;
       applyInvSettings();
       buildGameSelect();
-      renderEnv();
+      renderInventory();
       await fillFromCache();
       askFetchPrices();
     }
@@ -81,7 +81,7 @@
         Object.entries(res.prices).forEach(([h,p]) => priceMap.set(h,p));
         if (Object.keys(res.prices).length){
           fetchedSig = viewSignature();
-          renderEnv(); paintFetchBtn();
+          renderInventory(); paintFetchBtn();
         }
       }
       // G8: the averages are kept on disk too; if present show instantly, no request goes to Steam.
@@ -89,7 +89,7 @@
       if (hres && hres.ok && hres.history){
         let added = 0;
         Object.entries(hres.history).forEach(([h,x]) => { if (x){ historyMap.set(h,x); added++; } });
-        if (added){ renderEnv(); }
+        if (added){ renderInventory(); }
       }
       paintAvgBtn();
     }
@@ -101,7 +101,7 @@
     // it does not start unless the user explicitly asks and they can cancel whenever they want.
     let avgFetching = false, avgDone = 0, avgTotal = 0;
     function paintAvgBtn(){
-      const b = document.getElementById('envFetchAvg');
+      const b = document.getElementById('invFetchAvg');
       if (!b) return;
       const everything = hashesForView();
       const lacking = everything.filter(h => !historyMap.has(h)).length;
@@ -164,7 +164,7 @@
         avgDone = d.doneOnes || 0; avgTotal = d.totalSum || avgTotal;
         if (d.isFinished){
           avgFetching = false;
-          renderEnv(); paintAvgBtn();
+          renderInventory(); paintAvgBtn();
           if (typeof toast === 'function'){
             if (d.abandon) toast('Ortalama').done(tf('İptal edildi · # öğe alındı.', avgDone));
             else toast('Ortalama').done(tf('# öğenin ortalaması güncellendi.', avgDone));
@@ -173,7 +173,7 @@
         }
         paintAvgBtn();
         // Refresh the list every 10 items - so progress is visible without drawing constantly
-        if (avgDone % 10 === 0) renderEnv();
+        if (avgDone % 10 === 0) renderInventory();
       });
     }
 
@@ -191,7 +191,7 @@
         [...sel.options].forEach(o=>{ if (labels[o.value]) o.textContent = labels[o.value]; });
       }
       if (!invMerged){
-        ['envStatValue','bulkGross','bulkNet'].forEach(id=>{
+        ['invStatValue','bulkGross','bulkNet'].forEach(id=>{
           const e = document.getElementById(id);
           if (e) e.textContent = fmtMoney(0);
         });
@@ -247,19 +247,19 @@
     let priceFetching = false;      // the request sequence is running
     let fetchedSig = null;          // the signature of the filter fetched last
     function viewSignature(){
-      return [fType, fState, fPrice, fGame, (document.getElementById('envSearch')||{}).value||''].join('|');
+      return [fType, fState, fPrice, fGame, (document.getElementById('invSearch')||{}).value||''].join('|');
     }
     function hashesForView(){
       const list = (viewRows && viewRows.length) ? viewRows : (invMerged || []);
       return [...new Set(list.filter(i=>i.marketable && i.marketHashName).map(i=>i.marketHashName))];
     }
     (function bindAvgBtn(){
-      const b = document.getElementById('envFetchAvg');
+      const b = document.getElementById('invFetchAvg');
       if (b) b.onclick = fetchAvgForView;
     })();
 
     function paintFetchBtn(){
-      const b = document.getElementById('envFetchPrices');
+      const b = document.getElementById('invFetchPrices');
       if (!b) return;
       const total = hashesForView().length;
       const done  = hashesForView().filter(h=>priceMap.has(h)).length;
@@ -291,7 +291,7 @@
       // The queue may be running on the main side; it is released when price:progress says remaining=0.
       // In the case that returns instantly (all from the cache) it is closed here.
       if (!res || !res.queued){ priceFetching = false; }
-      renderEnv(); paintFetchBtn();
+      renderInventory(); paintFetchBtn();
     }
     // First entering the page: ask the user. But ONLY if there are items that are not in the cache.
     let priceAsked = false;
@@ -299,8 +299,8 @@
       if (priceAsked) return;
       // The question is asked only while Envanter is on screen. If the user moved to another tab while the cache was being read
       // the window used to open on top of that tab; it is asked the next time they enter.
-      const envVisible = () => designed.inventory && !designed.inventory.classList.contains('hidden');
-      if (!envVisible()) return;
+      const inventoryVisible = () => designed.inventory && !designed.inventory.classList.contains('hidden');
+      if (!inventoryVisible()) return;
       const everything = hashesForView();
       const lacking = everything.filter(h => !priceMap.has(h));
       // If the cache is full enough do not ask at all; the user can fetch with the button below if they want.
@@ -339,19 +339,19 @@
       scheduleRender();
     });
     E.onPriceProgress(({ remaining, cooldown }) => {
-      const el = document.getElementById('envPriceProg');
+      const el = document.getElementById('invPriceProg');
       if (el) el.textContent = remaining > 0
         ? (tf('# kaldı', remaining) + (cooldown ? (' · ' + t('Steam sınırı')) : ''))
         : new Date().toLocaleTimeString(localCode());
       if (remaining === 0){
         priceFetching = false;
-        if (invMerged) renderEnv();
-        if (typeof renderGenelStats==='function') renderGenelStats();
+        if (invMerged) renderInventory();
+        if (typeof renderOverviewStats==='function') renderOverviewStats();
       }
       paintFetchBtn();
     });
     let renderTimer = null;
-    function scheduleRender(){ if (renderTimer) return; renderTimer = setTimeout(()=>{ renderTimer=null; if(invMerged) renderEnv(); }, 400); }
+    function scheduleRender(){ if (renderTimer) return; renderTimer = setTimeout(()=>{ renderTimer=null; if(invMerged) renderInventory(); }, 400); }
 
     // ---- filters (the selects in the top bar) ----
     function buildGameSelect(){
@@ -359,48 +359,48 @@
       const games = [...new Set(invMerged.map(i=>i.gameName).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
       sel.innerHTML = '<option value="all">Tüm oyunlar</option>' + games.map(g=>'<option value="'+esc(g)+'">'+esc(g)+'</option>').join('');
     }
-    document.getElementById('efType').addEventListener('change', e=>{ fType=e.target.value; renderEnv(); });
-    document.getElementById('efGame').addEventListener('change', e=>{ fGame=e.target.value; renderEnv(); });
-    document.getElementById('efState').addEventListener('change', e=>{ fState=e.target.value; renderEnv(); });
-    document.getElementById('efPrice').addEventListener('change', e=>{ fPrice=e.target.value; renderEnv(); });
-    document.getElementById('envSearch').addEventListener('input', renderEnv);
+    document.getElementById('efType').addEventListener('change', e=>{ fType=e.target.value; renderInventory(); });
+    document.getElementById('efGame').addEventListener('change', e=>{ fGame=e.target.value; renderInventory(); });
+    document.getElementById('efState').addEventListener('change', e=>{ fState=e.target.value; renderInventory(); });
+    document.getElementById('efPrice').addEventListener('change', e=>{ fPrice=e.target.value; renderInventory(); });
+    document.getElementById('invSearch').addEventListener('input', renderInventory);
     document.getElementById('efReset').onclick = ()=>{
       fType='all'; fState='all'; fPrice='all'; fGame='all'; invSort='value'; invSortDir='desc'; groupByGame=false;
       ['efType','efGame','efState','efPrice'].forEach(id=>document.getElementById(id).value='all');
-      document.getElementById('envSearch').value='';
-      paintGroupBtn(); renderEnv();
+      document.getElementById('invSearch').value='';
+      paintGroupBtn(); renderInventory();
     };
 
     function paintView(){
       const l = document.getElementById('vList'), g = document.getElementById('vGrid');
       const on = { background:EC.brand, borderColor:EC.brand, color:EC.title };
       const off = { background:'transparent', borderColor:'transparent', color:EC.muted };
-      Object.assign(l.style, envView==='list'?on:off);
-      Object.assign(g.style, envView==='grid'?on:off);
+      Object.assign(l.style, inventoryView==='list'?on:off);
+      Object.assign(g.style, inventoryView==='grid'?on:off);
     }
-    document.getElementById('vList').onclick = ()=>{ envView='list'; paintView(); renderEnv(); };
-    document.getElementById('vGrid').onclick = ()=>{ envView='grid'; paintView(); renderEnv(); };
+    document.getElementById('vList').onclick = ()=>{ inventoryView='list'; paintView(); renderInventory(); };
+    document.getElementById('vGrid').onclick = ()=>{ inventoryView='grid'; paintView(); renderInventory(); };
     paintView();
 
     function paintGroupBtn(){
-      const b = document.getElementById('envGroup');
+      const b = document.getElementById('invGroup');
       b.style.background = groupByGame ? EC.brand : 'transparent';
       b.style.borderColor = groupByGame ? EC.brand : EC.bd;
       b.style.color = groupByGame ? EC.title : EC.muted;
     }
-    document.getElementById('envGroup').onclick = ()=>{ groupByGame = !groupByGame; paintGroupBtn(); renderEnv(); };
+    document.getElementById('invGroup').onclick = ()=>{ groupByGame = !groupByGame; paintGroupBtn(); renderInventory(); };
 
     // ---- column sort ----
     function toggleInvSort(key){
       if (invSort === key) invSortDir = invSortDir==='asc' ? 'desc' : 'asc';
       else { invSort = key; invSortDir = (key==='name'||key==='game') ? 'asc' : 'desc'; }
-      renderEnv();
+      renderInventory();
     }
-    [['envSortName','name'],['envSortGame','game'],['envSortQty','qty'],['envSortLow','low'],['envSortMed','med'],['envSortStatus','status']]
+    [['invSortName','name'],['invSortGame','game'],['invSortQty','qty'],['invSortLow','low'],['invSortMed','med'],['invSortStatus','status']]
       .forEach(([id,key])=>{ document.getElementById(id).onclick = ()=>toggleInvSort(key); });
 
     function applyFilters(){
-      const q = document.getElementById('envSearch').value.trim().toLowerCase();
+      const q = document.getElementById('invSearch').value.trim().toLowerCase();
       const buckets = { all:[0,Infinity], '0-1':[0,1], '1-5':[1,5], '5-10':[5,10], '10-':[10,Infinity] };
       const pb = buckets[fPrice] || buckets.all;
       let out = invMerged.filter(i=>{
@@ -446,10 +446,10 @@
         if (i.marketable && v != null) value += v * i.count;
       });
       const set=(id,t)=>{ const e=document.getElementById(id); if(e) e.textContent=t; };
-      set('envStatTotal', total.toLocaleString(localCode()));
-      set('envStatSellable', sellable.toLocaleString(localCode()));
-      set('envStatTradable', tradable.toLocaleString(localCode()));
-      set('envStatValue', fmtLira(value));
+      set('invStatTotal', total.toLocaleString(localCode()));
+      set('invStatSellable', sellable.toLocaleString(localCode()));
+      set('invStatTradable', tradable.toLocaleString(localCode()));
+      set('invStatValue', fmtLira(value));
     }
 
     function arrows(){
@@ -466,7 +466,7 @@
     // Düşük değer eşiği are shown dimmed. Since it was written nowhere the user
     // thought it was a sort and got confused. Now there is a small explanation in the top bar.
     function drawThresholdBadge(){
-      const el = document.getElementById('envThresholdNote');
+      const el = document.getElementById('invThresholdNote');
       if (!el) return;
       const threshold = lowLimit();
       const faded = (viewRows || []).filter(isLowValue).length;
@@ -525,7 +525,7 @@
         + '</div>';
     }
 
-    function renderEnv(){
+    function renderInventory(){
       applyCurrencyLabels();
       if (!invMerged) return;
       renderStats(); arrows();
@@ -533,15 +533,15 @@
       setTimeout(drawThresholdBadge, 0);   // so the count is right after the rows are drawn
       setTimeout(paintAvgBtn, 0);     // when the filter changes the missing count changes too
       paintFetchBtn();   // when the filter changes "Fiyatları Getir" becomes active again
-      const scroll = document.getElementById('envScroll');
-      const rows = document.getElementById('envRows');
-      document.getElementById('envCount').textContent = viewRows.length + ' / ' + invMerged.length + ' öğe';
+      const scroll = document.getElementById('invScroll');
+      const rows = document.getElementById('invRows');
+      document.getElementById('invCount').textContent = viewRows.length + ' / ' + invMerged.length + ' öğe';
       if (!viewRows.length){
         rows.removeAttribute('style');
         rows.innerHTML = '<div style="padding:64px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#B9C0D6">Filtrelere uyan öğe yok</span>'
           + '<span style="font-size:12px;color:#8B8F9E;max-width:280px">Fiyat aralığını genişlet ya da filtreleri sıfırla.</span></div>';
-      } else if (envView === 'grid'){
+      } else if (inventoryView === 'grid'){
         rows.setAttribute('style','padding:16px 22px 16px 44px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;align-content:start');
         rows.innerHTML = viewRows.map(gridHTML).join('');
       } else {
@@ -559,13 +559,13 @@
       const box = host.querySelector('[data-a="check"]');
       if (box){
         box.style.borderColor = on ? EC.brand : EC.bd;
-        box.style.background  = on ? EC.brand : (envView==='grid' ? '#090C12' : 'transparent');
+        box.style.background  = on ? EC.brand : (inventoryView==='grid' ? '#090C12' : 'transparent');
         const tick = box.querySelector('svg'); if (tick) tick.style.opacity = on ? 1 : 0;
       }
-      if (envView === 'grid') host.style.borderColor = on ? EC.brand : EC.bd;
+      if (inventoryView === 'grid') host.style.borderColor = on ? EC.brand : EC.bd;
       else host.style.background = on ? '#101621' : 'transparent';
     }
-    document.getElementById('envRows').addEventListener('click', (e)=>{
+    document.getElementById('invRows').addEventListener('click', (e)=>{
       const host = e.target.closest('[data-k]');
       if (!host) return;
       const key = host.getAttribute('data-k');
@@ -579,12 +579,12 @@
       detailKey = key;
       renderDetail();
     });
-    document.getElementById('envRows').addEventListener('dblclick', (e)=>{
+    document.getElementById('invRows').addEventListener('dblclick', (e)=>{
       const host = e.target.closest('[data-k]'); if (!host) return;
       const it = invMerged.find(x=>x.dedupKey===host.getAttribute('data-k')); if (!it) return;
       const action = (appSettings && appSettings.dblAction) || 'open';
       if (action==='steam' || action==='open') window.imu.openExternal('https://steamcommunity.com/market/listings/753/'+encodeURIComponent(it.marketHashName||''));
-      else if (action==='detail'){ detailKey = it.dedupKey; renderEnv(); }
+      else if (action==='detail'){ detailKey = it.dedupKey; renderInventory(); }
       else if (action==='sell' || action==='now') sellFlow([it], bulkStrategy);
       else if (action==='copy') navigator.clipboard.writeText(it.name);
     });
@@ -595,12 +595,12 @@
       const box = document.getElementById('selAll');
       box.style.background = all ? 'transparent' : EC.brand;
       box.style.borderColor = all ? EC.bd : EC.brand;
-      document.querySelectorAll('#envRows [data-k]').forEach(h=>paintRowSelection(h, selected.has(h.getAttribute('data-k'))));
+      document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, selected.has(h.getAttribute('data-k'))));
       renderBulk();
     };
     document.getElementById('bulkClear').onclick = ()=>{
       selected.clear();
-      document.querySelectorAll('#envRows [data-k]').forEach(h=>paintRowSelection(h, false));
+      document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, false));
       const box = document.getElementById('selAll');
       box.style.background = 'transparent'; box.style.borderColor = EC.bd;
       renderBulk();
@@ -721,7 +721,7 @@
     });
     document.getElementById('bulkSellNow').onclick = ()=> sellFlow(invMerged.filter(i=>selected.has(i.dedupKey)), bulkStrategy);
     // "Fiyatları Getir": fetches only those that match the current filter, locked until done.
-    document.getElementById('envFetchPrices').onclick = fetchPricesForView;
+    document.getElementById('invFetchPrices').onclick = fetchPricesForView;
 
     // ---- right detail panel ----
     // TWO SEPARATE DATA SOURCES, TWO SEPARATE MEANINGS:
@@ -771,7 +771,7 @@
     }
 
     function renderDetail(){
-      const box = document.getElementById('envDetail');
+      const box = document.getElementById('invDetail');
       const it = detailKey ? invMerged.find(x=>x.dedupKey===detailKey) : null;
       if (!it){
         box.innerHTML = '<span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Eşya İncelemesi</span>'
@@ -956,7 +956,7 @@
       if (!needed.length || feeRequest) return;
       feeRequest = prepareFees(needed)
         .then((r)=>{ if (r !== true) feeErrorTime = Date.now(); })
-        .finally(()=>{ feeRequest = null; if (invMerged) renderBulk(); if (typeof renderGenelStats === 'function') renderGenelStats(); });
+        .finally(()=>{ feeRequest = null; if (invMerged) renderBulk(); if (typeof renderOverviewStats === 'function') renderOverviewStats(); });
     }
 
     // ---- price drop ----
@@ -1147,8 +1147,8 @@
       saleTask = null;
       drawSaleStatus();
       saleResult(g);
-      selected.clear(); envLoaded = false; invMerged = null; invItems = null; detailKey = null;
-      loadEnv();
+      selected.clear(); inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null;
+      loadInventory();
     }
 
     function saleResult(g){

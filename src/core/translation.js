@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DIZIN = path.join(__dirname, '..', 'main', 'js', 'lang');
+const DIR = path.join(__dirname, '..', 'main', 'js', 'lang');
 const LANGS = ['tr', 'en', 'de', 'es', 'zh', 'ru'];
 let lang = 'tr';
 let table = null;
@@ -18,7 +18,7 @@ function pickLang(codeStr) {
   lang = newItem;
   table = null;
   if (lang === 'tr') return;
-  try { table = JSON.parse(fs.readFileSync(path.join(DIZIN, lang + '.json'), 'utf8')); }
+  try { table = JSON.parse(fs.readFileSync(path.join(DIR, lang + '.json'), 'utf8')); }
   catch (_) { lang = 'tr'; table = null; }   // if the dictionary cannot be read, stay in the source language
 }
 function chosen() { return lang; }

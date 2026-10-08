@@ -90,27 +90,27 @@
       if(el) el.innerHTML = monoTime(fmtSessionDur(Date.now()-sessionStartTs));
       // The countdowns in the task row must not depend on the engine tick: Realistic Mode can stay
       // silent for minutes and "Kalan Süre" froze during that time.
-      if (taskList.length) renderGenelActive();
+      if (taskList.length) renderOverviewActive();
     }, 1000);
 
-    function renderGenelStats(){
+    function renderOverviewStats(){
       const c = document.getElementById('gStatCards'); if (!c) return;
       const set = (id, v, html) => { const e=document.getElementById(id); if(e){ if(html) e.innerHTML=v; else e.textContent=v; } };
 
       // Toplam Kart
       const totalCards = dropGames.reduce((s,g)=>s+g.remaining,0);
-      c.textContent = kartLoaded ? totalCards.toLocaleString(localCode()) : '-';
-      set('gStatCardsSub', kartLoaded ? (dropGames.length+' oyunda kart var') : 'Kart Düşür sekmesinde yenile');
+      c.textContent = cardsLoaded ? totalCards.toLocaleString(localCode()) : '-';
+      set('gStatCardsSub', cardsLoaded ? (dropGames.length+' oyunda kart var') : 'Kart Düşür sekmesinde yenile');
 
       // Kütüphane
       set('gStatGames', (hoursLoaded && ownedGames.length) ? ownedGames.length.toLocaleString(localCode()) : '-');
-      set('gStatGamesSub', kartLoaded ? tf('# oyun toplamaya hazır', dropGames.length) : '-');
+      set('gStatGamesSub', cardsLoaded ? tf('# oyun toplamaya hazır', dropGames.length) : '-');
 
       // Envanter & Pazar - value + net after Steam's cut
       // The fallback branch is REQUIRED: when the account changes resetPageCaches() makes invMerged null but if the
       // box is not written the PREVIOUS ACCOUNT's value stayed on screen.
       if (invMerged){
-        // Net: with Steam's own fee calculation (env.js > sellerAmount). A fixed 13% used to be
+        // Net: with Steam's own fee calculation (inventory.js > sellerAmount). A fixed 13% used to be
         // deducted; on cheap cards this rate does not hold because of Steam's base fee.
         let value=0, units=0, net=0;
         const lacking = [];
@@ -157,13 +157,13 @@
       try {
         const r = await E.lastLists();
         if (!r || !r.ok) return;
-        if (!kartLoaded && Array.isArray(r.drop) && r.drop.length){ dropGames = r.drop; kartLoaded = true; }
+        if (!cardsLoaded && Array.isArray(r.drop) && r.drop.length){ dropGames = r.drop; cardsLoaded = true; }
         if (!hoursLoaded && Array.isArray(r.owned) && r.owned.length){ ownedGames = r.owned; hoursLoaded = true; }
-        renderGenelStats();
+        renderOverviewStats();
       } catch (_) {}
     }
 
-    async function loadGenel(){
+    async function loadOverview(){
       if (!overviewLoaded){
         overviewLoaded = true;
         // Profile FIRST: since the last known name/avatar/level comes with the settings it is
@@ -185,13 +185,13 @@
             loadProfile();     // the connection is made: fetch the fresh profile, write it over the cache
             // Even if the lists came from disk they are refreshed from Steam once; so the numbers on screen
             // do not go stale. listsFresh reduces this to once.
-            if (!kartLoaded || !listsFresh){ const r = await E.dropGames(); if (r.ok){ dropGames = r.games; kartLoaded = true; } }
+            if (!cardsLoaded || !listsFresh){ const r = await E.dropGames(); if (r.ok){ dropGames = r.games; cardsLoaded = true; } }
             if (!hoursLoaded || !listsFresh){ const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; hoursLoaded = true; } }
             listsFresh = true;
             // If Kart Düşür is open on screen redraw it with the fresh list (if hidden leave it alone:
             // the hidden tab's list is deliberately not kept in memory).
             try {
-              if (typeof renderKart === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderKart();
+              if (typeof renderCards === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderCards();
             } catch (_) {}
           } else if (con && con.error){
             pushFeed('error', 'Bağlantı', con.error, 'Hata');
@@ -200,8 +200,8 @@
           pushFeed('error', 'Bağlantı', (e && e.message) || 'Steam bağlantısı kurulamadı.', 'Hata');
         }
       }
-      renderGenelStats();
-      renderGenelActive();
+      renderOverviewStats();
+      renderOverviewActive();
       renderFeed();
       renderLifeStats();
     }
@@ -214,10 +214,10 @@
     let farmDroppedCount = 0;
     E.onFarmList((d)=>{
       if (!d || !Array.isArray(d.games)) return;
-      dropGames = d.games; kartLoaded = true;
+      dropGames = d.games; cardsLoaded = true;
       farmDroppedCount = d.sessionDropped || 0;
-      if (typeof renderKart === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderKart();
-      renderGenelStats(); renderGenelActive();
+      if (typeof renderCards === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderCards();
+      renderOverviewStats(); renderOverviewActive();
     });
 
     // Account events. The notification is shown for every account (the background account's name first),
@@ -338,7 +338,7 @@
       if (b) b.click();
     }
 
-    function renderGenelActive(){
+    function renderOverviewActive(){
       const box = document.getElementById('gActiveBody');
       const qbox = document.getElementById('gQueue');
       if (!box || !qbox) return;
@@ -346,7 +346,7 @@
       const tasks = [];
       const farmOn = lastTick && lastTick.running;
       const boostOn = boostState && boostState.running;
-      // in the same global scope as basarim.js; if a bulk operation is running let it show here too
+      // in the same global scope as achievements.js; if a bulk operation is running let it show here too
       const achOn = (typeof acRunning !== 'undefined') && acRunning;
       // G12: Realistic Mode is a job too - it used to never be watched. While running alone the
       // panel said "no running job" and Başlat started card farming.
@@ -441,7 +441,7 @@
 
       const git = (direction)=>{
         taskIndex = (taskIndex + direction + taskList.length) % taskList.length;
-        renderGenelActive();
+        renderOverviewActive();
       };
       const onc = box.querySelector('[data-gorev-onceki]');
       const latest = box.querySelector('[data-gorev-sonraki]');
@@ -529,7 +529,7 @@
       }).join('');
     }
 
-    // Hour booster: open games. If sync is running the bars use saat.js's SHARED TIMELINE
+    // Hour booster: open games. If sync is running the bars use hours.js's SHARED TIMELINE
     // measure (remaining / job total), otherwise the session's own percentage.
     function detailHours(){
       const listing = (typeof selectedHours !== 'undefined' && selectedHours.length)
@@ -603,13 +603,13 @@
       qbox.innerHTML = html;
     }
 
-    E.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
-    E.onBoostTick(()=>{ renderGenelActive(); renderGenelStats(); });
-    E.onHourFarmTick(()=>{ renderGenelActive(); renderGenelStats(); });
-    // gercekci.js registers its own listener FIRST (file order), so by the time we get here
+    E.onTick(()=>{ renderOverviewActive(); renderOverviewStats(); });
+    E.onBoostTick(()=>{ renderOverviewActive(); renderOverviewStats(); });
+    E.onHourFarmTick(()=>{ renderOverviewActive(); renderOverviewStats(); });
+    // realistic.js registers its own listener FIRST (file order), so by the time we get here
     // grStatus has been updated. Otherwise the panel would be one tick behind.
     if (window.imu.realistic && window.imu.realistic.onTick){
-      window.imu.realistic.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
+      window.imu.realistic.onTick(()=>{ renderOverviewActive(); renderOverviewStats(); });
     }
 
     // Quick action toast - it should give feedback the moment it is clicked, not make you wait for the result.
@@ -636,13 +636,13 @@
 
     async function refreshGamesQuick(){
       const t = toast('Oyun listesi yenileniyor…');
-      kartLoaded = false; hoursLoaded = false;
+      cardsLoaded = false; hoursLoaded = false;
       const con = await E.connect();
       if (con.ok){
-        const r = await E.dropGames(); if (r.ok){ dropGames = r.games; kartLoaded = true; }
+        const r = await E.dropGames(); if (r.ok){ dropGames = r.games; cardsLoaded = true; }
         const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; hoursLoaded = true; }
       }
-      renderGenelStats(); renderGenelActive();
+      renderOverviewStats(); renderOverviewActive();
       if (con.ok){ pushFeed('card', 'Oyun Listesi', 'Kütüphane ve kart listesi yenilendi.', 'Başarılı'); t.done('Oyun listesi yenilendi.'); }
       else { pushFeed('error', 'Oyun Listesi', tf('Bağlantı hatası: #', con.error), 'Hata'); t.fail(tf('Bağlantı hatası: #', con.error)); }
     }
@@ -660,13 +660,13 @@
       if (!dropGames.length){ toast('Önce oyun listesini yenile.').fail('Düşürülecek kart bulunamadı.'); return; }
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining}));
       E.startFarm(selectedMode, games, durationSec*1000);
-      if (typeof setKartPill === 'function') setKartPill(true, 'Çalışıyor');
+      if (typeof setCardPill === 'function') setCardPill(true, 'Çalışıyor');
       notify('farm', 'Kart Düşürme Başladı', tf('# oyun sırada.', games.length));
       pushFeed('card', 'Kart Düşürme', tf('# oyun ile başladı.', games.length), 'Çalışıyor');
     }
     function stopCard(){
       E.stopFarm();
-      if (typeof setKartPill === 'function') setKartPill(false, 'Durduruldu');
+      if (typeof setCardPill === 'function') setCardPill(false, 'Durduruldu');
       notify('farm', 'Kart Düşürme Durdu', '');
       pushFeed('card', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
     }
@@ -737,13 +737,13 @@
     });
 
     quickAction('qaInv', 'Envanter yenileniyor…', async ()=>{
-      if (typeof loadEnv !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
-      envLoaded = false;
-      await loadEnv();
-      // loadEnv silently returns on error; check whether data really arrived,
+      if (typeof loadInventory !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
+      inventoryLoaded = false;
+      await loadInventory();
+      // loadInventory silently returns on error; check whether data really arrived,
       // otherwise we said "yenilendi" and misled the user.
       if (!invMerged || !invMerged.length) return { failure: 'Envanter alınamadı. Envanter sekmesindeki hatayı kontrol et.' };
-      renderGenelStats();
+      renderOverviewStats();
       pushFeed('inventory', 'Envanter', 'Envanter Steam\'den yeniden çekildi.', 'Başarılı');
       return { messageText: tf('# çeşit öğe yüklendi.', invMerged.length) };
     });
@@ -756,16 +756,16 @@
       if (typeof priceMap !== 'undefined') priceMap.clear();
       // An undefined requestPrices() used to be called here.
       await fetchPricesForView();
-      renderGenelStats();
+      renderOverviewStats();
       pushFeed('market', 'Pazar', 'Market fiyatları yeniden çekiliyor.', 'Çalışıyor');
       return { messageText: 'Fiyatlar çekiliyor, Envanter sekmesinden ilerlemeyi görebilirsin.' };
     });
-    document.getElementById('qaSettings').onclick = ()=> openAyarlar();
+    document.getElementById('qaSettings').onclick = ()=> openSettingsPage();
 
     // Genel Bakış is already the visible tab at startup - load the first data without a click.
-    loadGenel();
+    loadOverview();
     // The language change reloaded the page: take the user back to the Ayarlar section they left (i18n.js).
     try {
       const returnVal = sessionStorage.getItem(I18N_RETURN_KEY);
-      if (returnVal) { sessionStorage.removeItem(I18N_RETURN_KEY); openAyarlar(returnVal); }
+      if (returnVal) { sessionStorage.removeItem(I18N_RETURN_KEY); openSettingsPage(returnVal); }
     } catch (_) {}

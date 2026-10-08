@@ -83,7 +83,7 @@
     }
     document.getElementById('hoursListBody').addEventListener('click', (e)=>{
       const row = e.target.closest('[data-appid]'); if (!row) return;
-      toggleSaatGame(+row.getAttribute('data-appid'));
+      toggleHoursGame(+row.getAttribute('data-appid'));
     });
 
     // Instead of redrawing the whole list only the clicked row is updated (the library can reach 300 rows;
@@ -96,7 +96,7 @@
       const mark = row.lastElementChild;
       if (mark){ mark.textContent = on ? '✓' : '+'; mark.style.color = on ? BC.ok : BC.off; }
     }
-    function toggleSaatGame(appid){
+    function toggleHoursGame(appid){
       const idx = selectedHours.findIndex(g=>g.appid===appid);
       const on = idx < 0;
       if (!on) selectedHours.splice(idx,1);
@@ -538,7 +538,7 @@
       if (!d.running){
         bar.style.display = 'none';
         syncGameInfo = new Map(); syncTargetMin = 0; syncJobTotalMs = 0;
-        // The completion notification comes with the account event (genel.js > onHesapOlayi).
+        // The completion notification comes with the account event (overview.js > onHesapOlayi).
         renderActiveBox();
         return;
       }

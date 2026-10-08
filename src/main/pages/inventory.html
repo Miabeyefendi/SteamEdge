@@ -2,7 +2,7 @@
   ================================================================
   ENVANTER & PAZAR (INVENTORY & MARKET)
   Sizes, colours and spacing are inline; :hover and :focus states are tied to the .h-* / .f-*
-  classes in edge.css. Data: env.js - the real Steam inventory and market prices.
+  classes in edge.css. Data: inventory.js - the real Steam inventory and market prices.
   ================================================================
 -->
 <div style="flex:1;min-width:0;min-height:0;display:flex;flex-direction:column">
@@ -16,24 +16,24 @@
       <div style="display:flex;align-items:center;gap:26px">
         <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Toplam Öğe</span>
-          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA" id="envStatTotal">-</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA" id="invStatTotal">-</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Satılabilir</span>
-          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5FB324" id="envStatSellable">-</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5FB324" id="invStatSellable">-</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Takaslanabilir</span>
-          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#24AEB3" id="envStatTradable">-</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#24AEB3" id="invStatTradable">-</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Envanter Değeri</span>
-          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5624B3" id="envStatValue">-</span>
+          <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5624B3" id="invStatValue">-</span>
         </div>
       <!-- G8: bulk fetch of the average (realised sale median). A separate button because it needs a separate request for every item and is far more expensive than fetching prices. -->
-      <button id="envFetchAvg" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Ortalamaları Getir</button>
-      <!-- G9: a small note that says the reason for dimmed rows (env.js > drawThresholdBadge) -->
-      <span id="envThresholdNote" style="display:none;align-items:center;gap:7px;font-size:10.5px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
+      <button id="invFetchAvg" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Ortalamaları Getir</button>
+      <!-- G9: a small note that says the reason for dimmed rows (inventory.js > drawThresholdBadge) -->
+      <span id="invThresholdNote" style="display:none;align-items:center;gap:7px;font-size:10.5px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
       </select>
       <div style="position:relative;display:flex;align-items:center;flex:1 1 180px;min-width:150px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:12px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
-        <input id="envSearch" type="text" placeholder="Eşya adı veya oyun ara..." class="f-focus" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 34px;outline:none">
+        <input id="invSearch" type="text" placeholder="Eşya adı veya oyun ara..." class="f-focus" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 34px;outline:none">
       </div>
       <select id="efType" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:132px;flex:0 1 auto">
         <option value="all">Tüm türler</option>
@@ -77,7 +77,7 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
         </button>
       </div>
-      <button id="envGroup" class="h-bd" title="Oyuna göre grupla" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0">
+      <button id="invGroup" class="h-bd" title="Oyuna göre grupla" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16M7 12h13M10 18h10"></path></svg>Grupla</button>
       <button id="efReset" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sıfırla</button>
     </div>
@@ -85,39 +85,39 @@
 
   <div style="flex:1;min-height:0;display:flex">
     <div style="flex:1;min-width:0;display:flex;flex-direction:column">
-      <div id="envHead" style="flex-shrink:0;display:grid;grid-template-columns:34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px;gap:0;align-items:center;height:34px;padding:0 22px 0 44px;border-bottom:1px solid #1D2432">
+      <div id="invHead" style="flex-shrink:0;display:grid;grid-template-columns:34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px;gap:0;align-items:center;height:34px;padding:0 22px 0 44px;border-bottom:1px solid #1D2432">
         <span><span id="selAll" style="width:16px;height:16px;border-radius:12px;border:1px solid #2B3345;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"></span></span>
-        <span id="envSortStatus" title="Duruma göre sırala" style="display:flex;align-items:center;justify-content:flex-start;height:34px;margin:0 -6px;padding:0 6px;cursor:pointer"><span style="width:7px;height:7px;border-radius:12px;background:#656D80;flex-shrink:0"></span></span>
+        <span id="invSortStatus" title="Duruma göre sırala" style="display:flex;align-items:center;justify-content:flex-start;height:34px;margin:0 -6px;padding:0 6px;cursor:pointer"><span style="width:7px;height:7px;border-radius:12px;background:#656D80;flex-shrink:0"></span></span>
         <span></span>
-        <span id="envSortName" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#656D80;cursor:pointer">Eşya <span style="color:#C2AAEE" id="arrName"></span></span>
-        <span id="envSortGame" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;padding-left:9px;color:#656D80;cursor:pointer">Oyun <span style="color:#C2AAEE" id="arrGame"></span></span>
-        <span id="envSortQty" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Adet<span style="color:#C2AAEE" id="arrQty"></span></span>
-        <span id="envSortLow" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">En Düşük<span style="color:#C2AAEE" id="arrLow"></span></span>
-        <span id="envSortMed" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Ortalama<span style="color:#C2AAEE" id="arrMed"></span></span>
+        <span id="invSortName" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#656D80;cursor:pointer">Eşya <span style="color:#C2AAEE" id="arrName"></span></span>
+        <span id="invSortGame" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;padding-left:9px;color:#656D80;cursor:pointer">Oyun <span style="color:#C2AAEE" id="arrGame"></span></span>
+        <span id="invSortQty" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Adet<span style="color:#C2AAEE" id="arrQty"></span></span>
+        <span id="invSortLow" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">En Düşük<span style="color:#C2AAEE" id="arrLow"></span></span>
+        <span id="invSortMed" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Ortalama<span style="color:#C2AAEE" id="arrMed"></span></span>
       </div>
 
       <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 22px 8px 44px;border-bottom:1px solid #1D2432">
         <div style="display:flex;align-items:center;gap:14px">
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="envCount">-</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="invCount">-</span>
           <span style="width:1px;height:11px;background:#2B3345"></span>
           <div style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#5FB324"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılabilir</span></div>
           <div style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#24AEB3"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Takas</span></div>
           <div style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#B32453"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılamaz</span></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80">Fiyatlar · <span id="envPriceProg">-</span></span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80">Fiyatlar · <span id="invPriceProg">-</span></span>
           <!-- The price fetch button is HERE, in the filter row: what it does depends on the filter. Its previous place was the bottom bar and it had moved that and pushed it to the right edge. -->
-          <button id="envFetchPrices" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Fiyatları Getir</button>
+          <button id="invFetchPrices" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Fiyatları Getir</button>
         </div>
       </div>
 
-      <div id="envScroll" style="flex:1;overflow-y:auto;scrollbar-gutter:stable">
-        <div id="envRows"></div>
+      <div id="invScroll" style="flex:1;overflow-y:auto;scrollbar-gutter:stable">
+        <div id="invRows"></div>
       </div>
     </div>
 
     <aside style="width:320px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;display:flex;flex-direction:column">
-      <div id="envDetail" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px"></div>
+      <div id="invDetail" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px"></div>
     </aside>
   </div>
 
@@ -137,7 +137,7 @@
         <span style="font-family:Geist Mono,monospace;font-size:19px;font-weight:700;color:#C2AAEE;line-height:1" id="bulkNet">-</span>
       </div>
     </div>
-    <!-- ALL SALE OPERATIONS ARE HERE. The "Satış Stratejisi" and "Satış Fiyatı" sections in the right detail panel were removed; both single and bulk sales are done from this one bar. When "Kendim" is selected the manual price box opens (env.js > renderBulk). -->
+    <!-- ALL SALE OPERATIONS ARE HERE. The "Satış Stratejisi" and "Satış Fiyatı" sections in the right detail panel were removed; both single and bulk sales are done from this one bar. When "Kendim" is selected the manual price box opens (inventory.js > renderBulk). -->
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
       <!-- Price deviation warning: warns if the selected price is very far from the real market value -->
       <span id="bulkWarn" style="display:none;align-items:center;gap:6px;font-size:11px;color:#B37E24;max-width:330px;line-height:1.4"></span>

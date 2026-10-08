@@ -471,11 +471,11 @@
       // time". The result was a suggestion like 2 achievements in 8 hours for a game with 180 hours played;
       // yet in that game almost all of them should already have been unlocked.
       const totalB = grPlan ? (grPlan.totalAchievements || 0) : 0;
-      const acilmisB = grPlan ? (grPlan.unlockedState || 0) : 0;
+      const unlockedB = grPlan ? (grPlan.unlockedState || 0) : 0;
       const denominator = Math.max(0.1, tc * diff);
       const scale = totalB || suitable;
       const expected = scale ? Math.min(scale, scale * (playtimeHours / denominator)) : 0;
-      const remainingBehind = Math.max(0, Math.round(expected - acilmisB));
+      const remainingBehind = Math.max(0, Math.round(expected - unlockedB));
       const sessionShare = scale * (durationHours / denominator);
       // AUTOMATIC DURATION: when the settings change not only the target but the DURATION must be recomputed.
       // The measure is how long it would take a real player to earn the achievements that are behind:
@@ -531,7 +531,7 @@
       const tcSource = manuallyEntered ? t('girdiğin değer') : tf('# varsayımı', t(crLabel[crRaw] || 'tür tahmini'));
       grSet('grSimpleNote', game
         ? (tf('#: # saat oynanmış. Bitiş süresi # saat kabul edildi (#), zorluk: #.', game.name, Math.round(playtimeHours), Math.round(tc), tcSource, t(diffLabel[String(grVal('grDiff','1.2'))] || '-'))
-           + ' ' + tf('Bu kadar oynanmışken # başarım açılmış olmalıydı; açılan #, geride kalan #.', Math.round(expected), acilmisB, remainingBehind)
+           + ' ' + tf('Bu kadar oynanmışken # başarım açılmış olmalıydı; açılan #, geride kalan #.', Math.round(expected), unlockedB, remainingBehind)
            + ' ' + tf('# içinde # başarım açılır.', grDurationLabel(durationMs), goal))
         : t('Önce soldan bir oyun ekle.'));
 

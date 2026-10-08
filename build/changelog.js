@@ -14,22 +14,22 @@
 const fs = require('fs');
 const path = require('path');
 
-const KOK = path.join(__dirname, '..');
-const CL = path.join(KOK, 'CHANGELOG.md');
-const DIZIN = path.join(__dirname, 'changelog');
+const ROOT = path.join(__dirname, '..');
+const CL = path.join(ROOT, 'CHANGELOG.md');
+const DIR = path.join(__dirname, 'changelog');
 const URL = 'https://github.com/Miabeyefendi/SteamEdge/releases/tag/';
-const KONTROL = process.argv.includes('--kontrol');
+const CHECK = process.argv.includes('--kontrol');
 
 // "1.10.2" must be greater than "1.9.0"; text ordering gets this wrong.
-const sayisal = (v) => v.split('.').map(Number);
-function karsilastir(a, b) {
-  const x = sayisal(a), y = sayisal(b);
+const numeric = (v) => v.split('.').map(Number);
+function compare(a, b) {
+  const x = numeric(a), y = numeric(b);
   for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (y[i] || 0) - (x[i] || 0); }
   return 0;
 }
 
-function govde(surum) {
-  let s = fs.readFileSync(path.join(DIZIN, surum + '.md'), 'utf8');
+function body(version) {
+  let s = fs.readFileSync(path.join(DIR, version + '.md'), 'utf8');
   s = s.replace(/^#\s+SteamEdge[^\n]*\n/, '');            // heading line
   s = s.replace(/\n\*\*As always:\*\*[^\n]*\n?/, '\n');   // closing line
   s = s.trim();
@@ -37,27 +37,27 @@ function govde(surum) {
   return s.trim();
 }
 
-const mevcut = fs.readFileSync(CL, 'utf8');
-const surumler = fs.readdirSync(DIZIN)
+const existing = fs.readFileSync(CL, 'utf8');
+const versions = fs.readdirSync(DIR)
   .filter((f) => /^\d+\.\d+\.\d+\.md$/.test(f))
   .map((f) => f.replace(/\.md$/, ''))
-  .sort(karsilastir);
+  .sort(compare);
 
-const eksik = surumler.filter((v) => !mevcut.includes('## [' + v + ']'));
-if (!eksik.length) {
-  console.log('CHANGELOG.md guncel (' + surumler.length + ' surum notu, ' + (surumler.length - eksik.length) + ' giris).');
+const missing = versions.filter((v) => !existing.includes('## [' + v + ']'));
+if (!missing.length) {
+  console.log('CHANGELOG.md is up to date (' + versions.length + ' release notes, ' + (versions.length - missing.length) + ' entries).');
   process.exit(0);
 }
 
-if (KONTROL) {
-  console.error('CHANGELOG.md eksik: ' + eksik.join(', ') + '  (npm run changelog)');
+if (CHECK) {
+  console.error('CHANGELOG.md is missing: ' + missing.join(', ') + '  (npm run changelog)');
   process.exit(1);
 }
 
 // New entries are added above the newest entry already written. If there is no entry at all, to the end
 // of the file. The entry text in the heading is kept.
-const ilkBaslik = mevcut.search(/^## \[/m);
-const yer = ilkBaslik < 0 ? mevcut.length : ilkBaslik;
-const blok = eksik.map((v) => '## [' + v + '](' + URL + v + ')\n\n' + govde(v)).join('\n\n');
-fs.writeFileSync(CL, mevcut.slice(0, yer) + blok + '\n\n' + mevcut.slice(yer), 'utf8');
-console.log('CHANGELOG.md: ' + eksik.join(', ') + ' eklendi.');
+const firstHeading = existing.search(/^## \[/m);
+const place = firstHeading < 0 ? existing.length : firstHeading;
+const block = missing.map((v) => '## [' + v + '](' + URL + v + ')\n\n' + body(v)).join('\n\n');
+fs.writeFileSync(CL, existing.slice(0, place) + block + '\n\n' + existing.slice(place), 'utf8');
+console.log('CHANGELOG.md: ' + missing.join(', ') + ' added.');

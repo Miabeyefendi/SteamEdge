@@ -7,14 +7,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style/edge.css">
-<!-- Kart Düşür / Saat Yükseltici are moving to the SteamEdge design in this round; the old common/kart/saat CSS is still loaded because some inner classes produced by kart.js/saat.js (e.g. .cslot, .tbadge) belong to it and have not been moved yet - edge.css is added ON TOP of them, with new class names that do not clash. -->
+<!-- Kart Düşür / Saat Yükseltici are moving to the SteamEdge design in this round; the old common/kart/saat CSS is still loaded because some inner classes produced by cards.js/hours.js (e.g. .cslot, .tbadge) belong to it and have not been moved yet - edge.css is added ON TOP of them, with new class names that do not clash. -->
 <link rel="stylesheet" href="style/common.css">
-<link rel="stylesheet" href="style/kart.css">
-<link rel="stylesheet" href="style/saat.css">
-<link rel="stylesheet" href="style/genel.css">
-<link rel="stylesheet" href="style/basarim.css">
-<link rel="stylesheet" href="style/env.css">
-<link rel="stylesheet" href="style/ayarlar.css">
+<link rel="stylesheet" href="style/cards.css">
+<link rel="stylesheet" href="style/hours.css">
+<link rel="stylesheet" href="style/overview.css">
+<link rel="stylesheet" href="style/achievements.css">
+<link rel="stylesheet" href="style/inventory.css">
+<link rel="stylesheet" href="style/settings.css">
 <link rel="stylesheet" href="style/redesign.css">
 </head>
 <body class="edge" style="margin:0;height:100vh;min-height:600px;display:flex;flex-direction:column;background:var(--e-bg);overflow:hidden">
@@ -173,26 +173,26 @@
   <script>
     // Sayfa parçaları burada, SAYFA JS'LERİ ÇALIŞMADAN ÖNCE senkron olarak enjekte edilir -
     // her sayfanın kendi script'i (js/*.js) ilgili id'lere anında getElementById ile bağlanıyor.
-    document.getElementById('tab-overview').innerHTML = window.imu.pages.load('genel');
-    document.getElementById('tab-card').innerHTML = window.imu.pages.load('kart');
-    document.getElementById('tab-inventory').innerHTML = window.imu.pages.load('env');
-    document.getElementById('tab-hours').innerHTML = window.imu.pages.load('saat');
-    document.getElementById('tab-realistic').innerHTML = window.imu.pages.load('gercekci');
-    document.getElementById('tab-achievements').innerHTML = window.imu.pages.load('basarim');
-    document.getElementById('tab-chat').innerHTML = window.imu.pages.load('sohbet');
-    document.getElementById('tab-settings').innerHTML = window.imu.pages.load('ayarlar');
+    document.getElementById('tab-overview').innerHTML = window.imu.pages.load('overview');
+    document.getElementById('tab-card').innerHTML = window.imu.pages.load('cards');
+    document.getElementById('tab-inventory').innerHTML = window.imu.pages.load('inventory');
+    document.getElementById('tab-hours').innerHTML = window.imu.pages.load('hours');
+    document.getElementById('tab-realistic').innerHTML = window.imu.pages.load('realistic');
+    document.getElementById('tab-achievements').innerHTML = window.imu.pages.load('achievements');
+    document.getElementById('tab-chat').innerHTML = window.imu.pages.load('chat');
+    document.getElementById('tab-settings').innerHTML = window.imu.pages.load('settings');
   </script>
   <!-- Multilingual support: dictionary + translation on the DOM. BEFORE the other page JS files. -->
-  <script src="js/tema.js"></script>
+  <script src="js/theme.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/common.js"></script>
-  <script src="js/kart.js"></script>
-  <script src="js/saat.js"></script>
-  <script src="js/env.js"></script>
-  <script src="js/basarim.js"></script>
-  <script src="js/gercekci.js"></script>
-  <script src="js/sohbet.js"></script>
-  <script src="js/ayarlar.js"></script>
-  <script src="js/genel.js"></script>
+  <script src="js/cards.js"></script>
+  <script src="js/hours.js"></script>
+  <script src="js/inventory.js"></script>
+  <script src="js/achievements.js"></script>
+  <script src="js/realistic.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/overview.js"></script>
 </body>
 </html>

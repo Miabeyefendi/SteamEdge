@@ -1,6 +1,6 @@
     // ================= KART DÜŞÜR (CARD FARMING) =================
     // The fields on the page are filled with real engine data (dropGames / farm:tick).
-    let dropGames = [], kartLoaded = false;
+    let dropGames = [], cardsLoaded = false;
     let selectedMode = 'sequential';
     let durationSec = 15*60;
     let lastTick = { running: false, activeAppids: [] };
@@ -10,7 +10,7 @@
     let queueSort = 'rank', queueSortDir = 'asc', qfilter = 'all';
     let priorityOrder = [];          // array of appids - the source of the "Öncelikli" mode and of manual ordering
     const removedIds = new Set();    // removed from the queue (not sent to farm)
-    const recentDrops = [];          // {appid,name,count,ts} - from genel.js's real drop measurement
+    const recentDrops = [];          // {appid,name,count,ts} - from overview.js's real drop measurement
 
     const modeLabels = { sequential:'Sıralı', most:'Çok Kart', least:'Az Kart', priority:'Öncelik', fast:'Hızlı' };
     // Every tooltip is ONE string: the DOM translation looks up the text as a whole, piecewise
@@ -47,32 +47,32 @@
       }
       const qs = appSettings.queueSort;
       if (qs && qs !== 'default' && qs !== queueSort){ queueSort = qs; }
-      if (typeof renderKart === 'function' && kartLoaded) renderKart();
+      if (typeof renderCards === 'function' && cardsLoaded) renderCards();
     }
 
-    async function loadKart(){
+    async function loadCards(){
       applyFarmToggles();
       applyFarmSettings();
-      if (kartLoaded) { renderKart(); return; }
+      if (cardsLoaded) { renderCards(); return; }
       const q = document.getElementById('cardQueue');
       q.innerHTML = '<div style="padding:16px;color:#8B8F9E;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect();
       if (!con.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(t('Bağlantı hatası:') + ' ' + (con.error || ''))+'</div>'; return; }
       const res = await E.dropGames();
       if (!res.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
-      dropGames = res.games; kartLoaded = true;
+      dropGames = res.games; cardsLoaded = true;
       priorityOrder = dropGames.map(g=>g.appid);
-      await restoreKartState();
-      renderKart();
+      await restoreCardState();
+      renderCards();
     }
 
     // ---- persistence of queue preferences (main.js state.json, retention from Ayarlar) ----
     // The order the user made by hand and the games they removed from the queue should come back
     // even after the app closes. Appids that are no longer owned are filtered out on load.
-    const KART_STATE_KEY = 'cards.queue';
+    const CARD_STATE_KEY = 'cards.queue';
     let cardStateReady = false;
-    async function restoreKartState(){
-      const r = await window.imu.state.get(KART_STATE_KEY).catch(()=>null);
+    async function restoreCardState(){
+      const r = await window.imu.state.get(CARD_STATE_KEY).catch(()=>null);
       const v = r && r.value;
       if (v && typeof v === 'object'){
         const own = new Set(dropGames.map(g=>g.appid));
@@ -85,11 +85,11 @@
       }
       cardStateReady = true;
     }
-    function saveKartState(){
+    function saveCardState(){
       if (!cardStateReady) return;
-      window.imu.state.set(KART_STATE_KEY, { removed:[...removedIds], order: priorityOrder }).catch(()=>{});
+      window.imu.state.set(CARD_STATE_KEY, { removed:[...removedIds], order: priorityOrder }).catch(()=>{});
     }
-    document.getElementById('btnRefresh').onclick = () => { kartLoaded = false; loadKart(); };
+    document.getElementById('btnRefresh').onclick = () => { cardsLoaded = false; loadCards(); };
 
     // Games that will enter the queue: excluding the removed ones, ordered by the selected mode.
     function orderedForMode(){
@@ -121,7 +121,7 @@
       });
     }
 
-    function renderKart(){
+    function renderCards(){
       const q = document.getElementById('cardQueue');
       const live = orderedForMode();
       const total = live.reduce((s,g)=>s+g.remaining,0);
@@ -185,7 +185,7 @@
       const row = e.target.closest('[data-row]'); if (!row) return;
       const id = +row.getAttribute('data-row');
       const act = btn.getAttribute('data-act');
-      if (act === 'remove'){ removedIds.add(id); saveKartState(); renderKart(); return; }
+      if (act === 'remove'){ removedIds.add(id); saveCardState(); renderCards(); return; }
       // the order change is made in the priority list and the mode automatically moves to "Öncelikli"
       if (!priorityOrder.length) priorityOrder = orderedForMode().map(g=>g.appid);
       const i = priorityOrder.indexOf(id);
@@ -194,16 +194,16 @@
       if (act === 'top') priorityOrder.unshift(id);
       else if (act === 'up') priorityOrder.splice(Math.max(0, i-1), 0, id);
       else if (act === 'down') priorityOrder.splice(Math.min(priorityOrder.length, i+1), 0, id);
-      saveKartState();
+      saveCardState();
       if (selectedMode !== 'priority') setMode('priority');
-      else renderKart();
+      else renderCards();
     });
 
     // column sort
     function toggleSort(key){
       if (queueSort === key) queueSortDir = (queueSortDir==='asc' ? 'desc' : 'asc');
       else { queueSort = key; queueSortDir = 'asc'; }
-      renderKart();
+      renderCards();
     }
     document.getElementById('sortRank').onclick = ()=>toggleSort('rank');
     document.getElementById('sortName').onclick = ()=>toggleSort('name');
@@ -214,7 +214,7 @@
       document.querySelectorAll('#qFilter button[data-qf]').forEach(b=>paint(b, b.getAttribute('data-qf')===qfilter ? SEG_ON : SEG_OFF));
     }
     document.querySelectorAll('#qFilter button[data-qf]').forEach(b=>b.addEventListener('click', ()=>{
-      qfilter = b.getAttribute('data-qf'); paintFilter(); renderKart();
+      qfilter = b.getAttribute('data-qf'); paintFilter(); renderCards();
     }));
     paintFilter();
 
@@ -225,7 +225,7 @@
       document.getElementById('durNote').textContent = modeHints[mode] || '';
       // Fast mode manages the duration itself (a fixed rotation in the engine), the timer fades
       document.getElementById('durationPanel').style.opacity = (mode==='fast') ? '.45' : '1';
-      renderKart();
+      renderCards();
     }
     document.querySelectorAll('#modeList button[data-mode]').forEach(b=>b.addEventListener('click', ()=>{ farmUserTouched = true; setMode(b.getAttribute('data-mode')); }));
     setMode('sequential');
@@ -276,11 +276,11 @@
       });
     });
 
-    // ---- Son Düşüşler (real measurement - genel.js's card counter feeds it) ----
+    // ---- Son Düşüşler (real measurement - overview.js's card counter feeds it) ----
     function pushDrop(appid, name, count){
       recentDrops.unshift({ appid, name, count, ts: Date.now() });
       if (recentDrops.length > 12) recentDrops.length = 12;
-      renderKart();
+      renderCards();
     }
     function renderDrops(){
       const box = document.getElementById('dropList');
@@ -306,7 +306,7 @@
     }
 
     // ---- Start / Stop ----
-    function setKartPill(run){
+    function setCardPill(run){
       const d = document.getElementById('cardPillDot');
       if (d) d.style.background = run ? '#5FB324' : '#B37E24';
     }
@@ -315,7 +315,7 @@
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining,playtimeMin:g.playtimeMin||0}));
       if (!games.length) return;
       E.startFarm(selectedMode, games, durationSec*1000);
-      setKartPill(true);
+      setCardPill(true);
       let sub = tf('# oyun sırada.', games.length);
       if (selectedMode === 'fast'){
         const cold = games.filter(g=>(g.playtimeMin||0) < 120);
@@ -328,7 +328,7 @@
     };
     document.getElementById('btnStop').onclick = () => {
       E.stopFarm();
-      setKartPill(false);
+      setCardPill(false);
       notify('farm', 'Kart Düşürme Durdu', '');
       pushFeed('card', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
     };
@@ -339,13 +339,13 @@
     // changes; on the ticks in between only the progress bar is updated.
     let lastCardSignature = '';
     E.onTick((data) => {
-      // Card farming has just started: the inventory baseline for auto-sell is taken (env.js).
+      // Card farming has just started: the inventory baseline for auto-sell is taken (inventory.js).
       if (data.running && !lastTick.running && typeof autoSellFloor === 'function') autoSellFloor();
       lastTick = data;
-      setKartPill(!!data.running);
-      if (!kartLoaded || !designed.card || designed.card.classList.contains('hidden')) { lastCardSignature = ''; return; }
+      setCardPill(!!data.running);
+      if (!cardsLoaded || !designed.card || designed.card.classList.contains('hidden')) { lastCardSignature = ''; return; }
       const signature = (data.running ? 1 : 0) + '|' + (data.activeAppids || []).join(',') + '|' + data.currentAppid;
-      if (signature !== lastCardSignature){ lastCardSignature = signature; renderKart(); return; }
+      if (signature !== lastCardSignature){ lastCardSignature = signature; renderCards(); return; }
       const barEl = document.querySelector('#cardQueue [data-row="' + data.currentAppid + '"] [data-ilerleme]');
       if (barEl && data.durationMs) barEl.style.width = Math.min(100, Math.round((data.elapsedMs / data.durationMs) * 100)) + '%';
     });

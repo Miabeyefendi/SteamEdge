@@ -153,7 +153,7 @@
 .e-toggle.on{background:var(--e-brand);border-color:var(--e-brand)}
 .e-toggle.on .e-knob{margin-left:16px;background:var(--e-title)}
 
-/* ---- Card Farming / Hour Booster: the JS and the old kart.css/saat.css classes (.mode-c, .kq-row, .pbar, .tbadge, .bcard etc.) did NOT CHANGE - since they use var(--xxx), redefining those here to the SteamEdge palette paints them automatically (the same technique used in overview/achievements/inventory/settings - see redesign.css). */
+/* ---- Card Farming / Hour Booster: the JS and the old cards.css/hours.css classes (.mode-c, .kq-row, .pbar, .tbadge, .bcard etc.) did NOT CHANGE - since they use var(--xxx), redefining those here to the SteamEdge palette paints them automatically (the same technique used in overview/achievements/inventory/settings - see redesign.css). */
 #tab-card, #tab-hours{
   --bg:#030305; --panel:#0D1118; --card:#0D1118; --card2:#151C28;
   --line:#1D2432; --line-2:#2B3345;

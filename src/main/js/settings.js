@@ -26,7 +26,7 @@
       if (typeof cachedProfile === 'function') cachedProfile();
       paintAll();
       applySettingsEverywhere(true);
-      // The startup page is applied only when the app first opens (after genel.js has loaded)
+      // The startup page is applied only when the app first opens (after overview.js has loaded)
       setTimeout(applyStartPage, 0);
     });
 
@@ -144,10 +144,10 @@
       if (typeof applyInvSettings === 'function' && typeof invMerged !== 'undefined' && invMerged) applyInvSettings();
       if (typeof applyBoostSettings === 'function') applyBoostSettings(changed);
       if (typeof acApplySettings === 'function') acApplySettings();
-      if (typeof renderEnv === 'function' && typeof invMerged !== 'undefined' && invMerged) renderEnv();
-      if (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) renderKart();
+      if (typeof renderInventory === 'function' && typeof invMerged !== 'undefined' && invMerged) renderInventory();
+      if (typeof renderCards === 'function' && typeof cardsLoaded !== 'undefined' && cardsLoaded) renderCards();
       if (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) renderAchievements();
-      if (typeof renderGenelStats === 'function') renderGenelStats();
+      if (typeof renderOverviewStats === 'function') renderOverviewStats();
       if (typeof renderLifeStats === 'function') renderLifeStats();
     }
 
@@ -206,7 +206,7 @@
 
     // The gear icon in the top bar calls this (see common.js #tbSettings). If Settings is already
     // open only the section changes: the draft is kept, changes already made are not lost.
-    function openAyarlar(pick){
+    function openSettingsPage(pick){
       const alreadyOpen = !designed.settings.classList.contains('hidden');
       if (!alreadyOpen){
         Object.values(designed).forEach(s=>s.classList.add('hidden'));
@@ -631,7 +631,7 @@
       await S.clearPriceCache().catch(()=>{});
       if (typeof priceMap !== 'undefined') priceMap.clear();
       if (typeof historyMap !== 'undefined' && historyMap && historyMap.clear) historyMap.clear();
-      if (typeof renderEnv === 'function' && typeof invMerged !== 'undefined' && invMerged) renderEnv();
+      if (typeof renderInventory === 'function' && typeof invMerged !== 'undefined' && invMerged) renderInventory();
       toast('Fiyat Önbelleği').done('Fiyat önbelleği temizlendi.');
     };
     const openFolder = document.getElementById('setOpenFolder');
