@@ -1,48 +1,48 @@
   :root{
-    /* ---- yüzeyler (premium katmanlı koyu tema - Steam/gaming) ---- */
+    /* ---- surfaces (premium layered dark theme - Steam/gaming) ---- */
     --bg:#0b1119; --panel:#111a26; --card:#16202e; --card2:#1b2736; --line:#2c3a4d;
-    --line-2:#3a4c63;                 /* daha belirgin sınır (hover/aktif) */
-    --sheen:rgba(255,255,255,.05);    /* kart üst-kenar parlaklığı */
-    /* ---- metin (daha yüksek kontrast, sönük değil) ---- */
+    --line-2:#3a4c63;                 /* clearer border (hover/active) */
+    --sheen:rgba(255,255,255,.05);    /* card top-edge highlight */
+    /* ---- text (higher contrast, not dull) ---- */
     --txt:#eef3f9; --muted:#9aabbd; --muted2:#6f8195;
-    /* ---- SABİT PALET (tek kaynak - tüm uygulama bunları kullanır) ---- */
-    --blue:#4a9bff;   /* Primary / Bilgi */
-    --green:#5fd074;  /* Success / Çalışıyor */
-    --amber:#e6b155;  /* Warning / Uyarı-Bekliyor */
+    /* ---- FIXED PALETTE (single source - the whole app uses these) ---- */
+    --blue:#4a9bff;   /* Primary / Info */
+    --green:#5fd074;  /* Success / Running */
+    --amber:#e6b155;  /* Warning / Waiting */
     --purple:#b596ff; /* Accent */
-    --red:#e85a66;    /* Danger / Durdu-Hata */
-    /* ---- semantik alias'lar (madde 5) ---- */
+    --red:#e85a66;    /* Danger / Stopped-Error */
+    /* ---- semantic aliases (item 5) ---- */
     --primary:var(--blue); --success:var(--green); --warning:var(--amber); --danger:var(--red); --accent:var(--purple);
     --info:var(--blue);
     --surface:var(--card); --surface-2:var(--card2); --border:var(--line);
     --text:var(--txt); --text-2:var(--muted); --text-3:var(--muted2);
     --red-s:#e0556f; --lite:#e6eef4;
-    /* ---- ek ayırt edici renkler (madde 5 genişletme) ---- */
-    --teal:#2dd4b8;   /* Satılabilir / ikincil-olumlu durum - fiyat yeşilinden ayrışsın */
-    --gold:#ffd75e;   /* Yüksek değer / premium vurgu */
-    --pink:#ff6fa8;   /* Pazar / satış aksiyonu vurgusu */
-    /* ---- ortak ölçüler ---- */
+    /* ---- extra distinguishing colours (item 5 extension) ---- */
+    --teal:#2dd4b8;   /* Sellable / secondary-positive state - set apart from the price green */
+    --gold:#ffd75e;   /* High value / premium accent */
+    --pink:#ff6fa8;   /* Market / sale action accent */
+    /* ---- shared dimensions ---- */
     --radius:12px; --radius-sm:8px; --gap:16px; --pad:18px;
     --shadow:0 6px 20px rgba(0,0,0,.28);
-    /* ---- 6 SABİT KUTU YÜKSEKLİĞİ (tek ölçek - her sayfa yalnız bunları kullanır) ---- */
-    --box-1:96px;    /* istatistik kutusu */
-    --box-2:140px;   /* küçük panel / özet */
-    --box-3:200px;   /* orta panel */
-    --box-4:280px;   /* büyük panel (dashboard sütunları) */
-    --box-5:min(360px, calc(100vh - 430px));  /* liste (kısa) */
-    --box-6:min(548px, calc(100vh - 250px));  /* ana liste alanı - viewport'a sığar, taşma yok */
-    /* ---- 3 SABİT BUTON YÜKSEKLİĞİ (44px dokunma-hedefi kuralına uygun) ---- */
-    --btn-sm:34px;   /* tablo içi mini aksiyon (Aç/Kilitle vb.) */
-    --btn-md:44px;   /* ikincil aksiyon (Hemen Sat, Durdur vb.) */
-    --btn-lg:48px;   /* birincil aksiyon (Başlat, Satışa Sun vb.) */
+    /* ---- 6 FIXED BOX HEIGHTS (single scale - every page uses only these) ---- */
+    --box-1:96px;    /* stat box */
+    --box-2:140px;   /* small panel / summary */
+    --box-3:200px;   /* medium panel */
+    --box-4:280px;   /* large panel (dashboard columns) */
+    --box-5:min(360px, calc(100vh - 430px));  /* list (short) */
+    --box-6:min(548px, calc(100vh - 250px));  /* main list area - fits the viewport, no overflow */
+    /* ---- 3 FIXED BUTTON HEIGHTS (complies with the 44px touch-target rule) ---- */
+    --btn-sm:34px;   /* in-table mini action (Open/Lock etc.) */
+    --btn-md:44px;   /* secondary action (Sell Now, Stop etc.) */
+    --btn-lg:48px;   /* primary action (Start, List for Sale etc.) */
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{font-family:"Segoe UI",system-ui,sans-serif;color:var(--txt);background:var(--bg);overflow:hidden;user-select:none}
-  /* Logo/suit dizisi ve renkleri SABİT (madde 3, gerçek icon.png'ye göre): ♠ beyaz · ♥ kırmızı · ♦ beyaz · ♣ kırmızı */
+  /* Logo/suit sequence and colours are FIXED (item 3, per the real icon.png): ♠ white · ♥ red · ♦ white · ♣ red */
   .suits .s,.suits .d{color:var(--lite)}
   .suits .h,.suits .c{color:var(--red-s)}
-  /* ---- EVRENSEL DURUM SİSTEMİ (madde 6) - tek mantık, her yerde ---- */
+  /* ---- UNIVERSAL STATE SYSTEM (item 6) - one logic, everywhere ---- */
   .status{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px;border:1px solid transparent;white-space:nowrap}
   .status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
   .status.run{color:var(--success);background:rgba(87,198,106,.12);border-color:#2c5a37}
@@ -57,14 +57,14 @@
   .lifecard{background:var(--card2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px}
   .lifecard .lv{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
   .lifecard .ll{font-size:11.5px;color:var(--muted2);margin-top:3px}
-  /* ===== ORTAK DESIGN SYSTEM (madde 4,8,9,10) ===== */
-  /* Grid yardımcıları - sabit gap, tüm sayfalarda aynı ritim */
+  /* ===== SHARED DESIGN SYSTEM (items 4,8,9,10) ===== */
+  /* Grid helpers - fixed gap, the same rhythm on every page */
   .g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
   .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
   .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
-  /* Ortak kart geçiş/hover - tüm kart tipleri aynı hisse gelsin */
+  /* Shared card transition/hover - all card types get the same feel */
   .stat,.panel,.kpanel,.scard,.acard,.acc,.cart,.pcard,.lifecard,.bstat,.qbtn{transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
-  /* Ortak boş-durum bileşeni: ikon + başlık + açıklama + (opsiyonel) yönlendirme butonu */
+  /* Shared empty-state component: icon + title + description + (optional) redirect button */
   .emptybox{height:100%;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;padding:26px 18px;color:var(--muted2)}
   .emptybox .eb-ic{width:56px;height:56px;border-radius:14px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted);margin-bottom:2px}
   .emptybox .eb-a{font-size:14px;font-weight:700;color:var(--txt)}
@@ -120,7 +120,7 @@
   .empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted2)}
   .empty .e-ic{font-size:40px;opacity:.4}
   .hidden{display:none}
-  /* Hızlı işlem toast'ı */
+  /* Quick action toast */
   #toastBox{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
   .toast{display:flex;align-items:center;gap:10px;background:#182230;border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:12.5px;color:var(--txt);box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0;transform:translateY(8px);transition:opacity .18s,transform .18s}
   .toast.show{opacity:1;transform:translateY(0)}
@@ -130,16 +130,17 @@
   .toast .tick{color:var(--green);flex:none}
   .toast .terr{color:var(--red);flex:none}
 
-  /* ========================================================================
-     MAJOR UI/UX UPDATE - tek merkezî override katmanı (ui-ux-pro-max: Data-Dense
-     Dashboard + cinematic dark). Sıfırdan yazma yok; mevcut class'lara uygulanır.
-     ======================================================================== */
-  /* A. Katmanlı arka plan (pure black değil, atmosferik derinlik) */
+  /*
+   ================================================================
+   MAJOR UI/UX UPDATE - a single central override layer (ui-ux-pro-max: Data-Dense Dashboard + cinematic dark).
+   Nothing is rewritten from scratch; it is applied to the existing classes.
+   ================================================================
+*/
+  /* A. Layered background (not pure black, atmospheric depth) */
   body{background:radial-gradient(1200px 700px at 78% -8%,rgba(74,155,255,.06),transparent 60%),
        linear-gradient(180deg,#0c131d 0%,var(--bg) 42%,#0a0f17 100%)}
 
-  /* B. ORTAK KART SİSTEMİ - üst-kenar parlaklığı + net sınır + hover-lift.
-     Tüm kart tipleri tek görsel dile gelir. */
+  /* B. SHARED CARD SYSTEM - top-edge highlight + clear border + hover-lift. All card types share one visual language. */
   .stat,.panel,.kpanel,.scard,.acard,.bstat,.qbtn,.acc,.pcard,.lifecard,.cart,.gamehdr,.envleft,.envright,.mode-c{
     box-shadow:inset 0 1px 0 var(--sheen), 0 1px 2px rgba(0,0,0,.25);
   }
@@ -149,7 +150,7 @@
   }
   .stat,.bstat,.qbtn,.pcard,.mode-c{transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
 
-  /* C. SEÇİLİ / AKTİF - tutarlı accent border + glow (her yerde aynı dil) */
+  /* C. SELECTED / ACTIVE - consistent accent border + glow (the same language everywhere) */
   .erow.sel,.pcard.psel,.actile.selx,.atable tr.selx td{
     box-shadow:inset 3px 0 0 var(--blue), 0 0 0 1px rgba(74,155,255,.25);
   }
@@ -159,7 +160,7 @@
   .mode-c.sel{border-color:var(--blue);background:#12263f;box-shadow:inset 0 0 0 1px var(--blue),0 0 18px rgba(74,155,255,.20)}
   .nav a.active{box-shadow:inset 3px 0 0 var(--blue)}
 
-  /* D. CTA - birincil aksiyon görsel merkez (gradyan + renkli glow) */
+  /* D. CTA - the primary action is the visual centre (gradient + coloured glow) */
   .btn.blue{background:linear-gradient(180deg,#5aa4ff,#3d8bff);box-shadow:0 4px 16px rgba(74,155,255,.32)}
   .btn.green{background:linear-gradient(180deg,#69d982,#4fbf68);box-shadow:0 4px 16px rgba(95,208,116,.30)}
   .btn.red{background:linear-gradient(180deg,#ef6570,#e0505c);box-shadow:0 4px 16px rgba(232,90,102,.28)}
@@ -167,18 +168,20 @@
   .btn{transition:filter .15s ease,transform .15s ease,box-shadow .15s ease}
   .bigacts .btn.green,.bigacts .btn.blue{box-shadow:0 6px 22px rgba(95,208,116,.30),inset 0 1px 0 rgba(255,255,255,.15)}
 
-  /* E. Focus görünürlüğü (klavye erişilebilirliği) */
+  /* E. Focus visibility (keyboard accessibility) */
   button:focus-visible,input:focus-visible,select:focus-visible,.chip:focus-visible,[tabindex]:focus-visible{
     outline:2px solid var(--blue);outline-offset:2px;
   }
-  /* F. Status pill'lere hafif glow (canlılık) */
+  /* F. Light glow on status pills (liveliness) */
   .status.run{box-shadow:0 0 0 1px rgba(95,208,116,.25),0 0 14px rgba(95,208,116,.15)}
 
-  /* ========================================================================
-     Genel değişiklik: açılır/kapanır sidebar + üst çubukta arama/bildirim/
-     ayarlar/profil + çoklu hesap değiştirici akordiyonu.
-     ======================================================================== */
-  /* G. sol kenar çubuğu - daralt/genişlet */
+  /*
+   ================================================================
+   General change: collapsible sidebar + search/notifications/settings/profile in the top bar +
+   multi-account switcher accordion.
+   ================================================================
+*/
+  /* G. left sidebar - collapse/expand */
   .side-collapse{position:absolute;top:10px;right:-11px;width:22px;height:22px;border-radius:50%;
     background:var(--card2);border:1px solid var(--line);color:var(--muted);display:flex;align-items:center;
     justify-content:center;cursor:pointer;z-index:5}
@@ -189,7 +192,7 @@
   .side.collapsed .nav a .lbl,.side.collapsed .sidestat,.side.collapsed .copy{display:none}
   .side.collapsed .side-collapse svg{transform:rotate(180deg)}
 
-  /* H. üst çubuk orta küme - ara/bildirim/ayarlar + profil */
+  /* H. top bar middle cluster - search/notifications/settings + profile */
   .tb-mid{display:flex;align-items:center;gap:5px;-webkit-app-region:no-drag;padding:0 4px}
   .tb-icon{width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--muted);
     display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -204,7 +207,7 @@
   .tb-profile.open .chev{transform:rotate(180deg)}
   .avatar.sm{width:30px;height:30px;border-radius:9px}
 
-  /* I. hesap değiştirici + bildirim açılır panelleri (ortak flyout dili) */
+  /* I. account switcher + notification dropdown panels (shared flyout language) */
   .acct-dropdown,.notif-dropdown{position:fixed;top:50px;right:16px;background:var(--card);
     border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:60;display:none;overflow:hidden}
   .acct-dropdown.open,.notif-dropdown.open{display:block}

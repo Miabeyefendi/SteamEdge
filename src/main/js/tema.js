@@ -1,9 +1,9 @@
-// ================= TEMA =================
-// Renkler sayfalarda ve JS'te satır içi yazılı (#0D1118 gibi). Hepsini değişkene taşımak
-// her dosyaya dokunmak demekti; bunun yerine koyu temanın renkleri çalışma anında seçili
-// paletin karşılığıyla değiştirilir: satır içi stiller, CSS kuralları ve sonradan eklenen her
-// düğüm. Koyu tema kaynağın kendisi, eşleme yok. Paletler Vantagraph'tan (R34Purple, VantaWhite).
-// Giriş ekranı ayarları okuyamadığı için seçim localStorage'da da tutulur.
+// ================= THEME =================
+// Colours are written inline in the pages and in JS (like #0D1118). Moving them all to variables
+// would have meant touching every file; instead the colours of the dark theme are swapped at run time
+// for the selected palette's counterparts: inline styles, CSS rules and every node added later.
+// The dark theme is the source itself, there is no mapping. Palettes are from Vantagraph (R34Purple, VantaWhite).
+// Since the login screen cannot read the settings the choice is also kept in localStorage.
 (function () {
   const PALET = {
     midnight: {
@@ -27,7 +27,7 @@
       .replace(/#([0-9a-fA-F]{6})\b/g, (m, h) => { const y = esle[h.toLowerCase()]; return y ? '#' + y : m; })
       .replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g, (m, r, g, b) => { const y = esle[hex2(r) + hex2(g) + hex2(b)]; return y ? '#' + y : m; });
   }
-  // SVG ikonları rengi fill/stroke özniteliğinde taşıyor (kenar çubuğu düğmesi gibi).
+  // SVG icons carry their colour in the fill/stroke attribute (like the sidebar button).
   const OZ = ['style', 'fill', 'stroke'];
   function eleman(el) {
     if (!el.getAttribute) return;
@@ -57,8 +57,8 @@
     try { localStorage.setItem('se_tema', secim); } catch (_) {}
     const onceki = document.documentElement.getAttribute('data-tema') || 'dark';
     if (onceki === secim) return;
-    // Başka bir temadan dönüş için sayfa yenilenir: eşleme geri alınamaz, kaynak koyu.
-    // Ayarlar açıksa aynı bölüme dönülür (dil değişimiyle aynı anahtar, bkz i18n.js).
+    // Returning from another theme reloads the page: the mapping cannot be undone, the source is dark.
+    // If Settings is open it returns to the same section (the same key as the language change, see i18n.js).
     if (onceki !== 'dark') {
       try { if (typeof currentSetSec === 'string' && typeof I18N_DONUS_ANAHTARI === 'string') sessionStorage.setItem(I18N_DONUS_ANAHTARI, currentSetSec); } catch (_) {}
       location.reload(); return;
@@ -67,8 +67,8 @@
     document.documentElement.setAttribute('data-tema', secim);
     document.documentElement.style.colorScheme = secim === 'white' ? 'light' : 'dark';
     kurallar();
-    // Beyaz temada açık metin rengi koyuya döner; mor düğmelerin yazısı ve logodaki beyaz
-    // harf ise açık kalmalı.
+    // In the white theme the light text colour turns dark; the text of the purple buttons and the white
+    // letter in the logo must stay light.
     if (secim === 'white') {
       const st = document.createElement('style');
       st.textContent = '[style*="background:#5624B3"],[style*="background: rgb(86, 36, 179)"]{color:#fff !important}'

@@ -1,20 +1,20 @@
-    // ================= KART DÜŞÜR =================
-    // Sayfadaki alanlar gerçek motor verisiyle dolduruluyor (dropGames / farm:tick).
+    // ================= KART DÜŞÜR (CARD FARMING) =================
+    // The fields on the page are filled with real engine data (dropGames / farm:tick).
     let dropGames = [], kartLoaded = false;
     let selectedMode = 'sequential';
     let durationSec = 15*60;
     let lastTick = { running: false, activeAppids: [] };
 
-    // Kuyruk kontrolleri (sıralanabilir sütun başlıkları + Hepsi/1-2/3+ filtresi +
-    // satır içi yukarı/aşağı/En Öne Al/çıkar düğmeleri)
+    // Queue controls (sortable column headers + the Hepsi/1-2/3+ filter +
+    // inline up/down/En Öne Al/remove buttons)
     let queueSort = 'rank', queueSortDir = 'asc', qfilter = 'all';
-    let priorityOrder = [];          // appid dizisi - "Öncelikli" modun ve elle sıralamanın kaynağı
-    const removedIds = new Set();    // kuyruktan çıkarılanlar (farm'a gönderilmez)
-    const recentDrops = [];          // {appid,name,count,ts} - genel.js'in gerçek düşüş ölçümünden
+    let priorityOrder = [];          // array of appids - the source of the "Öncelikli" mode and of manual ordering
+    const removedIds = new Set();    // removed from the queue (not sent to farm)
+    const recentDrops = [];          // {appid,name,count,ts} - from genel.js's real drop measurement
 
     const modeLabels = { sequential:'Sıralı', most:'Çok Kart', least:'Az Kart', priority:'Öncelik', fast:'Hızlı' };
-    // Her ipucu TEK dizge: DOM çevirisi metni bütün olarak arar, parçalı birleştirme
-    // sözlükte hiçbir anahtara denk gelmiyordu.
+    // Every tooltip is ONE string: the DOM translation looks up the text as a whole, piecewise
+    // concatenation matched no key in the dictionary.
     const modeHints = {
       sequential: 'Oyunları kuyruk sırasıyla tek tek çalıştırır.',
       most: 'En çok kartı kalan oyunları öne alır.',
@@ -22,18 +22,18 @@
       priority: 'Öncelik listendeki oyunları önce çalıştırır.',
       fast: 'Steam kart düşürmeye oyun 2 saati geçince başlar. Hızlı mod önce 2 saatin altındaki oyunları birlikte çalıştırıp bu eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir.'
     };
-    // listRow(on) / segSet(cur,key) seçili-stil yardımcıları
+    // listRow(on) / segSet(cur,key) selected-style helpers
     const ROW_ON  = { bg:'#151C28', fg:'#DCE2FA', bd:'#5624B3' };
     const ROW_OFF = { bg:'transparent', fg:'#8B8F9E', bd:'transparent' };
     const SEG_ON  = { bg:'#5624B3', fg:'#DCE2FA', bd:'#5624B3' };
     const SEG_OFF = { bg:'transparent', fg:'#8B8F9E', bd:'transparent' };
     function paint(el, s){ el.style.background = s.bg; el.style.color = s.fg; el.style.borderColor = s.bd; }
 
-    // Ayarlar > Kart Düşürme tercihlerini sayfaya uygular (varsayılan mod, süre, kuyruk sıralaması).
-    // Kullanıcı sayfada elle değiştirdiyse üzerine yazmaz; ANCAK Ayarlar'da Kaydet ile değişen
-    // değer (degisen) her durumda uygulanır, çünkü kullanıcı onu az önce açıkça seçti. Çalışan
-    // kuyruğun modu değişmez (sıra motorda kurulu); süre değişikliğini ana süreç çalışan işe de
-    // uygular (bkz main.js > ayarlariIslereUygula).
+    // Applies the Ayarlar > Kart Düşürme preferences to the page (default mode, duration, queue order).
+    // It does not overwrite what the user changed by hand on the page; BUT a value changed with Kaydet in Ayarlar
+    // (degisen) is always applied, because the user explicitly chose it a moment ago. The mode of a running
+    // queue does not change (the order is set up in the engine); the main process applies a duration change to the running job
+    // too (see main.js > ayarlariIslereUygula).
     let farmUserTouched = false;
     function applyFarmSettings(degisen){
       if (typeof appSettings !== 'object' || !appSettings) return;
@@ -66,9 +66,9 @@
       renderKart();
     }
 
-    // ---- kuyruk tercihlerinin kalıcılığı (main.js state.json, saklama süresi Ayarlar'dan) ----
-    // Kullanıcının elle yaptığı sıralama ve kuyruktan çıkardığı oyunlar uygulama kapansa da
-    // geri gelsin. Artık sahip olunmayan appid'ler yüklenirken elenir.
+    // ---- persistence of queue preferences (main.js state.json, retention from Ayarlar) ----
+    // The order the user made by hand and the games they removed from the queue should come back
+    // even after the app closes. Appids that are no longer owned are filtered out on load.
     const KART_STATE_KEY = 'kart.queue';
     let kartStateReady = false;
     async function restoreKartState(){
@@ -91,7 +91,7 @@
     }
     document.getElementById('btnRefresh').onclick = () => { kartLoaded = false; loadKart(); };
 
-    // Kuyruğa girecek oyunlar: çıkarılanlar hariç, seçili moda göre sıralı.
+    // Games that will enter the queue: excluding the removed ones, ordered by the selected mode.
     function orderedForMode(){
       const list = dropGames.filter(g=>!removedIds.has(g.appid));
       if (selectedMode === 'most') return list.slice().sort((a,b)=>b.remaining-a.remaining);
@@ -105,7 +105,7 @@
       return list;
     }
 
-    // Ekranda gösterilecek liste: mod sırası + filtre + sütun sıralaması .
+    // The list to show on screen: mode order + filter + column sort.
     function viewQueue(){
       const base = orderedForMode();
       const ranked = base.map((g,i)=>({ ...g, rank: i+1 }));
@@ -114,7 +114,7 @@
       const dir = queueSortDir==='asc' ? 1 : -1;
       return filtered.slice().sort((a,b)=>{
         const aa = activeIds.has(a.appid), ba = activeIds.has(b.appid);
-        if (aa !== ba) return aa ? -1 : 1;              // aktif olan her zaman üstte
+        if (aa !== ba) return aa ? -1 : 1;              // the active one is always on top
         if (queueSort==='name')   return a.name.localeCompare(b.name) * dir;
         if (queueSort==='remain') return (a.remaining-b.remaining) * dir;
         return (a.rank-b.rank) * dir;
@@ -129,7 +129,7 @@
       document.getElementById('listeLabel').textContent = tf('Düşürme Kuyruğu · # Oyun', live.length);
       document.getElementById('dropCount').textContent = recentDrops.length + ' öğe';
 
-      // sıralama okları
+      // sort arrows
       const arrow = (key) => queueSort===key ? (queueSortDir==='asc'?'▲':'▼') : '';
       document.getElementById('arrowRank').textContent = arrow('rank');
       document.getElementById('arrowName').textContent = arrow('name');
@@ -150,12 +150,12 @@
         const on = activeIds.has(g.appid);
         const bd = on ? '#5624B3' : '#2B3345';
         const pct = (g.appid===currentId) ? turnPct : 0;
-        // Açık olan her oyun "Çalışıyor": hızlı modda havuzdaki oyunların hepsi açık,
-        // eskiden hepsi "1. Sırada" yazıyordu.
+        // Every game that is open is "Çalışıyor": in fast mode all the games in the pool are open,
+        // they all used to say "1. Sırada".
         const state = on ? 'Çalışıyor' : 'Bekliyor';
         return '<div class="h-bd" data-row="'+g.appid+'" style="border:1px solid '+bd+';border-radius:12px;background:'+(on?'#0D1118':'#090C12')+';padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;opacity:'+(on?1:0.5)+'">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?'#B37E24':'#8B8F9E')+';border:1px solid '+bd+';border-radius:12px;padding:4px 0;width:34px;box-sizing:border-box;text-align:center;flex-shrink:0">#'+g.rank+'</span>'
-          // Kutu oranı 920x430 (~2.14:1) - Steam Kütüphane Başlığı ölçütü.
+          // The box ratio is 920x430 (~2.14:1) - the Steam Library Header standard.
           + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
             + gameThumb(g.appid)
           + '</div>'
@@ -178,7 +178,7 @@
       renderDrops();
     }
 
-    // Satır içi sıra/çıkarma işlemleri - elle sıralama "Öncelikli" moda yazılır (priority
+    // Inline order/remove operations - manual ordering is written to the "Öncelikli" mode (priority
     // = "Öncelik listendeki oyunları önce düşürür").
     document.getElementById('kartQueue').addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-act]'); if (!btn) return;
@@ -186,7 +186,7 @@
       const id = +row.getAttribute('data-row');
       const act = btn.getAttribute('data-act');
       if (act === 'remove'){ removedIds.add(id); saveKartState(); renderKart(); return; }
-      // sıra değişikliği öncelik listesinde yapılır ve mod otomatik "Öncelikli"ye geçer
+      // the order change is made in the priority list and the mode automatically moves to "Öncelikli"
       if (!priorityOrder.length) priorityOrder = orderedForMode().map(g=>g.appid);
       const i = priorityOrder.indexOf(id);
       if (i < 0) return;
@@ -199,7 +199,7 @@
       else renderKart();
     });
 
-    // sütun sıralama
+    // column sort
     function toggleSort(key){
       if (queueSort === key) queueSortDir = (queueSortDir==='asc' ? 'desc' : 'asc');
       else { queueSort = key; queueSortDir = 'asc'; }
@@ -209,7 +209,7 @@
     document.getElementById('sortName').onclick = ()=>toggleSort('name');
     document.getElementById('sortRemain').onclick = ()=>toggleSort('remain');
 
-    // filtre segmenti
+    // filter segment
     function paintFilter(){
       document.querySelectorAll('#qFilter button[data-qf]').forEach(b=>paint(b, b.getAttribute('data-qf')===qfilter ? SEG_ON : SEG_OFF));
     }
@@ -218,19 +218,19 @@
     }));
     paintFilter();
 
-    // mod seçimi
+    // mode selection
     function setMode(mode){
       selectedMode = mode;
       document.querySelectorAll('#modeList button[data-mode]').forEach(b=>paint(b, b.getAttribute('data-mode')===mode ? ROW_ON : ROW_OFF));
       document.getElementById('durNote').textContent = modeHints[mode] || '';
-      // Hızlı mod süreyi kendi yönetir (motorda sabit rotasyon), zamanlayıcı soluklaşır
+      // Fast mode manages the duration itself (a fixed rotation in the engine), the timer fades
       document.getElementById('durationPanel').style.opacity = (mode==='fast') ? '.45' : '1';
       renderKart();
     }
     document.querySelectorAll('#modeList button[data-mode]').forEach(b=>b.addEventListener('click', ()=>{ farmUserTouched = true; setMode(b.getAttribute('data-mode')); }));
     setMode('sequential');
 
-    // ---- Oturum zamanlayıcı: HRS : DK : SN ----
+    // ---- Session timer: HRS : DK : SN ----
     const kH = document.getElementById('kartH'), kM = document.getElementById('kartM'), kS = document.getElementById('kartS');
     function writeDur(){
       const h=Math.floor(durationSec/3600), m=Math.floor((durationSec%3600)/60), s=durationSec%60;
@@ -240,7 +240,7 @@
     function commitDur(){
       const h=parseInt(kH.value,10)||0, m=Math.min(59,parseInt(kM.value,10)||0), s=Math.min(59,parseInt(kS.value,10)||0);
       farmUserTouched = true;
-      durationSec = Math.max(30, h*3600 + m*60 + s);   // 30sn altı Steam için anlamsız
+      durationSec = Math.max(30, h*3600 + m*60 + s);   // under 30 s is meaningless to Steam
       writeDur();
     }
     [kH,kM,kS].forEach(el=>{
@@ -258,7 +258,7 @@
     }));
     writeDur();
 
-    // ---- Otomasyon anahtarları (ayarlara kalıcı yazılır) ----
+    // ---- Automation switches (written persistently to the settings) ----
     async function applyFarmToggles(){
       const s = await window.imu.settings.get().catch(()=>null);
       if (!s) return;
@@ -276,7 +276,7 @@
       });
     });
 
-    // ---- Son Düşüşler (gerçek ölçüm - genel.js'in kart sayacı besliyor) ----
+    // ---- Son Düşüşler (real measurement - genel.js's card counter feeds it) ----
     function pushDrop(appid, name, count){
       recentDrops.unshift({ appid, name, count, ts: Date.now() });
       if (recentDrops.length > 12) recentDrops.length = 12;
@@ -305,13 +305,13 @@
       }));
     }
 
-    // ---- Başlat / Durdur ----
+    // ---- Start / Stop ----
     function setKartPill(run){
       const d = document.getElementById('kartPillDot');
       if (d) d.style.background = run ? '#5FB324' : '#B37E24';
     }
     document.getElementById('btnStart').onclick = () => {
-      // playtimeMin hızlı modun "2 saat" kuralı için gerekli (motor bunu okuyor)
+      // playtimeMin is needed for fast mode's "2 hour" rule (the engine reads it)
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining,playtimeMin:g.playtimeMin||0}));
       if (!games.length) return;
       E.startFarm(selectedMode, games, durationSec*1000);
@@ -333,13 +333,13 @@
       pushFeed('kart', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
     };
 
-    // HIZ: tik saniyede bir geliyor. Eskiden her tikte BUTUN kuyruk yeniden ciziliyordu,
-    // sekme gizliyken bile: 400 oyunluk kuyrukta saniyede ~50 ms islemci ve gizli sekmenin
-    // bellekten dusurulen listesini her saniye geri dolduruyordu. Artik yalnizca calisan oyun
-    // degisince cizim yapiliyor; aradaki tiklerde yalnizca ilerleme cubugu guncelleniyor.
+    // SPEED: the tick comes once a second. Every tick used to redraw the WHOLE queue,
+    // even while the tab was hidden: with a 400 game queue that was ~50 ms of processor per second and it refilled
+    // the list the hidden tab had dropped from memory every second. Now drawing happens only when the running game
+    // changes; on the ticks in between only the progress bar is updated.
     let sonKartImza = '';
     E.onTick((data) => {
-      // Kart düşürme yeni başladı: otomatik satış için envanter tabanı alınır (env.js).
+      // Card farming has just started: the inventory baseline for auto-sell is taken (env.js).
       if (data.running && !lastTick.running && typeof autoSellTaban === 'function') autoSellTaban();
       lastTick = data;
       setKartPill(!!data.running);

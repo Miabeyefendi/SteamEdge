@@ -1,4 +1,4 @@
-  /* ---- Genel Bakış ---- */
+  /* ---- Overview ---- */
   .hero{position:relative;background:linear-gradient(120deg,var(--card),#141d29);border:1px solid var(--line);
     border-radius:var(--radius);padding:26px 28px;overflow:hidden}
   .hero h1{font-size:26px;font-weight:800}
@@ -7,7 +7,7 @@
   .hero .wm{position:absolute;right:20px;top:50%;transform:translateY(-50%);opacity:.09;font-size:130px;filter:blur(.3px)}
   .hero .wm2{position:absolute;right:150px;bottom:-18px;opacity:.05;font-size:80px;transform:rotate(-8deg)}
 
-  /* Stat Cards (temp2: üstte ince renk çizgisi + sağ üstte ikon) */
+  /* Stat Cards (temp2: thin colour line on top + icon at top right) */
   .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
   .stat-card{background:#191d28;border:1px solid #252a3a;border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
   .stat-card:hover{border-color:#2e3650}
@@ -25,7 +25,7 @@
   .stat-value{font-size:28px;font-weight:800;color:#e8eaf0;line-height:1;letter-spacing:-1px}
   .stat-sub{font-size:11px;color:#7c8299;margin-top:6px}
 
-  /* Section row: Aktif Durum (1fr, sabit --box-6) + sağ sütun (320px, iki ayrı kutu üst üste) */
+  /* Section row: Active Status (1fr, fixed --box-6) + right column (320px, two separate boxes stacked) */
   .section-row{display:grid;grid-template-columns:1fr 320px;gap:16px}
   .panel{background:#191d28;border:1px solid #252a3a;border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
   .panel-tall{height:var(--box-6)}
@@ -39,7 +39,7 @@
   .panel-body{padding:20px;flex:1;min-height:0;display:flex;flex-direction:column}
   .panel-body.scroll{overflow-y:auto}
 
-  /* Aktif/Boşta rozeti */
+  /* Active/Idle badge */
   .gpill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
     background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);box-shadow:0 0 10px rgba(34,197,94,.1)}
   .gpill.idle{background:rgba(100,116,139,.15);color:#64748b;border-color:rgba(100,116,139,.25);box-shadow:none}
@@ -50,7 +50,7 @@
   .idle-text{font-size:13px;color:#4a5070;text-align:center}
   .idle-hint{font-size:11px;color:#4a5070;opacity:.6;text-align:center}
 
-  /* Aktif Durum - canlı içerik (renderGenelActive) */
+  /* Active Status - live content (renderGenelActive) */
   .gactive-wrap{flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
   .ghero{display:flex;gap:16px}
   .ghero .thumb{width:120px;height:68px;border-radius:10px;flex:none;background:linear-gradient(135deg,#7a2d2d,#3a2020);overflow:hidden;border:1px solid #252a3a}
@@ -70,11 +70,11 @@
   .gdet .r span{color:#7c8299;font-size:11px}
   .gdet .r b{color:#e8eaf0;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
 
-  /* Kart drop-slot görseli (kart.css'teki .drop-slot ile aynı bileşen, ferah boşluk) */
+  /* Card drop-slot visual (the same component as .drop-slot in kart.css, airy spacing) */
   .gdropslots{margin-top:14px;padding-top:14px;border-top:1px solid #252a3a}
   .gdropslots-lbl{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#7c8299;margin-bottom:8px}
 
-  /* Sıradaki Oyunlar (temp6: "Up Next in Queue") */
+  /* Up Next games (temp6: "Up Next in Queue") */
   .gqueue-hd{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#7c8299;margin:14px 0 8px}
   .gqueue-strip{display:flex;gap:10px}
   .gq-item{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:#141720;border:1px solid #252a3a;border-radius:8px;padding:8px 10px}
@@ -84,7 +84,7 @@
   .gq-sub{font-size:10px;color:#7c8299;margin-top:1px}
   .gq-pos{font-size:10px;color:#4f8ef7;font-weight:700;flex:none}
 
-  /* Son Aktiviteler - canlı içerik (renderFeed), nokta+metin (temp2 sadeliği) */
+  /* Recent Activity - live content (renderFeed), dot + text (the simplicity of temp2) */
   .activity-feed{display:flex;flex-direction:column;gap:0;overflow-y:auto;flex:1;min-height:0}
   .activity-item{display:flex;align-items:flex-start;gap:10px;padding:9px 4px;border-radius:6px;transition:background .1s}
   .activity-item:hover{background:#1f2333}
@@ -104,7 +104,7 @@
     display:flex;align-items:center;gap:5px;transition:all .15s}
   .clear-btn:hover{border-color:#ef4444;color:#ef4444}
 
-  /* Hızlı İşlemler - temp2 buton yapısı, sağda ayrı dikey panel (temp2/temp6 ikisinde de sağ sütun) */
+  /* Quick Actions - temp2 button structure, a separate vertical panel on the right (the right column in both temp2/temp6) */
   .qa-col{display:flex;flex-direction:column;gap:8px}
   .qa-btn{display:flex;align-items:center;gap:10px;padding:0 16px;height:44px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid}
   .qa-btn.primary{background:linear-gradient(135deg,rgba(79,142,247,.18),rgba(167,139,250,.12));border-color:rgba(79,142,247,.35);color:#93c5fd}

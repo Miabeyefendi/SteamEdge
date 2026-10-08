@@ -1,15 +1,15 @@
-    // ================= SAAT YÜKSELTİCİ =================
-    // Eş zamanlı = tümü birlikte (belirlenen sürede durur).
-    // "Sıralı bekletme modu" açıkken FarmController 'sequential' ile oyunlar sırayla döner.
+    // ================= SAAT YÜKSELTİCİ (HOUR BOOSTER) =================
+    // Simultaneous = all together (stops at the set time).
+    // When "Sıralı bekletme modu" is on, FarmController cycles the games in turn with 'sequential'.
     let ownedGames = [], saatLoaded = false;
     let selectedSaat = [];
     let saatDurSec = 3600;
     let maxConcurrent = 32, concurrentCustom = false;
     let boostState = { running: false, appids: [], startedAt: 0, durationMs: 0 };
     let boostTimerUI = null;
-    // Davranış/Gizlilik anahtarları - ayarlara kalıcı yazılır (Ayarlar ekranıyla aynı anahtarlar)
-    // ignoreUpdates ve hideGameName buradan cikarildi: ilkinin motorda karsiligi hic yoktu,
-    // ikincisi Ayarlar > Gizlilik altinda duruyor.
+    // Behaviour/Privacy switches - written persistently to the settings (the same keys as the Settings screen)
+    // ignoreUpdates and hideGameName were removed from here: the first had no counterpart in the engine at all,
+    // the second sits under Ayarlar > Gizlilik.
     let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, offlineMode:false, boostSync:false };
 
     const BC = { brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
@@ -36,22 +36,22 @@
     }
     document.getElementById('saatSearch').addEventListener('input', renderSaatList);
 
-    // "Oyun listesini hatırla" ayarı açıksa seçim kalıcı
+    // if the "Oyun listesini hatırla" setting is on the selection is persistent
     function persistBoostList(){
       if (appSettings && appSettings.rememberBoostList){
         window.imu.settings.set({ boostGameIds: selectedSaat.map(g=>g.appid) }).catch(()=>{});
       }
     }
-    // Kayitli oyun listesini geri yukler.
-    // DIKKAT: hem loadSaat icinden hem applyBoostFlags icinden cagrilir. Sebebi bir yaris
-    // durumu: ayarlar (appSettings) ile kutuphane (ownedGames) farkli anlarda hazir oluyor;
-    // hangisi once gelirse gelsin secim geri gelsin diye iki taraftan da deneniyor. Eskiden
-    // yalnizca loadSaat icinde cagriliyordu ve ayarlar gec gelirse kullanicinin kayitli
-    // listesi BOS gorunuyordu - o da elle yeniden secince kaydin uzerine yaziliyordu.
+    // Restores the saved game list.
+    // NOTE: it is called both from loadSaat and from applyBoostFlags. The reason is a race
+    // condition: the settings (appSettings) and the library (ownedGames) become ready at different moments;
+    // so that the selection comes back whichever arrives first it is tried from both sides. It used to be
+    // called only inside loadSaat and if the settings came late the user's saved
+    // list looked EMPTY - and then selecting again by hand overwrote the saved one.
     function restoreBoostList(){
       if (!appSettings || !appSettings.rememberBoostList || !Array.isArray(appSettings.boostGameIds)) return false;
-      if (!ownedGames.length) return false;      // kutuphane henuz gelmedi
-      if (selectedSaat.length) return false;     // kullanici zaten secmis, uzerine yazma
+      if (!ownedGames.length) return false;      // the library has not arrived yet
+      if (selectedSaat.length) return false;     // the user already selected, do not overwrite
       const ids = new Set(appSettings.boostGameIds);
       const bulunan = ownedGames.filter(g=>ids.has(g.appid));
       if (!bulunan.length) return false;
@@ -59,7 +59,7 @@
       return true;
     }
 
-    // ---- kütüphane listesi ----
+    // ---- library list ----
     function renderSaatList(){
       const q = document.getElementById('saatSearch').value.trim().toLowerCase();
       const body = document.getElementById('saatListBody');
@@ -70,7 +70,7 @@
       body.innerHTML = filtered.map(g=>{
         const on = selIds.has(g.appid);
         return '<div class="h-bd" data-appid="'+g.appid+'" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:1px solid '+(on?BC.brand:BC.bd)+';background:'+(on?'#151C28':'transparent')+';cursor:pointer;margin-bottom:5px">'
-          // Kütüphane Başlığı oranı (920x430, ~2.14:1)
+          // Library Header ratio (920x430, ~2.14:1)
           + '<div style="width:59px;height:28px;flex-shrink:0;border-radius:8px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
             + gameThumb(g.appid) + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
@@ -86,8 +86,8 @@
       toggleSaatGame(+row.getAttribute('data-appid'));
     });
 
-    // Tüm listeyi yeniden çizmek yerine sadece tıklanan satır güncelleniyor (kütüphane 300 satıra
-    // kadar çıkabiliyor; ayrıca yeniden çizim kaydırma konumunu ve tıklanan düğümü kaybettiriyordu).
+    // Instead of redrawing the whole list only the clicked row is updated (the library can reach 300 rows;
+    // also redrawing lost the scroll position and the clicked node).
     function paintLibRow(row, on){
       row.style.borderColor = on ? BC.brand : BC.bd;
       row.style.background  = on ? '#151C28' : 'transparent';
@@ -114,9 +114,9 @@
 
     function renderSaatSelected(){ renderActiveBox(); }
 
-    // ---- MADDE 4: saat esitleme ayarlari (sayfa ici) ----
-    // Esitleme acikken "eszamanli limit" ve "yukseltme suresi" anlamsizdir: ikisini de
-    // esitleme algoritmasi belirler. Bu yuzden gorsel olarak kilitlenir ve sebebi yazilir.
+    // ---- ITEM 4: hour sync settings (in the page) ----
+    // While sync is on "eszamanli limit" and "yukseltme suresi" are meaningless: the sync
+    // algorithm decides both. So they are visually locked and the reason is written.
     function syncAyarlariCiz(){
       const acik = !!(appSettings && appSettings.boostSync) && !boostFlags.seqIdle;
       const opts = document.getElementById('saatSyncOpts');
@@ -173,7 +173,7 @@
       });
     })();
 
-    // ---- kuyruk/aktif kartlar ----
+    // ---- queue/active cards ----
     function renderActiveBox(){
       const box = document.getElementById('activeBoostBox');
       if (!box) return;
@@ -181,7 +181,7 @@
       const activeSet = new Set(activeIds);
       document.getElementById('statOyunSayisi').textContent = boostState.running ? activeIds.length : selectedSaat.length;
 
-      // Süre göstergeleri
+      // Time indicators
       const elapsed = boostState.running ? Math.floor((Date.now()-(boostState.startedAt||Date.now()))/1000) : 0;
       const left = boostState.running && boostState.durationMs
         ? Math.max(0, Math.floor((boostState.durationMs - (Date.now()-(boostState.startedAt||Date.now())))/1000))
@@ -198,14 +198,14 @@
       }
       const dur = boostState.durationMs || saatDurSec*1000;
       const pct = boostState.running && dur ? Math.min(100, Math.round((Date.now()-(boostState.startedAt||Date.now()))/dur*100)) : 0;
-      // Esitleme acikken cubuklar ORTAK ZAMAN CIZELGESINE oturur: olcut, o oyunun kalan
-      // suresinin isin TOPLAM suresine orani. 34 saatlik bir iste 3 saat sonra bitecek
-      // oyunun cubugu bastan neredeyse doludur, sona kadar calisacak oyunun cubugu bostur.
-      // Boylece cubuklar birbiriyle kiyaslanabilir ve her oyun kendi bittigi anda %100 olur.
+      // While sync is on the bars sit on the SHARED TIMELINE: the measure is the ratio of that game's remaining
+      // time to the job's TOTAL time. In a 34 hour job the bar of a game that will finish after 3 hours
+      // is almost full from the start, the bar of the game that will run to the end is empty.
+      // So the bars are comparable with each other and every game reaches 100% at the moment it finishes.
       //
-      // Oyunun kendi yoluna gore olcmek (kazanilan / hedefe mesafe) denendi ve BIRAKILDI:
-      // o olcutte hepsi %0'dan basliyor, yani ekranda hangi oyunun erken bitecegi hic
-      // gorunmuyordu - 3 saatlik is de 34 saatlik is de ayni bos cubuktu.
+      // Measuring by the game's own path (gained / distance to the target) was tried and ABANDONED:
+      // in that measure all of them start from 0%, so which game would finish early was never
+      // visible on screen - a 3 hour job and a 34 hour job were the same empty bar.
       function oyunYuzde(g, aktif){
         const bilgi = syncOyunBilgi.get(g.appid);
         if (bilgi && syncIsToplamMs > 0){
@@ -220,7 +220,7 @@
         const bd = on ? BC.brand : BC.bd;
         const p = oyunYuzde(g, on);
         return '<div style="border:1px solid '+bd+';border-radius:12px;background:'+(on?BC.s1:BC.bgAlt)+';padding:14px;display:flex;align-items:center;gap:12px;min-height:84px">'
-          // Kütüphane Başlığı oranı (920x430, ~2.14:1)
+          // Library Header ratio (920x430, ~2.14:1)
           + '<div style="width:97px;height:45px;flex-shrink:0;border-radius:10px;border:1px solid '+bd+';background:repeating-linear-gradient(135deg,#151C28 0 6px,#101621 6px 12px);overflow:hidden">'
             + gameThumb(g.appid) + '</div>'
           + '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:7px">'
@@ -231,8 +231,8 @@
               + '</div>'
               + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
                 + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+fmtYuzde(p)+'</span>'
-                // Tek oyunu kuyruktan cikar. Eskiden yalnizca "kuyrugu temizle" vardi,
-                // yani bir oyunu atmak icin butun secimi bozmak gerekiyordu.
+                // Remove a single game from the queue. There used to be only "clear the queue",
+                // so to drop one game the whole selection had to be ruined.
                 + '<button data-saatdel="'+g.appid+'" class="h-stop" title="'+esc(t('Kuyruktan Çıkar'))+'" '
                   + 'style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;'
                   + 'background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;'
@@ -245,8 +245,8 @@
       }).join('');
     }
 
-    // Kuyruktan tek oyun cikarma. Calisirken kuyruga dokunulmaz: motor zaten o listeyle
-    // baslatildi, arayuzden silmek ekranla motoru ayirir.
+    // Removing a single game from the queue. While running the queue is not touched: the engine was already
+    // started with that list, deleting from the interface would separate the screen from the engine.
     document.getElementById('activeBoostBox').addEventListener('click', (e)=>{
       const b = e.target.closest('[data-saatdel]'); if (!b) return;
       if (boostState && boostState.running){
@@ -261,10 +261,10 @@
       renderActiveBox();
     });
 
-    // MADDE 15: Eskiden yalnizca "o oturumda gecen sure" yaziyordu; oyunun GUNCEL toplam
-    // suresi gorunmuyordu. Artik baslangic + gecen sure gosteriliyor, esitleme acikken
-    // hedefe ne kadar kaldigi da yaziyor. Esitlemedeki degerler main tarafindan gelir
-    // (her oyun farkli sure calistigi icin tek bir "elapsed" yetmez).
+    // ITEM 15: it used to write only "the time elapsed in that session"; the game's CURRENT total
+    // time was not visible. Now start + elapsed is shown, and while sync is on how much
+    // is left to the target is written too. The values during sync come from the main side
+    // (since each game runs for a different time a single "elapsed" is not enough).
     let syncOyunBilgi = new Map();   // appid -> { suankiMin, kalanMs, bitti }
     function altSatir(g, on, i, elapsed){
       const bilgi = syncOyunBilgi.get(g.appid);
@@ -273,21 +273,21 @@
         const hedef = syncHedefMin ? (' → ' + fmtHours(syncHedefMin)) : '';
         return esc(fmtHours(bilgi.suankiMin) + hedef + ' · ' + t(on ? 'çalışıyor' : 'sırada'));
       }
-      // Esitleme calisiyor ama bu oyun listede yoksa zaten hedefin ustundedir
+      // Sync is running but this game is not in the list, so it is already above the target
       if (syncHedefMin && (g.playtimeForever || 0) >= syncHedefMin){
         return esc(fmtHours(g.playtimeForever || 0) + ' · ' + t('zaten hedefte'));
       }
-      // Esitleme yokken: kutuphaneden gelen sure + bu oturumda gecen sure
+      // When there is no sync: the time that comes from the library + the time elapsed in this session
       const tabanMin = g.playtimeForever || 0;
       if (on) return esc(fmtHours(tabanMin + Math.floor(elapsed/60)) + ' · ' + t('çalışıyor') + ' ' + fmtHMS(elapsed));
       return '#' + (i+1) + ' · ' + esc(fmtHours(tabanMin));
     }
     let syncHedefMin = 0;
-    // Isin toplam suresi (ms). Cubuklarin ortak paydasi; motor baslangicta bir kez
-    // hesaplayip gonderiyor ve is boyunca degismiyor.
+    // The job's total time (ms). The common denominator of the bars; the engine computes it once at the start
+    // and sends it and it does not change during the job.
     let syncIsToplamMs = 0;
 
-    // ---- eşzamanlı limit ----
+    // ---- simultaneous limit ----
     function paintConc(){
       document.querySelectorAll('#saatConc button[data-n]').forEach(b=>{
         const v = b.getAttribute('data-n');
@@ -296,9 +296,9 @@
       });
       document.getElementById('saatConcCustom').style.display = concurrentCustom ? '' : 'none';
     }
-    // Limit ANINDA diske yazilir. Sebebi: saat esitlemesini ana surec yurutuyor ve esZamanli
-    // sayisini settings.boostMaxGames'ten okuyor. Eskiden bu deger yalnizca "Preset olarak
-    // kaydet" ile yaziliyordu, yani ekranda 8 yazarken esitleme 32 ile kosabiliyordu.
+    // The limit is written to disk INSTANTLY. The reason: the main process runs the hour sync and reads the simultaneous
+    // count from settings.boostMaxGames. This value used to be written only with "Preset olarak
+    // kaydet", so while the screen said 8 the sync could be running with 32.
     function limitiYaz(){
       concUserTouched = true;
       window.imu.settings.set({ boostMaxGames: maxConcurrent }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
@@ -315,10 +315,10 @@
     });
     paintConc();
 
-    // ---- yükseltme süresi ----
+    // ---- boost duration ----
     const bH = document.getElementById('saatH'), bM = document.getElementById('saatM'), bS = document.getElementById('saatS');
-    // saatDurSec 0 = SINIRSIZ: oturum durdurulana kadar sürer (Ayarlar > "Varsayılan hedef
-    // süre" > Sınırsız ile aynı). Eskiden sayfa sınırsızı gösteremiyordu; ayar ölüydü.
+    // saatDurSec 0 = UNLIMITED: the session continues until it is stopped (same as Ayarlar > "Varsayılan hedef
+    // süre" > Sınırsız). The page used to be unable to show unlimited; the setting was dead.
     function writeSegs(){
       if (!saatDurSec){ bH.value='∞'; bM.value='--'; bS.value='--'; paintBoostPresets(); return; }
       const h=Math.floor(saatDurSec/3600), m=Math.floor((saatDurSec%3600)/60), s=saatDurSec%60;
@@ -330,7 +330,7 @@
       window.imu.settings.set({ boostDurationSec: saatDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
     }
     function commitDurInput(){
-      // Sınırsızken alana girip çıkmak süreyi 1 dakikaya çevirmesin
+      // When unlimited, entering and leaving the field must not turn the duration into 1 minute
       if (!saatDurSec && String(bH.value).trim() === '∞') return;
       const h=parseInt(bH.value,10)||0, m=Math.min(59,parseInt(bM.value,10)||0), s=Math.min(59,parseInt(bS.value,10)||0);
       saatDurSec = Math.max(60, h*3600 + m*60 + s);
@@ -349,7 +349,7 @@
         const on = h==='inf' ? !saatDurSec
                  : h==='custom' ? (!!saatDurSec && ![6,12,18,24].includes(hours)) : (+h === hours);
         Object.assign(b.style, on ? BSEG_ON : BSEG_OFF);
-        // Sıralı bekletmede süre OYUN BAŞINA; sınırsız, ilk oyunda sonsuza kadar kalmak olurdu.
+        // In sequential idling the duration is PER GAME; unlimited would mean staying in the first game forever.
         if (h === 'inf'){
           const kapali = !!boostFlags.seqIdle;
           b.style.opacity = kapali ? '.35' : '1';
@@ -365,12 +365,12 @@
     }));
     writeSegs();
 
-    // ---- Davranış / Gizlilik anahtarları ----
-    // Ayarlar > Saat Yükseltici tercihlerini uygular ("Varsayılan hedef süre" dahil).
+    // ---- Behaviour / Privacy switches ----
+    // Applies the Ayarlar > Saat Yükseltici preferences ("Varsayılan hedef süre" included).
     let boostUserTouched = false, concUserTouched = false;
-    // degisen: Ayarlar'da Kaydet ile değişen anahtarlar. "Varsayılan hedef süre" kaydedilince
-    // sayfadaki süre de ona geçer; eskiden sayfa son kullanılan süreyi okuduğu için bu ayar
-    // hiçbir şeyi değiştirmiyordu.
+    // degisen: the keys changed with Kaydet in Ayarlar. When "Varsayılan hedef süre" is saved the duration
+    // on the page moves to it too; it used to be that the page read the last used duration so this setting
+    // changed nothing.
     function applyBoostSettings(degisen){
       if (typeof appSettings !== 'object' || !appSettings) return;
       const d = degisen || [];
@@ -382,20 +382,20 @@
           window.imu.settings.set({ boostDurationSec: saatDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
         }
       } else if (!boostUserTouched){
-        // Once kaydedilmis sure (0 = sinirsiz), yoksa Ayarlar'daki "Varsayilan hedef sure".
+        // First the saved duration (0 = unlimited), otherwise the "Varsayılan hedef süre" in Ayarlar.
         const kayitli = appSettings.boostDurationSec;
         if (+kayitli >= 60 || (kayitli === 0 && !boostFlags.seqIdle)){
           if (saatDurSec !== +kayitli){ saatDurSec = +kayitli; writeSegs(); }
         } else if (appSettings.boostTarget){
-          // 'inf' = sınırsız → süre 0, "Süre dolunca otomatik durdur" kapalı gibi davranır
+          // 'inf' = unlimited → duration 0, behaves as if "Süre dolunca otomatik durdur" were off
           const t = appSettings.boostTarget;
           const hours = t === 'inf' ? 0 : (+t || 0);
           if (hours > 0 && saatDurSec !== hours*3600){ saatDurSec = hours*3600; writeSegs(); }
         }
       }
-      // concUserTouched: kullanici bu oturumda limiti sectiyse diskten gelen eski deger
-      // uzerine yazmaz. Eskiden kosulsuzdu; Saat sekmesinden cikip donunce secim 32'ye
-      // donuyordu, cunku loadSaat her girişte applyBoostFlags -> applyBoostSettings cagiriyor.
+      // concUserTouched: if the user chose the limit in this session the old value coming from disk does not
+      // overwrite it. It used to be unconditional; leaving the Saat tab and coming back made the selection
+      // return to 32, because loadSaat calls applyBoostFlags -> applyBoostSettings on every entry.
       if ((!concUserTouched || d.includes('boostMaxGames')) && appSettings.boostMaxGames) maxConcurrent = +appSettings.boostMaxGames;
       paintConc();
       renderActiveBox();
@@ -415,12 +415,12 @@
       saatKapiBoya();
       paintConc();
       syncAyarlariCiz();
-      // Ayarlar simdi hazir; kutuphane daha once geldiyse secimi burada geri yukle.
+      // The settings are ready now; if the library came earlier restore the selection here.
       if (restoreBoostList()){ renderSaatList(); renderActiveBox(); }
     }
-    // Baska bir anahtara bagli olan satirlar: kapali durumdayken sonuk ve tiklanamaz.
-    // Bir anahtarin acik gorunup hicbir sey yapmamasi, 1.1.10'da basarim acilis
-    // araliginda yasandi; ayni tuzagi burada da kapatiyoruz.
+    // Rows that depend on another switch: dimmed and unclickable while it is off.
+    // A switch looking on and doing nothing was met in 1.1.10 at the achievement unlock
+    // interval; we close the same trap here too.
     function saatKapiBoya(){
       const satir = document.getElementById('saatLoopRow');
       if (!satir) return;
@@ -445,7 +445,7 @@
       });
     });
 
-    // "Preset olarak kaydet" - mevcut yapılandırmayı (limit, süre, anahtarlar, seçili oyunlar) yazar
+    // "Preset olarak kaydet" - writes the current configuration (limit, duration, switches, selected games)
     document.getElementById('saatSavePreset').onclick = async ()=>{
       await window.imu.settings.set({
         boostMaxGames: maxConcurrent,
@@ -457,16 +457,16 @@
         + (saatDurSec ? fmtHMS(saatDurSec) : '∞') + ' · ' + tf('en fazla # eşzamanlı', maxConcurrent));
     };
 
-    // ---- başlat / durdur ----
+    // ---- start / stop ----
     async function startBoost(){
       if (!selectedSaat.length) return;
-      // Sıralı bekletme modunda tüm kuyruk sırayla döner; kapalıyken ilk `maxConcurrent` oyun birlikte.
+      // In sequential idling mode the whole queue cycles in turn; when off the first `maxConcurrent` games run together.
       const pool = boostFlags.seqIdle ? selectedSaat : selectedSaat.slice(0, maxConcurrent);
-      // playtimeMin saat eşitlemesi için gerekli (ownedGames dakika cinsinden veriyor)
+      // playtimeMin is needed for hour sync (ownedGames gives it in minutes)
       const games = pool.map(g=>({ appid:g.appid, name:g.name, playtimeMin: g.playtimeForever || 0 }));
 
-      // Saat eşitleme açıksa ne olacağını başlatmadan ÖNCE göster - kademeler ve toplam süre
-      // saatlerce sürebilir, kullanıcı onaylamadan başlatmak doğru olmaz.
+      // If hour sync is on show what will happen BEFORE starting - the steps and total time
+      // can take hours, it would not be right to start without the user confirming.
       const syncOn = appSettings && appSettings.boostSync && !boostFlags.seqIdle;
       if (syncOn){
         const plan = await E.boostSyncPlan(games, appSettings.boostSyncMode || 'highest',
@@ -479,7 +479,7 @@
         if (plan.behind){
           let govde, baslik;
           if (plan.strateji === 'parallel'){
-            // Ilk birkac bitisi goster - kullanici neyin ne zaman biteceğini gorsun
+            // Show the first few endings - so the user sees what will end when
             const ilkler = (plan.bitisler||[]).slice(0,6).map(b=>
               '  · ' + b.name + ': ' + tf('# sonra', fmtHours(Math.round(b.bitisMs/60000)))).join('\n');
             const kalanSayi = Math.max(0, (plan.bitisler||[]).length-6);
@@ -508,23 +508,23 @@
 
       if (boostFlags.seqIdle) E.boostStartSeq(games, (saatDurSec || 3600)*1000, boostFlags.loopQueue);
       else {
-        // Seçimin tamamı da gider: "aynı anda en fazla" iş sürerken değişirse ana süreç
-        // listeyi buradan yeniden keser (artırınca yeni oyunlar da açılır).
+        // The whole selection goes too: if "at most at once" changes while the job runs the main process
+        // cuts the list again from here (when increased the new games open too).
         const tumu = selectedSaat.map(g=>({ appid:g.appid, name:g.name, playtimeMin: g.playtimeForever || 0 }));
         E.boostStart(games.map(g=>g.appid), saatDurSec*1000, games, tumu);
       }
       notify('boost', 'Saat Yükseltme Başladı', tf('# oyun', games.length));
       pushFeed('saat', 'Saat Yükseltici', syncOn ? tf('# oyunla başladı (eşitleme açık).', games.length) : tf('# oyunla başladı.', games.length), 'Çalışıyor');
     }
-    // Dakikayı "12 sa 30 dk" biçiminde, arayüz dilinin birimleriyle yazar
+    // Writes minutes as "12 sa 30 dk", with the units of the interface language
     function fmtHours(min){
       const m = Math.max(0, Math.round(min||0));
       const h = Math.floor(m/60), r = m%60;
       return h ? (sureBirim(h, 'sa') + (r ? (' ' + sureBirim(r, 'dk')) : '')) : sureBirim(r, 'dk');
     }
 
-    // MADDE 14: esitleme durumu artik SABIT alt barda; sayfa duzenini itmiyor.
-    // MADDE 3: paralel stratejide kademe yok - kac oyun bitti, kac tanesi calisiyor gosterilir.
+    // ITEM 14: the sync state is now in the FIXED bottom bar; it does not push the page layout.
+    // ITEM 3: in the parallel strategy there are no steps - it shows how many games finished and how many are running.
     function msKisa(ms){
       const dk = Math.max(0, Math.round(ms/60000));
       const g = Math.floor(dk/1440), sa = Math.floor((dk%1440)/60), m = dk%60;
@@ -538,7 +538,7 @@
       if (!d.running){
         bar.style.display = 'none';
         syncOyunBilgi = new Map(); syncHedefMin = 0; syncIsToplamMs = 0;
-        // Tamamlanma bildirimi hesap olayıyla geliyor (genel.js > onHesapOlayi).
+        // The completion notification comes with the account event (genel.js > onHesapOlayi).
         renderActiveBox();
         return;
       }
@@ -559,9 +559,9 @@
         if (eta) eta.textContent = d.kalanMs ? msKisa(d.kalanMs) : t('bitiyor');
         if (fill) fill.style.width = yuzde + '%';
       } else {
-        // G13: kademeli tarafta da oyun defteri geliyor. Eskiden burasi bosaltiliyordu ve
-        // her oyun ayni oturum yuzdesini gosteriyordu; hedefe 1 saati kalan oyun da
-        // 47 saati kalan oyun da ayni cubuktaydi.
+        // G13: the game ledger comes on the stepped side too. This place used to be emptied and
+        // every game showed the same session percentage; a game with 1 hour left to the target and a game with
+        // 47 hours left were on the same bar.
         syncOyunBilgi = new Map((d.oyunlar||[]).map(o=>[o.appid, o]));
         const yuzde = d.steps ? Math.round((d.step-1)/d.steps*100) : 0;
         if (txt) txt.innerHTML =
@@ -580,9 +580,9 @@
       pushFeed('saat', 'Saat Yükseltici', 'Durduruldu.', 'Durdu');
     };
 
-    // "Oturumu otomatik yenile" artık ana süreçte ve hesap başına (main.js > boostSureDoldu).
-    // Burada durduğu sürece yalnızca ekrandaki hesapta ve pencere açıkken çalışıyordu; hesap
-    // değişince gelen "durdu" bilgisi yenilemeyi YANLIŞ hesapta tetikleyebiliyordu.
+    // "Oturumu otomatik yenile" is now in the main process and per account (main.js > boostSureDoldu).
+    // While it stayed here it only worked on the account on screen and while the window was open; the "stopped"
+    // info that came when the account changed could trigger the renewal on the WRONG account.
     function onSaatTick(data){
       boostState = data;
       if (boostTimerUI) clearInterval(boostTimerUI);

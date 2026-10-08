@@ -1,43 +1,43 @@
-    // ================= AYARLAR =================
-    // Her kontrol data-set="<ayar anahtarı>" taşır.
+    // ================= SETTINGS =================
+    // Every control carries data-set="<setting key>".
     //
-    // KAYDET MODELİ. Sayfadaki değişiklikler "Kaydet"e basılana kadar yalnızca TASLAKTA durur:
-    // diske yazılmaz, hiçbir işe uygulanmaz. Kaydet değişen anahtarları ana sürece yollar; orada
-    // yazılır, uygulanır ve değişiklikten etkilenen çalışan işler birkaç saniye duraklatılıp yeni
-    // ayarla sürdürülür. Eskiden her tıklama anında diske yazılıyordu, "Kaydet" hiçbir şey
-    // yapmıyordu, bir anahtarı açıp geri kapatmak bile "kaydedilmemiş değişiklik" sayılıyordu.
-    let appSettings = {};          // KAYITLI ayarlar: uygulamanın geri kalanı bunu okur
+    // SAVE MODEL. Changes on the page stay only in the DRAFT until "Kaydet" is pressed:
+    // they are not written to disk and not applied to any job. Kaydet sends the changed keys to the main process; there they are
+    // written, applied, and the running jobs affected by the change are paused for a few seconds and resumed with the new
+    // setting. Every click used to be written to disk instantly, "Kaydet" did nothing,
+    // and even turning a switch on and back off counted as an "unsaved change".
+    let appSettings = {};          // SAVED settings: the rest of the app reads this
     const S = window.imu.settings;
-    let taslak = null;             // sayfadaki, henüz kaydedilmemiş değerler
-    let taslakTaban = null;        // sayfaya girildiği andaki kayıtlı değerler
-    let varsayilanAyarlar = null;  // Sıfırla ve "Profil" satırı için, ana süreçten bir kez
+    let taslak = null;             // the values on the page that are not saved yet
+    let taslakTaban = null;        // the saved values at the moment the page was entered
+    let varsayilanAyarlar = null;  // once from the main process, for Reset and the "Profil" row
     let ayarKayitZamani = null;
     let kaydediliyor = false;
 
-    // palet kısayolları
+    // palette shortcuts
     const SC = { brand:'#5624B3', s3:'#151C28', bd:'#2B3345', title:'#DCE2FA', off:'#656D80', muted:'#8B8F9E', bdActive:'#5624B3' };
 
     S.get().then(s => {
       appSettings = s || {};
-      // Dili ayarlardan baslat: metinler cizilmeden once devreye girmeli.
+      // Start the language from the settings: it must take effect before the texts are drawn.
       if (typeof initI18n === 'function') initI18n(appSettings.language);
-      // Ayarlar içinde son bilinen profil de geliyor (main.js > hesap dosyası). Steam
-      // oturumu daha kurulmadan isim, avatar ve seviye ekrana yazılabilsin diye ilk iş bu.
+      // The last known profile comes with the settings too (main.js > account file). So that the name,
+      // avatar and level can be written to the screen before the Steam session is even set up, this is the first job.
       if (typeof onbelleklenmisProfil === 'function') onbelleklenmisProfil();
       paintAll();
       applySettingsEverywhere(true);
-      // Açılış sayfası sadece uygulama ilk açıldığında uygulanır (genel.js yüklendikten sonra)
+      // The startup page is applied only when the app first opens (after genel.js has loaded)
       setTimeout(applyStartPage, 0);
     });
 
-    // ---- taslak ----
+    // ---- draft ----
     function kopya(o){ return JSON.parse(JSON.stringify(o == null ? null : o)); }
     function sayfaAnahtarlari(){
       const set = new Set();
       document.querySelectorAll('#tab-ayarlar [data-set]').forEach(el=>set.add(el.getAttribute('data-set')));
       return [...set];
     }
-    // Sayfadaki değer: taslak varsa taslaktan, yoksa kayıtlı ayardan.
+    // The value on the page: from the draft if there is one, otherwise from the saved setting.
     function deger(k){ return (taslak && k in taslak) ? taslak[k] : appSettings[k]; }
     function taslakBaslat(){
       taslakTaban = {};
@@ -51,8 +51,8 @@
       if (!taslak) return [];
       return Object.keys(taslak).filter(k => !ayni(taslak[k], taslakTaban[k]));
     }
-    // Seçim kutusu değeri her zaman metin döner; kayıtlı değer sayıysa sayıya çevrilir. Yoksa
-    // "90" ile 90 farklı sayılır ve geri alınan seçim yine "değişti" görünürdü.
+    // A select box always returns text; if the saved value is a number it is converted to a number. Otherwise
+    // "90" and 90 would count as different and a reverted choice would still look "changed".
     function turUydur(k, v){
       const ornek = (taslakTaban && taslakTaban[k] !== undefined) ? taslakTaban[k]
                   : (varsayilanAyarlar ? varsayilanAyarlar[k] : undefined);
@@ -64,7 +64,7 @@
       const el = document.querySelector('#tab-ayarlar [data-set="'+k+'"]');
       return el ? el.closest('[data-ayar-satir]') : null;
     }
-    // Değişen ayarın sayfadaki adı (çıkış sorusunda anahtar adı yerine gösterilir)
+    // The page name of a changed setting (shown in the exit question instead of the key name)
     function ayarEtiketi(k){
       const satir = ayarSatiri(k);
       const ad = satir && satir.querySelector('span[style*="font-weight:600"]');
@@ -85,11 +85,11 @@
       if (geri) geri.style.display = n ? '' : 'none';
     }
 
-    // ---- bağlı ayarlar ----
-    // Bir ayarin baska bir ayara bagli oldugu yerler. Bagli olan kapaliyken satir sonuk
-    // ve tiklanamaz olur; acik gorunup hicbir sey yapmayan anahtar birakmiyoruz. Bu tuzak
-    // 1.1.10'da basarim acilis araliginda yasandi. Kosullar TASLAGA bakar: ust ayar sayfada
-    // kapatilinca alti hemen sonuklesir, kaydetmek gerekmez.
+    // ---- dependent settings ----
+    // Places where one setting depends on another. When the dependent one is off the row is dimmed
+    // and cannot be clicked; we do not leave a switch that looks on and does nothing. This trap
+    // was met in 1.1.10 at the achievement unlock interval. The conditions look at the DRAFT: when the parent setting is
+    // turned off on the page the child dims right away, no need to save.
     const BILDIRIM_KAPALI = 'Masaüstü bildirimleri kapalıyken hiçbir bildirim gösterilmez.';
     const AYAR_KAPILARI = [
       { anahtar: 'achSpread', kosul: () => deger('achSafeMode') !== false, not: 'Güvenli mod kapalıyken açılış aralığı sapmaz.' },
@@ -122,13 +122,13 @@
       });
     }
 
-    // Kayıtlı ayar değişince ilgili sayfalar anında yeniden çizilir. degisen: Kaydet ile
-    // değişen anahtarlar; sayfa varsayılanları (mod, süre) kullanıcı sayfada elle seçmiş olsa da
-    // kaydedilen değere geçer, çünkü kullanıcı onu az önce açıkça seçti.
+    // When a saved setting changes the related pages are redrawn instantly. degisen: the keys that
+    // changed with Kaydet; the page defaults (mode, duration) move to the saved value even if the user picked them by hand
+    // on the page, because the user explicitly chose it a moment ago.
     function applySettingsEverywhere(first, degisen){
       ayarKapilariniBoya();
       if (typeof applyDensity === 'function') applyDensity();
-      // Yan menü daraltılmış başlasın
+      // Start with the sidebar collapsed
       if (first && typeof sideNav !== 'undefined' && sideNav && appSettings.sidebarCollapsed) {
         sideNav.classList.add('collapsed');
         if (typeof setRailChevron === 'function') setRailChevron();
@@ -151,7 +151,7 @@
       if (typeof renderLifeStats === 'function') renderLifeStats();
     }
 
-    // Açılış sayfası (Ayarlar > Genel > "Açılış sayfası")
+    // Startup page (Ayarlar > Genel > "Açılış sayfası")
     function applyStartPage(){
       const map = { overview:'genel', farm:'kart', hub:'env', boost:'saat', ach:'basarim' };
       const tab = map[appSettings.startPage];
@@ -160,8 +160,8 @@
       if (a) a.click();
     }
 
-    // Sessiz saatler: "23:00"→"08:00" gibi gece yarısını saran aralıkları da doğru ele alır.
-    // kaynak: hangi ayar nesnesine bakılacağı (test bildirimi taslağa bakar).
+    // Quiet hours: it handles ranges that wrap around midnight like "23:00"→"08:00" correctly too.
+    // kaynak: which settings object to look at (the test notification looks at the draft).
     function inQuietHours(kaynak){
       const a = kaynak || appSettings;
       if (!a.quietHoursEnabled) return false;
@@ -177,15 +177,15 @@
       if (kind==='boost' && !appSettings.notifyBoost) return;
       if (kind==='error' && !appSettings.notifyError) return;
       if (kind==='ach'   && !appSettings.notifyAch)   return;
-      // Fiyat düşüşü kendi anahtarına bağlı; hata bildirimi kapatılınca susmaz.
+      // The price drop is tied to its own key; it does not go quiet when the error notification is turned off.
       if (kind==='fiyat' && !appSettings.notifyPriceDrop) return;
       if (inQuietHours()) return;
-      // Ana süreç üzerinden gönderilir; Windows toast'ları renderer'dan sessizce düşüyordu.
+      // Sent through the main process; Windows toasts were silently dropped from the renderer.
       window.imu.notify(t(title), t(body||'')).catch(()=>{});
       if (typeof playNotifSound === 'function') playNotifSound();
     }
 
-    // ---- bölüm gezinmesi (sol 194px sütun) ----
+    // ---- section navigation (the left 194px column) ----
     let currentSetSec = 'general';
     function showSetSection(sec){
       currentSetSec = sec;
@@ -204,8 +204,8 @@
       b.addEventListener('click', ()=>showSetSection(b.getAttribute('data-secbtn')));
     });
 
-    // Üst çubuktaki dişli ikonu bunu çağırır (bkz common.js #tbSettings). Ayarlar zaten
-    // açıksa yalnızca bölüm değişir: taslak korunur, yapılmış değişiklikler kaybolmaz.
+    // The gear icon in the top bar calls this (see common.js #tbSettings). If Settings is already
+    // open only the section changes: the draft is kept, changes already made are not lost.
     function openAyarlar(sec){
       const zatenAcik = !designed.ayarlar.classList.contains('hidden');
       if (!zatenAcik){
@@ -218,21 +218,21 @@
       showSetSection(sec || currentSetSec);
     }
 
-    // Ayar satırlarındaki para birimi ekleri (ör. "Düşük değer eşiği" yanındaki ₺) seçili
-    // Para birimi Steam cüzdanından gelir, sabit sembol yazılmaz.
+    // The currency suffixes in setting rows (e.g. the ₺ next to "Düşük değer eşiği") follow the selected
+    // currency; it comes from the Steam wallet, no fixed symbol is written.
     function paintCurrencySymbols(){
       const sym  = (typeof curSym  === 'function') ? curSym()  : '';
       const code = (typeof curCode === 'function') ? (curCode() || '-') : '-';
       const sub  = (typeof curSubunit === 'function') ? curSubunit() : 'birim';
       document.querySelectorAll('#tab-ayarlar [data-cursym]').forEach(e=>{ e.textContent = sym; });
       document.querySelectorAll('#tab-ayarlar [data-curcode]').forEach(e=>{ e.textContent = code; });
-      // "Alt sıralama miktarı" birimi: USD hesapta "kuruş" değil "sent" yazmalı
+      // The unit of "Alt sıralama miktarı": in a USD account it must say "sent", not "kuruş"
       document.querySelectorAll('#tab-ayarlar [data-cursub]').forEach(e=>{ e.textContent = sub; });
     }
 
-    // "Fiyat kaynağı" satırı. Kur seçimi kaldırıldı: tutarlar HER ZAMAN Steam hesabının
-    // cüzdan kurunda gösterilir, hiçbir çeviri yapılmaz - böylece "44.898,67" gibi kur/ayraç
-    // kaynaklı yanlış tutarlar mümkün değil.
+    // The "Fiyat kaynağı" row. The currency choice was removed: amounts are ALWAYS shown in the Steam account's
+    // wallet currency, no conversion is done - so wrong amounts caused by currency/separators
+    // like "44.898,67" are impossible.
     function paintFxInfo(){
       const note = document.getElementById('setFxNote');
       const rateEl = document.getElementById('setFxRate');
@@ -249,7 +249,7 @@
       rateEl.style.color = '#5FB324';
     }
 
-    // ---- kontrolleri boya ----
+    // ---- paint the controls ----
     function paintToggle(el, on){
       el.style.background  = on ? SC.brand : SC.s3;
       el.style.borderColor = on ? SC.brand : SC.bd;
@@ -261,13 +261,13 @@
         const key = el.getAttribute('data-set');
         const v = deger(key);
         if (el.tagName === 'DIV') { paintToggle(el, !!v); return; }
-        // Varsayılan otomatik yanıt metni arayüz dilinde gösterilir (gönderilen de odur, bkz
-        // main.js > applyChatSettings). Kullanıcının yazdığı metin olduğu gibi kalır.
+        // The default automatic reply text is shown in the interface language (and that is what is sent, see
+        // main.js > applyChatSettings). Text the user wrote stays as it is.
         if (key === 'chatReplyText' && varsayilanAyarlar && v === varsayilanAyarlar.chatReplyText){ el.value = t(v); return; }
         if (v != null) el.value = v;
-        // Kayıtlı değer listede yoksa kutu BOŞ görünürdü. İlk seçenek gösterilir ve TASLAĞA
-        // yazılır (değişiklik sayılır): kullanıcı görür, Kaydet'le düzeltilir. Sessizce diske
-        // yazılmaz. Bilinen eski değerler zaten ana süreçte taşınıyor (ayarlariGecir).
+        // If the saved value is not in the list the box would look EMPTY. The first option is shown and WRITTEN TO THE DRAFT
+        // (it counts as a change): the user sees it and fixes it with Kaydet. It is not silently
+        // written to disk. Known old values are already carried over in the main process (ayarlariGecir).
         if (el.tagName === 'SELECT' && el.selectedIndex < 0 && el.options.length){
           el.selectedIndex = 0;
           if (taslak) taslak[key] = turUydur(key, el.value);
@@ -282,7 +282,7 @@
       const set=(id,tx)=>{ const e=document.getElementById(id); if(e) e.textContent=tx; };
       set('setPersona', appSettings.persona || '-');
       set('setSteamID', appSettings.steamID || '-');
-      // Steam avatarı varsa görsel, yoksa baş harf (sağ üstteki hesap rozetiyle aynı davranış)
+      // If there is a Steam avatar an image, otherwise the initial (same behaviour as the account badge top right)
       const av = document.getElementById('setAvatar');
       if (av){
         const initials = (String(appSettings.persona||'').replace(/[^a-zA-Z0-9]/g,'').slice(0,2) || '-').toUpperCase();
@@ -295,14 +295,14 @@
       paintFxInfo();
       baglantiDurumunuYaz();
       yapilandirmaKartiniYaz();
-      // Sürüm package.json'dan gelir (preload > imu.surum). Elle yazılan sürüm satırı yok.
+      // The version comes from package.json (preload > imu.surum). There is no hand-written version line.
       const surum = (window.imu && window.imu.surum) || '';
       set('setVersion', surum ? ('SteamEdge v' + surum) : 'SteamEdge');
       set('setVersionSide', surum ? ('v' + surum) : '-');
       showSetSection(currentSetSec);
     }
 
-    // ---- Hesap Statüsü: motorun son bildirdiği bağlantı durumu, tahmin değil ----
+    // ---- Hesap Statüsü: the connection state the engine last reported, not a guess ----
     let aktifBaglanti = { durum: 'yok' };
     const BAGLANTI_GORUNUM = {
       bagli:      { metin: 'Bağlı',                renk: '#5FB324' },
@@ -333,7 +333,7 @@
       });
     }
 
-    // ---- Yapılandırma kartı: son kayıt ve profil ----
+    // ---- Configuration card: last save and profile ----
     function kayitZamaniMetni(ts){
       if (!ts) return '-';
       const d = new Date(ts), bugun = new Date();
@@ -343,7 +343,7 @@
     function yapilandirmaKartiniYaz(){
       const son = document.getElementById('setLastSync');
       if (son) son.textContent = kayitZamaniMetni(ayarKayitZamani);
-      // "Profil": kayıtlı ayarlardan kaçı varsayılandan farklı. Dil sayılmaz.
+      // "Profil": how many of the saved settings differ from the default. The language does not count.
       const pr = document.getElementById('setProfile');
       if (!pr) return;
       if (!varsayilanAyarlar){ pr.textContent = '-'; return; }
@@ -366,22 +366,22 @@
       yapilandirmaKartiniYaz();
     }
 
-    // ================= BELLEK GÖSTERGESİ =================
-    // Ölçüm ana süreçten geliyor (app.getAppMetrics), tahmin değil. Yalnızca Ayarlar >
-    // Gelişmiş görünürken ve pencere açıkken güncellenir - göstergenin kendisi bellek
-    // ölçmek uğruna arka planda dönmesin.
+    // ================= MEMORY GAUGE =================
+    // The measurement comes from the main process (app.getAppMetrics), not a guess. It is updated only while Ayarlar >
+    // Gelişmiş is visible and the window is open - so the gauge itself does not keep running in the background
+    // just to measure memory.
     let memTimer = null;
     function bellekYaz(d){
-      // Değişken adı bilerek "t" değil: t() çeviri işlevini gölgeliyordu ve süreç adları
-      // hiçbir dilde çevrilmiyordu.
+      // The variable name is deliberately not "t": t() was shadowing the translation function and the process names
+      // were not translated in any language.
       const toplam = document.getElementById('memTotal');
       const b = document.getElementById('memBreak');
       if (!toplam) return;
       if (!d){ toplam.textContent = '-'; return; }
       const mb = (kb)=> (kb/1024);
       toplam.textContent = mb(d.toplamKb).toFixed(0) + ' MB';
-      // Süreç türleri: Browser = ana süreç, Tab = arayüz, GPU = ekran kartı, Utility = ağ.
-      // Anahtarlar bilerek uzun: tek kelimelik anahtar sözlükte başka metinleri de yakalardı.
+      // Process types: Browser = main process, Tab = interface, GPU = graphics card, Utility = network.
+      // The keys are deliberately long: a one-word key would catch other texts in the dictionary too.
       const ad = { Browser:'ana süreç', Tab:'arayüz süreci', GPU:'ekran kartı süreci', Utility:'ağ süreci' };
       const parcalar = (d.surecler||[])
         .map(p => t(ad[p.tur] || p.tur) + ' ' + mb(p.kb).toFixed(0))
@@ -395,8 +395,8 @@
       const d = await window.imu.appBellek().catch(()=>null);
       bellekYaz(d);
     }
-    // Gorsel ve ag onbellegini bosalt. Uzun oturumlarda binlerce oyun kapagi birikiyor;
-    // ayar ve oturum kaybi olmadan bellegi geri kazanmanin en dogrudan yolu bu.
+    // Empty the image and network cache. In long sessions thousands of game covers pile up;
+    // this is the most direct way to win memory back without losing settings or session.
     (function bellekTemizleBagla(){
       const b = document.getElementById('memTemizle');
       if (!b) return;
@@ -419,21 +419,21 @@
     }
     bellekIzlemeKur();
 
-    // Sayfaya giriş: kayıtlı ayarlar okunur, taslak YOKSA kurulur. Taslak varsa (hesap
-    // değişti, dişliye yeniden basıldı) korunur; kullanıcının kaydetmediği değişiklik kaybolmaz.
+    // Entering the page: the saved settings are read, the draft is set up if there is NONE. If there is a draft (the account
+    // changed, the gear was pressed again) it is kept; changes the user did not save are not lost.
     async function loadAyarlar(){
       appSettings = await S.get() || {};
       if (!taslak) taslakBaslat();
-      // Sayfa ÖNCE çizilir; profil ve bağlantı durumu gelince kendi alanlarını günceller.
+      // The page is drawn FIRST; the profile and connection state update their own fields when they arrive.
       paintAll();
-      renderLifeStats();    // kalıcı istatistikler
-      loadProfile();        // beklenmez
+      renderLifeStats();    // lifetime statistics
+      loadProfile();        // not waited for
       baglantiDurumunuOku();
       yapilandirmaBilgisiniOku();
     }
 
-    // Test bildirimi: TASLAKTAKİ ses ve sessiz saat seçimleriyle gerçek bildirimi dener;
-    // kaydetmeden önce denemek için. Hiçbir şey kaydetmez.
+    // Test notification: tries the real notification with the sound and quiet hours choices in the DRAFT;
+    // to try before saving. It saves nothing.
     const testBtn = document.getElementById('setTestNotif');
     if (testBtn) testBtn.onclick = async ()=>{
       const a = taslak ? { ...appSettings, ...taslak } : appSettings;
@@ -460,7 +460,7 @@
       }
     };
 
-    // Hakkında > yapımcı ve teşekkür bağlantıları - dış tarayıcıda açılır
+    // Hakkında > author and credits links - opened in the external browser
     document.querySelectorAll('#tab-ayarlar [data-gh]').forEach(a=>{
       a.addEventListener('click', (e)=>{
         e.preventDefault();
@@ -468,9 +468,9 @@
       });
     });
 
-    // ---- kontroller: yalnızca taslağı değiştirir ----
-    // Bu anahtarlar Chromium'a app.whenReady()'den ONCE veriliyor; degistirmek ancak
-    // uygulama yeniden acilinca etki eder. Kaydedince bu soylenir.
+    // ---- controls: they only change the draft ----
+    // These switches are given to Chromium BEFORE app.whenReady(); changing them only takes effect
+    // when the app is reopened. Saving says so.
     const YENIDEN_BASLAT = ['hwAccel', 'gpuArkaUc', 'gpuKompozisyon'];
     function taslagaYaz(key, val){
       if (!taslak) taslakBaslat();
@@ -495,13 +495,13 @@
             el.value = val;
           }
           taslagaYaz(key, turUydur(key, val));
-          // Ses seçilince hemen çal - kullanıcı deneyerek seçebilsin (kaydetmez)
+          // Play the sound as soon as it is chosen - so the user can choose by trying (does not save)
           if (key === 'notifSound' && typeof playNotifSound === 'function') playNotifSound(val);
         });
       }
     });
 
-    // ---- Kaydet ----
+    // ---- Save ----
     async function ayarlariKaydet(){
       if (kaydediliyor) return false;
       const liste = degisenler();
@@ -528,8 +528,8 @@
       taslakBaslat();
       paintAll();
       applySettingsEverywhere(false, liste);
-      // Dil değişti: çevrilmiş metin geri çevrilemediği için sayfa yeniden yüklenir; Ayarlar'ın
-      // aynı bölümüne dönülür (bkz i18n.js > setUiLang).
+      // The language changed: since translated text cannot be translated back the page is reloaded; it returns to
+      // the same section of Ayarlar (see i18n.js > setUiLang).
       if (dilDegisti && typeof setUiLang === 'function'){ setUiLang(appSettings.language); return true; }
       kayitSonucunuSoyle(r, liste);
       return true;
@@ -553,7 +553,7 @@
     }
     document.getElementById('setSave').onclick = ()=>{ ayarlariKaydet(); };
 
-    // ---- Değişiklikleri geri al ----
+    // ---- Revert changes ----
     function taslagiGeriAl(){
       if (!taslakTaban) return;
       taslak = kopya(taslakTaban);
@@ -562,7 +562,7 @@
     const geriBtn = document.getElementById('setDiscard');
     if (geriBtn) geriBtn.onclick = ()=>{ taslagiGeriAl(); if (typeof toast === 'function') toast('Ayarlar').done('Değişiklikler geri alındı.'); };
 
-    // Ayarlar sekmesinden çıkarken çağrılır (common.js sekme değiştirici). true: çıkılabilir.
+    // Called when leaving the Ayarlar tab (common.js tab switcher). true: it may be left.
     async function confirmLeaveSettings(){
       const liste = degisenler();
       if (!liste.length){ taslakBitir(); return true; }
@@ -584,9 +584,9 @@
       return true;
     }
 
-    // ---- Sıfırla: varsayılanlar TASLAĞA yüklenir, Kaydet'e basılana kadar hiçbir şey olmaz ----
-    // Dil dokunulmaz (sıfırlamak arayüzü sessizce Türkçeye çekiyordu). Hesaba özel veri
-    // (seçili oyunlar, istatistikler) ve oturum bu sayfanın ayarı değil, onlar da etkilenmez.
+    // ---- Reset: defaults are loaded into the DRAFT, nothing happens until Kaydet is pressed ----
+    // The language is not touched (reset used to silently pull the interface to Turkish). Per-account data
+    // (selected games, statistics) and the session are not this page's setting, they are not affected either.
     document.getElementById('setReset').onclick = async ()=>{
       const ok = await edgeConfirm({ tag:'Sıfırla', danger:true, title:'Bu sayfadaki ayarlar varsayılana dönecek',
         body:'Varsayılan değerler sayfaya yüklenir; Kaydet\'e basana kadar hiçbir şey uygulanmaz. Uygulama dili, seçili oyunlar, istatistikler ve Steam oturumun etkilenmez.',
@@ -614,14 +614,14 @@
       if (typeof toast === 'function') toast('Kopyalandı').done('SteamID panoya kopyalandı.');
     };
 
-    // ---- Kayıt dosyası ----
+    // ---- Log file ----
     const logAc = document.getElementById('setLogOpen');
     if (logAc) logAc.onclick = async ()=>{
       const r = await window.imu.log.open().catch(e=>({ ok:false, error:(e && e.message) }));
       if (r && r.ok === false) toast('Kayıt dosyası').fail(t(r.error || 'Açılamadı.'));
     };
 
-    // ---- Gelişmiş alt düğmeleri ----
+    // ---- Advanced bottom buttons ----
     const fiyatTemizle = document.getElementById('setPriceCacheClear');
     if (fiyatTemizle) fiyatTemizle.onclick = async ()=>{
       const ok = await edgeConfirm({ tag:'Fiyat Önbelleği', title:'Fiyat önbelleği temizlensin mi?',
@@ -637,7 +637,7 @@
     const klasorAc = document.getElementById('setOpenFolder');
     if (klasorAc) klasorAc.onclick = ()=>{ S.openConfigFolder().catch(()=>{}); };
 
-    // ---- İstatistikler ----
+    // ---- Statistics ----
     const istSifirla = document.getElementById('setStatsReset');
     if (istSifirla) istSifirla.onclick = async ()=>{
       const ok = await edgeConfirm({ tag:'İstatistikler', danger:true, title:'Bu hesabın istatistikleri sıfırlansın mı?',
@@ -649,7 +649,7 @@
       toast('İstatistikler').done('İstatistikler sıfırlandı.');
     };
 
-    // ---- Yedekleme ----
+    // ---- Backup ----
     async function disaAktar(){
       const r = await S.export().catch(e=>({ ok:false, error:(e&&e.message) }));
       if (r && r.canceled) return;
@@ -661,8 +661,8 @@
                       body:(r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', tekDugme:true });
       }
     }
-    // İçe aktarma DOSYADAKİ ayarları doğrudan kaydeder ve uygular (kullanıcı dosyayı seçerek
-    // açıkça onaylıyor). Sayfada kaydedilmemiş değişiklik varsa önce sorulur.
+    // Import saves and applies the settings IN THE FILE directly (the user explicitly confirms by choosing
+    // the file). If there are unsaved changes on the page it asks first.
     async function iceAktar(){
       const bekleyen = degisenler().length;
       const ok = await edgeConfirm({ tag:'İçe Aktar', title:'Yedekten geri yüklensin mi?',

@@ -1,33 +1,33 @@
-    // ================= ÇOK DİLLİLİK =================
-    // Kaynak dil Türkçe. Arayüzdeki metinler HTML sayfalarında ve sayfa JS'lerinde doğrudan
-    // Türkçe yazılı olduğu için, her çağrı yerini t() ile sarmak yerine ÇEVİRİ DOM ÜZERİNDE
-    // yapılıyor: sayfa çizildikten sonra metin düğümleri ve placeholder/title/data-tip
-    // öznitelikleri sözlükten geçiriliyor. Böylece JS'in ürettiği içerik de otomatik çevriliyor.
+    // ================= MULTILINGUAL SUPPORT =================
+    // The source language is Turkish. Since the texts in the interface are written directly in Turkish in the HTML pages and
+    // in the page JS files, instead of wrapping every call site with t() the TRANSLATION IS DONE ON THE DOM:
+    // after the page is drawn the text nodes and the placeholder/title/data-tip
+    // attributes are passed through the dictionary. So the content JS produces is translated automatically too.
     //
-    // Sayı içeren metinler DESEN olarak tutulur: "3 oyunda kart var" -> "# oyunda kart var".
-    // Çeviride de # kullanılır; uygulanırken sayılar sırayla geri yerleştirilir.
+    // Text that carries a number is kept as a PATTERN: "3 oyunda kart var" -> "# oyunda kart var".
+    // The translation uses # too; when applied the numbers are put back in order.
     //
-    // Sözlük anahtarı = Türkçe metnin kendisi. Anahtarı olmayan metne DOKUNULMAZ (oyun adı,
-    // eşya adı, kullanıcı adı gibi veriler böylece olduğu gibi kalır).
+    // Dictionary key = the Turkish text itself. Text without a key is LEFT ALONE (game name,
+    // item name, user name and the like stay as they are).
     //
-    // SÖZLÜK BU DOSYADA DEĞİL. Her dil `src/main/js/lang/<kod>.json` içinde durur ve
-    // yalnızca seçili olan okunur; diğerleri hiç açılmaz. Eskiden altı sözlük tek dosyada,
-    // tur tur eklenmiş on dokuz ayrı blok hâlinde duruyordu: yeni dil eklemek dosyanın
-    // yirmi yerine dokunmak demekti ve dil denetimi köşeli parantezli anahtarları
-    // göremiyordu. Artık yeni dil = yeni dosya, denetim de JSON okuyor.
+    // THE DICTIONARY IS NOT IN THIS FILE. Each language lives in `src/main/js/lang/<code>.json` and
+    // only the selected one is read; the others are never opened. The six dictionaries used to be in a single file,
+    // nineteen separate blocks added round by round: adding a language meant touching twenty places in the file
+    // and the language audit could not see keys in square brackets.
+    // Now a new language = a new file, and the audit reads JSON.
 
     const I18N_LANGS = { tr: 'Türkçe', en: 'English', de: 'Deutsch', es: 'Español', zh: '繁體中文', ru: 'Русский' };
     let uiLang = 'tr';
 
-    // Yalnızca açılışta seçilen dil doldurulur. Türkçe kaynak dil olduğu için sözlüğü yoktur.
+    // Only the language selected at startup is filled. Turkish is the source language so it has no dictionary.
     const I18N = { en: {}, de: {}, es: {}, zh: {}, ru: {} };
 
-    // Sözlüğü diskten okur. preload senkron okuyor (sayfa HTML'leri de aynı yoldan geliyor),
-    // çünkü çeviri ilk çizimden önce hazır olmalı: asenkron beklemek ekranı bir kare Türkçe
-    // gösterip sonra değiştirirdi.
+    // Reads the dictionary from disk. preload reads synchronously (the page HTMLs come the same way),
+    // because the translation must be ready before the first paint: waiting asynchronously would show the screen
+    // in Turkish for one frame and then change it.
     function i18nSozlukYukle(kod) {
       if (kod === 'tr' || !I18N[kod]) return false;
-      if (Object.keys(I18N[kod]).length) return true;         // zaten yüklü
+      if (Object.keys(I18N[kod]).length) return true;         // already loaded
       try {
         const tablo = window.imu && window.imu.dil && window.imu.dil.yukle(kod);
         if (!tablo) return false;
@@ -39,11 +39,11 @@
     const i18nNormKey = (s) => s.replace(/\d[\d.,]*/g, '#');
     const i18nNums = (s) => s.match(/\d[\d.,]*/g) || [];
 
-    // ÇOĞUL. Türkçede sayıdan sonra isim tekil kalır ("3 oyun"), diğer dillerde değişir:
-    // İngilizcede "1 game / 3 games", Rusçada üç biçim ("1 игра / 3 игры / 5 игр"). Sözlük
-    // değeri biçimleri '|' ile ayırarak taşır: iki biçimde "tekil|çoğul", Rusçada
-    // "one|few|many". Biçim, metindeki İLK sayıya göre seçilir. Eskiden tek biçim vardı ve
-    // ekranda "1 games", "2 игр" gibi yanlışlar çıkıyordu.
+    // PLURAL. In Turkish the noun stays singular after a number ("3 oyun"), in other languages it changes:
+    // in English "1 game / 3 games", in Russian three forms ("1 игра / 3 игры / 5 игр"). The dictionary
+    // value carries the forms separated by '|': "singular|plural" for two forms, in Russian
+    // "one|few|many". The form is chosen by the FIRST number in the text. There used to be a single form and
+    // wrong things like "1 games", "2 игр" came out on screen.
     function cogulSec(deger, sayi) {
       if (!deger || deger.indexOf('|') < 0) return deger;
       const bicim = deger.split('|');
@@ -54,10 +54,10 @@
       return bicim[kat === 'one' ? 0 : 1];
     }
 
-    // Değerleri yer tutuculara koyar. Düz '#' sırayla dolar. Cümle yapısı Türkçeden farklı
-    // olan dil sırayı #1, #2 ile değiştirir: "# içinde # başarım açılır." İngilizcede
-    // "#2 achievements unlock within #1." olur. Eskiden yalnızca sıra vardı ve böyle bir
-    // çeviride süre ile sayı yer değiştiriyordu.
+    // Puts the values into the placeholders. A plain '#' fills in order. A language whose sentence structure
+    // differs from Turkish swaps the order with #1, #2: "# içinde # başarım açılır." becomes
+    // "#2 achievements unlock within #1." in English. There used to be only the order and in such a
+    // translation the duration and the number swapped places.
     function yerTutucuDoldur(metin, degerler) {
       let i = 0;
       return String(metin).replace(/#([1-9])?/g, (_, n) => {
@@ -66,7 +66,7 @@
       });
     }
 
-    // Ham Türkçe metni seçili dile çevirir. Karşılığı yoksa metni aynen döndürür.
+    // Translates raw Turkish text into the selected language. If there is no entry it returns the text unchanged.
     function t(src) {
       if (uiLang === 'tr' || !src) return src;
       const tablo = I18N[uiLang];
@@ -78,49 +78,49 @@
         const anahtar = i18nNormKey(duz);
         hedef = tablo[anahtar];
         if (hedef === undefined) return src;
-        // Sayıları geri koy (çoğul biçimi ilk sayıya göre)
+        // Put the numbers back (the plural form follows the first number)
         const sayilar = i18nNums(duz);
         hedef = yerTutucuDoldur(cogulSec(hedef, sayilar[0]), sayilar);
       } else hedef = cogulSec(hedef, null);
-      // Orijinaldeki baştaki/sondaki boşluğu koru (satır içi metinlerde önemli)
+      // Keep the leading/trailing whitespace of the original (important in inline texts)
       const bas = (String(src).match(/^\s*/) || [''])[0];
       const son = (String(src).match(/\s*$/) || [''])[0];
       return bas + hedef + son;
     }
 
-    // Sayı taşıyan şablonlar için: tf('# oyun sırada.', 5). Sayfa JS'leri metni sayıyla
-    // birleştirince DOM gözlemcisi parçaları eşleştiremiyordu; şablon sözlükte '#' ile
-    // durur, çevrilir, sonra değerler sırayla yerine konur. Çoğul biçimi ilk sayısal değere göre.
+    // For templates that carry numbers: tf('# oyun sırada.', 5). When page JS files joined the text with the number
+    // the DOM observer could not match the pieces; the template stays in the dictionary with '#', gets translated,
+    // then the values are put in order. The plural form follows the first numeric value.
     function tf(sablon, ...degerler) {
       const ham = (uiLang !== 'tr' && I18N[uiLang]) ? I18N[uiLang][String(sablon).replace(/\s+/g, ' ').trim()] : undefined;
       let ceviri;
       if (ham !== undefined){
-        // Değer HTML olabilir (<b>12</b>); sayı etiketler ayıklanarak aranır.
+        // The value can be HTML (<b>12</b>); the number is searched for with the tags stripped.
         const sayi = degerler.map(v => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim()).find(v => /^\d[\d.,]*$/.test(v));
         ceviri = cogulSec(ham, sayi);
       } else ceviri = t(sablon);
       return yerTutucuDoldur(ceviri, degerler);
     }
 
-    // Yüzde biçimi dile göre: Türkçede "%13", İngilizce/Almanca/İspanyolca/Rusçada "13%",
-    // Çincede "13%". Eskiden her yerde Türkçe biçim yazılıyordu.
+    // Percent format by language: in Turkish "%13", in English/German/Spanish/Russian "13%",
+    // in Chinese "13%". The Turkish format used to be written everywhere.
     function fmtYuzde(n){ return uiLang === 'tr' ? ('%' + n) : (n + '%'); }
-    // Tarih, saat ve sayı biçimi de arayüz diline göre. Eskiden her yerde 'tr-TR' yazıyordu:
-    // İngilizce arayüzde tarih "20.09.2026", binlik ayraç nokta çıkıyordu.
+    // Date, time and number format follow the interface language too. 'tr-TR' used to be written everywhere:
+    // in the English interface the date came out "20.09.2026" and the thousands separator was a dot.
     const YEREL_KOD = { tr:'tr-TR', en:'en-US', de:'de-DE', es:'es-ES', zh:'zh-TW', ru:'ru-RU' };
     function yerelKod(){ return YEREL_KOD[uiLang] || 'tr-TR'; }
     function yerelSayi(n){ return Number(n || 0).toLocaleString(yerelKod()); }
-    // Ondalık sayı arayüz dilinde: Türkçede "1,5", İngilizcede "1.5".
+    // Decimal number in the interface language: in Turkish "1,5", in English "1.5".
     function yerelOndalik(n, basamak){
       const b = basamak == null ? 1 : basamak;
       return Number(n || 0).toLocaleString(yerelKod(), { minimumFractionDigits: b, maximumFractionDigits: b });
     }
-    // Süre birimi arayüz dilinde: sureBirim(3, 'sa') -> "3 sa" / "3 h". Anahtar '#' desenli
-    // ("# sa"), aynı metin DOM çevirisinde de tanınır. Birimler: sa, dk, sn, gün, saat,
-    // dakika, saniye. Eskiden birimler her dilde Türkçe kalıyordu ("37 dk", "1 sa 14 dk").
+    // Time unit in the interface language: sureBirim(3, 'sa') -> "3 sa" / "3 h". The key is a '#' pattern
+    // ("# sa"), the same text is recognised in the DOM translation too. Units: sa, dk, sn, gün, saat,
+    // dakika, saniye. The units used to stay Turkish in every language ("37 dk", "1 sa 14 dk").
     function sureBirim(n, birim){ return tf('# ' + birim, n); }
 
-    // DOM'u gezip metin düğümlerini ve metin taşıyan öznitelikleri çevirir.
+    // Walks the DOM and translates the text nodes and the attributes that carry text.
     let i18nUyguluyor = false;
     const I18N_ATLA = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE']);
     function applyI18n(kok) {
@@ -152,9 +152,9 @@
       } finally { i18nUyguluyor = false; }
     }
 
-    // Sayfa JS'leri innerHTML ile sürekli yeniden çiziyor; her çizimden sonra elle çağırmak
-    // yerine değişiklikleri izliyoruz. Kendi yaptığımız değişiklik tekrar tetiklemesin diye
-    // bayrakla korunuyor.
+    // Page JS files keep redrawing with innerHTML; instead of calling it by hand after every draw
+    // we watch the changes. Our own change is protected with a flag
+    // so it does not trigger again.
     let i18nZaman = null;
     function i18nIzle() {
       const hedef = document.body;
@@ -172,11 +172,11 @@
       }).observe(hedef, { childList: true, subtree: true, characterData: true });
     }
 
-    // Dil değiştirme. Türkçeye dönmek metinleri geri çeviremez (çeviri tek yönlü), bu yüzden
-    // sayfa yeniden yükleniyor; diğer diller arasında geçişte de aynı sebeple yeniden yükleme
-    // en güvenli yol.
-    // Yeniden yükleme Genel Bakış'a düşürüyordu: kullanıcı dili değiştirip Ayarlar'ın
-    // ortasında kaybolmasın diye açık bölüm sessionStorage ile bir sonraki açılışa taşınır.
+    // Language change. Going back to Turkish cannot translate the texts back (translation is one-way), so
+    // the page is reloaded; switching between other languages is also safest with a reload
+    // for the same reason.
+    // The reload used to drop you on the Overview: so the user does not get lost in the middle of Settings after changing the language,
+    // the open section is carried to the next startup with sessionStorage.
     const I18N_DONUS_ANAHTARI = 'se.dilDonusBolumu';
     function setUiLang(kod, yenidenYukle) {
       const yeni = I18N_LANGS[kod] ? kod : 'tr';
@@ -192,8 +192,8 @@
     function initI18n(kod) {
       uiLang = I18N_LANGS[kod] ? kod : 'tr';
       document.documentElement.setAttribute('lang', uiLang === 'zh' ? 'zh-Hant' : uiLang);
-      // Sözlük okunamazsa Türkçeye düşülür: yarısı çevrilmiş bir ekran göstermektense
-      // kaynak dilde bırakmak dürüst olan.
+      // If the dictionary cannot be read it falls back to Turkish: rather than showing a half translated screen
+      // leaving it in the source language is the honest thing.
       if (uiLang !== 'tr' && !i18nSozlukYukle(uiLang)) uiLang = 'tr';
       if (uiLang !== 'tr') applyI18n();
       i18nIzle();

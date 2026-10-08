@@ -1,29 +1,29 @@
-    // ================= GERÇEKÇİ MOD =================
-    // Sayfa şablondan birebir alındı; buradaki iş bu tasarımı gerçek veriye bağlamak.
-    // Oyunlar kuyruğa alınır, seçilen süre boyunca başarımlar GENELDEN NADİRE doğru açılır.
-    // Motor tarafı main.js > "GERCEKCI MOD" bölümünde.
+    // ================= GERÇEKÇİ MOD (REALISTIC MODE) =================
+    // The page was taken from the template as is; the job here is to connect this design to real data.
+    // Games are put in a queue, over the chosen time the achievements are unlocked FROM COMMON TO RARE.
+    // The engine side is in main.js > the "GERCEKCI MOD" section.
     //
-    // Hesaplar (sağ paneldeki "Oyun Verisi · HLTB" kutusu):
-    //   Tc  : oyunun %100 süresi. Elle girilebilir; girilmezse mevcut süre x tür çarpanı (CR)
-    //         ile tahmin edilir. Bu bir TAHMİN, dış servise sorulmaz - HLTB verisini
-    //         uydurmuyoruz, kullanıcının girdiği ya da kendi kütüphanesinden çıkan sayıyı
-    //         kullanıyoruz.
-    //   A(t): şu ana kadar beklenen açılmış başarım sayısı = toplam x (t / Tc), zorlukla
-    //         düzeltilir. Gerçek açılmış sayı bunun altındaysa "geride kalınmış" demektir.
-    //   Hız : A(t) / t (saat başına başarım).
+    // Calculations (the "Oyun Verisi · HLTB" box in the right panel):
+    //   Tc  : the game's 100% time. It can be entered by hand; if not it is estimated from the current time x type multiplier (CR).
+    //         This is an ESTIMATE, no external service is asked - we do not make up
+    //         HLTB data, we use the number the user entered or the one that comes out of
+    //         their own library.
+    //   A(t): the number of unlocked achievements expected up to now = total x (t / Tc), corrected
+    //         by difficulty. If the real unlocked number is below this it means "behind".
+    //   Rate: A(t) / t (achievements per hour).
     let grGames = [], grLoaded = false;
-    let grQueue = [];               // [{appid, name, playtimeMin, hasStats}] - seçili oyunlar
-    let grPlan = null;              // aktif oyunun plan önizlemesi
+    let grQueue = [];               // [{appid, name, playtimeMin, hasStats}] - selected games
+    let grPlan = null;              // plan preview of the active game
     let grDurum = { calisiyor: false };
     let grTimerUI = null;
-    let grAcilanlar = [];           // {name, rarityPct, ts} - bu oturumda açılanlar
+    let grAcilanlar = [];           // {name, rarityPct, ts} - those unlocked in this session
     let grPresets = [];
-    // Basarimi olmadigi ogrenilen oyunlar (appid). Motor bir kez ogrenip diske yaziyor;
-    // bu sayfanin listesinde bir daha gorunmezler. Bu sayfa yalnizca basarim acar.
+    // Games found to have no achievements (appid). The engine learns once and writes to disk;
+    // they never show up in this page's list again. This page only unlocks achievements.
     let grBasarimsiz = new Set();
-    // Kullanici sure alanina elle dokunduysa otomatik atama devreye girmez.
+    // If the user touched the duration field by hand the automatic assignment does not kick in.
     let grSureTouched = false;
-    let grPlanIstek = 0;            // yarış koşullarını engellemek için istek sayacı
+    let grPlanIstek = 0;            // request counter to prevent race conditions
 
     const GRC = { brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
                   title:'#DCE2FA', muted:'#8B8F9E', off:'#656D80', bd:'#2B3345', sub:'#C2AAEE',
@@ -32,7 +32,7 @@
     const grEl = (id) => document.getElementById(id);
     const grSet = (id, t) => { const e = grEl(id); if (e) e.textContent = t; };
 
-    // ---- ayar okuma/yazma ----
+    // ---- reading/writing settings ----
     function grVal(anahtar, varsayilan){
       const v = (typeof appSettings === 'object' && appSettings) ? appSettings[anahtar] : undefined;
       return v === undefined ? varsayilan : v;
@@ -43,7 +43,7 @@
       if (s) appSettings = s;
     }
 
-    // ---- süre ----
+    // ---- duration ----
     function grSureMs(){
       const h = Math.max(0, Math.min(999, +grEl('grRH').value || 0));
       const m = Math.max(0, Math.min(59, +grEl('grRM').value || 0));
@@ -57,7 +57,7 @@
       grEl('grRM').value = iki(Math.floor((t % 3600) / 60));
       grEl('grRS').value = iki(t % 60);
     }
-    // Süre etiketleri arayüz dilinin birimleriyle (sureBirim, i18n.js)
+    // Duration labels with the units of the interface language (sureBirim, i18n.js)
     function grSureEtiket(ms){
       const sn = Math.round(ms / 1000);
       if (sn < 60) return sureBirim(sn, 'sn');
@@ -74,7 +74,7 @@
       if (dk < 90) return sureBirim(dk, 'dk');
       return sureBirim(yerelOndalik(dk / 60, 1), 'sa');
     }
-    // Oturum başlangıcına göre ms -> "+1 sa 12 dk" biçimi (Açılma Sırası tablosundaki zaman)
+    // ms since the start of the session -> "+1 sa 12 dk" format (the time in the Açılma Sırası table)
     function grZamanEtiket(ms){
       const sn = Math.round((ms || 0) / 1000);
       const sa = Math.floor(sn / 3600), dk = Math.floor((sn % 3600) / 60);
@@ -84,7 +84,7 @@
     }
     const grSaatYaz = (dk) => sureBirim(yerelOndalik((dk || 0) / 60, 1), 'sa');
 
-    // ---- nadirlik rengi ----
+    // ---- rarity colour ----
     function grPctRenk(pct){
       if (!Number.isFinite(pct)) return GRC.off;
       if (pct < 5) return GRC.bad;
@@ -101,7 +101,7 @@
       return 'Çok yaygın';
     }
 
-    // ---- yükleme ----
+    // ---- loading ----
     async function loadGercekci(){
       grToggleBoya();
       grSelectBoya();
@@ -125,7 +125,7 @@
       }));
       grLoaded = true;
       grEl('grSearch').placeholder = 'Oyun ara...';
-      // Kayıtlı kuyruk: hesap dosyasından gelir, oyun adları kütüphaneden tamamlanır.
+      // Saved queue: comes from the account file, game names are completed from the library.
       const kayitli = grVal('grQueue', []) || [];
       grQueue = kayitli.map(id=>grGames.find(g=>g.appid===+id)).filter(Boolean);
       grKutuphaneBoya();
@@ -133,11 +133,11 @@
       else grHesapBoya();
     }
 
-    // ---- kütüphane arama ----
+    // ---- library search ----
     function grAranabilir(){
-      // Defterdekiler HER ZAMAN elenir: onlarin basarimi olmadigi denenerek ogrenildi.
-      // "Basarimsiz oyunlari goster" anahtari yalnizca Steam'in guvenilmez hasStats
-      // bayragini gevsetir, kanitlanmis olani geri getirmez.
+      // Those in the ledger are ALWAYS filtered out: it was learned by trying that they have no achievements.
+      // The "Başarımsız oyunları göster" switch only loosens Steam's unreliable hasStats
+      // flag, it does not bring back what was proven.
       const temiz = grGames.filter(g=>!grBasarimsiz.has(g.appid));
       return grVal('grShowNoAch', false) ? temiz : temiz.filter(g=>g.hasStats);
     }
@@ -170,10 +170,10 @@
       if (e.key === 'Escape'){ grEl('grSearch').value = ''; grEl('grResultsBox').style.display = 'none'; }
       else if (e.key === 'Enter'){ const f = grEl('grResults').querySelector('[data-gradd]'); if (f) f.click(); }
     });
-    // Kuyruga giren oyunu HEMEN dogrula. grPlanCek yalnizca SIRADAKI oyunun semasini
-    // okuyor; ikinci sirada eklenen basarimsiz bir oyun, sirasi gelene kadar - yani
-    // saatler sonra - fark edilmiyordu. Sema istegi protokol uzerinden gidiyor, pazar
-    // kotasini harcamiyor; motor tarafinda 5 dakika onbellekli.
+    // Verify a game that enters the queue IMMEDIATELY. grPlanCek only reads the schema of the NEXT game;
+    // a game without achievements added second in line was not noticed until its turn - that is,
+    // hours later. The schema request goes over the protocol, does not spend the market
+    // quota; cached for 5 minutes on the engine side.
     async function grDogrula(oyun){
       if (!oyun) return true;
       const p = await window.imu.gercekci.plan(oyun.appid, grSureMs(), grSecenekler())
@@ -198,7 +198,7 @@
       grKuyrukKaydet();
       grKutuphaneBoya();
       grAramaBoya();
-      // Ilk sirada olan zaten grPlanCek ile dogrulanir; gerisi burada.
+      // The first in line is already verified with grPlanCek; the rest here.
       if (!cikariliyor && grQueue[0] && grQueue[0].appid !== id){
         const kaldi = await grDogrula(g);
         if (!kaldi) return;
@@ -211,7 +211,7 @@
 
     function grKuyrukKaydet(){ grKaydet({ grQueue: grQueue.map(g=>g.appid) }); }
 
-    // ---- seçili oyun listesi ----
+    // ---- selected game list ----
     function grKutuphaneBoya(){
       grSet('grLibCount', grQueue.length + ' oyun');
       const el = grEl('grLibrary');
@@ -251,17 +251,17 @@
       }
       const row = e.target.closest('[data-grrow]');
       if (row && !grDurum.calisiyor){
-        // Tıklanan oyunu sıranın başına al: önizleme onun planını gösterir.
+        // Move the clicked game to the front of the order: the preview shows its plan.
         const id = +row.getAttribute('data-grrow');
         const i = grQueue.findIndex(x=>x.appid===id);
         if (i > 0){ const [g] = grQueue.splice(i,1); grQueue.unshift(g); grKuyrukKaydet(); grKutuphaneBoya(); grPlanCek(); }
       }
     });
 
-    // ---- seçenekler ----
-    // ---- %100 BITIS SURESI (Tc) ----
-    // OYUN BASINA saklanir: Cyberpunk 180 saat, kisa bir hikaye oyunu 12 saat. Tek bir
-    // genel deger butun kutuphaneye uymuyordu.
+    // ---- options ----
+    // ---- 100% COMPLETION TIME (Tc) ----
+    // Kept PER GAME: Cyberpunk 180 hours, a short story game 12 hours. A single
+    // general value did not fit the whole library.
     function grTcHarita(){ const h = grVal('grTcOyun', {}); return (h && typeof h === 'object') ? h : {}; }
     function grTcOku(appid){ return Math.max(0, +grTcHarita()[appid] || 0); }
     async function grTcYaz(appid, saat){
@@ -270,14 +270,14 @@
       await grKaydet({ grTcOyun: h });
     }
 
-    // Tc ve zorluk carpani. grHesapBoya, grSecenekler ve motorun gecikme hesabi ayni
-    // kaynaktan beslenir, yoksa uc yerde uc farkli sayi cikar.
+    // Tc and the difficulty multiplier. grHesapBoya, grSecenekler and the engine's backlog computation are fed from the same
+    // source, otherwise three different numbers come out in three places.
     //
-    // DIKKAT - tahminin yapisal sorunu: elle deger girilmezse Tc, OYNANAN SUREDEN
-    // tahmin ediliyor (oynanan x tur carpani). Yani bir oyunu ne kadar cok oynarsan
-    // tahmini bitis suresi o kadar buyuyor ve uygulama o kadar az basarim aciyor.
-    // 180 saatlik bir oyun "demek ki 360 saatlik, daha yarisindasin" diye okunuyor.
-    // Bu yuzden elle girilen deger her zaman one geciyor ve kutu artik basit panelde.
+    // NOTE - the structural problem of the estimate: if no value is entered by hand Tc is estimated FROM THE PLAYTIME
+    // (played x type multiplier). That means the more you play a game
+    // the longer its estimated completion time grows and the fewer achievements the app unlocks.
+    // A 180 hour game is read as "so it is 360 hours, you are only halfway".
+    // That is why a value entered by hand always takes precedence and the box is now in the simple panel.
     function grTcVeZorluk(oyun){
       const zorluk = parseFloat(grVal('grDiff', '1.2')) || 1.2;
       const crRaw = grVal('grCR', '2.0');
@@ -307,7 +307,7 @@
       };
     }
 
-    // ---- plan önizlemesi ----
+    // ---- plan preview ----
     async function grPlanCek(){
       const ilk = grQueue[0];
       if (!ilk){
@@ -317,13 +317,13 @@
       }
       const istek = ++grPlanIstek;
       grSet('grNextName', t('Başarım şeması okunuyor…'));
-      // textContent'e yazılıyor: esc() burada adı "&amp;" gibi gösteriyordu.
+      // It is written to textContent: esc() here showed the name as "&amp;".
       grSet('grNextMeta', ilk.name);
       const p = await window.imu.gercekci.plan(ilk.appid, grSureMs(), grSecenekler())
         .catch(e=>({ ok:false, error:(e&&e.message) }));
-      if (istek !== grPlanIstek) return;      // daha yeni bir istek var, bunu at
-      // Sema okununca "bu oyunun basarimi yok" ciktiysa oyun kuyruktan dusurulur ve bir
-      // daha listeye girmez. hasStats bayragina bakip listeye almistik, Steam yanilmis.
+      if (istek !== grPlanIstek) return;      // there is a newer request, drop this one
+      // If reading the schema shows "this game has no achievements" the game is removed from the queue and never
+      // enters the list again. We had taken it into the list by looking at the hasStats flag, Steam was wrong.
       if (p && p.basarimsiz){
         grBasarimsiz.add(ilk.appid);
         grQueue = grQueue.filter(x=>x.appid!==ilk.appid);
@@ -331,7 +331,7 @@
         grKutuphaneBoya();
         if (typeof toast === 'function') toast('Gerçekçi Mod').fail(tf('#: başarımı yok, listeden çıkarıldı.', ilk.name));
         grPlan = null;
-        grPlanCek();          // sıradaki oyunla devam
+        grPlanCek();          // continue with the next game
         return;
       }
       grPlan = (p && p.ok) ? p : null;
@@ -342,16 +342,16 @@
       grListeBoya(); grHesapBoya();
     }
 
-    // ---- orta panel ----
+    // ---- middle panel ----
     function grListeBoya(){
       const oyun = grQueue[0];
       const calisiyor = !!grDurum.calisiyor;
       const basarimVar = !!(grPlan && grPlan.toplam);
       const basarimsiz = !!(oyun && grPlan && !grPlan.toplam);
 
-      // Üst özet şerit
-      // Steam'in basarim semasi bazen oyun adi vermiyor ve motor 'App 1091500' gibi bir
-      // yedege dusuyor. Kutuphanedeki gercek ad elimizdeyken onu gostermenin anlami yok.
+      // Top summary strip
+      // Steam's achievement schema sometimes gives no game name and the engine falls back to something like 'App 1091500'.
+      // There is no point showing that when we have the real name from the library.
       const calisanId = calisiyor ? grDurum.appid : null;
       const kutupAd = calisanId
         ? ((grGames.find(g=>g.appid===calisanId) || {}).name || null)
@@ -370,13 +370,13 @@
       grSet('grPct', fmtYuzde(yuzde));
       grEl('grPctFill').style.width = yuzde + '%';
 
-      // Başarımsız oyun kartları
+      // Cards of games without achievements
       grEl('grNoAch').style.display = basarimsiz ? 'flex' : 'none';
       grEl('grNoAchSummary').style.display = basarimsiz ? 'flex' : 'none';
       grEl('grHasAch').style.display = basarimsiz ? 'none' : 'flex';
       if (basarimsiz){
-        // Buraya yalnizca "basarimi VAR ama acilacak kilitli basarim KALMAMIS" oyunlar duser.
-        // Hic basarimi olmayan oyun zaten listeye girmiyor (grPlanCek onu dusuruyor).
+        // Only games that HAVE achievements but have NO locked achievement left to unlock land here.
+        // A game with no achievements at all does not enter the list anyway (grPlanCek drops it).
         grSet('grFallbackLabel', 'Listeden çıkarılacak');
         grSet('grDurLabel2', grSureEtiket(grSureMs()));
         grSet('grFallbackNote', grPlan && grPlan.uygunToplam === 0 && grPlan.toplamBasarim
@@ -384,7 +384,7 @@
           : t('Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.'));
       }
 
-      // Sırada kartı
+      // Next-in-line card
       if (basarimVar || calisiyor){
         const sira = calisiyor ? grDurum.siradaki : (grPlan.kuyruk[0] && grPlan.kuyruk[0].name);
         const siraPct = calisiyor ? grDurum.siradakiPct : (grPlan.kuyruk[0] && grPlan.kuyruk[0].rarityPct);
@@ -399,7 +399,7 @@
         pctEl.style.borderColor = grPctRenk(siraPct);
       }
 
-      // Açılma sırası tablosu
+      // Unlock order table
       grSet('grOpenedCount', acilan + ' / ' + toplam);
       const el = grEl('grList');
       if (!grPlan || !grPlan.kuyruk || !grPlan.kuyruk.length){
@@ -411,7 +411,7 @@
       let html = '';
       let sonEtiket = null;
       grPlan.kuyruk.forEach((a, i)=>{
-        // Nadirlik değişimlerinde ayırıcı: şablondaki "isDivider" satırı.
+        // Divider when the rarity changes: the "isDivider" row in the template.
         const et = grNadirEtiket(a.rarityPct);
         if (et !== sonEtiket){
           sonEtiket = et;
@@ -438,9 +438,9 @@
       el.innerHTML = html;
     }
 
-    // Plan özeti tek şablondan yazılır. Eskiden "2 sa" + " süresinde " + "12" +
-    // " başarım açılacaktır" diye dört parçaydı; her dil Türkçe söz dizimine mahkûm
-    // kalıyor, İngilizcesi "2 h over 12 achievements will unlock" çıkıyordu.
+    // The plan summary is written from a single template. It used to be four pieces: "2 sa" + " süresinde " + "12" +
+    // " başarım açılacaktır"; every language was condemned to Turkish syntax,
+    // the English came out "2 h over 12 achievements will unlock".
     function grPlanCumleYaz(sureMs, hedef){
       const el = grEl('grPlanCumle');
       if (!el) return;
@@ -449,7 +449,7 @@
         '<span style="font-family:Geist Mono,monospace;font-weight:700;color:#DCE2FA">' + (Number(hedef) || 0) + '</span>');
     }
 
-    // ---- hedef + HLTB hesapları ----
+    // ---- target + HLTB calculations ----
     function grHesapBoya(){
       const oyun = grQueue[0];
       let sureMs = grSureMs();
@@ -462,14 +462,14 @@
       const { tcSa: tc, zorluk: diff, elleGirildi, oynanmisSa: playtimeSa } = grTcVeZorluk(oyun);
       let sureSa = sureMs / 3600000;
 
-      // Otomatik hedef IKI parcadan olusur:
-      //   1. GERIDE KALAN - oyun bu kadar oynanmisken zaten acilmis OLMASI gereken sayi,
-      //      eksi gercekten acilmis olan. 180 saatlik ve basarimlari kilitli bir oyunda
-      //      bu buyuk bir sayidir.
-      //   2. OTURUM PAYI - bu oturumun kendi suresinde kazanilacak kadari.
-      // Eskiden yalnizca 2. parca vardi: hesap "sifirdan baslayan bir oyuncu bu surede kac
-      // basarim alir" diyordu. Sonuc, 180 saat oynanmis bir oyunda 8 saate 2 basarim gibi
-      // bir oneriydi; oysa o oyunda zaten neredeyse hepsi acilmis olmaliydi.
+      // The automatic target is made of TWO parts:
+      //   1. WHAT IS BEHIND - the number that SHOULD already have been unlocked at this playtime,
+      //      minus the one really unlocked. In a 180 hour game with its achievements locked
+      //      this is a big number.
+      //   2. SESSION SHARE - as much as will be earned in this session's own time.
+      // There used to be only the 2nd part: the calculation said "how many achievements would a player who starts from zero get in this
+      // time". The result was a suggestion like 2 achievements in 8 hours for a game with 180 hours played;
+      // yet in that game almost all of them should already have been unlocked.
       const toplamB = grPlan ? (grPlan.toplamBasarim || 0) : 0;
       const acilmisB = grPlan ? (grPlan.acilmis || 0) : 0;
       const payda = Math.max(0.1, tc * diff);
@@ -477,11 +477,11 @@
       const beklenen = olcek ? Math.min(olcek, olcek * (playtimeSa / payda)) : 0;
       const gerideKalan = Math.max(0, Math.round(beklenen - acilmisB));
       const oturumPayi = olcek * (sureSa / payda);
-      // OTOMATIK SURE: ayarlar degisince yalnizca hedef degil SURE de yeniden hesaplanmali.
-      // Olcut, geride kalan basarimlari gercek bir oyuncunun kazanmasi ne kadar surerdi:
-      //   (geride kalan / toplam) x bitis suresi x zorluk
-      // 15 dakika ile 12 saat arasina kirpilir. Kullanici sureyi elle yazdiysa dokunulmaz,
-      // Ayarlar'daki anahtar kapaliysa da dokunulmaz.
+      // AUTOMATIC DURATION: when the settings change not only the target but the DURATION must be recomputed.
+      // The measure is how long it would take a real player to earn the achievements that are behind:
+      //   (behind / total) x completion time x difficulty
+      // It is clamped between 15 minutes and 12 hours. If the user typed the duration by hand it is left alone,
+      // and it is left alone if the switch in Ayarlar is off.
       if (grVal('grOtoSure', true) && !grSureTouched && oyun && olcek && gerideKalan > 0){
         const gerekenSa = Math.max(0.25, Math.min(12, (gerideKalan / olcek) * payda));
         const yeniMs = Math.round(gerekenSa * 3600000);
@@ -493,8 +493,8 @@
         }
       }
       const otoHedef = uygun ? Math.max(1, Math.min(uygun, Math.round(gerideKalan + oturumPayi))) : 0;
-      // Hedef kutusunun iki yarisi TEK parca gorunmeli: ayni yazi tipi, ayni boy, ayni renk.
-      // Eskiden ust satirda buyuk beyaz sayi, altinda kucuk gri "/ toplam" vardi.
+      // The two halves of the target box must look like ONE piece: the same font, the same height, the same colour.
+      // It used to be a big white number on the top line and a small grey "/ total" under it.
       const hedefRengi = oto ? GRC.sub : GRC.title;
       grEl('grTarget').readOnly = oto;
       if (oto) grEl('grTarget').value = String(otoHedef);
@@ -504,7 +504,7 @@
       const hedef = oto ? otoHedef : Math.max(0, Math.min(uygun, +grEl('grTarget').value || 0));
       grPlanCumleYaz(sureMs, hedef || (grPlan ? grPlan.toplam : 0));
 
-      // Gecikme birikimi notu
+      // Backlog note
       const not = grEl('grCatchUpNote');
       if (not){
         const bir = (grPlan && grPlan.birikim) || 0;
@@ -516,18 +516,18 @@
         } else not.style.display = 'none';
       }
 
-      // OTO düğmesi ve hedef kutusunun kenarı
+      // AUTO button and the border of the target box
       const ab = grEl('grAutoTarget');
       ab.style.borderColor = oto ? GRC.brand : '#2B3345';
       ab.style.background = oto ? '#151C28' : '#0D1118';
       ab.style.color = oto ? GRC.sub : GRC.muted;
       grEl('grTargetBox').style.borderColor = oto ? GRC.brand : '#2B3345';
 
-      // Basit paneldeki açıklama
+      // Description in the simple panel
       const crEtiket = { '1.5':'kısa hikâye oyunu', '2.0':'orta uzunlukta oyun', '2.5':'uzun açık dünya oyunu', '4.0':'bitmeyen sandbox oyunu', 'auto':'elle girilen süre' };
       const diffEtiket = { '0.8':'kolay', '1.2':'normal', '2.0':'zor', '3.5':'çok zor' };
-      // Sayi denetlenebilir olsun: hangi degerden nasil cikti yaziyor. Cumleler ayri
-      // sablonlar: tek bir uzun birlestirme her dilde parcali ve bozuk cikiyordu.
+      // Make the number checkable: show which value it came from. The sentences are separate
+      // templates: a single long concatenation came out fragmented and broken in every language.
       const tcKaynak = elleGirildi ? t('girdiğin değer') : tf('# varsayımı', t(crEtiket[crRaw] || 'tür tahmini'));
       grSet('grSimpleNote', oyun
         ? (tf('#: # saat oynanmış. Bitiş süresi # saat kabul edildi (#), zorluk: #.', oyun.name, Math.round(playtimeSa), Math.round(tc), tcKaynak, t(diffEtiket[String(grVal('grDiff','1.2'))] || '-'))
@@ -535,7 +535,7 @@
            + ' ' + tf('# içinde # başarım açılır.', grSureEtiket(sureMs), hedef))
         : t('Önce soldan bir oyun ekle.'));
 
-      // Dağıtım modeli açıklaması
+      // Distribution model description
       const modelNot = {
         linear: 'Başarımlar süre boyunca eşit aralıklarla açılır. En sakin görünüm.',
         exp: 'Başta sık, sonra seyrek. Gerçek oyuncu da ilk saatlerde daha çok başarım alır.',
@@ -543,7 +543,7 @@
       };
       grSet('grModelNote', modelNot[grVal('grModel','linear')] || '-');
 
-      // Iki Tc kutusu (basit ve gelismis panel) ayni degeri gosterir.
+      // The two Tc boxes (simple and advanced panel) show the same value.
       const tcDeger = oyun ? grTcOku(oyun.appid) : 0;
       [grEl('grTcMain'), grEl('grTc')].forEach((el)=>{
         if (!el) return;
@@ -551,19 +551,19 @@
         if (document.activeElement !== el) el.value = tcDeger > 0 ? String(tcDeger) : '';
       });
       grSet('grPlaytime', oyun ? sureBirim(yerelOndalik(playtimeSa, 1), 'sa') : '-');
-      // beklenen yukarida bir kez hesaplandi (otomatik hedefin ilk parcasi), burada
-      // yeniden hesaplanmiyor - iki yerde farkli sayi gorunmesin.
+      // the expected number was computed once above (the first part of the automatic target), it is not
+      // recomputed here - so two different numbers do not show in two places.
       const beklenenB = Math.round(beklenen);
       grSet('grExpected', toplamB ? (beklenenB + ' / ' + toplamB) : '-');
       grSet('grPace', playtimeSa > 0 && beklenenB ? yerelOndalik(beklenenB / playtimeSa, 1) : '-');
       grSet('grLeft', grPlan ? String(uygun) : '-');
-      // Kalan başarımların gerçek oyunda ne kadar sürede açılacağı (tahmin)
+      // How long the remaining achievements will take to unlock in the real game (estimate)
       const kalanSa = (uygun && toplamB) ? (uygun / toplamB) * tc * diff : 0;
       grSet('grRemainEst', kalanSa ? (kalanSa < 1 ? sureBirim(Math.round(kalanSa*60), 'dk') : sureBirim(Math.round(kalanSa), 'sa')) : '-');
       grHizBoya();
     }
 
-    // ---- hiz ayarlari (gelismis panel) ----
+    // ---- pace settings (advanced panel) ----
     const GR_HIZ_ALAN = [
       ['grHiz', 'grHiz', 1, 0.1, 4],
       ['grUltraCarpan', 'grUltraCarpan', 3, 1, 10],
@@ -592,15 +592,15 @@
         const v = Math.max(alt, Math.min(ust, parseFloat(el.value) || varsayilan));
         el.value = String(v);
         await grKaydet({ [anahtar]: v });
-        grPlanCek();          // acilis zamanlari bu degerlere bagli
+        grPlanCek();          // the unlock times depend on these values
       });
     });
 
-    // ---- anahtarlar (toggle) ----
+    // ---- switches (toggle) ----
     function grToggleBoya(){
       document.querySelectorAll('#tab-gercekci .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
-        // grCatchUp varsayilan ACIK: birikim yoksa zaten hicbir sey degistirmiyor.
+        // grCatchUp is ON by default: if there is no backlog it changes nothing anyway.
         const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grOtoSure');
         el.style.background = on ? GRC.brand : '#151C28';
         el.style.borderColor = on ? GRC.brand : '#2B3345';
@@ -621,7 +621,7 @@
       });
     });
 
-    // ---- açılır listeler ----
+    // ---- dropdown lists ----
     function grSelectBoya(){
       const ata = (id, deger) => { const e = grEl(id); if (e) e.value = deger; };
       ata('grCR', grVal('grCR', '2.0'));
@@ -630,7 +630,7 @@
       ata('grDiff2', grVal('grDiff', '1.2'));
       ata('grModel', grVal('grModel', 'linear'));
     }
-    // Aynı ayarı iki panelden de değiştirebiliyoruz (şablonda da öyle); ikisi senkron kalır.
+    // We can change the same setting from both panels (the template does the same); the two stay in sync.
     [['grCR','grCR'], ['grCR2','grCR'], ['grDiff','grDiff'], ['grDiff2','grDiff'],
      ['grModel','grModel']].forEach(([id, anahtar])=>{
       const e = grEl(id);
@@ -641,9 +641,9 @@
         if (anahtar === 'grModel') grPlanCek(); else { grHesapBoya(); grListeBoya(); }
       });
     });
-    // Iki panel de ayni degeri yazar ve deger OYUN BASINA saklanir. Eskiden tek bir genel
-    // 'grTc' ayari vardi: Cyberpunk icin 180 yazinca kutuphanedeki her oyun 180 saatlik
-    // sayiliyordu.
+    // Both panels write the same value and the value is kept PER GAME. There used to be a single general
+    // 'grTc' setting: writing 180 for Cyberpunk made every game in the library
+    // count as 180 hours.
     ['grTcMain', 'grTc'].forEach((id)=>{
       const el = grEl(id); if (!el) return;
       el.addEventListener('change', async ()=>{
@@ -652,12 +652,12 @@
         el.value = saat > 0 ? String(saat) : '';
         if (oyun) await grTcYaz(oyun.appid, saat);
         else await grKaydet({ grTc: saat > 0 ? String(saat) : '' });
-        grPlanCek();       // hedef ve zamanlama bu degere bagli, plan yeniden kurulur
+        grPlanCek();       // the target and timing depend on this value, the plan is rebuilt
       });
     });
     ['grRH','grRM','grRS'].forEach(id=>{
       grEl(id).addEventListener('change', async ()=>{
-        grSureTouched = true;         // elle girildi, otomatik atama artik uzerine yazmaz
+        grSureTouched = true;         // entered by hand, automatic assignment no longer overwrites it
         const ms = grSureMs();
         grSureYaz(ms);
         await grKaydet({ grDurationSec: Math.round(ms/1000) });
@@ -675,7 +675,7 @@
       grPlanCek();
     };
 
-    // ---- basit / gelişmiş ----
+    // ---- simple / advanced ----
     function grSeviyeBoya(){
       const adv = grVal('grLevel', 'simple') === 'advanced';
       const s = grEl('grLvlSimple'), a = grEl('grLvlAdv');
@@ -691,9 +691,9 @@
     grEl('grLvlSimple').onclick = async ()=>{ await grKaydet({ grLevel: 'simple' }); grSeviyeBoya(); };
     grEl('grLvlAdv').onclick = async ()=>{ await grKaydet({ grLevel: 'advanced' }); grSeviyeBoya(); };
 
-    // ---- presetler ----
-    // Preset özeti çizim anında kurulur: kaydederken yazılan metin, dil sonradan
-    // değişince eski dilde kalıyordu. Eski presetlerde alan yoksa kayıtlı metne düşülür.
+    // ---- presets ----
+    // The preset summary is built at draw time: the text written at save time stayed in the old language
+    // when the language changed later. If old presets lack the field it falls back to the saved text.
     const GR_MODEL_AD = { linear:'doğrusal', exp:'üstel (önden yüklemeli)', pareto:'Pareto (80/20)' };
     function grPresetMeta(p){
       if (!p || !p.sureSec || !Array.isArray(p.oyunlar)) return (p && p.meta) || '';
@@ -712,8 +712,8 @@
         + '<button data-grpdel="'+i+'" class="h-stop" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
         + '</div>').join('');
     }
-    // En fazla bu kadar preset tutulur. Dolu ise kaydetme REDDEDILIR - en eskisini sessizce
-    // dusurmek, kullanicinin haberi olmadan bir yapilandirmayi silmek demek olurdu.
+    // At most this many presets are kept. If full, saving is REFUSED - silently dropping
+    // the oldest would mean deleting a configuration without the user knowing.
     const GR_PRESET_SINIR = 5;
     grEl('grSavePreset').onclick = async ()=>{
       if (!grQueue.length){ if (typeof toast === 'function') toast('Preset').fail('Önce sıraya oyun ekle.'); return; }
@@ -762,7 +762,7 @@
       if (typeof toast === 'function') toast('Preset').done('Yüklendi.');
     });
 
-    // ---- başlat / durdur ----
+    // ---- start / stop ----
     grEl('grStart').onclick = async ()=>{
       if (grDurum.calisiyor){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Zaten çalışıyor.'); return; }
       if (!grQueue.length){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Önce sıraya oyun ekle.'); return; }
@@ -804,7 +804,7 @@
       pushFeed('saat', 'Gerçekçi Mod', 'Durduruldu.', 'Durdu');
     };
 
-    // ---- motordan gelen durum ----
+    // ---- state coming from the engine ----
     function grSaatBoya(kalanSn){
       const iki = (n)=>String(n).padStart(2,'0');
       grSet('grClockH', iki(Math.floor(kalanSn/3600)));

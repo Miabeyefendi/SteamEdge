@@ -1,10 +1,10 @@
-    // ================= ENVANTER & PAZAR =================
-    // Sağ paneldeki sipariş defteri pazar sayfasından yapısal olarak ayrıştırılıyor;
-    // gerçekleşen satışlar ise pricehistory ucundan geliyor.
+    // ================= ENVANTER & PAZAR (INVENTORY & MARKET) =================
+    // The order book in the right panel is parsed structurally from the market page;
+    // the realised sales come from the pricehistory endpoint.
     let invItems = null, invMerged = null, envLoaded = false;
     const priceMap = new Map();               // marketHashName -> price obj | null
-    // Gerçekleşmiş satış geçmişi ve şu anki sipariş defteri. Yukarıda tanımlı olmaları
-    // gerekiyor: medValRaw/realValue gibi yardımcılar bunları okuyor.
+    // Realised sale history and the current order book. They must be defined above:
+    // helpers like medValRaw/realValue read them.
     const historyMap = new Map();
     const ordersMap  = new Map();
     const selected = new Set();               // dedupKey
@@ -14,38 +14,38 @@
     let groupByGame = false;
     let viewRows = [];
     let detailKey = null;
-    // Tum satis islemleri ALT BARDAN yapilir; detay panelindeki strateji/fiyat bolumleri
-    // kaldirildi. bulkStrategy: median | undercut | match | instant | manual
+    // All sale operations are done FROM THE BOTTOM BAR; the strategy/price sections in the detail panel
+    // were removed. bulkStrategy: median | undercut | match | instant | manual
     let bulkStrategy = 'median';
-    let manualPrice = null;                   // "Kendim" secildiginde girilen tutar
+    let manualPrice = null;                   // the amount entered when "Kendim" is selected
 
     const EC = { ok:'#5FB324', teal:'#24AEB3', bad:'#B32453', brand:'#5624B3', sub:'#C2AAEE',
                  title:'#DCE2FA', muted:'#8B8F9E', off:'#656D80', bd:'#2B3345', s1:'#0D1118' };
 
-    // Tutarlar seçili para biriminde (common.js fmtMoney). "Fiyat gösterimi: Net" seçiliyse
-    // listelenen fiyatlardan Steam komisyonu düşülmüş hali gösterilir.
+    // Amounts are in the selected currency (common.js fmtMoney). If "Fiyat gösterimi: Net" is selected
+    // the listed prices are shown with Steam's commission deducted.
     const fmtTL = (n) => fmtMoney(n);
-    // Listedeki "En dusuk" ve "Ortalama" sutunlari PAZAR fiyatidir: Steam sayfasinda yazan
-    // tutarin aynisi, uzerinde hicbir kesinti yok. Eline gececek (net) tutar Steam'in kendi
-    // ucret hesabiyla bulunur (asagida "SATIŞ") ve yalnizca satis akisinda gosterilir.
-    // "Düşük değer eşiği": bu tutarın altındaki öğeler soluk gösterilir ve "tümünü seç"e girmez
+    // The "En düşük" and "Ortalama" columns in the list are the MARKET price: the same as the amount on the Steam
+    // page, with no deduction at all. The amount you will get (net) is found with Steam's own
+    // fee calculation (below, "SALE") and is only shown in the sale flow.
+    // "Düşük değer eşiği": items below this amount are shown dimmed and are not included in "select all"
     const lowLimit = () => +((appSettings||{}).invLowValue) || 0;
     const isLowValue = (it) => { const v = medVal(it); return lowLimit() > 0 && v != null && v < lowLimit(); };
     function priceOf(it){ return it.marketHashName ? priceMap.get(it.marketHashName) : undefined; }
     function priceVal(it){ const p = priceOf(it); return p && p.lowestValue != null ? p.lowestValue : null; }
-    // GÖSTERİM için ortanca: önce GERÇEKLEŞMİŞ satışların ağırlıklı medyanı (varsa), yoksa
-    // Steam'in 24 saatlik medyanı. Satıştaki ilan fiyatı buraya ASLA girmez - biri tek
-    // parçayı 999.999'a listeleyebilir, bu "değer" değildir. Hiçbiri yoksa boş bırakılır.
+    // Median for DISPLAY: first the weighted median of REALISED sales (if any), otherwise
+    // Steam's 24 hour median. The listing price on sale NEVER enters here - someone can list a single
+    // piece at 999,999, that is not a "value". If there is none it is left empty.
     function medValRaw(it){
       const h = historyMap.get(it.marketHashName);
       if (h && h !== 'loading' && h !== 'none' && h.stats && h.stats.median != null) return h.stats.median;
       const p = priceOf(it);
       return p && p.medianValue != null ? p.medianValue : null;
     }
-    // HESAP için ortanca: toplam değer/sıralama gibi yerlerde son çare en düşük ilandır.
+    // Median for the ACCOUNT: in places like total value/ranking the lowest listing is the last resort.
     function medVal(it){ const m = medValRaw(it); return m != null ? m : priceVal(it); }
     const TYPE_LABEL = { all:'Tümü', card:'Kart', background:'Arka Plan', emoticon:'İfade', coupon:'Kupon', profile:'Profil Öğesi', other:'Diğer' };
-    // Steam foil kartların adında "(Foil)" geçer - rozet için gerçek işaret.
+    // The name of Steam foil cards contains "(Foil)" - the real marker for the badge.
     const isFoil = (it) => /\(foil\)/i.test(it.name || '');
     function statusOf(it){
       if (it.marketable) return { label:'Satılabilir', fg:EC.ok };
@@ -70,9 +70,9 @@
       askFetchPrices();
     }
 
-    // Sayfa acilirken once DISKTEKI onbellegi oku. Steam'e istek gitmez, aninda doner.
-    // Onbellek varsa fiyatlar zaten ekranda olur ve kullaniciya bir sey sorulmaz;
-    // onbellegin var olma sebebi buydu, eskiden her acilista bastan cekiliyordu.
+    // When the page opens first read the cache ON DISK. No request goes to Steam, it returns instantly.
+    // If there is a cache the prices are already on screen and the user is asked nothing;
+    // that was the reason the cache exists, it used to be fetched from scratch on every open.
     async function onbellektenDoldur(){
       const hashes = hashesForView();
       if (!hashes.length) return;
@@ -84,7 +84,7 @@
           renderEnv(); paintFetchBtn();
         }
       }
-      // G8: ortalamalar da diskte tutuluyor; varsa aninda goster, Steam'e istek gitmez.
+      // G8: the averages are kept on disk too; if present show instantly, no request goes to Steam.
       const hres = await E.historyForCached(hashes).catch(()=>null);
       if (hres && hres.ok && hres.history){
         let eklendi = 0;
@@ -94,11 +94,11 @@
       paintAvgBtn();
     }
 
-    // ---- G8: ORTALAMA (gerceklesen satis medyani) TOPLU CEKME ----
-    // Neden ayri dugme: liste fiyati (priceoverview) tek istekte coklu gelmiyor ama ucuz;
-    // satis gecmisi (pricehistory) HER OGE icin ayri istek istiyor. Steam limiti hesap
-    // basina ~20 istek / 30 saniye. 200 ogelik envanterde bu dakikalar surer, o yuzden
-    // kullanici acikca istemeden baslamiyor ve istedigi an iptal edebiliyor.
+    // ---- G8: BULK FETCH of the AVERAGE (realised sale median) ----
+    // Why a separate button: the list price (priceoverview) cannot come in multiples in one request but it is cheap;
+    // the sale history (pricehistory) needs a separate request for EVERY ITEM. Steam's limit is
+    // ~20 requests / 30 seconds per account. For a 200 item inventory this takes minutes, so
+    // it does not start unless the user explicitly asks and they can cancel whenever they want.
     let avgCekiliyor = false, avgYapilan = 0, avgToplam = 0;
     function paintAvgBtn(){
       const b = document.getElementById('envFetchAvg');
@@ -106,7 +106,7 @@
       const hepsi = hashesForView();
       const eksik = hepsi.filter(h => !historyMap.has(h)).length;
       if (avgCekiliyor){
-        b.disabled = false;                       // iptal edilebilsin
+        b.disabled = false;                       // so it can be cancelled
         b.textContent = tf('İptal Et · # / #', avgYapilan, avgToplam);
         b.style.borderColor = '#B37E24'; b.style.color = '#B37E24';
         b.style.cursor = 'pointer';
@@ -132,7 +132,7 @@
         if (typeof toast === 'function') toast('Ortalama').done('Bu filtredeki tüm ortalamalar zaten var.');
         return;
       }
-      // Steam limiti yuzunden uzun surebilir - kullaniciya sureyi ONCEDEN soyle.
+      // It can take long because of Steam's limit - tell the user the duration BEFOREHAND.
       const tahminSn = Math.ceil(eksik.length * 1.6);
       const ok = await edgeConfirm({
         tag:'Ortalama Fiyatlar',
@@ -155,7 +155,7 @@
     if (E.onHistoryOne){
       E.onHistoryOne((d)=>{
         if (d && d.hashName && d.history) historyMap.set(d.hashName, d.history);
-        // Tek tek yeniden cizmek 200 ogede pahali; ilerleme olayinda toplu ciziyoruz.
+        // Redrawing one by one is expensive with 200 items; we redraw in bulk on the progress event.
       });
     }
     if (E.onHistoryProgress){
@@ -172,18 +172,18 @@
           return;
         }
         paintAvgBtn();
-        // Her 10 ogede bir listeyi tazele - surekli cizim yapmadan ilerleme gorunsun
+        // Refresh the list every 10 items - so progress is visible without drawing constantly
         if (avgYapilan % 10 === 0) renderEnv();
       });
     }
 
-    // Ayarlar ekranındaki Envanter tercihleri (varsayılan sıralama, düşük değer eşiği vb.)
-    // Ayarlar > Genel > "Para birimi" değişince sayfadaki SABİT ₺ metinleri de güncellenmeli
-    // (fiyat aralığı seçenekleri ve boş durum değerleri HTML'de sabit yazılıydı - bu yüzden
-    // USD'ye geçince listede ₺ kalıyordu).
+    // The Envanter preferences on the Settings screen (default sort, low value threshold etc.)
+    // When Ayarlar > Genel > "Para birimi" changes the FIXED ₺ texts on the page must be updated too
+    // (the price range options and empty state values were written fixed in the HTML - that is why
+    // the ₺ stayed in the list after switching to USD).
     function applyCurrencyLabels(){
-      // Sembol fmtMoney ile aynı yerde (önde) durur: "₺0 - ₺1", "$10 and above". Kur henüz
-      // bilinmiyorsa sembolsüz kalır; eskiden HTML'de sabit ₺ yazdığı için USD hesapta da ₺ görünüyordu.
+      // The symbol sits in the same place as fmtMoney (in front): "₺0 - ₺1", "$10 and above". If the currency is not
+      // known yet it stays without a symbol; since a fixed ₺ was written in the HTML a ₺ also showed on a USD account.
       const sym = (typeof curSym === 'function') ? curSym() : '';
       const sel = document.getElementById('efPrice');
       if (sel){
@@ -205,7 +205,7 @@
       if (appSettings.hideUnsellable) fState = 'marketable';
       if (appSettings.groupByGame) groupByGame = true;
       if (appSettings.saleMode){
-        // "Varsayılan satış fiyatı" - detay panelinin ve alt barın başlangıç stratejisi
+        // "Varsayılan satış fiyatı" - the starting strategy of the detail panel and the bottom bar
         const map = { median:'median', lowest:'match', undercut:'undercut', match:'match', manual:'manual' };
         const s = map[appSettings.saleMode];
         if (s) bulkStrategy = s;
@@ -215,7 +215,7 @@
       armPriceAutoRefresh();
     }
 
-    // "Fiyatları otomatik yenile" + "Fiyat yenileme aralığı" - Envanter açıkken arka planda tazeler
+    // "Fiyatları otomatik yenile" + "Fiyat yenileme aralığı" - refreshes in the background while Envanter is open
     let priceRefreshTimer = null;
     function armPriceAutoRefresh(){
       if (priceRefreshTimer){ clearInterval(priceRefreshTimer); priceRefreshTimer = null; }
@@ -237,15 +237,15 @@
       return [...map.values()];
     }
 
-    // ================= FİYAT ÇEKME KAPISI =================
-    // Steam pazar istekleri ~20 istek / 30 saniye ile sınırlı. Sayfa açılır açılmaz tüm
-    // envanteri sormak limite takılıyor ve kutular "alınamadı" ile doluyordu. Artık:
-    //   1) Sayfaya ilk girişte "hemen getirilsin mi?" diye soruluyor.
-    //   2) Hayır denirse kullanıcı filtresini kurar, "Fiyatları Getir" düğmesine basar.
-    //   3) Yalnız O ANKİ filtreye uyan öğeler çekilir, tamamı bitene kadar düğme kilitli.
-    //   4) Filtre değişirse düğme yeniden açılır (yeni liste için yeni istek gerekir).
-    let priceFetching = false;      // istek dizisi sürüyor
-    let fetchedSig = null;          // en son çekilen filtre imzası
+    // ================= PRICE FETCH GATE =================
+    // Steam market requests are limited to ~20 requests / 30 seconds. Asking the whole inventory
+    // as soon as the page opened hit the limit and the boxes filled with "alınamadı". Now:
+    //   1) On first entering the page it asks "fetch now?".
+    //   2) If the answer is no the user sets up the filter and presses the "Fiyatları Getir" button.
+    //   3) Only the items that match the CURRENT filter are fetched, the button stays locked until all are done.
+    //   4) If the filter changes the button opens again (a new list needs a new request).
+    let priceFetching = false;      // the request sequence is running
+    let fetchedSig = null;          // the signature of the filter fetched last
     function viewSignature(){
       return [fType, fState, fPrice, fGame, (document.getElementById('envSearch')||{}).value||''].join('|');
     }
@@ -288,22 +288,22 @@
       paintFetchBtn();
       const res = await E.pricesFor(hashes).catch(()=>null);
       if (res && res.ok && res.prices){ Object.entries(res.prices).forEach(([h,p]) => priceMap.set(h,p)); }
-      // Kuyruk main tarafında sürüyor olabilir; price:progress remaining=0 deyince serbest
-      // bırakılır. Anında dönen (tamamı önbellekten) durumda burada kapatılır.
+      // The queue may be running on the main side; it is released when price:progress says remaining=0.
+      // In the case that returns instantly (all from the cache) it is closed here.
       if (!res || !res.queued){ priceFetching = false; }
       renderEnv(); paintFetchBtn();
     }
-    // Sayfaya ilk giriş: kullanıcıya sor. Ama SADECE onbellekte olmayan oge varsa.
+    // First entering the page: ask the user. But ONLY if there are items that are not in the cache.
     let priceAsked = false;
     async function askFetchPrices(){
       if (priceAsked) return;
-      // Soru yalnızca Envanter ekrandayken sorulur. Önbellek okunurken kullanıcı başka
-      // sekmeye geçtiyse pencere o sekmenin üstünde açılıyordu; bir dahaki girişte sorulur.
+      // The question is asked only while Envanter is on screen. If the user moved to another tab while the cache was being read
+      // the window used to open on top of that tab; it is asked the next time they enter.
       const envGorunur = () => designed.env && !designed.env.classList.contains('hidden');
       if (!envGorunur()) return;
       const hepsi = hashesForView();
       const eksik = hepsi.filter(h => !priceMap.has(h));
-      // Onbellek yeterince doluysa hic sorma; kullanici isterse alttaki dugmeyle ceker.
+      // If the cache is full enough do not ask at all; the user can fetch with the button below if they want.
       if (!eksik.length){
         paintFetchBtn();
         return;
@@ -315,7 +315,7 @@
         body: (function(){
           const hepsi = hashesForView().length;
           const eksik = hashesForView().filter(h => !priceMap.has(h)).length;
-          // Türkçe ek sayıya göre değiştiği için ("80'inin", "3'ünün") sayıya ek bağlanmıyor.
+          // Since Turkish suffixes change with the number ("80'inin", "3'ünün") no suffix is attached to the number.
           return eksik < hepsi
             ? (tf('Toplam # öğenin # tanesinin fiyatı önbellekte.', hepsi, hepsi - eksik) + ' '
                + tf('Kalan # öğe için Steam pazar fiyatı çekilecek.', eksik))
@@ -330,9 +330,9 @@
       else if (typeof toast === 'function') toast('Fiyat').done('Filtreni kur, sonra alttaki "Fiyatları Getir" düğmesine bas.');
       paintFetchBtn();
     }
-    // "Fiyat düşüşü uyarısı": en düşük ilan Steam'in 24 saatlik ortalamasının eşik kadar
-    // altına inince (bkz SATIŞ > fiyatDususunuDenetle). Eskiden iki ölçüm arasındaki farka
-    // bakıyordu ve "hata" bildirimine bağlıydı: hata bildirimi kapalıysa hiç gelmiyordu.
+    // "Fiyat düşüşü uyarısı": when the lowest listing drops below Steam's 24 hour average by the threshold
+    // (see SALE > fiyatDususunuDenetle). It used to look at the difference between two measurements
+    // and was tied to the "error" notification: it never came if the error notification was off.
     E.onPriceOne(({ hashName, price }) => {
       priceMap.set(hashName, price);
       fiyatDususunuDenetle(hashName, price);
@@ -353,7 +353,7 @@
     let renderTimer = null;
     function scheduleRender(){ if (renderTimer) return; renderTimer = setTimeout(()=>{ renderTimer=null; if(invMerged) renderEnv(); }, 400); }
 
-    // ---- filtreler (üst bardaki select'ler) ----
+    // ---- filters (the selects in the top bar) ----
     function buildGameSelect(){
       const sel = document.getElementById('efGame');
       const games = [...new Set(invMerged.map(i=>i.gameName).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
@@ -390,7 +390,7 @@
     }
     document.getElementById('envGroup').onclick = ()=>{ groupByGame = !groupByGame; paintGroupBtn(); renderEnv(); };
 
-    // ---- sütun sıralama ----
+    // ---- column sort ----
     function toggleInvSort(key){
       if (invSort === key) invSortDir = invSortDir==='asc' ? 'desc' : 'asc';
       else { invSort = key; invSortDir = (key==='name'||key==='game') ? 'asc' : 'desc'; }
@@ -404,8 +404,8 @@
       const buckets = { all:[0,Infinity], '0-1':[0,1], '1-5':[1,5], '5-10':[5,10], '10-':[10,Infinity] };
       const pb = buckets[fPrice] || buckets.all;
       let out = invMerged.filter(i=>{
-        // "Satılan öğeyi envanterden gizle": bu oturumda satışa sunulan kopyalar düşülür;
-        // hepsi sunulduysa satır gizlenir. Steam envanteri bazen gecikmeli güncelliyor.
+        // "Satılan öğeyi envanterden gizle": the copies put on sale in this session are subtracted;
+        // if all were put on sale the row is hidden. The Steam inventory is sometimes updated late.
         if (appSettings && appSettings.hideAfterSell && i.assetIds.every(a=>listelenenAssetler.has(a))) return false;
         if (fType !== 'all' && i.type !== fType) return false;
         if (fGame !== 'all' && i.gameName !== fGame) return false;
@@ -462,9 +462,9 @@
     const ROW_H = () => (appSettings && appSettings.compactRows) ? 34 : 46;
     const GRID_COLS = '34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px';
 
-    // G9: "Yarisi gri kalan satirlar" sikayeti. Bu bir hata degil: Ayarlar > Envanter >
-    // Dusuk deger esigi altindaki ogeler soluk gosteriliyor. Hicbir yerde yazmadigi icin
-    // kullanici siralama sanip kafasi karisiyordu. Artik ust barda kucuk bir aciklama var.
+    // G9: the "half the rows stay grey" complaint. This is not a bug: items below Ayarlar > Envanter >
+    // Düşük değer eşiği are shown dimmed. Since it was written nowhere the user
+    // thought it was a sort and got confused. Now there is a small explanation in the top bar.
     function esikRozetiCiz(){
       const el = document.getElementById('envEsikNot');
       if (!el) return;
@@ -530,9 +530,9 @@
       if (!invMerged) return;
       renderStats(); arrows();
       viewRows = applyFilters();
-      setTimeout(esikRozetiCiz, 0);   // satirlar cizildikten sonra sayim dogru olsun
-      setTimeout(paintAvgBtn, 0);     // filtre degisince eksik sayisi da degisir
-      paintFetchBtn();   // filtre degisince "Fiyatlari Getir" yeniden aktiflesir
+      setTimeout(esikRozetiCiz, 0);   // so the count is right after the rows are drawn
+      setTimeout(paintAvgBtn, 0);     // when the filter changes the missing count changes too
+      paintFetchBtn();   // when the filter changes "Fiyatları Getir" becomes active again
       const scroll = document.getElementById('envScroll');
       const rows = document.getElementById('envRows');
       document.getElementById('envCount').textContent = viewRows.length + ' / ' + invMerged.length + ' öğe';
@@ -552,9 +552,9 @@
       renderBulk(); renderDetail();
     }
 
-    // tek delege: satır seçimi + detay
-    // Not: tüm listeyi yeniden çizmek yerine sadece ilgili satır güncelleniyor - 2000+ öğede
-    // innerHTML'i baştan kurmak hem yavaş hem de kaydırma konumunu sıfırlıyordu.
+    // a single delegate: row selection + detail
+    // Note: instead of redrawing the whole list only the related row is updated - with 2000+ items
+    // rebuilding innerHTML from scratch was both slow and reset the scroll position.
     function paintRowSelection(host, on){
       const box = host.querySelector('[data-a="check"]');
       if (box){
@@ -606,11 +606,11 @@
       renderBulk();
     };
 
-    // ---- satış fiyatı stratejileri (gerçek fiyattan hesaplanır) ----
+    // ---- sale price strategies (computed from the real price) ----
     function strategyPrice(it, strat){
-      // "Altına in" / "En ucuzla aynı" ŞU ANKİ ilanlara bakar (rekabet oradadır).
-      // "Ortalama" ise GERÇEKLEŞMİŞ satışlardan gelir - satıştaki uç bir ilan fiyatı
-      // şişirmesin. Steam alt sınırının (0,03 vb.) altına asla inilmez.
+      // "Altına in" / "En ucuzla aynı" look at the CURRENT listings (that is where the competition is).
+      // "Ortalama" comes from REALISED sales - so that an outlier listing on sale
+      // does not inflate it. It never goes below Steam's lower limit (0.03 etc.).
       const ord = ordersMap.get(it.marketHashName);
       const bookLow = (ord && ord !== 'loading' && ord !== 'none' && ord.lowestSell != null) ? ord.lowestSell : null;
       const low = bookLow != null ? bookLow : priceVal(it);
@@ -620,16 +620,16 @@
       if (strat === 'manual')   return clamp(manualPrice);
       if (strat === 'undercut') return low != null ? clamp(low - cents) : null;
       if (strat === 'match')    return clamp(low);
-      // "Hemen sat": bekleyen en yüksek alım talimatına satarsın, anında gider.
-      // Bekleyen talimat yoksa değer yok sayılmaz; instantPrice son satış/ortalamaya düşer.
+      // "Hemen sat": you sell to the highest waiting buy order, it goes instantly.
+      // If there is no waiting order the value is not ignored; instantPrice falls back to the last sale/the average.
       if (strat === 'instant')  return clamp(instantPrice(it).value);
-      return clamp(realValue(it).value);   // ortalama (gerçekleşmiş satışlardan)
+      return clamp(realValue(it).value);   // average (from realised sales)
     }
 
-    // "Hemen Sat" değeri. Öncelik gerçek alım talimatı; yoksa öğe değersiz demek DEĞİL,
-    // yalnızca o an bekleyen alıcı yok demek. Bu durumda son gerçekleşen satışa, o da
-    // yoksa satış ortalamasına düşülür ve kaynağı açıkça belirtilir. (Eskiden talimat
-    // olmayan öğeler için hiçbir fiyat üretilmiyordu, onlarca öğe boş kalıyordu.)
+    // The "Hemen Sat" value. The priority is a real buy order; if there is none it does NOT mean the item is worthless,
+    // only that there is no buyer waiting at that moment. In that case it falls back to the last realised sale, and if
+    // there is none to the sale average and the source is stated clearly. (It used to be that for items
+    // with no order no price was produced and dozens of items stayed empty.)
     function instantPrice(it){
       const o = ordersMap.get(it.marketHashName);
       if (o && o !== 'loading' && !o.failed && o.highestBuy != null){
@@ -651,7 +651,7 @@
       const set=(id,t)=>{ const e=document.getElementById(id); if(e) e.textContent=t; };
       set('bulkCount', units); set('bulkCount2', units);
       set('bulkGross', fmtTL(gross));
-      // Eline geçecek: öğe başına Steam'in kendi ücret hesabı. Henüz gelmediyse "…".
+      // What you will get: Steam's own fee calculation per item. "…" if it has not arrived yet.
       let net = 0, eksikNet = false;
       const lazim = [];
       items.forEach(i=>{
@@ -668,14 +668,14 @@
         b.style.borderColor = on ? EC.brand : 'transparent';
         b.style.color = on ? EC.title : EC.muted;
       });
-      // Manuel fiyat kutusu yalnız "Kendim" seçiliyken görünür
+      // The manual price box is visible only while "Kendim" is selected
       const mi = document.getElementById('bulkManual');
       if (mi) mi.style.display = (bulkStrategy === 'manual') ? '' : 'none';
       paintBulkWarn(items);
     }
 
-    // FİYAT SAPMA UYARISI. Seçilen fiyat gerçek piyasa değerinden belirgin şekilde
-    // uzaksa haber verir: çok yüksekse öğe satılmaz, çok düşükse para kaybedilir.
+    // PRICE DEVIATION WARNING. If the selected price is far from the real market value
+    // it says so: if too high the item will not sell, if too low money is lost.
     function paintBulkWarn(items){
       const w = document.getElementById('bulkWarn');
       if (!w) return;
@@ -702,7 +702,7 @@
     document.querySelectorAll('#bulkStrat button[data-bs]').forEach(b=>b.addEventListener('click', ()=>{
       bulkStrategy = b.getAttribute('data-bs');
       if (bulkStrategy === 'manual'){
-        // Kutu boşsa seçili öğenin gerçek değerini başlangıç olarak koy
+        // If the box is empty put the selected item's real value as the starting value
         const mi = document.getElementById('bulkManual');
         if (mi && !mi.value){
           const ilk = invMerged.find(i=>selected.has(i.dedupKey));
@@ -720,16 +720,16 @@
       renderBulk();
     });
     document.getElementById('bulkSellNow').onclick = ()=> sellFlow(invMerged.filter(i=>selected.has(i.dedupKey)), bulkStrategy);
-    // "Fiyatlari Getir": yalniz su anki filtreye uyanlari ceker, bitene kadar kilitli.
+    // "Fiyatları Getir": fetches only those that match the current filter, locked until done.
     document.getElementById('envFetchPrices').onclick = fetchPricesForView;
 
-    // ---- sağ detay paneli ----
-    // İKİ AYRI VERİ KAYNAĞI, İKİ AYRI ANLAM:
-    //   historyMap → GERÇEKLEŞMİŞ satışlar (pricehistory). Bir eşyanın gerçek değeri budur.
-    //   ordersMap  → ŞU ANKİ sipariş defteri (itemordershistogram): satıştaki ilanlar ve
-    //                alım talimatları. İlanlar bağlayıcı değildir - biri tek parçayı
-    //                999.999'a listeleyebilir - bu yüzden DEĞER hesabında kullanılmaz,
-    //                yalnızca "şu an ne olur" bilgisi olarak gösterilir.
+    // ---- right detail panel ----
+    // TWO SEPARATE DATA SOURCES, TWO SEPARATE MEANINGS:
+    //   historyMap → REALISED sales (pricehistory). This is an item's real value.
+    //   ordersMap  → the CURRENT order book (itemordershistogram): listings on sale and
+    //                buy orders. Listings are not binding - someone can list a single piece at
+    //                999,999 - so they are not used in the VALUE computation,
+    //                they are only shown as "what would happen right now" information.
     async function ensureHistory(it){
       if (!it.marketHashName || !it.marketable) return;
       if (historyMap.has(it.marketHashName)) return;
@@ -749,15 +749,15 @@
       if (!res || !res.ok) o = { failed: true, reason: (res && res.error) || 'Uygulama içi iletişim hatası' };
       else if (!res.orders) o = { failed: true, reason: 'Steam boş yanıt döndürdü' };
       else if (res.orders.noCurrency) o = { failed: true, reason: 'hesabın pazar kuru henüz okunmadı' };
-      // Sebebi sakla: "alınamadı" demek yetmiyor, NEDEN alınamadığı yazılmalı.
+      // Keep the reason: saying "alınamadı" is not enough, WHY it could not be fetched must be written.
       else if (res.orders.error || res.orders.rateLimited) o = { failed: true, reason: res.orders.error || 'Steam istek sınırı', rateLimited: !!res.orders.rateLimited };
       else o = res.orders;
       ordersMap.set(it.marketHashName, o);
       if (detailKey === it.dedupKey) renderDetail();
     }
-    // Bir eşyanın GERÇEK piyasa değeri: gerçekleşmiş satışların adetle ağırlıklı medyanı.
-    // Sırasıyla: 30/90 günlük satış medyanı → Steam'in 24 saatlik medyanı → (son çare) en
-    // düşük ilan. Hangisinin kullanıldığı arayüzde açıkça yazılır, tahmin gizlenmez.
+    // An item's REAL market value: the quantity weighted median of realised sales.
+    // In order: 30/90 day sale median → Steam's 24 hour median → (last resort) the lowest
+    // listing. Which one was used is stated clearly in the interface, the estimate is not hidden.
     function realValue(it){
       const h = historyMap.get(it.marketHashName);
       if (h && h !== 'loading' && h !== 'none' && h.stats && h.stats.median != null){
@@ -785,7 +785,7 @@
       const p = priceOf(it);
       const depth = Math.max(3, +((appSettings||{}).bookDepth) || 5);
 
-      // Ortak kutu iskeleti: başlık şeridi + Fiyat/Miktar tablosu
+      // Shared box skeleton: title strip + Price/Quantity table
       const ordRetryBtn = () => '<button data-ordretry style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>';
       const histRetryBtn = () => '<button data-histretry style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #C2AAEE;color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>';
       const priceQtyBox = (title, dotColor, headline, rows, empty) =>
@@ -801,15 +801,15 @@
                + '<div style="padding:0 14px 10px">'+rows+'</div>')
             : '<div style="padding:0 14px 12px;font-size:11px;color:#656D80">'+empty+'</div>')
         + '</div>';
-      // Cümle içindeki kalın değer. Cümle şablonla çevrilir, değer yer tutucuya girer:
-      // her dil kendi söz dizimini kurar (eskiden cümle parçalara bölünüp ayrı çevriliyordu).
+      // The bold value inside the sentence. The sentence is translated by template, the value goes into the placeholder:
+      // each language builds its own syntax (the sentence used to be split into pieces and translated separately).
       const kalin = (v, renk) => '<b style="color:'+(renk||'#DCE2FA')+'">'+v+'</b>';
       const pqRows = (list, color) => list.map(r =>
         '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid #101621">'
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:'+color+'">'+fmtTL(r.price)+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'+(r.qty)+'</span></div>').join('');
 
-      // --- KUTU 1: ŞU AN SATIŞTA OLAN İLANLAR (kullanıcıların istediği fiyatlar) ---
+      // --- BOX 1: LISTINGS CURRENTLY ON SALE (the prices users ask) ---
       let sellBox;
       if (!it.marketable) sellBox = priceQtyBox('Satıştaki İlanlar', '#656D80', 'Bu öğe pazarda satılamaz.', '', '-');
       else if (ord === 'loading' || ord === undefined) sellBox = priceQtyBox('Satıştaki İlanlar', '#5FB324', 'Sipariş defteri yükleniyor…', '', '');
@@ -821,7 +821,7 @@
           rows.length ? pqRows(rows, '#5FB324') : '', 'Satışta ilan yok.');
       }
 
-      // --- KUTU 2: HEMEN SAT (alım talimatları - şu an ödenecek en yüksek fiyat) ---
+      // --- BOX 2: HEMEN SAT (buy orders - the highest price that would be paid right now) ---
       let buyBox;
       if (!it.marketable) buyBox = priceQtyBox('Hemen Sat', '#656D80', 'Bu öğe pazarda satılamaz.', '', '-');
       else if (ord === 'loading' || ord === undefined) buyBox = priceQtyBox('Hemen Sat', '#24AEB3', 'Alım talimatları yükleniyor…', '', '');
@@ -833,10 +833,10 @@
           rows.length ? pqRows(rows, '#24AEB3') : '', 'Bekleyen alım talimatı yok.');
       }
       else {
-        // BEKLEYEN ALIM TALİMATI YOK. Bu, öğenin değersiz olduğu anlamına GELMEZ; yalnızca
-        // o an bekleyen alıcı yok demektir. Kutuyu boş bırakmak yerine son gerçekleşen
-        // satışı (yoksa satış ortalamasını) referans olarak gösteriyoruz, kaynağını da
-        // açıkça yazıyoruz. Aksi halde alım talimatı olmayan öğelerde hiçbir fiyat çıkmıyordu.
+        // NO BUY ORDER WAITING. This does NOT mean the item is worthless; it only means
+        // there is no buyer waiting at that moment. Instead of leaving the box empty we show the last realised
+        // sale (the sale average if there is none) as a reference, and we state the
+        // source clearly. Otherwise no price came out for items with no buy order.
         const ip = instantPrice(it);
         if (ip.value == null){
           buyBox = priceQtyBox('Hemen Sat', '#656D80', 'Bekleyen alım talimatı yok ve referans alınacak satış geçmişi de yok.', '', '-');
@@ -851,7 +851,7 @@
         }
       }
 
-      // --- KUTU 3: GERÇEKLEŞMİŞ SATIŞLAR (değerin geldiği yer) ---
+      // --- BOX 3: REALISED SALES (where the value comes from) ---
       let saleBox;
       if (!it.marketable) saleBox = priceQtyBox('Gerçekleşen Satışlar', '#656D80', 'Bu öğe pazarda satılamaz.', '', '-');
       else if (hist === 'loading' || hist === undefined) saleBox = priceQtyBox('Gerçekleşen Satışlar', '#C2AAEE', 'Satış geçmişi yükleniyor…', '', '');
@@ -873,13 +873,13 @@
           + '<span style="font-size:16px;font-weight:700;color:#DCE2FA">'+esc(it.name)+'</span>'
           + '<span style="font-size:12px;color:#8B8F9E">'+esc(it.gameName||'-')+' · '+esc(t(TYPE_LABEL[it.type]||'Diğer'))+' · ×'+it.count+'</span>'
         + '</div>'
-        // Üç kutu: satıştaki ilanlar · hemen sat · gerçekleşen satışlar
+        // Three boxes: listings on sale · hemen sat · realised sales
         + '<div style="display:flex;flex-direction:column;gap:10px">' + obBoxes + '</div>'
-        // NOT: "Satis Stratejisi" ve "Satis fiyati" bolumleri bu panelden KALDIRILDI.
-        // Tum satis islemleri alt bardan yapiliyor (toplu ya da tekli, manuel fiyat dahil).
+        // NOTE: the "Satış Stratejisi" and "Satış fiyatı" sections were REMOVED from this panel.
+        // All sale operations are done from the bottom bar (bulk or single, manual price included).
         ;
 
-      // Basarisiz kutulardaki "Tekrar Dene" dugmeleri: onbellegi zorla tazeler.
+      // The "Tekrar Dene" buttons in the failed boxes: force-refresh the cache.
       const rOrd = box.querySelector('[data-ordretry]');
       if (rOrd) rOrd.onclick = ()=>{ ordersMap.delete(it.marketHashName); ensureOrders(it, true); };
       const rHist = box.querySelector('[data-histretry]');
@@ -888,12 +888,12 @@
       if (!ord)  ensureOrders(it);
     }
 
-    // "Pazarda Otomatik Satış" (Kart Düşür > Otomasyon) - bir oyunda kart düştüğünde o oyunun
-    // yeni satılabilir kartlarını ortalama fiyattan listeler. Envanteri tazeler, ÖNCEKİ anlık
-    // görüntüde olmayan kartları bulur; böylece elindeki eski kartlara dokunmaz.
-    let autoSellSeen = null;   // dedupKey -> adet (son bilinen envanter)
-    // Taban kart düşürme BAŞLARKEN alınır. Eskiden ilk düşüşte alınıyordu: o anda yeni kart
-    // zaten envanterde olduğu için ilk düşen kart hiçbir zaman satılmıyordu.
+    // "Pazarda Otomatik Satış" (Kart Düşür > Otomasyon) - when a card drops in a game it lists that game's
+    // new sellable cards at the average price. It refreshes the inventory and finds the cards that were not in the PREVIOUS snapshot;
+    // so it does not touch the old cards you have.
+    let autoSellSeen = null;   // dedupKey -> count (last known inventory)
+    // The baseline is taken when card farming STARTS. It used to be taken at the first drop: at that moment the new card
+    // was already in the inventory so the first card that dropped was never sold.
     async function autoSellTaban(){
       if (!appSettings || !appSettings.farmAutoSell) return;
       const res = await E.inventory().catch(()=>null);
@@ -906,13 +906,13 @@
       const merged = mergeDuplicates(res.items);
       const prev = autoSellSeen;
       autoSellSeen = new Map(merged.map(i=>[i.dedupKey, i.count]));
-      if (!prev) return;                       // taban hiç alınamadıysa: bu turu yalnızca taban say
+      if (!prev) return;                       // if the baseline could not be taken at all: count this round only as the baseline
       const fresh = merged.filter(i =>
         i.type === 'card' && i.marketable && i.marketHashName &&
         (!gameName || i.gameName === gameName) &&
         (i.count > (prev.get(i.dedupKey) || 0)));
       if (!fresh.length) return;
-      // fiyatları çek, sonra medyandan sat
+      // fetch the prices, then sell from the median
       invMerged = merged;
       await E.pricesFor(fresh.map(i=>i.marketHashName)).then(r=>{
         if (r && r.ok) Object.entries(r.prices).forEach(([h,p]) => priceMap.set(h,p));
@@ -923,13 +923,13 @@
       await sellFlow(priced, 'median');
     }
 
-    // ================= SATIŞ =================
-    // Kullanıcının seçtiği fiyat ALICININ ödeyeceği fiyattır (Steam pazarında görünen). Steam'e
-    // ise SATICIYA kalacak tutar gönderilir; aradaki ücreti Steam'in KENDİ betiği hesaplar
-    // (main.js > engine:satisUcreti). Eskiden sabit %13 düşülüyordu; Steam'in taban ücreti
-    // yüzünden ucuz kartlarda ilan seçilen fiyattan %10-67 sapıyordu ($0.03 seçilince $0.05).
+    // ================= SALE =================
+    // The price the user chooses is the price the BUYER pays (the one shown on the Steam market). What goes to Steam
+    // is the amount the SELLER keeps; Steam's OWN script computes the fee in between
+    // (main.js > engine:satisUcreti). A fixed 13% used to be deducted; because of Steam's base fee
+    // on cheap cards the listing deviated 10-67% from the chosen price ($0.05 when $0.03 was chosen).
     //
-    // Hesaplanan tutarlar kuruş cinsinden bellekte tutulur: alıcı fiyatı -> { satici, alici }.
+    // The computed amounts are kept in memory in cents: buyer price -> { satici, alici }.
     const ucretOnbellek = new Map();
     let ucretIstegi = null;
     const kurus = (v) => Math.max(0, Math.round((+v || 0) * 100));
@@ -941,14 +941,14 @@
       r.sonuc.forEach(x => ucretOnbellek.set(x.toplam, { satici: x.satici, alici: x.alici }));
       return true;
     }
-    // Eline geçecek tutar (para birimi cinsinden). Hesap henüz gelmediyse null.
+    // The amount you will get (in currency units). null if the account has not arrived yet.
     function saticiTutari(aliciDeger){
       const u = ucretOnbellek.get(kurus(aliciDeger));
       return u ? u.satici / 100 : null;
     }
-    // Alt çubuktaki "Eline geçecek": ücret hesabı gelmemişse arka planda istenir, gelince çizilir.
-    // Hesap başarısız olduysa (Steam'e ulaşılamadı) bir dakika tekrar denenmez; yoksa her
-    // çizimde yeni istek giderdi.
+    // "Eline geçecek" in the bottom bar: if the fee calculation has not arrived it is requested in the background and drawn when it arrives.
+    // If the calculation failed (could not reach Steam) it is not tried again for a minute; otherwise every
+    // draw would send a new request.
     let ucretHataZamani = 0;
     function netiHazirla(degerler){
       if (Date.now() - ucretHataZamani < 60000) return;
@@ -959,10 +959,10 @@
         .finally(()=>{ ucretIstegi = null; if (invMerged) renderBulk(); if (typeof renderGenelStats === 'function') renderGenelStats(); });
     }
 
-    // ---- fiyat düşüşü ----
-    // Steam'in 24 saatlik ortalamasının belirgin şekilde altına inen öğeler. Bildirimi
-    // kendi anahtarına bağlı ("Fiyat düşüşü uyarısı"), hata bildirimi kapatılınca susmaz.
-    // Aynı öğe için günde bir kez bildirilir. Satış onayında da kırmızı satırla uyarılır.
+    // ---- price drop ----
+    // Items that drop clearly below Steam's 24 hour average. The notification is tied to
+    // its own key ("Fiyat düşüşü uyarısı"), it does not go quiet when the error notification is turned off.
+    // The same item is notified once a day. It is also warned with a red line in the sale confirmation.
     const fiyatDusenler = new Map();          // marketHashName -> { yuzde, ts }
     function fiyatDususEsigi(){ return Math.max(1, +((appSettings || {}).priceDropThreshold) || 10) / 100; }
     function fiyatDususu(it){
@@ -987,19 +987,19 @@
       pushFeed('hata', baslik, govde, 'Hata');
     }
 
-    // ---- satış görevi ----
-    // Steam, hesabın güvenilirliğine göre listelemeyi sınırlıyor: yeni hesap 10-15 ilanda
-    // durdurulabiliyor, eski hesap tek seferde 80+ listeleyebiliyor. Bu yüzden:
-    //   - Steam hata dönünce iş DURUR ve sebebi söylenir; kör şekilde devam edilmez.
-    //   - İstenirse partilere bölünür (Ayarlar > Pazar > Parti büyüklüğü). Parti bitince
-    //     ya ayarlanan süre kadar beklenip devam edilir ya da kullanıcıya sorulur.
-    // Neredeyse her ilan Steam Guard mobil onayına düşer; iş bitince kaç tanesinin onay
-    // beklediği söylenir. İki adımlı "SAT yaz" onayı kaldırıldı: prompt() Electron'da hiç
-    // çalışmıyordu ve asıl ikinci adım zaten Steam Guard.
+    // ---- sale job ----
+    // Steam limits listing by the account's trustworthiness: a new account can be stopped after 10-15
+    // listings, an old account can list 80+ at once. So:
+    //   - When Steam returns an error the job STOPS and the reason is told; no blind continuing.
+    //   - If wanted it is split into batches (Ayarlar > Pazar > Parti büyüklüğü). When a batch ends
+    //     it either waits for the set time and continues or asks the user.
+    // Nearly every listing lands in the Steam Guard mobile confirmation; when the job ends it is said how many
+    // are waiting for confirmation. The two step "type SAT" confirmation was removed: prompt() never
+    // worked in Electron and the real second step is already Steam Guard.
     let satisGorevi = null;
-    const listelenenAssetler = new Set();     // bu oturumda satışa sunulan assetId'ler
-    // Parti ayarları iş sürerken de canlı okunur: Ayarlar'da kaydedilen yeni değer bir sonraki
-    // parti sınırında geçerli olur. 0 = partilere bölme, Steam durdurana kadar listele.
+    const listelenenAssetler = new Set();     // the assetIds put on sale in this session
+    // The batch settings are read live while the job runs: the new value saved in Ayarlar takes effect
+    // at the next batch limit. 0 = do not split into batches, list until Steam stops it.
     function satisPartiBoyu(){ const n = +((appSettings || {}).bulkSellLimit); return Number.isFinite(n) && n > 0 ? Math.round(n) : 0; }
     function satisPartiBeklemesi(){ return Math.max(0, +((appSettings || {}).sellBatchWaitMin) || 0); }
     const bekleIptalli = (ms, g) => new Promise((coz)=>{
@@ -1064,7 +1064,7 @@
         assetler.forEach(aid => plan.push({ assetId: aid, satici: u.satici, alici: u.alici, name: i.name, dedupKey: i.dedupKey }));
         toplamAlici += u.alici * assetler.length; toplamSatici += u.satici * assetler.length;
         satirlar.push('• ' + i.name + ' ×' + assetler.length + ' → ' + fmtTL(u.alici/100) + ' (' + t('eline geçecek') + ' ' + fmtTL(u.satici/100) + ')');
-        // Seçilen fiyat Steam'in 24 saatlik ortalamasının belirgin şekilde altındaysa uyar
+        // Warn if the selected price is clearly below Steam's 24 hour average
         const p = priceOf(i);
         if (p && p.medianValue > 0){
           const d = (p.medianValue - u.alici/100) / p.medianValue;
@@ -1118,14 +1118,14 @@
           else {
             g.ardisik++;
             g.hatalar.push(p.name + ': ' + ((r && r.error) || ''));
-            // Steam durdurduysa kalan istekleri göndermenin anlamı yok: yalnızca hata biriktirir
-            // ve hesabın limitini daha da daraltır.
+            // If Steam stopped there is no point sending the remaining requests: it only piles up errors
+            // and narrows the account's limit even more.
             if (tur === 'limit' || g.ardisik >= 2){ g.limit = (r && r.error) || t('Steam listelemeyi durdurdu.'); g.i--; g.basarisizAsset = p.assetId; break; }
           }
         }
         satisDurumunuCiz();
         if (g.i < g.plan.length && !g.iptal){
-          // Parti sınırı (ayar canlı okunur)
+          // Batch limit (the setting is read live)
           const parti = satisPartiBoyu();
           if (parti && g.i - partiBasi >= parti){
             partiBasi = g.i;

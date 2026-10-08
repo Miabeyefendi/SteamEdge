@@ -1,9 +1,10 @@
-<!-- ================================================================
-     SAAT YÜKSELTİCİ
-     Ölçü, renk ve boşluk değerleri inline duruyor; :hover ve :focus
-     durumları edge.css icindeki .h-* / .f-* class'larına bağlıdır.
-     Veri: saat.js - gerçek kütüphane listesi ve boost motoru.
-     ================================================================ -->
+<!--
+  ================================================================
+  SAAT YÜKSELTİCİ (HOUR BOOSTER)
+  Sizes, colours and spacing are inline; :hover and :focus states are tied to the .h-* / .f-*
+  classes in edge.css. Data: saat.js - the real library list and the boost engine.
+  ================================================================
+-->
 <div style="flex:1;min-height:0;display:flex;flex-direction:column">
 
   <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
@@ -54,7 +55,7 @@
 
     <div style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
 
-      <!-- MADDE 4: Saat esitleme ayarlari artik bu sayfada; Ayarlar ekranina gitmeye gerek yok. -->
+      <!-- ITEM 4: the hour sync settings are on this page now; there is no need to go to the Settings screen. -->
       <div style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Saat Eşitleme</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
@@ -140,10 +141,7 @@
             <span style="font-size:12px;color:#B9C0D6">Sıralı bekletme modu</span>
             <span class="e-toggle" data-bset="seqIdle"><span class="e-knob"></span></span>
           </div>
-          <!-- "Sırayı tekrarla" yalnızca sıralı bekletme modunda anlamlıdır: eşzamanlı
-               modda kuyruk yoktur, oyunlar birlikte çalışıp hedefte düşer. Sıralı mod
-               kapalıyken bu satır sönükleşir ve tıklanamaz; yoksa açık görünüp hiçbir
-               şey yapmayan bir anahtar olur. -->
+          <!-- "Sırayı tekrarla" only makes sense in sequential idling mode: in simultaneous mode there is no queue, the games run together and drop off at the target. While sequential mode is off this row dims and cannot be clicked; otherwise it would be a switch that looks on and does nothing. -->
           <div id="saatLoopRow" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Sırayı tekrarla (kuyruk bitince baştan başlar)</span>
             <span class="e-toggle" data-bset="loopQueue"><span class="e-knob"></span></span>
@@ -154,8 +152,7 @@
       <div style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Gizlilik</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-          <!-- "Oyun adını gizle" buradan kaldırıldı: Ayarlar > Gizlilik altında zaten var ve
-               açıklaması orada. İki yerde durunca hangisinin geçerli olduğu belirsizdi. -->
+          <!-- "Oyun adını gizle" was removed from here: it is already under Ayarlar > Gizlilik and its description is there. With it in two places it was unclear which one applied. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Çevrimdışı görün</span>
             <span class="e-toggle" data-bset="offlineMode"><span class="e-knob"></span></span>
@@ -167,9 +164,7 @@
     </div>
   </div>
 
-  <!-- MADDE 14: Esitleme durumu SABIT alt bar. Eskiden icerik akisinin icindeydi ve
-       gorundugunde sayfayi asagi itip duzeni bozuyordu. Basarimlar sayfasindaki alt
-       barla ayni desen: position:sticky + bottom:0. -->
+  <!-- ITEM 14: the sync state is a FIXED bottom bar. It used to be inside the content flow and when it showed it pushed the page down and broke the layout. The same pattern as the bar on the Achievements page: position:sticky + bottom:0. -->
   <div id="saatSyncBar" style="display:none;position:sticky;bottom:0;z-index:20;flex-shrink:0;border-top:1px solid #24AEB3;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:12px 30px;align-items:center;gap:16px;flex-wrap:wrap">
     <span style="width:7px;height:7px;border-radius:12px;background:#24AEB3;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite"></span>
     <div id="saatSyncText" style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px"></div>

@@ -6,23 +6,23 @@
     const designed = { genel: document.getElementById('tab-genel'), kart: document.getElementById('tab-kart'), env: document.getElementById('tab-env'), saat: document.getElementById('tab-saat'), gercekci: document.getElementById('tab-gercekci'), basarim: document.getElementById('tab-basarim'), sohbet: document.getElementById('tab-sohbet'), ayarlar: document.getElementById('tab-ayarlar') };
     const empty = document.getElementById('tab-empty');
     const emptyName = document.getElementById('emptyName');
-    // Sekme acma. Eskiden govde dogrudan nav baglantisinin click dinleyicisinin icindeydi;
-    // ust bardaki Sohbet dugmesinin kenar cubugunda karsiligi olmadigi icin ayri bir
-    // fonksiyona cikarildi. Nav baglantilari da bunu cagiriyor, tek yol kaldi.
+    // Opening a tab. The body used to be directly inside the nav link's click listener; since the Sohbet button in the top bar
+    // has no counterpart in the sidebar it was moved to a separate function. The nav links call it too,
+    // so there is only one path left.
     async function sekmeAc(tab, kaynakBaglanti) {
-      // Ayarlar sekmesinden çıkılıyorsa kaydedilmemiş değişiklik uyarısı (ayarlar.js)
+      // If leaving the Ayarlar tab, the unsaved changes warning (ayarlar.js)
       const leavingSettings = !designed.ayarlar.classList.contains('hidden');
       if (leavingSettings && typeof confirmLeaveSettings === 'function') {
         const ok = await confirmLeaveSettings();
         if (!ok) return;
       }
       if (tab === 'cikis') { window.imu.logout(); return; }
-      // Başka sayfaya ait açık pencereler kapanır (bkz edgeConfirm > o.sayfa).
+      // Open windows that belong to another page close (see edgeConfirm > o.sayfa).
       document.querySelectorAll('.e-modal-back[data-sayfa]').forEach(m=>{
         if (m.getAttribute('data-sayfa') !== tab && typeof m._kapat === 'function') m._kapat(false);
       });
       document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
-      // Sohbet'in kenar cubugunda baglantisi yok; o zaman hicbiri isaretli kalmaz.
+      // Sohbet has no link in the sidebar; then none of them stays marked.
       if (kaynakBaglanti) kaynakBaglanti.classList.add('active');
       setRailTop(tab);
       Object.values(designed).forEach(s => s.classList.add('hidden'));
@@ -47,15 +47,15 @@
       a.addEventListener('click', () => sekmeAc(a.getAttribute('data-tab'), a));
     });
 
-    // ---- GÖRÜNMEYEN SEKMELERİN LİSTELERİNİ BELLEKTE TUTMA ----
-    // Kütüphanesi büyük hesaplarda bu listeler binlerce satır demek: 400 oyunluk bir kuyruk
-    // tek başına ~9.600 DOM düğümü. Sekme gizlendiğinde bunlar ekranda değil ama tarayıcı
-    // hepsini bellekte tutmaya devam ediyordu.
+    // ---- KEEPING THE LISTS OF HIDDEN TABS IN MEMORY ----
+    // In accounts with a big library these lists mean thousands of rows: a 400 game queue alone is
+    // ~9,600 DOM nodes. When a tab is hidden they are not on screen but the browser
+    // kept holding all of them in memory.
     //
-    // Çözüm: gizlenen sekmenin liste gövdesi boşaltılır, sekmeye dönüldüğünde yeniden çizilir.
-    // VERİ SİLİNMEZ - listeler zaten JS dizilerinden çiziliyor, silinen sadece DOM. Seçimler,
-    // sıralama ve filtreler de JS tarafında durduğu için geri dönüşte hiçbir şey kaybolmaz.
-    // Steam'e tek bir istek daha gitmez.
+    // The fix: the list body of a hidden tab is emptied, and redrawn when the tab is returned to.
+    // NO DATA IS DELETED - the lists are drawn from JS arrays anyway, only the DOM is deleted. Selections,
+    // sorting and filters stay on the JS side too, so nothing is lost on return.
+    // Not a single extra request goes to Steam.
     const AGIR_LISTELER = {
       kart:    { kap: 'kartQueue',    ciz: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
       env:     { kap: 'envRows',      ciz: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
@@ -68,8 +68,8 @@
       Object.keys(AGIR_LISTELER).forEach(t => {
         if (t === acilanTab || askidaSekmeler.has(t)) return;
         const kap = document.getElementById(AGIR_LISTELER[t].kap);
-        // Hiç doldurulmamış listeyi askıya almanın anlamı yok; ayrıca "yükleniyor" gibi
-        // tek satırlık durum metinlerini silip kullanıcıyı boş ekranla baş başa bırakmayalım.
+        // There is no point suspending a list that was never filled; also let us not delete one line
+        // status texts like "loading" and leave the user alone with an empty screen.
         if (!kap || kap.children.length < 2) return;
         kap.innerHTML = '';
         askidaSekmeler.add(t);
@@ -81,53 +81,53 @@
       try { AGIR_LISTELER[tab].ciz(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
     }
 
-    // ---- ortak yardımcılar (tüm sayfalar kullanır) ----
+    // ---- shared helpers (all pages use them) ----
     const E = window.imu.engine;
 
-    // KÜTÜPHANE BAŞLIĞI (library_capsule / header) - Steam'in ölçütü 920x430 piksel,
-    // yani ~2.14:1. Kütüphane LOGOSU (logo.png) denenmişti ama o saydam PNG: arkası boş
-    // kalıyor ve kutu içinde kötü duruyordu. Başlık görseli dolu bir JPG olduğu için
-    // `object-fit:cover` ile kutuyu tamamen doldurur, boşluk kalmaz.
-    //   header.jpg 460x215 - aynı 2.14:1 oranın CDN'deki adı; 920x430 bunun 2x'i.
+    // LIBRARY HEADER (library_capsule / header) - Steam's standard is 920x430 pixels,
+    // that is ~2.14:1. The library LOGO (logo.png) was tried but it is a transparent PNG: the back stays
+    // empty and it looked bad in the box. Since the header image is a full JPG
+    // `object-fit:cover` fills the box completely, no gap is left.
+    //   header.jpg 460x215 - the name of the same 2.14:1 ratio on the CDN; 920x430 is 2x of this.
     const CDN = 'https://cdn.cloudflare.steamstatic.com/steam/apps/';
     const IMG_KIND = { header: 'header.jpg', capsule: 'capsule_616x353.jpg', logo: 'logo.png' };
     function gameImg(appid, kind){
       return CDN + appid + '/' + (IMG_KIND[kind] || IMG_KIND.header);
     }
-    // 920x430 (~2.14:1) yuvalar için hazır <img>: başlık → yoksa kapsül → yoksa gizle.
-    // `scale(1.03)`: görsel kutunun içinde %3 yakınlaştırılır - kenarlardaki ince boşluk
-    // kapanır ve kapak grafiği daha dolu görünür. Kutuda overflow:hidden olduğu için taşmaz.
+    // A ready <img> for 920x430 (~2.14:1) slots: header → otherwise capsule → otherwise hide.
+    // `scale(1.03)`: the image is zoomed 3% inside the box - the thin gap at the edges
+    // closes and the cover art looks fuller. It does not overflow because the box has overflow:hidden.
     function gameThumb(appid, extra){
       return '<img src="' + gameImg(appid) + '" loading="lazy" alt=""'
         + ' style="width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.03)' + (extra || '') + '"'
         + ' onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=\'' + gameImg(appid, 'capsule') + '\';}'
         + 'else{this.style.display=\'none\';}">';
     }
-    // Tirnaklar da kacirilir: bu fonksiyonun cikisi cogu yerde oznitelik degeri olarak
-    // kullaniliyor (src="'+esc(x)+'"), tirnak kacmayinca deger oznitelikten cikabiliyordu.
+    // Quotes are escaped too: the output of this function is used as an attribute value in many places
+    // (src="'+esc(x)+'"), if the quote was not escaped the value could break out of the attribute.
     const ESC_HARF = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
     function esc(s){ return (s||'').replace(/[&<>"']/g, c => ESC_HARF[c]); }
 
-    // ================= TEMALI ONAY MODALI =================
-    // Yerel confirm() kutusu Windows'un gri penceresini açıyordu (tema dışı). Bu, aynı işi
-    // yapan tema uyumlu karşılığı. Promise döner: onaylandıysa true.
-    //   opts.sormaAyari → "Bir daha sorma" kutucuğu gösterir. İşaretlenip onaylanırsa bu ayar
-    //   false yazılır (ör. achConfirmSingle) ve sonraki çağrılar SORMADAN true döner. Kullanıcı
-    //   ayarı Ayarlar'dan geri açabilir. Eskiden ayrı bir "dontAsk_" anahtarı yazılıyordu ve
-    //   aynı durumu iki ayar tutuyordu.
+    // ================= THEMED CONFIRM MODAL =================
+    // The native confirm() box opened Windows' grey window (outside the theme). This is the theme matching
+    // counterpart that does the same job. It returns a Promise: true if confirmed.
+    //   opts.sormaAyari → shows a "Bir daha sorma" checkbox. If it is ticked and confirmed this setting
+    //   is written false (e.g. achConfirmSingle) and later calls return true WITHOUT asking. The user can turn
+    //   the setting back on from Ayarlar. A separate "dontAsk_" key used to be written and
+    //   two settings held the same state.
     function edgeConfirm(opts){
       const o = opts || {};
       const key = o.sormaAyari || null;
-      // Daha önce "bir daha sorma" denmişse hiç gösterme
+      // If "bir daha sorma" was said before, do not show at all
       if (key && typeof appSettings === 'object' && appSettings && appSettings[key] === false) return Promise.resolve(true);
 
       return new Promise((resolve)=>{
         const back = document.createElement('div');
         back.className = 'e-modal-back';
         const accent = o.danger ? '#B32453' : '#5624B3';
-        // o.sayfa: pencere bir sayfaya aittir; kullanıcı başka sekmeye geçerse kendiliğinden
-        // kapanır (vazgeçildi sayılır). Eskiden Envanter'in "fiyatlar getirilsin mi" sorusu,
-        // sekme değiştirildikten sonra başka sayfanın üstünde açılıyordu.
+        // o.sayfa: the window belongs to a page; if the user moves to another tab it closes
+        // on its own (counts as cancelled). Envanter's "fiyatlar getirilsin mi" question used to open on top of
+        // another page after the tab was changed.
         if (o.sayfa) back.setAttribute('data-sayfa', o.sayfa);
         back.innerHTML =
           '<div class="e-modal" role="dialog" aria-modal="true">'
@@ -136,7 +136,7 @@
           + '<div class="e-modal-body">'
             + '<span class="h">'+esc(t(o.title || 'Emin misin?'))+'</span>'
             + (o.body ? '<span class="p">'+esc(t(o.body))+'</span>' : '')
-            // Kırmızı uyarı: acele edilmemesi gereken durumlar (ör. fiyat 24 saatlik ortalamanın altında)
+            // Red warning: for cases where one should not hurry (e.g. the price is below the 24 hour average)
             + (o.uyariKirmizi ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.uyariKirmizi)+'</span>' : '')
             + (o.warn ? '<span class="warn">'+esc(t(o.warn))+'</span>' : '')
           + '</div>'
@@ -144,7 +144,7 @@
               + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DCE2FA" stroke-width="3.4"><path d="M5 13l4 4L19 7"></path></svg>'
               + '</span><span>Bir daha sorma</span></div>' : '')
           + '<div class="e-modal-ft">'
-            // o.tekDugme: yalnızca bilgi veren pencere (sonuç özeti gibi), vazgeçilecek bir şey yok
+            // o.tekDugme: a window that only informs (like a result summary), there is nothing to cancel
             + (o.tekDugme ? '' : '<button class="cancel" data-no>'+esc(t(o.cancelText || 'Vazgeç'))+'</button>')
             + (o.altText ? '<button class="alt" data-alt>'+esc(t(o.altText))+'</button>' : '')
             + '<button class="ok'+(o.danger?' danger':'')+'" data-yes>'+esc(t(o.confirmText || 'Devam Et'))+'</button>'
@@ -182,18 +182,18 @@
       });
     }
 
-    // ================= AYARLARA BAĞLI ORTAK YARDIMCILAR =================
-    // (Ayarlar ekranındaki tercihlerin tüm sayfalarda karşılığı olması için tek yerde.)
+    // ================= SHARED HELPERS TIED TO THE SETTINGS =================
+    // (So that the preferences on the Settings screen have a counterpart in all pages, in one place.)
 
-    // ---- Para birimi ----
-    // Fiyatlar Steam'den HESABIN cüzdan kurunda çekilir ve TAM OLARAK o kurda gösterilir.
-    // Çeviri yoktur. Kur henüz bilinmiyorsa (cüzdan olayı gelmediyse) simge basılmaz -
-    // yanlış simge, tutarı sessizce başka bir para birimiymiş gibi göstermek demek.
+    // ---- Currency ----
+    // Prices are fetched from Steam in the ACCOUNT's wallet currency and shown EXACTLY in that currency.
+    // There is no conversion. If the currency is not known yet (the wallet event did not arrive) no symbol is printed -
+    // a wrong symbol would mean silently presenting the amount as if it were another currency.
     const CUR_SYM = {
       USD:'$', EUR:'€', GBP:'£', TRY:'₺', RUB:'₽', BRL:'R$', JPY:'¥', CNY:'¥',
       CAD:'CA$', AUD:'A$', INR:'₹', UAH:'₴', PLN:'zł', KZT:'₸', ARS:'AR$', MXN:'MX$',
     };
-    // Kuruşun/sentin yerel adı - "Alt sıralama miktarı" gibi alanların birimi için
+    // The local name of the cent/kuruş - for the unit of fields like "Alt sıralama miktarı"
     const CUR_SUBUNIT = {
       USD:'sent', EUR:'sent', GBP:'peni', TRY:'kuruş', RUB:'kopek', BRL:'sentavo',
       JPY:'yen', CNY:'fen', CAD:'sent', AUD:'sent', INR:'paisa', UAH:'kopiyka',
@@ -204,10 +204,10 @@
       JPY:'ja-JP', CNY:'zh-CN', CAD:'en-CA', AUD:'en-AU', INR:'en-IN', UAH:'uk-UA',
       PLN:'pl-PL', KZT:'kk-KZ', ARS:'es-AR', MXN:'es-MX',
     };
-    // Tek doğru kaynak: Steam hesabının kendi cüzdan para birimi. Kullanıcı seçemez.
-    // Neden: tutarlar para; kur çevirisi yuvarlama + bayat kur + yanlış yönde çevirme
-    // hatalarına açık ve satış fiyatı zaten hesabın kurunda listeleniyor. Gördüğün tutarla
-    // Steam'e gönderilen tutarın AYNI olması için çeviri tamamen kaldırıldı.
+    // The ONE right source: the Steam account's own wallet currency. The user cannot choose.
+    // Why: amounts are money; currency conversion is open to rounding + stale rate + conversion in the wrong direction
+    // errors, and the sale price is already listed in the account's currency. So that the amount you see and the amount
+    // sent to Steam are THE SAME, conversion was removed entirely.
     function acctCur(){ return (appSettings && appSettings.accountCurrency) || null; }
     function curCode(){ return acctCur(); }
     function curSym(){ const c = curCode(); return c ? (CUR_SYM[c] || (c + ' ')) : ''; }
@@ -216,76 +216,76 @@
       const c = curCode();
       const loc = CUR_LOCALE[c] || yerelKod();
       const v = +n || 0;
-      // Steam pazarında en düşük satış 0,03'tür; 0,00 diye bir fiyat YOKTUR. Sıfırdan büyük
-      // ama iki haneye yuvarlayınca 0,00 görünen değerleri (satış geçmişi ortalamaları
-      // 3 haneli gelebiliyor) sıfırmış gibi göstermek yerine gerçek basamağıyla yazıyoruz.
+      // On the Steam market the lowest sale is 0.03; there is NO such price as 0.00. Values greater than zero
+      // that look like 0.00 when rounded to two digits (sale history averages
+      // can come with 3 digits) are written with their real digits instead of being shown as if they were zero.
       if (v > 0 && v < 0.005){
         return curSym() + v.toLocaleString(loc, { minimumFractionDigits:3, maximumFractionDigits:4 });
       }
       return curSym() + v.toLocaleString(loc, { minimumFractionDigits:2, maximumFractionDigits:2 });
     }
-    // Steam Topluluk Pazarı'nın alt sınırı (hesabın kurunda). Bunun altında ilan verilemez;
-    // hesaplanan bir "değer" bu sınırın altına düşüyorsa veri güvenilir değildir, öyle işaretlenir.
+    // The lower limit of the Steam Community Market (in the account's currency). A listing cannot be made below this;
+    // if a computed "value" falls below this limit the data is not reliable and is marked as such.
     const MARKET_MIN = { USD:0.03, EUR:0.03, GBP:0.02, TRY:0.23, RUB:1.00, BRL:0.10, JPY:3, CNY:0.23,
                          CAD:0.04, AUD:0.05, INR:2.00, UAH:1.00, PLN:0.11, KZT:12, ARS:2.00, MXN:0.50 };
     function marketMin(){ const c = curCode(); return (c && MARKET_MIN[c] != null) ? MARKET_MIN[c] : 0.03; }
 
-    // "Saat biçimi" - 24 saat / 12 saat (ÖÖ-ÖS)
+    // "Saat biçimi" - 24 hour / 12 hour (AM-PM)
     function fmtClock(d){
       const use12 = (typeof appSettings==='object' && appSettings && String(appSettings.timeFormat)==='12');
       return new Date(d).toLocaleTimeString(yerelKod(), { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: use12 });
     }
     function fmtDateShort(d){ return new Date(d).toLocaleDateString(yerelKod()); }
 
-    // "Arayüz yoğunluğu" - sıkışık modda satır yükseklikleri ve iç boşluklar daralır
+    // "Arayüz yoğunluğu" - in compact mode row heights and inner spacing shrink
     function applyDensity(){
       const compact = (typeof appSettings==='object' && appSettings && appSettings.density==='compact');
       document.body.classList.toggle('e-compact', !!compact);
       if (typeof temaUygula === 'function' && appSettings) temaUygula(appSettings.theme || 'dark');
     }
 
-    // ================= BİLDİRİM SESLERİ =================
-    // Sesler Web Audio ile ÜRETİLİYOR, dosya indirilmiyor: indirilen ses dosyalarının
-    // lisansını doğrulayamayız; sentez hem telif sorunu yaratmaz hem uygulamayı büyütmez.
+    // ================= NOTIFICATION SOUNDS =================
+    // The sounds are PRODUCED with Web Audio, no file is downloaded: we cannot verify the
+    // licence of downloaded sound files; synthesis creates no copyright issue and does not grow the app.
     //
-    // İki ses kaynağı var, bu yüzden tonlar birbirine benzemiyor:
-    //   'tone'  - osilatör. f bir sayı ya da [başlangıç, ..., bitiş] kaydırma dizisi.
-    //   'noise' - beyaz gürültü + süzgeç (whoosh / smash / hit gibi vurmalı efektler bundan).
-    // Ortak alanlar: at=başlangıç sn, d=süre sn, g=ses düzeyi, a=atak sn, wave=dalga biçimi.
+    // There are two sound sources, which is why the tones do not resemble each other:
+    //   'tone'  - oscillator. f is a number or a [start, ..., end] sweep array.
+    //   'noise' - white noise + filter (percussive effects like whoosh / smash / hit come from this).
+    // Shared fields: at=start s, d=duration s, g=volume, a=attack s, wave=wave shape.
     const NS = (o) => Object.assign({ t:'tone', at:0, d:.4, g:.2, a:.008, wave:'sine' }, o);
     const NZ = (o) => Object.assign({ t:'noise', at:0, d:.4, g:.2, a:.004, ftype:'bandpass', f:[800,800], q:1 }, o);
-    // Aynı sesi gecikmeli tekrar etmek için küçük yardımcı (yankı/çift vuruş hissi)
+    // A small helper to repeat the same sound with a delay (an echo/double hit feel)
     const REP = (n, step, make) => Array.from({ length:n }, (_, i) => make(i * step, i));
 
     const NOTIF_SOUNDS = {
-      // --- çan / tonal ailesi ---
+      // --- bell / tonal family ---
       chime:    { voices:[ NS({f:784,d:1.1,g:.16}), NS({f:1046,at:.13,d:1.3,g:.14}), NS({f:1568,at:.26,d:1.9,g:.10}) ] },
       bell:     { voices:[ NS({f:523,d:3.2,g:.16}), NS({f:1268,d:2.6,g:.07}), NS({f:2010,d:1.7,g:.04}), NS({f:3140,d:1.0,g:.02}) ] },
       glass:    { voices:[ NS({f:1568,d:2.2,g:.09}), NS({f:2637,at:.02,d:1.8,g:.06}), NS({f:4186,at:.04,d:1.2,g:.03}), NS({f:5274,at:.06,d:.8,g:.02}) ] },
       marimba:  { voices:[ NS({f:523,d:.7,g:.16,wave:'triangle'}), NS({f:659,at:.16,d:.7,g:.16,wave:'triangle'}),
                            NS({f:784,at:.32,d:.8,g:.16,wave:'triangle'}), NS({f:1046,at:.48,d:1.4,g:.14,wave:'triangle'}) ] },
-      // --- vurmalı / SFX ailesi (gürültü tabanlı) ---
+      // --- percussive / SFX family (noise based) ---
       whoosh:   { voices:[ NZ({d:1.5,g:.30,a:.25,ftype:'bandpass',q:1.6,f:[240,1200,5200,2400,500]}) ] },
-      swoosh:   { voices:[ NZ({d:1.4,g:.28,a:.55,ftype:'bandpass',q:2.2,f:[300,900,2600,6000]}) ] },   // ters whoosh (yükselen)
+      swoosh:   { voices:[ NZ({d:1.4,g:.28,a:.55,ftype:'bandpass',q:2.2,f:[300,900,2600,6000]}) ] },   // swoosh:   { voices:[ NZ({d:1.4,g:.28,a:.55,ftype:'bandpass',q:2.2,f:[300,900,2600,6000]}) ] },   // reverse whoosh (rising)
       smash:    { voices:[ NZ({d:.16,g:.42,a:.002,ftype:'lowpass',q:.7,f:[9000,2500]}),
                            NS({f:[150,44],d:.5,g:.34,wave:'sine'}),
                            NZ({at:.05,d:1.9,g:.16,a:.01,ftype:'bandpass',q:5,f:[4200,3000,1800]}) ] },
       hit:      { voices:[ NZ({d:.09,g:.34,a:.001,ftype:'lowpass',q:.7,f:[6000,900]}),
                            NS({f:[190,55],d:.55,g:.30,wave:'triangle'}),
-                           NZ({at:.04,d:1.2,g:.09,a:.01,ftype:'bandpass',q:6,f:[2400,1600]}) ] },   // çınlama kuyruğu
+                           NZ({at:.04,d:1.2,g:.09,a:.01,ftype:'bandpass',q:6,f:[2400,1600]}) ] },   // NZ({at:.04,d:1.2,g:.09,a:.01,ftype:'bandpass',q:6,f:[2400,1600]}) ] },   // ringing tail
       thud:     { voices:[ NS({f:[110,38],d:1.1,g:.38,wave:'sine'}), NZ({d:.07,g:.14,a:.001,ftype:'lowpass',f:[1400,300]}) ] },
       knock:    { voices:[ ...REP(3,.21,(t)=>NS({f:[210,70],at:t,d:.26,g:.32,wave:'triangle'})),
                            ...REP(3,.21,(t)=>NZ({at:t,d:.05,g:.18,a:.001,ftype:'lowpass',f:[3000,600]})),
-                           NZ({at:.42,d:.9,g:.06,a:.02,ftype:'lowpass',q:1,f:[900,200]}) ] },      // oda yankısı
-      // --- uyarı / sinyal ailesi ---
+                           NZ({at:.42,d:.9,g:.06,a:.02,ftype:'lowpass',q:1,f:[900,200]}) ] },      // NZ({at:.42,d:.9,g:.06,a:.02,ftype:'lowpass',q:1,f:[900,200]}) ] },      // room echo
+      // --- warning / signal family ---
       alert:    { voices: REP(3,.42,(t)=>NS({f:880,at:t,d:.26,g:.15,wave:'square'}))
                           .concat(REP(3,.42,(t)=>NS({f:660,at:t+.2,d:.26,g:.15,wave:'square'}))) },
       siren:    { voices:[ NS({f:[560,1180,560,1180,560],d:2.8,g:.13,a:.05,wave:'sawtooth'}) ] },
       honk:     { voices:[ NS({f:[420,405],d:.55,g:.18,wave:'square'}), NS({f:[318,306],d:.55,g:.14,wave:'sawtooth'}),
                            NS({f:[420,405],at:.72,d:.85,g:.18,wave:'square'}), NS({f:[318,306],at:.72,d:.85,g:.14,wave:'sawtooth'}) ] },
       radar:    { voices: REP(3,.85,(t)=>NS({f:1400,at:t,d:.9,g:.12}))
-                          .concat(REP(3,.85,(t)=>NS({f:1400,at:t+.16,d:.7,g:.05}))) },   // ping + yankısı
-      // --- oyun tarzı ---
+                          .concat(REP(3,.85,(t)=>NS({f:1400,at:t+.16,d:.7,g:.05}))) },   // .concat(REP(3,.85,(t)=>NS({f:1400,at:t+.16,d:.7,g:.05}))) },   // ping + its echo
+      // --- game style ---
       coin:     { voices:[ NS({f:988,d:.09,g:.14,wave:'square'}), NS({f:1319,at:.09,d:1.0,g:.12,wave:'square'}) ] },
       powerup:  { voices: REP(6,.09,(t,i)=>NS({f:392*Math.pow(2,i/6),at:t,d:.16,g:.13,wave:'triangle'}))
                           .concat([ NS({f:1568,at:.54,d:1.1,g:.14,wave:'triangle'}) ]) },
@@ -296,7 +296,7 @@
       bloop:    { voices:[ NS({f:[720,180],d:1.0,g:.26}) ] },
       drip:     { voices:[ NS({f:[420,1500],d:.14,g:.22}), NS({f:[380,1300],at:.55,d:.16,g:.18}),
                            NS({f:[440,1600],at:1.15,d:.9,g:.16}) ] },
-      // --- yumuşak / arka plan ---
+      // --- soft / background ---
       soft:     { voices:[ NS({f:440,d:1.4,g:.14,a:.09}), NS({f:554,at:.12,d:1.5,g:.12,a:.09}), NS({f:659,at:.24,d:1.8,g:.10,a:.09}) ] },
       heartbeat:{ voices:[ ...REP(2,.30,(t)=>NS({f:[92,48],at:t,d:.28,g:.36,wave:'sine'})),
                            ...REP(2,.30,(t)=>NS({f:[92,48],at:t+1.05,d:.28,g:.30,wave:'sine'})) ] },
@@ -304,8 +304,8 @@
                           .concat([ NS({f:1760,at:.85,d:1.0,g:.12}) ]) },
     };
 
-    // Sesi çal. Her çağrı kendi AudioContext'ini açar ve bitince kapatır (uzun ömürlü
-    // context tutmak Electron'da gereksiz ses aygıtı meşguliyeti yaratıyordu).
+    // Play the sound. Every call opens its own AudioContext and closes it when done (keeping a long lived
+    // context in Electron created needless audio device occupancy).
     function playNotifSound(name){
       const kind = name || (typeof appSettings==='object' && appSettings && appSettings.notifSound) || 'chime';
       if (kind === 'none') return;
@@ -316,7 +316,7 @@
         const ctx = new Ctx();
         const t0 = ctx.currentTime + 0.02;
         let end = 0;
-        // Bir parametreyi sayı ya da [a,b,c...] kaydırma dizisi olarak uygular
+        // Applies a parameter as a number or as a [a,b,c...] sweep array
         const ramp = (param, val, start, dur)=>{
           const pts = Array.isArray(val) ? val : [val];
           param.setValueAtTime(Math.max(1, pts[0]), start);
@@ -329,11 +329,11 @@
           const g = ctx.createGain();
           const atk = Math.min(v.a || .008, dur*0.5);
           g.gain.setValueAtTime(0.0001, start);
-          g.gain.exponentialRampToValueAtTime(v.g, start + atk);           // atak
-          g.gain.exponentialRampToValueAtTime(0.0001, start + dur);        // sönüm
+          g.gain.exponentialRampToValueAtTime(v.g, start + atk);           // attack
+          g.gain.exponentialRampToValueAtTime(0.0001, start + dur);        // decay
           let src;
           if (v.t === 'noise'){
-            // Beyaz gürültü tamponu - süzgeçten geçince whoosh/smash/hit karakteri çıkıyor
+            // White noise buffer - when passed through the filter the whoosh/smash/hit character comes out
             const len = Math.ceil(ctx.sampleRate * dur);
             const buf = ctx.createBuffer(1, len, ctx.sampleRate);
             const ch = buf.getChannelData(0);
@@ -357,23 +357,23 @@
       } catch(_){}
     }
 
-    // "Arka Planda Topla" (farmSilent) - pencere görünmezken saniyelik arayüz yenilemeleri
-    // atlanır; kart toplama/saat yükseltme motoru main tarafında olduğu için etkilenmez.
-    // Sayfa JS'lerindeki 1sn'lik render döngüleri bu kapıdan geçer.
-    // G10: pencere gizli/simge durumundayken saniyelik yenilemeler HER ZAMAN atlanır, ayara
-    // bakılmaz. Görünmeyen bir arayüzü saniyede bir yeniden çizmenin kimseye faydası yok;
-    // motor ana süreçte çalıştığı için kart toplama, saat yükseltme ve başarım işleri
-    // etkilenmez - sadece çizim durur. Pencere geri geldiğinde sayfalar bir kez tazelenir,
-    // böylece kullanıcı asla bayat sayaç görmez.
-    // HAFIF MOD.
-    // Chromium yalnizca pencere GIZLI ya da ORTULU oldugunda cizimi kisar. Pencere
-    // ekranda durup odakta degilken hicbir sey kismiyor: saniyelik yeniden cizimler ve
-    // sonsuz CSS animasyonlari her karede kompozisyon yaptiriyor. Tam ekran bir oyun
-    // (olculdu: Dota 2, Vulkan) bu yuzden "independent flip" sunumunu kaybedip kompozit
-    // moda dusuyor ve kare hizi dusuyor. SteamEdge'in GPU kullanimi %0 olsa bile oluyor,
-    // cunku maliyet bizim degil masaustu kompozitorunun.
+    // "Arka Planda Topla" (farmSilent) - when the window is not visible the per-second interface refreshes
+    // are skipped; since the card farming/hour boosting engine is on the main side it is not affected.
+    // The 1 s render loops in the page JS files pass through this gate.
+    // G10: while the window is hidden/minimised per-second refreshes are ALWAYS skipped, the setting
+    // is not looked at. Redrawing an invisible interface every second benefits nobody;
+    // since the engine runs in the main process card farming, hour boosting and achievement jobs are
+    // not affected - only drawing stops. When the window comes back the pages are refreshed once,
+    // so the user never sees a stale counter.
+    // LIGHT MODE.
+    // Chromium only throttles drawing when the window is HIDDEN or OCCLUDED. When the window
+    // is on screen but not focused nothing is throttled: per-second redraws and
+    // endless CSS animations cause compositing on every frame. A full screen game
+    // (measured: Dota 2, Vulkan) therefore loses "independent flip" presentation, falls to composite
+    // mode and the frame rate drops. It happens even if SteamEdge's GPU use is 0%,
+    // because the cost is not ours, it is the desktop compositor's.
     //
-    // Cozum: odak kaybinda saniyelik cizimleri durdur ve animasyonlari duraklat.
+    // The fix: on losing focus stop the per-second drawing and pause the animations.
     let pencereOdakta = document.hasFocus();
     function hafifModAcik(){
       return typeof appSettings !== 'object' || !appSettings || appSettings.hafifMod !== false;
@@ -390,13 +390,13 @@
     }
     document.addEventListener('visibilitychange', () => {
       if (document.hidden){
-        // "Arka Planda Topla" açıkken pencere gizlenince AÇIK sekmenin listesi de bellekten
-        // düşer. Ayarın vaadi buydu ("en az işlemci ve bellek kullanımı"); önceden yalnızca
-        // saniyelik çizimleri atlıyordu, bellek tarafında bir şey yapmıyordu.
+        // When "Arka Planda Topla" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
+        // That was the promise of the setting ("en az işlemci ve bellek kullanımı"); before, it only skipped
+        // per-second drawing and did nothing on the memory side.
         if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) agirListeleriBosalt(null);
         return;
       }
-      // Geri gelindi: askıya alınmış liste varsa çiz, sayaçlar taze değere gelsin.
+      // Came back: if there is a suspended list draw it, so the counters come to the fresh value.
       Object.keys(AGIR_LISTELER).forEach(t => {
         if (designed[t] && !designed[t].classList.contains('hidden')) agirListeyiGeriCiz(t);
       });
@@ -404,7 +404,7 @@
       try { if (typeof renderGenelStats === 'function' && !designed.genel.classList.contains('hidden')) renderGenelStats(); } catch (_) {}
     });
 
-    // "Oturum zaman aşımı" - gerçek kullanıcı etkileşimini main'e bildir (sayacı sıfırlar)
+    // "Oturum zaman aşımı" - report real user interaction to main (resets the counter)
     (function wireActivity(){
       let last = 0;
       const ping = () => { const t = Date.now(); if (t - last < 5000) return; last = t; window.imu.activity(); };
@@ -412,7 +412,7 @@
       ping();
     })();
 
-    // Ortak boş-durum bileşeni (madde 10): ikon + başlık + açıklama + opsiyonel yönlendirme butonu.
+    // Shared empty-state component (item 10): icon + title + description + optional redirect button.
     const EB_ICON = {
       idle:'<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/>',
       pazar:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h11"/><path d="M6 6h15l-2 7H7"/>',
@@ -428,14 +428,14 @@
         + '</div>';
     }
 
-    // ---- Steam profil (avatar/isim/seviye) ----
-    // Profil ancak Steam oturumu kurulduktan SONRA çekilebiliyor ve oturum açmak saniyeler
-    // sürüyor. O süre boyunca sağ üstte ve Ayarlar'daki hesap kartında tire duruyordu.
-    // Artık son bilinen profil hesabın kendi dosyasında saklanıyor (main.js > engine:profile)
-    // ve ayarlarla birlikte anında geliyor: ekran ilk karede dolu açılıyor, bağlantı kurulunca
-    // taze veri üstüne yazıyor. Özel adres ayrı istekle, en son gelir.
+    // ---- Steam profile (avatar/name/level) ----
+    // The profile can only be fetched AFTER the Steam session is established and opening a session takes
+    // seconds. During that time a dash stood in the top right and in the account card in Ayarlar.
+    // Now the last known profile is kept in the account's own file (main.js > engine:profile)
+    // and comes instantly with the settings: the screen opens full on the first frame, when the connection is made
+    // fresh data is written over it. The custom address comes last, with a separate request.
     let imuProfile = null;
-    let imuProfilTaze = false;      // önbellekten mi geldi, Steam'den mi
+    let imuProfilTaze = false;      // did it come from the cache or from Steam
 
     function onbelleklenmisProfil(){
       const p = (typeof appSettings === 'object' && appSettings && appSettings.profil) || null;
@@ -446,7 +446,7 @@
     }
 
     async function loadProfile(){
-      // Elde bir şey varsa hemen göster; taze değilse arkadan tazelemeye devam et.
+      // If there is something at hand show it right away; if it is not fresh keep refreshing in the background.
       if (imuProfile) applyProfile(); else onbelleklenmisProfil();
       if (!imuProfilTaze){
         const r = await E.profile().catch(()=>null);
@@ -456,7 +456,7 @@
           applyProfile();
         }
       }
-      // Özel adres profil sayfasından okunuyor; ismi ve avatarı bekletmesin diye ayrı istek.
+      // The custom address is read from the profile page; a separate request so it does not hold up the name and avatar.
       if (imuProfile && !imuProfile.vanity){
         E.vanity().then(v=>{
           if (v && v.ok && v.vanity){
@@ -472,7 +472,7 @@
       const av = imuProfile.avatar;
       const sName = document.getElementById('sideName'); if (sName) sName.textContent = nm;
       const sLvl = document.getElementById('sideLevel'); if (sLvl) sLvl.textContent = imuProfile.level!=null ? ('Seviye '+imuProfile.level) : 'Çevrimiçi';
-      // Avatar varsa görsel, yoksa baş harf rozeti (ör. "VE")
+      // If there is an avatar an image, otherwise an initial badge (e.g. "VE")
       const sAv = document.getElementById('sideAvatar');
       if (sAv) {
         const initials = (nm.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2) || '-').toUpperCase();
@@ -480,16 +480,16 @@
       }
       const setP = document.getElementById('setPersona'); if (setP) setP.textContent = nm;
       const setLevelRow = document.getElementById('setLevel'); if (setLevelRow) setLevelRow.textContent = imuProfile.level!=null ? imuProfile.level : '-';
-      // Kimlik satırları profilden gelen özel adresi de gösteriyor; hesap değişince tazelensin.
+      // The identity rows also show the custom address that comes from the profile; so it refreshes when the account changes.
       if (typeof kimlikleriBoya === 'function') kimlikleriBoya();
     }
 
-    // ---- kalıcı istatistikler (main.js stats.json) ----
+    // ---- lifetime statistics (main.js stats.json) ----
     let lifeStats = null;
     function fmtHrs(ms){ const h=ms/3600000; return h>=1 ? (h.toLocaleString(yerelKod(), { maximumFractionDigits:1 })+' '+t('saat')) : (Math.round(ms/60000)+' '+t('dk')); }
-    // veri verilirse IPC'ye gidilmez (ana surecin 'stats:degisti' olayi zaten guncel veriyi tasir).
-    // Hepsi ekrandaki hesabin ana surecte sayilan gercek olcumu. "En verimli gun", "Ortalama
-    // satis" ve "Kesintisiz calisma" eskiden hic doldurulmuyor, hep tire gosteriyordu.
+    // if data is given no IPC is made (the main process's 'stats:degisti' event already carries the current data).
+    // All of them are the real measurement of the account on screen counted in the main process. "En verimli gün", "Ortalama
+    // satış" and "Kesintisiz çalışma" used to never be filled, they always showed a dash.
     async function renderLifeStats(veri){
       lifeStats = veri || await window.imu.stats.get().catch(()=>null);
       if (!lifeStats) return;
@@ -511,24 +511,24 @@
       const h = document.getElementById('lifeHesap');
       if (h) h.textContent = (typeof appSettings === 'object' && appSettings && appSettings.persona) ? appSettings.persona : '';
     }
-    // Istatistik ana surecte sayilir; degistikce buraya gelir (yalnizca ekrandaki hesap icin).
+    // Statistics are counted in the main process; they come here as they change (only for the account on screen).
     if (window.imu.stats.onDegisti) window.imu.stats.onDegisti((d)=>renderLifeStats(d));
-    // 16:9 - Kütüphane Logosu (logo.png). contain: saydam logo kırpılmadan sığar.
+    // 16:9 - Library Logo (logo.png). contain: a transparent logo fits without being cropped.
     function imgTag(appid){ return '<img src="'+gameImg(appid)+'" class="gt" style="width:85px;height:40px;object-fit:cover;border-radius:7px" onerror="this.style.background=\'#26313f\';this.src=\'\'">'; }
     function fmtDur(sec){ const m=Math.floor(sec/60), s=sec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
 
-    // ---- sol kenar çubuğu açılır/kapanır (< / > ) ----
+    // ---- sidebar expand/collapse (< / > ) ----
     const sideNav = document.getElementById('sideNav');
     const SIDE_COLLAPSE_KEY = 'imu_side_collapsed';
-    // Rail sekmesi aktif nav öğesinin hizasında durur: top = 17 + 44*index
-    // (nav öğesi 40px + 4px gap = 44px adım). Ayarlar sidebar'da olmadığı için index 5.
+    // The rail tab stays aligned with the active nav item: top = 17 + 44*index
+    // (nav item 40px + 4px gap = 44px step). Since Ayarlar is not in the sidebar the index is 5.
     const RAIL_ORDER = ['genel', 'kart', 'env', 'saat', 'gercekci', 'basarim', 'ayarlar'];
     function setRailTop(tab) {
       const btn = document.getElementById('sideCollapseBtn');
       const i = RAIL_ORDER.indexOf(tab);
       if (btn && i >= 0) btn.style.top = (17 + 44 * i) + 'px';
     }
-    // railChevronPath: kapalıyken sağa (aç), açıkken sola (kapat)
+    // railChevronPath: to the right when closed (open), to the left when open (close)
     function setRailChevron() {
       const p = document.getElementById('railChev');
       if (p) p.setAttribute('d', sideNav.classList.contains('collapsed') ? 'M10 8l4 4-4 4' : 'M14 8l-4 4 4 4');
@@ -541,15 +541,15 @@
       setRailChevron();
     };
 
-    // ---- üst çubuk: Ayarlar (dişli) ----
+    // ---- top bar: Ayarlar (gear) ----
     document.getElementById('tbSettings').onclick = () => {
       document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
       openAyarlar();
     };
 
-    // ---- ust cubuk: Sohbet ----
-    // Kenar cubugunda karsiligi yok, dogrudan sekmeyi aciyor. Rozet okunmamis mesaj
-    // sayisini tutar; sohbet ekrani acikken sifirlanir.
+    // ---- top bar: Sohbet ----
+    // It has no counterpart in the sidebar, it opens the tab directly. The badge holds the number of unread
+    // messages; it is reset while the chat screen is open.
     let chBekleyen = 0;
     function chRozetBoya(){
       const r = document.getElementById('tbChatBadge');
@@ -561,20 +561,20 @@
       sekmeAc('sohbet');
     };
 
-    // ---- üst çubuk: sürüm rozeti ve güncelleme uyarısı ----
-    // Sürüm package.json'dan okunur (preload > imu.surum); hiçbir yerde elle yazılmaz.
+    // ---- top bar: version badge and update warning ----
+    // The version is read from package.json (preload > imu.surum); it is written by hand nowhere.
     const APP_SURUM = (window.imu && window.imu.surum) || '';
     (function paintVersion(){
       const e = document.getElementById('tbVersion');
       if (e) e.textContent = APP_SURUM ? ('v' + APP_SURUM) : 'v-';
     })();
 
-    // ---- GÜNCELLEME ----
-    // Uygulama açılışta BİR KEZ bakar. Yeni sürüm varsa pencere açılır; sürüm güncelse
-    // hiçbir şey gösterilmez - kullanıcıyı "her şey yolunda" demek için rahatsız etmenin
-    // anlamı yok. Üst çubuktaki düğme aynı kontrolü istendiği an tekrar yapar; orada sonuç
-    // her durumda söylenir, çünkü düğmeye basan cevap bekler.
-    // İndirme, kurulum veya kendini güncelleme YOK: yalnızca sürüm numarası okunur.
+    // ---- UPDATE ----
+    // The app looks ONCE at startup. If there is a new version a window opens; if the version is current
+    // nothing is shown - there is no point disturbing the user just to say "everything is fine".
+    // The button in the top bar repeats the same check whenever asked; there the result is told
+    // in every case, because whoever pressed the button is waiting for an answer.
+    // There is NO download, install or self-update: only the version number is read.
     let sonGuncellemeDurumu = null;
     let guncellemePenceresiAcik = false;
 
@@ -602,19 +602,19 @@
       sonGuncellemeDurumu = d || null;
       const rozet = document.getElementById('tbUpdateBadge');
       const yeniVar = !!(d && d.ok && d.guncelMi === false);
-      // Düğmenin üstündeki nokta: yeni sürüm varken yanar, güncelken söner.
+      // The dot above the button: lit when there is a new version, off when current.
       if (rozet) rozet.style.display = yeniVar ? 'block' : 'none';
       const btn = document.getElementById('tbUpdate');
       if (btn) btn.title = yeniVar ? (t('Yeni sürüm var:') + ' v' + d.son) : 'Güncellemeleri denetle';
       if (yeniVar){ guncellemePenceresi(d); return; }
-      // Güncel ya da bakılamadı: yalnızca kullanıcı elle sorduysa cevap ver.
+      // Current or could not check: only answer if the user asked by hand.
       if (!elleBakildi || !d || typeof toast !== 'function') return;
       if (d.ok) toast('Güncelleme').done(tf('En güncel sürümü kullanıyorsun (v#).', d.kurulu));
       else toast('Güncelleme').fail(t(d.hata || 'Sürüm bilgisi alınamadı.') + ' ' + t('Kurulu sürümün çalışmaya devam eder.'));
     }
 
     if (window.imu && window.imu.guncelleme){
-      // Açılıştaki tek kontrolün sonucu buradan gelir.
+      // The result of the single check at startup comes from here.
       window.imu.guncelleme.onDurum((d) => guncellemeDurumu(d, false));
       const ub = document.getElementById('tbUpdate');
       if (ub) ub.onclick = async ()=>{
@@ -625,12 +625,12 @@
       };
     }
 
-    // ---- HESAP KİMLİĞİ (sağ üstteki hesap menüsü) ----
-    // Steam'in yedi biçimi de TEK sayıdan türer: SteamID64. Ağa hiçbir şey sorulmaz.
-    //   hesap numarası = SteamID64 - 76561197960265728   (evren 1, "individual" hesap tabanı)
-    //   klasik         = STEAM_1:<numaranın son biti>:<numaranın yarısı>
-    //   SteamID3       = [U:1:<hesap numarası>]
-    // Tam sayılar 53 biti aştığı için BigInt kullanılır; Number ile son haneler bozulur.
+    // ---- ACCOUNT IDENTITY (the account menu top right) ----
+    // All seven of Steam's formats derive from a SINGLE number: SteamID64. Nothing is asked from the network.
+    //   account number = SteamID64 - 76561197960265728   (universe 1, the "individual" account base)
+    //   classic        = STEAM_1:<last bit of the number>:<half of the number>
+    //   SteamID3       = [U:1:<account number>]
+    // BigInt is used because whole numbers exceed 53 bits; with Number the last digits get corrupted.
     const STEAM64_TABAN = 76561197960265728n;
     let kimlikler = null;
 
@@ -660,13 +660,13 @@
         const e = document.getElementById(id);
         if (!e) return;
         const v = kimlikler ? kimlikler[id] : null;
-        // Menü 268 px: tam adres satıra sığmayıp üç noktayla kesiliyordu. Adreslerde
-        // "https://steamcommunity.com" kısmı zaten her satırda aynı, o yüzden yalnızca
-        // yol gösteriliyor. KOPYALANAN ve AÇILAN değer tam adres olarak kalır.
-        // Adres AYRISTIRILARAK karsilastirilir, basi kesilerek degil: "steamcommunity.com"
-        // ile BASLAYAN her dizge Steam degildir (steamcommunity.com.baskasite.tr gibi).
-        // Burada deger zaten kendi urettigimiz adres, ama karsilastirmanin dogrusu bu ve
-        // kod taramasi da hakli olarak isaret ediyordu.
+        // The menu is 268 px: the full address did not fit the row and was cut with an ellipsis. In the addresses
+        // the "https://steamcommunity.com" part is the same on every row anyway, so only the
+        // path is shown. The value that is COPIED and OPENED stays the full address.
+        // The address is compared by PARSING, not by cutting the beginning: not every string that STARTS with "steamcommunity.com"
+        // is Steam (like steamcommunity.com.someothersite.tr).
+        // Here the value is already an address we produced ourselves, but this is the right way to compare and
+        // the code scan was rightly flagging it.
         let gorunen = v;
         if (v) {
           try {
@@ -674,10 +674,10 @@
             if (u.origin === 'https://steamcommunity.com') gorunen = u.pathname + u.search + u.hash;
           } catch (_) { /* adres degilse oldugu gibi gosterilir */ }
         }
-        // Boş tire "bozuk" gibi görünüyor; değeri olmayan satır sebebini yazsın.
+        // An empty dash looks "broken"; a row with no value should write the reason.
         e.textContent = gorunen || (kimlikler ? 'tanımlı değil' : 'hesap bağlı değil');
         e.classList.toggle('bos', !v);
-        if (v) e.parentNode.title = v;      // tam değer üzerine gelince görünür
+        if (v) e.parentNode.title = v;      // the full value shows when hovered
       });
       document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
         const v = kimlikler && kimlikler[b.getAttribute('data-kopya')];
@@ -723,7 +723,7 @@
       if (kimlikler) window.imu.openExternal(kimlikler.idOzel || kimlikler.idProfil);
     };
 
-    // ---- üst çubuk: Bildirimler + Profil/Hesap akordiyonu (referanslar önce, olay bağlama sonra) ----
+    // ---- top bar: Notifications + Profile/Account accordion (references first, event binding after) ----
     const notifDropdown = document.getElementById('notifDropdown');
     const acctDropdown = document.getElementById('acctDropdown');
     const tbProfile = document.getElementById('tbProfile');
@@ -731,8 +731,8 @@
     function closeAcct(){ acctDropdown.classList.remove('open'); tbProfile.classList.remove('open'); }
     function closeNotif(){ notifDropdown.classList.remove('open'); }
 
-    // Sidebar alt durum göstergesi: statusColor = running ? ok : warn,
-    // statusLabel = running ? 'ÇALIŞIYOR' : 'HAZIR'. genel.js durum değişince çağırır.
+    // Sidebar bottom status indicator: statusColor = running ? ok : warn,
+    // statusLabel = running ? 'ÇALIŞIYOR' : 'HAZIR'. genel.js calls it when the state changes.
     function setSysStatus(running){
       const d = document.getElementById('sysDot'), l = document.getElementById('sysLabel');
       const c = running ? 'var(--e-ok)' : 'var(--e-warn)';
@@ -740,9 +740,9 @@
       if (l){ l.style.color = c; l.textContent = running ? 'ÇALIŞIYOR' : 'HAZIR'; }
     }
 
-    // Bildirim rozeti (header'daki zil ikonunun üstündeki kırmızı nokta): okunmamış
-    // aktivite varsa görünür. Sayıyı genel.js'in renderFeed()'i bildirir - activityFeed
-    // orada `const` ile tanımlı olduğu için buradan doğrudan okumak TDZ riski taşır.
+    // Notification badge (the red dot above the bell icon in the header): visible if there is unread
+    // activity. The count is reported by genel.js's renderFeed() - since activityFeed is defined there with `const`
+    // reading it directly from here carries a TDZ risk.
     let notifSeen = 0, notifCount = 0;
     function updateNotifBadge(n){
       if (typeof n === 'number') notifCount = n;
@@ -750,7 +750,7 @@
       if (b) b.style.display = notifCount > notifSeen ? 'block' : 'none';
     }
 
-    // genel.js'in gerçek activityFeed'inden okur (uydurma veri yok)
+    // reads from genel.js's real activityFeed (no made up data)
     function renderNotifList(){
       const box = document.getElementById('notifList');
       const feed = activityFeed || [];
@@ -772,7 +772,7 @@
       const list = document.getElementById('acctList');
       const accts = await window.imu.accounts.list().catch(()=>[]);
       if (!accts.length){ list.innerHTML = '<div style="padding:10px 14px;color:var(--muted2);font-size:12px">Kayıtlı hesap yok.</div>'; return; }
-      // Rozetler: "Aktif" = arayüzde görüntülenen, yeşil nokta = arka planda kart/saat çalışıyor
+      // Badges: "Aktif" = shown in the interface, green dot = card/hour running in the background
       list.innerHTML = accts.map(a=>'<div class="acct-row'+(a.active?' active':'')+'" data-id="'+esc(a.steamID)+'">'
         + '<span class="nm">'+esc(a.accountName||a.steamID)+'</span>'
         + (a.running?'<span class="run-dot" title="Arka planda çalışıyor"></span>':'')
@@ -787,11 +787,11 @@
         x.addEventListener('click', (e)=>{ e.stopPropagation(); removeAccount(x.getAttribute('data-x')); });
       });
     }
-    // G3: Steam baglanti durumu seridi. Kopma sessiz kalmasin diye ust barin altinda
-    // kalici bir serit gosterilir; yeniden baglaninca kendiliginden kaybolur.
-    // Metin ana süreçten değil buradan, arayüz dilinde kurulur; ana süreç yalnızca alanları
-    // (durum, sebep, deneme, bekleme, sınır) yollar. Eskiden şeritte her dilde ASCII Türkçe
-    // "yeniden baglaniyor (deneme 2, 10 sn sonra)" yazıyordu.
+    // G3: Steam connection state strip. So that a drop is not silent a persistent strip is shown
+    // below the top bar; it disappears on its own when reconnected.
+    // The text is built here in the interface language, not from the main process; the main process only sends the fields
+    // (durum, sebep, deneme, bekleme, sinir). The strip used to say ASCII Turkish
+    // "yeniden baglaniyor (deneme 2, 10 sn sonra)" in every language.
     function baglantiMetni(d){
       if (d.durum === 'koptu') return t('Steam bağlantısı koptu.') + (d.sebep ? (' (' + d.sebep + ')') : '');
       if (d.durum === 'baglaniyor'){
@@ -824,11 +824,11 @@
         el.id = 'baglantiSerit';
         el.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 20px;'
           + 'font-size:12px;font-weight:600;border-bottom:1px solid #B37E24;background:#1A1408;color:#B37E24';
-        // Serit GOVDE SATIRININ ustune girer. Eskiden dogrudan <main>'in kardesi olarak
-        // ekleniyordu; o satir yan panelle ayni flex satiri oldugu icin serit ust cubugun
-        // altina degil, kenar cubugunun yanina dusuyordu.
+        // The strip goes above the BODY ROW. It used to be added directly as a sibling of <main>;
+        // since that row is the same flex row as the side panel the strip fell next to the sidebar instead of
+        // below the top bar.
         const ana = document.querySelector('main');
-        const satir = ana && ana.parentNode;                   // aside + main satiri
+        const satir = ana && ana.parentNode;                   // aside + main row
         const hedef = (satir && satir.parentNode) ? satir : (ana || document.body);
         hedef.parentNode.insertBefore(el, hedef);
       }
@@ -849,12 +849,12 @@
     }
     if (window.imu.engine && window.imu.engine.onDurum){
       window.imu.engine.onDurum((d)=>{
-        if (!d || !d.aktif) return;          // yalnizca ekranda acik olan hesap
+        if (!d || !d.aktif) return;          // only the account open on screen
         baglantiSeridi(d);
         if (d.durum === 'koptu'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
           if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', baglantiMetni(d), 'Hata');
-          // Yeniden bağlanma kapalıysa hemen ardından "vazgeçildi" gelir, bildirimi o verir.
+          // If reconnecting is off "vazgeçildi" comes right after, and that gives the notification.
           if (d.sinir !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
         } else if (d.durum === 'bagli' && d.yenidenBaglandi){
           if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', baglantiMetni(d), 'Başarılı');
@@ -862,14 +862,14 @@
       });
     }
 
-    // Hesap değiştirme YENİDEN YÜKLEME YAPMAZ - diğer hesapların kart toplama/saat yükseltme
-    // işi arka planda sürdüğü için sayfayı baştan kurmak hem gereksiz hem de o işlerin canlı
-    // göstergesini sıfırlardı. Bunun yerine sayfa önbellekleri boşaltılıp aktif sekme yeniden
-    // veri çeker.
-    // MADDE 2a: Sadece degiskenleri temizlemek yetmiyordu. Aktif olmayan sekmelerin DOM'u
-    // ekranda kaliyor ve o sekmeye gecildiginde ONCEKI HESABIN oyunlari gorunuyordu; veri
-    // gec gelirse ya da baglanti kurulamazsa sonsuza kadar oyle kaliyordu.
-    // Cozum: hesap degisince tum sekmelerin icerigini bosalt, "yukleniyor" iskeleti koy.
+    // Switching accounts DOES NOT RELOAD - since the other accounts' card farming/hour boosting
+    // jobs continue in the background, rebuilding the page from scratch would be both needless and would reset those jobs'
+    // live indicators. Instead the page caches are emptied and the active tab fetches
+    // the data again.
+    // ITEM 2a: Only clearing the variables was not enough. The DOM of the inactive tabs
+    // stayed on screen and when that tab was switched to the PREVIOUS ACCOUNT's games showed; if the data
+    // came late or the connection could not be made it stayed that way forever.
+    // The fix: when the account changes empty the content of all tabs and put in a "loading" skeleton.
     function iskeletKoy(){
       const hedefler = [
         ['kartRows', 'Oyun listesi yükleniyor...'],
@@ -895,17 +895,17 @@
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
       if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; }
       if (typeof acCache !== 'undefined') acCache.clear();
-      // Sohbet baska hesabin arkadas listesini gostermesin
+      // Chat must not show another account's friend list
       if (typeof chYuklendi !== 'undefined'){ chYuklendi = false; chArkadaslar = []; chSecili = null; chMesajlar.clear(); chOkunmamis.clear(); }
       if (typeof genelLoaded !== 'undefined') genelLoaded = false;
-      // Aktivite akisi hesaba ozeldir; eski hesabin gecmisi ekranda kalmasin
+      // The activity feed is account specific; the old account's history must not stay on screen
       if (typeof activityFeed !== 'undefined') activityFeed.length = 0;
-      // Son düşüşler de hesaba ozel
+      // Recent drops are account specific too
       if (typeof recentDrops !== 'undefined') recentDrops.length = 0;
     }
-    // Görünen sekme DOM'dan bulunur. Ayarlar ve Sohbet'in kenar çubuğunda bağlantısı yok,
-    // Gerçekçi Mod da listede değildi: bunlar açıkken hesap değişince Genel Bakış yükleniyor,
-    // görünen sayfa ise iskelette kalıyordu.
+    // The visible tab is found from the DOM. Ayarlar and Sohbet have no link in the sidebar,
+    // Realistic Mode was not in the list either: while these were open Genel Bakış was loaded when the account changed,
+    // and the visible page stayed in the skeleton.
     function reloadActiveTab(){
       const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'genel';
       if (tab === 'kart' && typeof loadKart === 'function') loadKart();
@@ -930,7 +930,7 @@
       renderAcctList();
     }
     async function removeAccount(steamID){
-      // MADDE 9: duz confirm() yerine ne silinecegini ACIKCA anlatan onay
+      // ITEM 9: instead of a plain confirm() a confirmation that CLEARLY says what will be deleted
       const ok = await edgeConfirm({
         tag:'Hesabı Kaldır', danger:true,
         title:'Bu hesap listeden kaldırılacak',
@@ -949,21 +949,21 @@
         edgeConfirm({ tag:'Hata', danger:true, title:'Hesap kaldırılamadı.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', tekDugme:true });
         return;
       }
-      if (r.loggedOut) return; // main.js zaten giriş ekranına geçti
+      if (r.loggedOut) return; // main.js already moved to the login screen
       resetPageCaches();
       imuProfile = null; imuProfilTaze = false; loadProfile();
       reloadActiveTab();
       renderAcctList();
     }
     document.getElementById('acctAddBtn').onclick = () => window.imu.accounts.startAdd();
-    // Arka plandaki hesaplardan biri başlayınca/durunca listedeki noktayı tazele
+    // When one of the background accounts starts/stops refresh the dot in the list
     if (window.imu.onAccountActivity) window.imu.onAccountActivity(()=>{
       if (acctDropdown.classList.contains('open')) renderAcctList();
     });
-    // Gelen Steam mesajı: aktivite akışına düşer + ekranda toast çıkar. Masaüstü bildirimi
-    // ana süreçte gönderiliyor (bkz. main.js connectAccount > onChatMessage).
+    // Incoming Steam message: it drops into the activity feed + a toast appears on screen. The desktop notification
+    // is sent in the main process (see main.js connectAccount > onChatMessage).
     if (window.imu.onChatMessage) window.imu.onChatMessage((m)=>{
-      // Sohbet ekrani acik degilse ust bardaki rozet yansin.
+      // If the chat screen is not open let the badge in the top bar show.
       if (designed.sohbet && designed.sohbet.classList.contains('hidden')){
         chBekleyen++; chRozetBoya();
       }
@@ -976,7 +976,7 @@
       if (typeof playNotifSound === 'function' && appSettings && appSettings.notifications
           && appSettings.notifyChat !== false && !(typeof inQuietHours === 'function' && inQuietHours())) playNotifSound();
     });
-    // Açılışta kayıtlı tüm hesapları arka planda bağla - paralel idle bunun üzerine kurulu
+    // At startup connect all saved accounts in the background - parallel idling is built on this
     window.imu.accounts.connectAll().then((res)=>{
       const failed = (res||[]).filter(r=>!r.ok);
       if (failed.length && typeof pushFeed === 'function'){
@@ -984,7 +984,7 @@
       }
     }).catch(()=>{});
     document.getElementById('acctLogoutBtn').onclick = () => {
-      // MADDE 9: cikis KALICI veriyi silmez, bunu acikca soyle - kullanici tereddut etmesin
+      // ITEM 9: signing out does NOT delete permanent data, say it clearly - so the user does not hesitate
       edgeConfirm({
         tag:'Çıkış Yap',
         title:'Bu hesaptan çıkış yapılacak',

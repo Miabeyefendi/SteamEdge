@@ -1,4 +1,4 @@
-  /* ---- Başarımlar - SteamEdge (mor/teal) paletine taşındı, yapı/id aynı ---- */
+  /* ---- Achievements - moved to the SteamEdge (purple/teal) palette, structure/ids unchanged ---- */
   .controls-bar{background:#0D1118;border:1px solid #1D2432;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
   .input-field{background:#030305;border:1px solid #1D2432;border-radius:8px;padding:7px 12px;font-size:12px;color:#e2e8f0;outline:none;transition:border-color .15s}
   .input-field:focus{border-color:rgba(95,179,36,.4)}
@@ -17,7 +17,7 @@
   .view-btn.active{background:#1D2432;color:#5FB324}
   .view-btn:hover{color:#94a3b8}
 
-  /* Bulk aksiyon butonları (achievements.html'in Unlock/Lock butonları, toolbar boyutuna küçültülmüş) */
+  /* Bulk action buttons (the Unlock/Lock buttons of achievements.html, shrunk to toolbar size) */
   .btn-unlock{height:48px;padding:0 24px;background:#5FB324;border-radius:10px;font-size:13px;font-weight:700;color:#030305;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;width:100%;transition:all .15s;box-shadow:0 4px 20px rgba(95,179,36,.25)}
   .btn-unlock:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(95,179,36,.35)}
   .btn-lock{height:48px;padding:0 24px;background:rgba(107,114,128,.1);border:1px solid #2B3345;border-radius:10px;font-size:13px;font-weight:700;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center;width:100%;transition:all .15s}
@@ -36,7 +36,7 @@
   .acp-h{padding:12px 20px;border-bottom:1px solid #1D2432;display:flex;align-items:center;justify-content:space-between;flex:none}
   .acp-t{font-size:11px;font-weight:700;color:#cbd5e1;text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:8px}
 
-  /* Grid view (yatay/klasik) - ikon + ad + rozet, açıklama yok (bilinçli tasarım kararı) */
+  /* Grid view (horizontal/classic) - icon + name + badge, no description (deliberate design decision) */
   .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px}
   .ach-card{background:#030305;border:1px solid #1D2432;border-radius:10px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all .15s}
   .ach-card:hover{border-color:#2B3345;background:#0D1118}
@@ -63,7 +63,7 @@
   .detail-val{font-size:12px;color:#e2e8f0;font-weight:600}
   .acd-empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#3d4560;text-align:center;padding:24px}
 
-  /* DETAYLI LİSTE (dikey) - gruplu satırlar, açıklama + tarih dahil */
+  /* DETAILED LIST (vertical) - grouped rows, including description + date */
   .ach-group-hd{padding:8px 20px;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#3d4560;background:#0D1118;border-bottom:1px solid #1D2432}
   .ach-group-hd:not(:first-child){border-top:1px solid #1D2432}
   .ach-row{display:flex;align-items:flex-start;gap:16px;padding:12px 20px;border-bottom:1px solid #1D2432;cursor:pointer;transition:background .1s}

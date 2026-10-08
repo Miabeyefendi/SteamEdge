@@ -1,11 +1,11 @@
-/* ================================================================
-   EDGE.CSS - SteamEdge tema katmanı.
-
-   Uygulamanın tüm sayfaları (Genel Bakış, Kart Düşür, Envanter & Pazar,
-   Saat Yükseltici, Başarımlar, Ayarlar ve giriş ekranı) bu paleti
-   kullanır. Renkler :root üzerinde --e-* değişkenleri olarak, tekrar
-   eden yüzeyler ise gerçek CSS class'ları olarak tanımlıdır.
-   ================================================================ */
+/*
+   ================================================================
+   EDGE.CSS - SteamEdge theme layer.
+   All pages of the app (Overview, Card Farming, Inventory & Market, Hour Booster, Achievements,
+   Settings and the login screen) use this palette. Colours are defined as --e-* variables on :root,
+   and the repeated surfaces are defined as real CSS classes.
+   ================================================================
+*/
 :root{
   --e-bg:#030305; --e-bgAlt:#090C12; --e-s1:#0D1118; --e-s2:#101621; --e-s3:#151C28;
   --e-bdPassive:#1D2432; --e-bd:#2B3345; --e-bdActive:#5624B3; --e-bdFocus:#7031CC;
@@ -28,14 +28,13 @@
 .edge ::-webkit-scrollbar-thumb{background:var(--e-bd);border-radius:999px;border:3px solid var(--e-bg);background-clip:padding-box;min-height:44px}
 .edge ::-webkit-scrollbar-thumb:hover{background:var(--e-brand);background-clip:padding-box}
 @keyframes e-dotPulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
-/* common.css'teki .toast .tspin bu kare dizisini istiyor ama hicbir dosyada tanimli degildi:
-   spinner donmuyor, sabit bir yarim daire olarak duruyordu. */
+/* The .toast .tspin in common.css wants this keyframe sequence but it was not defined in any file: the spinner did not rotate and stayed as a fixed half circle. */
 @keyframes spin{to{transform:rotate(360deg)}}
 .edge [data-tip]{position:relative}
 .edge [data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);width:264px;padding:9px 11px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 12px 30px rgba(3,3,5,.7);color:var(--e-body);font-size:11px;font-weight:400;line-height:1.5;text-align:left;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;z-index:60;transition:opacity .12s}
 .edge [data-tip]:hover::after{opacity:1;visibility:visible}
 
-/* ---- titlebar (Electron frameless pencere kontrolleri) ---- */
+/* ---- titlebar (Electron frameless window controls) ---- */
 .e-titlebar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--e-bgAlt);border-bottom:1px solid var(--e-bdPassive);-webkit-app-region:drag}
 .e-titlebar .e-tb-brand{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:11px;font-weight:700;color:var(--e-muted)}
 .e-titlebar .e-tb-btns{display:flex;-webkit-app-region:no-drag}
@@ -43,10 +42,7 @@
 .e-titlebar .e-tb-btns button:hover{background:var(--e-s2);color:var(--e-title)}
 .e-titlebar .e-tb-btns button.e-close:hover{background:var(--e-bad);color:#fff}
 
-/* ---- sidebar rail ----
-   Genişlik sabit değil: içerik kadar (width:auto). Açıkken nav etiketi
-   width:128px sabit kutu olduğu için genişlik ondan gelir, kapalıyken etiket
-   DOM'dan çıkar ve rail ikon genişliğine iner. */
+/* ---- sidebar rail ---- The width is not fixed: it follows the content (width:auto). When open, the nav label is a fixed width:128px box so the width comes from it; when closed, the label leaves the DOM and the rail shrinks to the icon width. */
 .e-aside{position:relative;flex:0 0 auto;width:auto;display:flex;flex-direction:column;justify-content:space-between;background:var(--e-bgAlt);border-right:1px solid var(--e-bdPassive);padding:16px 12px;transition:flex-basis .2s ease,width .2s ease,min-width .2s ease,max-width .2s ease}
 .e-nav{display:flex;flex-direction:column;gap:4px}
 .e-nav-item{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:var(--e-radius);cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:var(--e-muted);border:1px solid transparent}
@@ -62,7 +58,7 @@
 .e-sys .e-dot{width:7px;height:7px;border-radius:12px;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite}
 .e-sys .e-sys-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-muted);white-space:nowrap}
 .e-aside.collapsed .e-sys .e-sys-lbl{display:none}
-/* rail toggle: kenardan taşan yarım-daire sekme */
+/* rail toggle: a half-circle tab sticking out of the edge */
 .e-rail-toggle{position:absolute;top:96px;z-index:6;width:19px;height:38px;background:transparent;border:0;padding:0;color:var(--e-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Geist Mono',monospace;font-size:12px;font-weight:700;right:-19px}
 .e-rail-toggle .e-rail-tab{position:absolute;top:0;left:-19px;pointer-events:none}
 .e-rail-toggle .e-rail-chev{position:relative;left:-5px;z-index:1;pointer-events:none}
@@ -80,26 +76,25 @@
 .e-acct{display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border-radius:var(--e-radius);border:1px solid transparent;background:transparent;cursor:pointer}
 .e-acct:hover,.e-acct.open{border-color:var(--e-brand)}
 .e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:10px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
-/* Steam avatarı 184x184 geliyor - kutuyu taşırmasın (profil ikonu bozulmasının sebebiydi). */
+/* The Steam avatar arrives at 184x184 - it must not overflow the box (this was the cause of the broken profile icon). */
 .e-acct-avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
 .e-acct-name{font-size:12px;font-weight:600;color:var(--e-title);line-height:1}
 .e-acct-lvl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted);line-height:1;margin-top:2px}
 .e-acct-caret{transition:transform .14s ease;color:var(--e-muted)}
 .e-acct.open .e-acct-caret{transform:rotate(180deg)}
 
-/* ---- hesap dropdown ---- */
+/* ---- account dropdown ---- */
 .e-dropdown{position:fixed;top:64px;right:20px;z-index:40;width:268px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 18px 44px rgba(3,3,5,.66);overflow:hidden;display:none}
 .e-dropdown.open{display:block}
 .e-dropdown-hd{display:block;padding:12px 14px 8px;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)}
 .e-acct-list{display:flex;flex-direction:column;gap:2px;padding:0 6px 8px;max-height:260px;overflow-y:auto}
-/* .acct-row / .nm / .tag / .x - bu isimler common.js'in renderAcctList()'inde ÜRETİLİYOR, JS'e
-   dokunmamak için burada da aynı isimler kullanılıyor (edge.css'in kendi e- öneki değil). */
+/* The .acct-row / .nm / .tag / .x names are PRODUCED by renderAcctList() in common.js; the same names are used here so JS stays untouched (not edge.css's own e- prefix). */
 .acct-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--e-radius);cursor:pointer;background:transparent;font-size:13px;color:var(--e-body)}
 .acct-row:hover{background:var(--e-s3)}
 .acct-row.active{background:var(--e-s3)}
 .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:var(--e-title)}
 .acct-row .tag{font-size:10px;font-weight:700;color:var(--e-brandActive);background:rgba(86,36,179,.18);border:1px solid var(--e-bdActive);border-radius:20px;padding:2px 7px;flex:none}
-/* Hesap satırı durum noktaları: yeşil = arka planda kart/saat çalışıyor, teal = sadece bağlı */
+/* Account row status dots: green = card/hours running in the background, teal = only connected */
 .acct-row .run-dot{width:7px;height:7px;border-radius:12px;background:var(--e-ok);flex:none;animation:e-dotPulse 2s ease-in-out infinite}
 .acct-row .conn-dot{width:7px;height:7px;border-radius:12px;background:var(--e-blue);flex:none}
 .acct-row .x{color:var(--e-off);padding:2px 5px;border-radius:6px;font-size:12px;line-height:1;flex:none}
@@ -113,10 +108,7 @@
 .e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--e-bad);line-height:1}
 .e-acct-signout-sub{font-size:10px;color:var(--e-off);line-height:1.3;margin-top:3px}
 
-/* ---- Ayarlar > Hesap kartındaki kimlik satırları ----
-   Kartın kendi satırlarıyla AYNI kalıp: etiket solda 11 px, değer sağda mono 12 px, üstte
-   aynı ince çizgi. Ayrı bir kutu gibi durmasınlar diye ölçüler oradan alındı; tek farkları
-   tıklanınca değeri panoya kopyalamaları. */
+/* ---- Settings > identity rows in the Account card ---- The SAME pattern as the card's own rows: label on the left 11 px, value on the right mono 12 px, the same thin line on top. The measurements are taken from there so they do not look like a separate box; their only difference is that clicking copies the value to the clipboard. */
 .e-kimlik-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621;cursor:pointer}
 .e-kimlik-row:hover .v{color:var(--e-brandSoft,#C2AAEE)}
 .e-kimlik-row .k{font-size:11px;color:var(--e-off)}
@@ -127,11 +119,11 @@
 .e-kimlik-alt button:hover{border-color:var(--e-brand);color:var(--e-title)}
 .e-kimlik-alt button:disabled{opacity:.4;cursor:default;border-color:var(--e-bdPassive);color:var(--e-off)}
 
-/* ---- bildirim dropdown ---- */
+/* ---- notification dropdown ---- */
 .e-notif-dropdown{position:fixed;top:64px;right:20px;z-index:40;width:320px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 18px 44px rgba(3,3,5,.66);overflow:hidden;display:none}
 .e-notif-dropdown.open{display:block}
 .e-notif-list{max-height:320px;overflow-y:auto;padding:6px}
-/* .notif-item / .a / .b / .t - common.js'in renderNotifList()'inde üretilen isimler */
+/* The .notif-item / .a / .b / .t names are produced by renderNotifList() in common.js */
 .notif-item{padding:9px 10px;border-radius:var(--e-radius)}
 .notif-item:hover{background:var(--e-s2)}
 .notif-item .a{font-size:12.5px;font-weight:600;color:var(--e-title)}
@@ -140,9 +132,7 @@
 
 /* ---- content shell ---- */
 .e-main{flex:1 1 0;min-width:1180px;display:flex;flex-direction:column;background:var(--e-bg);min-height:0}
-/* Sekme bölümleri <main>'in doğrudan çocuğu gibi davranır: dikeyde yayılır ve kendi
-   içinde scroll eder. Bunlar flex kapsayıcı olmazsa içerideki flex:1 kutular esnemiyor ve
-   sayfanın altında boşluk kalıyordu. .hidden'ı ezmemek için ayrıca tanımlanıyor. */
+/* Tab sections behave like direct children of <main>: they stretch vertically and scroll inside themselves. Without being flex containers the flex:1 boxes inside did not stretch and a gap was left at the bottom of the page. Defined separately so as not to override .hidden. */
 .e-main > section{flex:1;min-height:0;display:flex;flex-direction:column}
 .e-main > section.hidden{display:none}
 .e-page{flex:1;overflow-y:auto;padding:24px 26px 30px 44px;display:flex;flex-direction:column;gap:18px;width:100%;max-width:1560px;margin:0}
@@ -157,19 +147,13 @@
 .e-btn.danger:hover{background:#8F1D42;border-color:#8F1D42}
 .e-btn.ghost{background:transparent}
 .e-card{border:1px solid var(--e-bd);border-radius:var(--e-radius);background:var(--e-s1)}
-/* Anahtar (kaydirmali on/off).
-   DIKKAT: hem .e-toggle hem .e-knob <span> - varsayilan display:inline. Inline kutuda
-   width/height YOK SAYILIR, bu yuzden topuz hic cizilmiyor ve anahtar yalnizca renk
-   degistiren dolu bir kutu gibi gorunuyordu. display'i acikca vermek sart. */
+/* Switch (sliding on/off). CAUTION: both .e-toggle and .e-knob are <span> - default display:inline. Width/height are IGNORED on an inline box, so the knob was never drawn and the switch looked like a filled box that only changed colour. display must be given explicitly. */
 .e-toggle{display:flex;align-items:center;width:38px;height:22px;border-radius:12px;padding:2px;cursor:pointer;flex-shrink:0;border:1px solid var(--e-bd);background:var(--e-s3);box-sizing:border-box}
 .e-toggle .e-knob{display:block;width:16px;height:16px;border-radius:12px;background:var(--e-off);transition:margin-left .15s ease;flex-shrink:0}
 .e-toggle.on{background:var(--e-brand);border-color:var(--e-brand)}
 .e-toggle.on .e-knob{margin-left:16px;background:var(--e-title)}
 
-/* ---- Kart Düşür / Saat Yükseltici: JS ve eski kart.css/saat.css class'ları (.mode-c, .kq-row,
-   .pbar, .tbadge, .bcard vb.) DEĞİŞMEDİ - var(--xxx) kullandıkları için burada SteamEdge
-   paletine yeniden tanımlanınca otomatik boyanıyorlar (genel/basarim/env/ayarlar'da kullanılan
-   aynı teknik - bkz redesign.css). */
+/* ---- Card Farming / Hour Booster: the JS and the old kart.css/saat.css classes (.mode-c, .kq-row, .pbar, .tbadge, .bcard etc.) did NOT CHANGE - since they use var(--xxx), redefining those here to the SteamEdge palette paints them automatically (the same technique used in overview/achievements/inventory/settings - see redesign.css). */
 #tab-kart, #tab-saat{
   --bg:#030305; --panel:#0D1118; --card:#0D1118; --card2:#151C28;
   --line:#1D2432; --line-2:#2B3345;
@@ -181,7 +165,7 @@
   background:#030305;
 }
 
-/* ---- ortak bileşenler (istatistik kartı, panel, form, pill, toggle-satırı) ---- */
+/* ---- shared components (stat card, panel, form, pill, toggle row) ---- */
 .e-eyebrow-sm{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--e-off)}
 .e-stat{border:1px solid var(--e-bd);border-radius:var(--e-radius);background:var(--e-s1);padding:16px 18px;display:flex;align-items:center;gap:14px}
 .e-stat-ic{width:38px;height:38px;flex-shrink:0;border-radius:var(--e-radius);background:var(--e-s3);display:flex;align-items:center;justify-content:center;color:var(--e-sub)}
@@ -210,24 +194,24 @@
 .e-tab-btn:hover{border-color:var(--e-brand)}
 .e-tab-btn.active{background:var(--e-s3);color:var(--e-title);border-color:var(--e-bdActive)}
 
-/* ================================================================
-   HOVER / FOCUS YARDIMCILARI
-   Sayfa iskeletlerinde ölçü ve renk değerleri inline duruyor. Inline
-   style :hover ve :focus ifade edemediği için sadece bu durumlar
-   buradaki class'lara çevrildi.
-   ================================================================ */
+/*
+   ================================================================
+   HOVER / FOCUS HELPERS
+   Sizes and colour values are inline in the page skeletons. Since inline style cannot express :hover and :focus,
+   only those states were turned into classes here.
+   ================================================================
+*/
 .h-brand:hover{border-color:#5624B3;color:#DCE2FA}
 .h-bd:hover{border-color:#5624B3}
 .h-row:hover{background:#101621}
 .h-s3:hover{background:#151C28}
-.h-start:hover{background:#451D8F;border-color:#451D8F}  /* Başlat */
-.h-stop:hover{background:#8F1D42;border-color:#8F1D42}   /* Durdur */
+.h-start:hover{background:#451D8F;border-color:#451D8F}  /* Start */
+.h-stop:hover{background:#8F1D42;border-color:#8F1D42}   /* Stop */
 .h-logout:hover{color:#B32453;background:#101621}
 .h-signout:hover{background:#B32453;border-color:#B32453;color:#DCE2FA}
 .f-focus:focus{border-color:#7031CC}
 
-/* ---- "Arayüz yoğunluğu: Sıkışık" (Ayarlar > Genel > density) ----
-   Satır yükseklikleri ve panel iç boşlukları daralır; tek ekranda daha çok içerik görünür. */
+/* ---- "Interface density: Compact" (Settings > General > density) ---- Row heights and panel paddings shrink; more content is visible on one screen. */
 body.e-compact .e-nav-item{height:34px}
 body.e-compact .e-header{height:52px}
 body.e-compact .e-panel-hd{height:40px}
@@ -238,9 +222,11 @@ body.e-compact [style*="padding:16px 18px"]{padding:10px 12px!important}
 body.e-compact [style*="gap:18px"]{gap:11px!important}
 body.e-compact [style*="gap:14px"]{gap:9px!important}
 
-/* ================================================================
-   ONAY MODALI - yerel confirm() kutusunun tema uyumlu karşılığı.
-   ================================================================ */
+/*
+   ================================================================
+   CONFIRM MODAL - the theme-matched counterpart of the native confirm() box.
+   ================================================================
+*/
 .e-modal-back{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
   background:rgba(3,3,5,.72);backdrop-filter:blur(3px);opacity:0;transition:opacity .13s ease}
 .e-modal-back.show{opacity:1}
@@ -263,7 +249,7 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 .e-modal-ask span{font-size:12px;color:#8B8F9E}
 .e-modal-ask:hover span{color:#B9C0D6}
 .e-modal-ft{padding:14px 18px;display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;border-top:1px solid #1D2432;background:#090C12}
-/* Uc dugmeli pencerede (kaydedilmemis degisiklik gibi) dugme metni iki satira kiriliyordu */
+/* In a three-button window (such as unsaved changes) the button text wrapped onto two lines */
 .e-modal:has(.e-modal-ft .alt){width:560px}
 .e-modal-ft button{white-space:nowrap}
 .e-modal-ft button{height:36px;padding:0 18px;border-radius:999px;font-size:11px;font-weight:700;
@@ -277,7 +263,7 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 .e-modal-ft .alt{background:transparent;border:1px solid #333D4D;color:#B9C0D6}
 .e-modal-ft .alt:hover{border-color:#7031CC;color:#DCE2FA}
 
-/* ---- toast (common.css'in eski .toast'ı - sadece renkleri yeni palete taşındı) ---- */
+/* ---- toast (the old .toast of common.css - only the colours were moved to the new palette) ---- */
 .toast{background:var(--e-s1)!important;border-color:var(--e-bd)!important;color:var(--e-body)!important}
 .toast.ok{border-color:var(--e-ok)!important}
 .toast.err{border-color:var(--e-bad)!important}
@@ -286,16 +272,17 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 .toast .terr{color:var(--e-bad)!important}
 
 
-/* ================================================================
-   DAR EKRAN UYUMU
-   Sorun: pencere genisleyince icerik yayiliyordu ama DARALINCA hicbir sey
-   kuculmuyordu - sabit genislikli yan paneller (290-320px) ve buyuk sol
-   bosluklar (44px) icerigi sikistirip yatay kaydirmaya zorluyordu.
-   Sayfa olculeri HTML'de inline oldugu icin burada oznitelik secicisiyle
-   eziliyor (body.e-compact ile ayni teknik).
-   ================================================================ */
+/*
+   ================================================================
+   NARROW SCREEN FIT
+   Problem: when the window widened the content spread, but when it NARROWED nothing shrank -
+   fixed-width side panels (290-320px) and large left gaps (44px) squeezed the content and forced horizontal scrolling.
+   Since page measurements are inline in the HTML, they are overridden here with an attribute selector
+   (the same technique as body.e-compact).
+   ================================================================
+*/
 
-/* ---- 1280px alti: sol bosluklari kucult ---- */
+/* ---- below 1280px: shrink the left gaps ---- */
 @media (max-width: 1280px) {
   .edge [style*="padding:24px 26px 30px 44px"]{padding:18px 20px 22px 24px!important}
   .edge [style*="padding:20px 26px 16px 44px"]{padding:16px 20px 12px 24px!important}
@@ -304,17 +291,17 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
   .edge [style*="padding-left:30px"]{padding-left:18px!important}
   .edge [style*="padding:12px 26px 20px"]{padding:12px 18px 16px!important}
   .edge [style*="padding:12px 30px"]{padding:12px 18px!important}
-  /* Yan paneller: sabit genislik yerine daralabilir */
+  /* Side panels: shrinkable instead of fixed width */
   .edge [style*="width:290px"]{width:230px!important}
   .edge [style*="width:320px"]{width:250px!important}
   .edge [style*="width:280px"]{width:224px!important}
-  .edge [style*="width:300px"]{width:200px!important}   /* ust bardaki arama */
-  .edge [style*="width:352px"]{width:280px!important}   /* Gercekci Mod sol sutunu */
+  .edge [style*="width:300px"]{width:200px!important}   /* search in the top bar */
+  .edge [style*="width:352px"]{width:280px!important}   /* Realistic Mode left column */
 }
 
-/* ---- 1080px alti: yan panelleri daha da kucult, ust bar sikislsin ---- */
+/* ---- below 1080px: shrink the side panels further, tighten the top bar ---- */
 @media (max-width: 1080px) {
-  .edge [style*="width:352px"]{width:240px!important}   /* Gercekci Mod sol sutunu */
+  .edge [style*="width:352px"]{width:240px!important}   /* Realistic Mode left column */
   .edge [style*="padding:24px 26px 30px 44px"]{padding:14px 14px 18px 16px!important}
   .edge [style*="padding:20px 26px 16px 44px"]{padding:12px 14px 10px 16px!important}
   .edge [style*="padding:18px 22px 18px 44px"]{padding:12px 14px 12px 16px!important}
@@ -324,22 +311,22 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
   .edge [style*="width:280px"]{width:200px!important}
   .edge .e-header{padding:0 12px 0 10px;gap:12px}
   .edge [style*="width:300px"]{width:150px!important}
-  /* Sekme etiketleri: ray kapali olmasa da daralsin */
+  /* Tab labels: shrink even when the rail is not closed */
   .e-nav-item .e-lbl{width:104px!important}
 }
 
-/* ---- 940px alti: yan panel gizlenir yerine ALTA gecer ---- */
+/* ---- below 940px: the side panel moves to the BOTTOM instead of hiding ---- */
 @media (max-width: 940px) {
-  .edge [style*="width:352px"]{width:210px!important}   /* Gercekci Mod sol sutunu */
-  /* Sag ayar panelleri asagi kayar, icerik tam genislik alir */
+  .edge [style*="width:352px"]{width:210px!important}   /* Realistic Mode left column */
+  /* Right settings panels slide down, the content takes full width */
   .edge [style*="border-left:1px solid #1D2432"]{
     border-left:0!important;border-top:1px solid #1D2432!important;
     width:100%!important;max-height:none!important;
   }
-  /* Sayfa govdesi dikey akisa geciyor */
+  /* The page body switches to vertical flow */
   .edge [style*="flex:1;min-height:0;display:flex;gap:0"]{flex-direction:column!important;overflow-y:auto!important}
   .edge [style*="flex:1;min-width:0;min-height:0;display:flex"]{flex-direction:column!important}
-  /* Sol kutuphane listesi sabit yukseklikle kalir, sayfayi bogmasin */
+  /* The left library list keeps a fixed height so it does not choke the page */
   .edge [style*="width:290px"],.edge [style*="width:320px"]{
     width:100%!important;max-height:320px!important;border-right:0!important;
     border-bottom:1px solid #1D2432!important;
@@ -348,57 +335,31 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
   .e-search{width:100%!important;order:3}
 }
 
-/* Sayfa govdesi ASLA yatay kaymaz - tasan icerik kendi kutusunda kayar. */
+/* The page body NEVER scrolls horizontally - overflowing content scrolls in its own box. */
 .edge .e-main{overflow-x:hidden}
 .edge table,.edge pre{max-width:100%;overflow-x:auto;display:block}
 
-/* Gercekci Mod'un sag paneli dar (352 px sutun). Anahtar satirlarindaki etiketler flex
-   ogesi oldugu icin varsayilan min-width:auto ile icerik genisliginin altina inmiyor,
-   satiri tasiriyor ve panelde saga sola kayma yapiyordu. */
-/* Anahtar satirlari: etiket + toggle. Etiket bir flex ogesi oldugu icin varsayilan
-   min-width:auto ile icerik genisliginin altina inmiyor ve 352 px'lik dar panelde satiri
-   tasiriyordu. :has ile tam olarak bu satirlar hedefleniyor, id'ye bagli degil. */
+/* Realistic Mode's right panel is narrow (352 px column). Because the labels in the switch rows are flex items, the default min-width:auto keeps them from going below the content width, they overflow the row and the panel shifted left and right. */
+/* Switch rows: label + toggle. Because the label is a flex item, the default min-width:auto keeps it from going below the content width and it overflowed the row in the narrow 352 px panel. :has targets exactly these rows, it does not depend on an id. */
 #tab-gercekci div:has(> .gr-toggle) > span,
 #tab-gercekci div:has(> .gr-toggle) > div,
 #tab-gercekci div:has(> .gr-toggle) > div > span{min-width:0;overflow-wrap:break-word}
-/* Ipucu kutusu 264 px ve left:50% ile ortalaniyor. 352 px'lik dar panelde sagdan tasip
-   govde satirinda (overflow-x:auto) yatay kaydirma cubugu doguruyordu; gizli olmasi fark
-   etmiyor, mutlak konumlu ogeler scrollWidth'e giriyor. Dar panellerde saga yaslaniyor,
-   boylece 264 px sola dogru aciliyor ve panelin icinde kaliyor. */
-/* Ipucu balonu 264 piksel ve mutlak konumlu. Ortalanmis halde (left:50%) dar bir
-   sutunda 130 pikselden fazlasi saga tasiyor; mutlak konumlu kutu da kaydirilabilir
-   atasinin scrollWidth'ine SAYILDIGI icin panelde yatay kaydirma cubugu beliriyordu.
-   Dar panellerin tamaminda balon saga yaslaniyor, yani sola dogru aciliyor: 264 piksel
-   290 piksellik sutuna sigiyor ve tasma kalmiyor. */
+/* The tooltip box is 264 px and centred with left:50%. In the narrow 352 px panel it overflowed on the right and produced a horizontal scrollbar in the body row (overflow-x:auto); being hidden does not matter, absolutely positioned items count toward scrollWidth. In narrow panels it is pushed to the right, so the 264 px opens toward the left and stays inside the panel. */
+/* The tooltip bubble is 264 pixels and absolutely positioned. When centred (left:50%) in a narrow column more than 130 pixels spill to the right; since an absolutely positioned box is COUNTED in the scrollWidth of its scrollable ancestor, a horizontal scrollbar appeared in the panel. In all narrow panels the bubble is pushed to the right, i.e. it opens toward the left: 264 pixels fit into the 290 pixel column and no overflow remains. */
 #tab-gercekci [data-tip]::after,
 #tab-saat [data-tip]::after,
 #acSortDir[data-tip]::after{left:auto;right:0;transform:none}
 
-/* overflow-y:auto verilen bir kutuda overflow-x kendiliginden `auto` olur (visible,
-   diger eksen kaydirilabilirken auto'ya doner). Yani dikey kaydirma isteyen her panel
-   istemeden yatay kaydirma da kazaniyor. Bu sutunlar sabit genislikte; yatay kaydirma
-   tasarimda yok, kirpiliyor. `clip` secildi cunku `hidden`in aksine yeni bir kaydirma
-   baglami kurmuyor. */
+/* In a box given overflow-y:auto, overflow-x becomes `auto` by itself (visible turns into auto when the other axis is scrollable). So every panel that wants vertical scrolling unintentionally gains horizontal scrolling too. These columns have a fixed width; there is no horizontal scrolling in the design, it is clipped. `clip` was chosen because, unlike `hidden`, it does not create a new scroll context. */
 #tab-gercekci .gr-yan{overflow-x:clip}
 
-/* Flex cocugunun varsayilan min-width degeri `auto`dur: icerigi kadar yer kaplar ve
-   daralmayi reddeder. Yanina ipucu `?`si konan etiketler bu yuzden kabindan tasiyordu
-   (161 piksellik satirda 167 piksel). min-width:0 verilince etiket ikinci satira
-   sariyor, hicbir sey kirpilmiyor. */
+/* The default min-width of a flex child is `auto`: it takes as much room as its content and refuses to shrink. Labels with a tooltip `?` next to them therefore overflowed their container (167 pixels in a 161 pixel row). With min-width:0 the label wraps to a second line and nothing is clipped. */
 #tab-gercekci .gr-yan span{min-width:0}
 
-/* Ipucu `?`si tiklama alanini buyutmek icin `margin:-6px;padding:6px` kullaniyor:
-   gorunen 14 piksel, dokunulabilir 26 piksel. Negatif kenar bosluguna ragmen dolgu
-   kutusu saga 6 piksel tasiyor ve satiri kabindan genis gosteriyor. Bu sutunda sag
-   taraftaki fazlalik kaldiriliyor - `?` zaten satirin sonunda, sagina tiklanmiyor.
-   Inline stil oldugu icin !important sart. */
+/* The tooltip `?` uses `margin:-6px;padding:6px` to enlarge the click area: 14 pixels visible, 26 pixels touchable. Despite the negative margin, the padding box overflows 6 pixels to the right and makes the row look wider than its container. In this column the surplus on the right is removed - the `?` is already at the end of the row, nobody clicks to its right. !important is required because it is an inline style. */
 #tab-gercekci .gr-yan [data-tip]{margin-right:0 !important;padding-right:0 !important}
 
-/* HAFIF MOD - pencere odakta degilken.
-   Sonsuz animasyonlar (durum noktalari, spinner) odak disindayken bile her karede
-   kompozisyon yaptiriyor; tam ekran bir oyunla ayni masaustunde bu, oyunun sunum
-   yolunu bozup kare hizini dusuruyor. Duraklatmak kareyi tamamen kesiyor.
-   Gecisler de kapatiliyor: odak disinda kimse bakmiyor. */
+/* LIGHT MODE - while the window is not focused. Infinite animations (status dots, spinner) force compositing on every frame even when unfocused; on the same desktop as a full-screen game this disturbs the game's presentation path and drops the frame rate. Pausing cuts the frame entirely. Transitions are turned off too: nobody is looking while unfocused. */
 .e-durgun *,
 .e-durgun *::before,
 .e-durgun *::after{animation-play-state:paused!important;transition:none!important}

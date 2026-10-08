@@ -1,19 +1,20 @@
-<!-- ================================================================
-     GERÇEKÇİ MOD
-     Tasarım şablondan birebir alındı (Template Steam > App UI rebuilt as component).
-     Şablon bir bileşen dili kullanıyor: {{ değer }} yer tutucuları, sc-if / sc-for
-     blokları, style-hover / style-focus öznitelikleri. Burada karşılıkları:
-       {{ x }}        -> id taşıyan element, içeriği gercekci.js dolduruyor
-       sc-if          -> id'li kap, görünürlüğü JS açıp kapatıyor
-       sc-for         -> JS'in ürettiği satırlar
-       style-hover    -> edge.css'teki h-* sınıfları
-       style-focus    -> edge.css'teki f-* sınıfları
-     Ölçü, renk ve boşluk değerleri şablondaki gibi inline duruyor; hiçbiri
-     yeniden yorumlanmadı.
-     ================================================================ -->
+<!--
+  ================================================================
+  GERÇEKÇİ MOD (REALISTIC MODE)
+  The design was taken from the template as is (Template Steam > App UI rebuilt as component).
+  The template uses a component language: {{ value }} placeholders, sc-if / sc-for blocks,
+  style-hover / style-focus attributes. Their counterparts here:
+    {{ x }}      -> an element that carries an id, gercekci.js fills its content
+    sc-if        -> a container with an id, JS shows/hides it
+    sc-for       -> rows produced by JS
+    style-hover  -> the h-* classes in edge.css
+    style-focus  -> the f-* classes in edge.css
+  Sizes, colours and spacing are inline as in the template; none was reinterpreted.
+  ================================================================
+-->
 <div style="flex:1;min-height:0;display:flex;flex-direction:column">
 
-  <!-- ÜST ŞERİT: başlık + kalan süre + başlat/durdur -->
+  <!-- TOP STRIP: title + remaining time + start/stop -->
   <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
     <div style="display:flex;flex-direction:column;gap:6px">
       <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Tek Oyun · Saat + Başarım</span>
@@ -30,7 +31,7 @@
     </div>
   </div>
 
-  <!-- ÖZET ŞERİT: oyun, açılan, ortalama aralık, genel ilerleme -->
+  <!-- SUMMARY STRIP: game, unlocked, average gap, overall progress -->
   <div style="flex-shrink:0;padding:16px 26px 16px 44px;border-bottom:1px solid #1D2432;background:#090C12">
     <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 20px;display:flex;align-items:center;gap:24px;flex-wrap:wrap">
       <div id="grGameArt" style="width:48px;height:48px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 6px,#101621 6px 12px);overflow:hidden"></div>
@@ -62,7 +63,7 @@
 
   <div style="flex:1;min-height:0;display:flex;gap:0">
 
-    <!-- SOL: oyun listesi, süre, hedef -->
+    <!-- LEFT: game list, duration, target -->
     <div style="width:352px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
       <div style="flex-shrink:0;padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;justify-content:space-between">
@@ -118,7 +119,7 @@
       </div>
     </div>
 
-    <!-- ORTA: sırada + açılma sırası -->
+    <!-- MIDDLE: next in line + unlock order -->
     <div style="flex:1;min-width:0;overflow-y:auto;padding:20px 26px 26px 44px;display:flex;flex-direction:column;gap:18px">
 
       <div id="grNoAch" style="display:none;border:1px solid #B37E24;border-radius:12px;background:#0D1118;padding:16px 18px;align-items:center;gap:14px">
@@ -171,7 +172,7 @@
       </div>
     </div>
 
-    <!-- SAĞ: basit / gelişmiş ayarlar -->
+    <!-- RIGHT: simple / advanced settings -->
     <div class="gr-yan" style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
       <div style="display:flex;gap:4px;padding:3px;border-radius:999px;background:#0D1118;border:1px solid #2B3345">
         <button id="grLvlSimple" style="flex:1;height:28px;border-radius:999px;border:1px solid #5624B3;background:#151C28;color:#DCE2FA;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Basit</button>
@@ -184,10 +185,7 @@
             <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">%100 Bitiş Süresi</span>
             <span data-tip="Bu oyunu başarımlarıyla birlikte bitirmek kaç saat sürer. Ana hikayenin süresi değil, hepsini toplama süresi. Boş bırakırsan aşağıdaki oyun türünden tahmin edilir; ama o tahmin senin oynadığın süreye dayandığı için çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
           </div>
-          <!-- Kutu, altindaki acilir listelerle AYNI genislikte olmali. Eskiden satir
-               "input + saat" seklinde iki flex cocuguydu; "saat" etiketi kadar dar
-               kaliyor ve panelde tek kutu ice kacik duruyordu. Birim artik alanin
-               icinde, konumlandirilmis; disaridaki kap tam genislikte. -->
+          <!-- The box must be the SAME width as the dropdowns under it. The row used to be two flex children, "input + hours"; it stayed as narrow as the "hours" label and a single box sat tucked in the panel. The unit is now inside the field, positioned; the outer container is full width. -->
           <div style="position:relative;width:100%">
             <input id="grTcMain" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
             <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#656D80;pointer-events:none">saat</span>
@@ -208,8 +206,7 @@
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Başarımlar Ne Kadar Zor</span>
           <select id="grDiff" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
-            <!-- Şablonda bu satırlarda uzun çizgi (em dash) vardı; projenin kuralı gereği
-                 düz çizgiye çevrildi. Görsel dizilim aynı. -->
+            <!-- The template had long dashes (em dash) on these rows; they were turned into plain dashes per the project's rule. The visual layout is the same. -->
             <option value="0.8">Kolay - hikayeyle gelir</option>
             <option value="1.2">Normal - biraz uğraşır</option>
             <option value="2.0">Zor - grind gerekir</option>
@@ -262,9 +259,7 @@
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun Verisi · HLTB</span>
           <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-            <!-- "%100 süresi · Tc" satırı kaldırıldı: aynı değer artık ana paneldeki
-                 "%100 Bitiş Süresi" kutusunda ve oyun başına saklanıyor. İki yerde
-                 durunca hangisinin geçerli olduğu belirsizdi. -->
+            <!-- The "100% time · Tc" row was removed: the same value is now in the "%100 Bitiş Süresi" box in the main panel and is kept per game. With it in two places it was unclear which one applied. -->
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
               <span style="font-size:12px;color:#B9C0D6">Oyun türü · CR</span>
               <select id="grCR2" class="f-brand" style="width:126px;height:26px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
@@ -312,9 +307,7 @@
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px">
-        <!-- "Başarımı Olmayan Oyunlar" seçim kutusu kaldırıldı: saat toplamak, oyunu atlamak
-             ya da sırayı durdurmak bu sayfanın işi değil. Başarımı olmadığı anlaşılan oyun
-             listeden düşer ve bir daha görünmez. -->
+        <!-- The "Başarımı Olmayan Oyunlar" select box was removed: collecting hours, skipping the game or stopping the queue is not this page's job. A game found to have no achievements drops off the list and is not shown again. -->
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Kütüphane</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
@@ -325,10 +318,7 @@
             <span style="font-size:12px;color:#B9C0D6">Başarımsız oyunları listede göster</span>
             <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
-          <!-- "Süreyi ayarlara göre belirle" satiri 1.1.5'te eklenirken, bir sonraki
-               satirin ACIK olan <div>'inin ICINE dusmus. Bu yuzden tek satirda uc flex
-               cocugu yan yana geliyor ve etiketler harf harf alt alta iniyor, panelde de
-               yatay kaydirma cikiyordu. Iki satir artik kardes. -->
+          <!-- When the "Süreyi ayarlara göre belirle" row was added in 1.1.5, it had fallen INSIDE the OPEN <div> of the next row. Because of this three flex children came side by side on a single row and the labels dropped down letter by letter, and the panel got a horizontal scroll. The two rows are now siblings. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <div style="display:flex;align-items:center;gap:7px;min-width:0">
               <span style="font-size:12px;color:#B9C0D6">Süreyi ayarlara göre belirle</span>

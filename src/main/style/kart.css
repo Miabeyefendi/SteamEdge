@@ -1,4 +1,4 @@
-  /* ---- Kart Düşür ---- */
+  /* ---- Card Farming ---- */
   .pg-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .pg-head h1{font-size:24px;font-weight:800}
   .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--green);background:#12261a;border:1px solid #1e3a26;border-radius:20px;padding:5px 11px}
@@ -69,7 +69,7 @@
   .bigacts .btn{flex:1;height:var(--btn-lg);font-size:15px;font-weight:700;box-shadow:var(--shadow)}
   .kfoot{display:flex;align-items:center;gap:22px;justify-content:flex-end;margin-top:18px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);font-size:12.5px;color:var(--text-2)}
   .kfoot .dg{display:inline-flex;align-items:center;gap:6px}.kfoot .dg .d{width:7px;height:7px;border-radius:50%;background:var(--green)}
-  /* ---- Kart Düşür v2 (template-driven redesign) ---- */
+  /* ---- Card Farming v2 (template-driven redesign) ---- */
   .kart-layout{display:flex;gap:var(--gap);flex:1;min-height:0}
   .kart-left{width:260px;flex:none;display:flex;flex-direction:column;gap:12px}
   .kart-left .modes{display:flex;flex-direction:column;gap:5px}

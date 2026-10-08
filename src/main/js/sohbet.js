@@ -1,20 +1,20 @@
-    // ================= SOHBET =================
-    // Steam'in birebir arkadas mesajlari. Motor tarafi steamEngine.js > "SOHBET".
+    // ================= CHAT =================
+    // Steam's one-to-one friend messages. The engine side is steamEngine.js > "CHAT".
     //
-    // Gelen mesaj iki yoldan geliyor:
-    //   1. common.js zaten 'chat:message' olayini dinleyip bildirim cikariyordu (1.0.x'ten
-    //      beri var). Orada dokunulmadi.
-    //   2. Bu sayfa ayni olaya abone olup acik yazismaya mesaji EKLIYOR; kisi listesindeki
-    //      okunmamis rozetini de o guncelliyor.
+    // An incoming message arrives by two paths:
+    //   1. common.js was already listening to the 'chat:message' event and raising a notification (since
+    //      1.0.x). Nothing was touched there.
+    //   2. This page subscribes to the same event and ADDS the message to the open conversation; it also
+    //      updates the unread badge in the contact list.
     //
-    // Grup sohbetleri KAPSAM DISI: Steam'de ayri bir kavram (chat room groups), ayri bir
-    // ekran ve ayri bir izin modeli ister. Buradaki her sey arkadas listesi uzerinden.
+    // Group chats are OUT OF SCOPE: in Steam they are a separate concept (chat room groups) and need a separate
+    // screen and a separate permission model. Everything here goes through the friend list.
     let chArkadaslar = [];
     let chSecili = null;                  // steamid
     let chMesajlar = new Map();           // steamid -> [{ben, metin, ts}]
-    let chOkunmamis = new Map();          // steamid -> sayi
+    let chOkunmamis = new Map();          // steamid -> count
     let chYuklendi = false;
-    let chIstek = 0;                      // yaris kosulu sayaci
+    let chIstek = 0;                      // race condition counter
     let chYaziyorSon = 0;
 
     const chEl = (id) => document.getElementById(id);
@@ -29,8 +29,8 @@
       return ayniGun ? (iki(d.getHours()) + ':' + iki(d.getMinutes()))
                      : (iki(d.getDate()) + '.' + iki(d.getMonth()+1) + ' ' + iki(d.getHours()) + ':' + iki(d.getMinutes()));
     }
-    // Steam persona_state: 0 cevrimdisi, 1 cevrimici, 2 mesgul, 3 uzakta, 4 uyku,
-    // 5/6 takas/oyun arayan. Ayrintiyi gostermeye gerek yok, ucu yeter.
+    // Steam persona_state: 0 offline, 1 online, 2 busy, 3 away, 4 snooze,
+    // 5/6 looking to trade/play. There is no need to show the detail, three is enough.
     function chDurumRenk(d){ return d > 0 ? CHC.ok : CHC.off; }
     function chDurumAd(a){
       if (a.oyun) return a.oyun;
@@ -55,7 +55,7 @@
         return;
       }
       chArkadaslar = r.friends || [];
-      // Okunmamis sayilari son konusmalardan gelir; arkadas listesinde bu bilgi yok.
+      // Unread counts come from the recent conversations; the friend list does not have this information.
       const k = await window.imu.sohbet.conversations().catch(()=>null);
       if (k && k.ok){
         chOkunmamis = new Map((k.konusmalar||[]).map(x=>[x.steamid, x.okunmamis||0]));
@@ -119,14 +119,14 @@
       const istek = ++chIstek;
       chEl('chMesajlar').innerHTML = '<div style="color:#8B8F9E;font-size:12px">Yazışma yükleniyor...</div>';
       const r = await window.imu.sohbet.history(steamid, 50).catch(e=>({ ok:false, error:(e&&e.message) }));
-      if (istek !== chIstek) return;                 // kullanici baska kisiye gecti
+      if (istek !== chIstek) return;                 // the user moved to another person
       if (!r || !r.ok){
         chEl('chMesajlar').innerHTML = '<div style="color:#B32453;font-size:12px">'+esc((r&&r.error)||'Yazışma alınamadı.')+'</div>';
         return;
       }
       chMesajlar.set(steamid, r.mesajlar || []);
       chMesajBoya();
-      window.imu.sohbet.read(steamid).catch(()=>{});   // Steam'de de okundu sayilsin
+      window.imu.sohbet.read(steamid).catch(()=>{});   // so it also counts as read on Steam
     }
 
     function chMesajBoya(){
@@ -153,7 +153,7 @@
       if (!metin || !chSecili) return;
       giris.value = '';
       giris.style.height = 'auto';
-      // Iyimser cizim: mesaji hemen goster, Steam reddederse geri al ve sebebini soyle.
+      // Optimistic drawing: show the message right away, if Steam rejects it take it back and say why.
       const liste = chMesajlar.get(chSecili) || [];
       const gecici = { ben: true, metin, ts: Date.now(), gecici: true };
       liste.push(gecici);
@@ -173,15 +173,15 @@
     }
     chEl('chGonder').onclick = chGonder;
     chEl('chGiris').addEventListener('keydown', (e)=>{
-      // Enter gonderir, Shift+Enter satir atlar - sohbet uygulamalarinin ortak kalibi.
+      // Enter sends, Shift+Enter breaks the line - the common pattern of chat apps.
       if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); chGonder(); return; }
-      // "Yaziyor..." bildirimi: saniyede birden fazla gonderilmez.
+      // "Typing..." notification: not sent more than once a second.
       if (chSecili && Date.now() - chYaziyorSon > 4000){
         chYaziyorSon = Date.now();
         window.imu.sohbet.typing(chSecili);
       }
     });
-    // Kutu yazdikca buyusun, 120 px'te dursun (CSS max-height ile birlikte).
+    // The box grows as you type, stops at 120 px (together with the CSS max-height).
     chEl('chGiris').addEventListener('input', (e)=>{
       e.target.style.height = 'auto';
       e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px';
@@ -190,7 +190,7 @@
       if (chSecili) window.imu.openExternal('https://steamcommunity.com/profiles/' + chSecili);
     };
 
-    // Gelen mesaj: acik yazismaya ekle, degilse okunmamis rozetini artir.
+    // Incoming message: add it to the open conversation, otherwise raise the unread badge.
     if (window.imu.onChatMessage){
       window.imu.onChatMessage((m)=>{
         if (!m || !m.from) return;

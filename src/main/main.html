@@ -7,9 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style/edge.css">
-<!-- Kart Düşür / Saat Yükseltici bu turda SteamEdge tasarımına geçiyor; eski common/kart/saat CSS'i
-     hâlâ yükleniyor çünkü kart.js/saat.js'in ürettiği bazı iç class'lar (örn. .cslot, .tbadge) oraya ait
-     ve henüz taşınmadı - edge.css bunların ÜSTÜNE, çakışmayan yeni class adlarıyla ekleniyor. -->
+<!-- Kart Düşür / Saat Yükseltici are moving to the SteamEdge design in this round; the old common/kart/saat CSS is still loaded because some inner classes produced by kart.js/saat.js (e.g. .cslot, .tbadge) belong to it and have not been moved yet - edge.css is added ON TOP of them, with new class names that do not clash. -->
 <link rel="stylesheet" href="style/common.css">
 <link rel="stylesheet" href="style/kart.css">
 <link rel="stylesheet" href="style/saat.css">
@@ -21,7 +19,7 @@
 </head>
 <body class="edge" style="margin:0;height:100vh;min-height:600px;display:flex;flex-direction:column;background:var(--e-bg);overflow:hidden">
 
-  <!-- TITLEBAR (Electron frameless pencere kontrolleri) -->
+  <!-- TITLEBAR (Electron frameless window controls) -->
   <div class="e-titlebar">
     <span></span>
     <div class="e-tb-btns">
@@ -33,12 +31,12 @@
 
   <div style="flex:1;display:flex;flex-direction:column;min-height:0">
 
-    <!-- TOPBAR (marka + wordmark + sürüm solda, arama/bildirim/ayarlar/hesap sağda) -->
+    <!-- TOPBAR (brand + wordmark + version on the left, search/notifications/settings/account on the right) -->
     <header class="e-header">
       <div style="display:flex;align-items:center;gap:12px">
         <img src="../assets/logo-mark.svg" alt="" style="height:26px;width:auto;display:block">
         <span style="font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--e-title)">Steam<span style="color:var(--e-brand)">Edge</span></span>
-        <!-- Surum package.json'dan gelir (common.js > paintVersion) - burada elle yazilmaz. -->
+        <!-- The version comes from package.json (common.js > paintVersion) - it is not written by hand here. -->
         <span id="tbVersion" style="font-family:'Geist Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--e-off);border:1px solid var(--e-bdPassive);border-radius:12px;padding:3px 8px">v-</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px">
@@ -46,7 +44,7 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
           <input id="tbSearch" type="text" placeholder="Oyun, eşya veya AppID ara...">
         </div>
-        <!-- Sohbet: Steam'in arkadas mesajlari. Rozet okunmamis mesaj sayisini gosterir. -->
+        <!-- Sohbet: Steam's friend messages. The badge shows the number of unread messages. -->
         <button id="tbChat" class="e-icon-btn" title="Sohbet">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M21 12a8 8 0 0 1-8 8H7l-4 3v-5.5A8 8 0 0 1 11 4h2a8 8 0 0 1 8 8z"></path></svg>
           <span class="e-badge" id="tbChatBadge" style="display:none"></span>
@@ -55,9 +53,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M6 10a6 6 0 0 1 12 0v5l2 2H4l2-2z"></path><path d="M10 20h4"></path></svg>
           <span class="e-badge" id="tbNotifBadge" style="display:none"></span>
         </button>
-        <!-- Elle güncelleme denetimi. Uygulama açılışta zaten bir kez bakar ve YALNIZCA yeni
-             sürüm varsa pencere gösterir; buradan istendiği an tekrar bakılabilir. Sonuç her
-             durumda söylenir, güncel olmak da bir cevaptır. -->
+        <!-- Manual update check. The app already looks once at startup and shows a window ONLY if there is a new version; from here it can look again whenever asked. The result is always told, being up to date is also an answer. -->
         <button id="tbUpdate" class="e-icon-btn" title="Güncellemeleri denetle">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M12 4v9"></path><path d="M8.5 9.5 12 13l3.5-3.5"></path><path d="M5 17a8 8 0 0 0 14 0"></path></svg>
           <span class="e-badge" id="tbUpdateBadge" style="display:none"></span>
@@ -77,7 +73,7 @@
       </div>
     </header>
 
-    <!-- hesap değiştirici akordiyonu -->
+    <!-- account switcher accordion -->
     <div class="e-dropdown" id="acctDropdown">
       <span class="e-dropdown-hd">Hesaplar</span>
       <div class="e-acct-list" id="acctList"></div>
@@ -95,7 +91,7 @@
         </div>
       </button>
     </div>
-    <!-- bildirim menüsü (gerçek activityFeed verisi - bkz common.js) -->
+    <!-- notification menu (real activityFeed data - see common.js) -->
     <div class="e-notif-dropdown" id="notifDropdown">
       <span class="e-dropdown-hd">Bildirimler</span>
       <div class="e-notif-list" id="notifList"></div>
@@ -143,8 +139,7 @@
           <span class="e-dot" id="sysDot" style="background:var(--e-warn)"></span>
           <span class="e-sys-lbl">Sistem: <span id="sysLabel" style="color:var(--e-warn)">HAZIR</span></span>
         </div>
-        <!-- rail toggle: kenardan taşan yarım-daire sekme; top değeri
-             aktif nav öğesine göre kayar (17 + 44*index, bkz common.js setRailTop) -->
+        <!-- rail toggle: a half-circle tab sticking out of the edge; the top value shifts with the active nav item (17 + 44*index, see common.js setRailTop) -->
         <button class="e-rail-toggle" id="sideCollapseBtn" title="Kenar çubuğunu daralt" style="top:17px">
           <svg class="e-rail-tab" width="38" height="38" viewBox="0 0 38 38">
             <rect x="18" y="1" width="2" height="36" fill="#090C12"></rect>
@@ -187,7 +182,7 @@
     document.getElementById('tab-sohbet').innerHTML = window.imu.pages.load('sohbet');
     document.getElementById('tab-ayarlar').innerHTML = window.imu.pages.load('ayarlar');
   </script>
-  <!-- Cok dillilik: sozluk + DOM uzerinde ceviri. Diger sayfa JS'lerinden ONCE. -->
+  <!-- Multilingual support: dictionary + translation on the DOM. BEFORE the other page JS files. -->
   <script src="js/tema.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/common.js"></script>

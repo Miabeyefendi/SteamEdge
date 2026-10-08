@@ -1,8 +1,8 @@
-  /* ---- Saat Yükseltici ---- */
+  /* ---- Hour Booster ---- */
   #tab-saat .stat{position:relative;overflow:hidden}
   .ic{position:absolute;right:12px;top:12px;width:34px;height:34px;opacity:.16;pointer-events:none}
   .saatcols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px;align-items:stretch}
-  /* Hedef süre preset'leri + eş zamanlı sayısı (active-boost teknik yapısı, IMU teması) */
+  /* Target time presets + simultaneous count (technical structure of active-boost, IMU theme) */
   .tbadge{padding:0 13px;height:32px;display:inline-flex;align-items:center;border-radius:var(--radius-sm);background:var(--card2);
           border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
   .tbadge:hover{border-color:var(--line-2);color:var(--txt)}
@@ -12,7 +12,7 @@
          border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
   .ccbtn:hover{border-color:var(--line-2);color:var(--txt)}
   .ccbtn.sel{background:rgba(181,150,255,.16);border-color:var(--purple);color:#d5c4ff;box-shadow:0 0 0 1px var(--purple)}
-  /* Session Timer - büyük saat (active-boost tematiği, IMU token'ları) */
+  /* Session Timer - big clock (active-boost theme, IMU tokens) */
   .bigclock{display:flex;align-items:flex-start;justify-content:center;gap:10px;padding:4px 0 2px}
   .bc-seg{display:flex;flex-direction:column;align-items:center;gap:6px}
   .bc-seg input{width:78px;height:62px;text-align:center;font-size:32px;font-weight:800;background:#0e1620;
@@ -21,7 +21,7 @@
   .bc-seg input.accent{color:#a9cdff}
   .bc-seg span{font-size:9px;letter-spacing:1.4px;color:var(--muted2);font-weight:800}
   .bc-sep{font-size:28px;font-weight:800;color:var(--muted2);line-height:62px}
-  /* Oyun listesi satırı (timebooster select tablosu: nokta + ad + saat + ekle butonu) */
+  /* Game list row (timebooster select table: dot + name + hours + add button) */
   .grow2{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #1e2836;cursor:pointer;border-left:2px solid transparent}
   .grow2:hover{background:rgba(255,255,255,.03)}
   .grow2.sel{background:rgba(74,155,255,.08);border-left-color:var(--blue)}
@@ -39,7 +39,7 @@
   .qx:hover{color:var(--red);border-color:var(--red);background:rgba(232,90,102,.1)}
   .pnhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
   .pncount{font-size:11px;color:var(--muted2);font-weight:600}
-  /* Kuyruk satırı (timebooster queue yapısı) */
+  /* Queue row (timebooster queue structure) */
   .qrow{display:flex;align-items:center;gap:10px;padding:8px 8px;border-bottom:1px solid #1e2836}
   .qrow:last-child{border-bottom:0}
   .qnum{width:20px;height:20px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;
@@ -47,7 +47,7 @@
   .qrow.on .qnum{background:rgba(86,36,179,.22);border-color:var(--blue);color:#C2AAEE}
   .qname{flex:1;min-width:0;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .qtarget{font-size:10.5px;color:var(--muted2);font-variant-numeric:tabular-nums;flex:none}
-  /* Boost kartı (active-boost görseli + Live rozeti; sıra kuyruktan gelir) */
+  /* Boost card (active-boost visual + Live badge; the order comes from the queue) */
   .bcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:9px;background:var(--card2)}
   .bcard.live{border-color:rgba(95,208,116,.35);box-shadow:0 0 0 1px rgba(95,208,116,.12)}
   .bcard-head{position:relative;height:62px}
