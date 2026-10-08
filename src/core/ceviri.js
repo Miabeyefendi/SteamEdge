@@ -74,4 +74,4 @@ function tf(template, ...degerler) {
   return fillPlaceholder(translation, degerler);
 }
 
-module.exports = { dilSec: pickLang, secili: chosen, t, tf };
+module.exports = { pickLang: pickLang, chosenOne: chosen, t, tf };

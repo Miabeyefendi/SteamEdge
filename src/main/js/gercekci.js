@@ -118,7 +118,7 @@
       if (!con.ok){ grEl('grSearch').placeholder = t('Bağlanılamadı:') + ' ' + t(con.error || ''); return; }
       const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'Kütüphane okunamadı.' }));
       if (!res.ok){ grEl('grSearch').placeholder = t('Kütüphane okunamadı.'); return; }
-      const bs = await window.imu.gercekci.basarimsizlar().catch(()=>null);
+      const bs = await window.imu.gercekci.noAchievementsList().catch(()=>null);
       if (bs && bs.ok) grNoAchievements = new Set((bs.appids||[]).map(Number));
       grGames = (res.games || []).map(g=>({
         appid: g.appid, name: g.name, playtimeMin: g.playtimeForever || 0, hasStats: !!g.hasStats,
@@ -178,7 +178,7 @@
       if (!game) return true;
       const p = await window.imu.gercekci.plan(game.appid, grDurationMs(), grOptions())
         .catch(()=>null);
-      if (!p || !p.basarimsiz) return true;
+      if (!p || !p.noAchievements) return true;
       grNoAchievements.add(game.appid);
       grQueue = grQueue.filter(x=>x.appid!==game.appid);
       grSaveQueue();
@@ -262,12 +262,12 @@
     // ---- 100% COMPLETION TIME (Tc) ----
     // Kept PER GAME: Cyberpunk 180 hours, a short story game 12 hours. A single
     // general value did not fit the whole library.
-    function grTcMap(){ const h = grVal('grTcOyun', {}); return (h && typeof h === 'object') ? h : {}; }
+    function grTcMap(){ const h = grVal('grTcGame', {}); return (h && typeof h === 'object') ? h : {}; }
     function grTcRead(appid){ return Math.max(0, +grTcMap()[appid] || 0); }
     async function grTcWrite(appid, hour){
       const h = Object.assign({}, grTcMap());
       if (hour > 0) h[appid] = hour; else delete h[appid];
-      await grSave({ grTcOyun: h });
+      await grSave({ grTcGame: h });
     }
 
     // Tc and the difficulty multiplier. grPaintAccount, grOptions and the engine's backlog computation are fed from the same
@@ -285,25 +285,25 @@
       const playedHours = game ? (game.playtimeMin / 60) : 0;
       const manual = (game ? grTcRead(game.appid) : 0) || (parseFloat(grVal('grTc', '')) || 0);
       const estimate = Math.max(2, playedHours * (cr || 2) || (cr || 2) * 5);
-      return { tcSa: manual > 0 ? manual : estimate, zorluk: difficulty, elleGirildi: manual > 0, oynanmisSa: playedHours };
+      return { tcHours: manual > 0 ? manual : estimate, difficultyValue: difficulty, manuallyEntered: manual > 0, playedHours: playedHours };
     }
     function grOptions(){
-      const { tcSa: tcHours, zorluk: difficulty } = grTcAndDifficulty(grQueue[0]);
+      const { tcHours: tcHours, difficultyValue: difficulty } = grTcAndDifficulty(grQueue[0]);
       const playtime = {};
       grQueue.forEach(g=>{ playtime[g.appid] = g.playtimeMin || 0; });
       return {
-        hedef: grVal('grTargetAuto', true) ? 0 : Math.max(0, +grEl('grTarget').value || 0),
+        goalValue: grVal('grTargetAuto', true) ? 0 : Math.max(0, +grEl('grTarget').value || 0),
         model: grVal('grModel', 'linear'),
         rastgeleAralik: !!grVal('grRandomGap', true),
         ultraNadirAtla: !!grVal('grSkipUltraRare', false),
-        otoSira: !!grVal('grAuto', true),
-        saatiSurdur: !!grVal('grKeepHours', true),
-        gecikmisHizlandir: !!grVal('grCatchUp', true),
-        hizCarpani: +grVal('grHiz', 1) || 1,
-        ultraCarpan: +grVal('grUltraCarpan', 3) || 3,
-        telafiPayi: (+grVal('grTelafiPay', 20) || 20) / 100,
-        bitmisOran: (+grVal('grBitmisSik', 50) || 50) / 100,
-        tcSa: tcHours, zorluk: difficulty, playtime,
+        autoOrder: !!grVal('grAuto', true),
+        continueHours: !!grVal('grKeepHours', true),
+        accelerateDelayed: !!grVal('grCatchUp', true),
+        speedMultiplier: +grVal('grSpeed', 1) || 1,
+        ultraMultiplier: +grVal('grUltraMultiplier', 3) || 3,
+        compensationShare: (+grVal('grCatchUpShare', 20) || 20) / 100,
+        finishedRatio: (+grVal('grFinishedRatio', 50) || 50) / 100,
+        tcHours: tcHours, difficultyValue: difficulty, playtime,
       };
     }
 
@@ -324,7 +324,7 @@
       if (request !== grPlanRequest) return;      // there is a newer request, drop this one
       // If reading the schema shows "this game has no achievements" the game is removed from the queue and never
       // enters the list again. We had taken it into the list by looking at the hasStats flag, Steam was wrong.
-      if (p && p.basarimsiz){
+      if (p && p.noAchievements){
         grNoAchievements.add(initial.appid);
         grQueue = grQueue.filter(x=>x.appid!==initial.appid);
         grSaveQueue();
@@ -346,8 +346,8 @@
     function grPaintList(){
       const game = grQueue[0];
       const isRunning = !!grStatus.calisiyor;
-      const hasAchievements = !!(grPlan && grPlan.toplam);
-      const noAchievements = !!(game && grPlan && !grPlan.toplam);
+      const hasAchievements = !!(grPlan && grPlan.totalSum);
+      const noAchievements = !!(game && grPlan && !grPlan.totalSum);
 
       // Top summary strip
       // Steam's achievement schema sometimes gives no game name and the engine falls back to something like 'App 1091500'.
@@ -356,16 +356,16 @@
       const kutupAd = runningId
         ? ((grGames.find(g=>g.appid===runningId) || {}).name || null)
         : (game ? game.name : null);
-      const engineName = isRunning ? grStatus.oyunAdi : null;
+      const engineName = isRunning ? grStatus.gameTitle : null;
       const engineValid = engineName && !/^App \d+$/.test(engineName);
       grSet('grGameName', kutupAd || (engineValid ? engineName : null) || engineName || '-');
       const art = grEl('grGameArt');
       const artId = isRunning ? grStatus.appid : (game && game.appid);
       art.innerHTML = artId ? gameThumb(artId) : '';
-      const opened = isRunning ? grStatus.acilan : 0;
-      const sumTotal = isRunning ? grStatus.toplam : (grPlan ? grPlan.toplam : 0);
+      const opened = isRunning ? grStatus.openedGames : 0;
+      const sumTotal = isRunning ? grStatus.totalSum : (grPlan ? grPlan.totalSum : 0);
       grSet('grOpened', opened + ' / ' + sumTotal);
-      grSet('grAvgGap', grIntervalLabel(isRunning ? grStatus.ortalamaAralikMs : (grPlan ? grPlan.ortalamaAralikMs : 0)));
+      grSet('grAvgGap', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : (grPlan ? grPlan.averageIntervalMs : 0)));
       const percent = sumTotal ? Math.round(opened / sumTotal * 100) : 0;
       grSet('grPct', fmtPercent(percent));
       grEl('grPctFill').style.width = percent + '%';
@@ -379,20 +379,20 @@
         // A game with no achievements at all does not enter the list anyway (grFetchPlan drops it).
         grSet('grFallbackLabel', 'Listeden çıkarılacak');
         grSet('grDurLabel2', grDurationLabel(grDurationMs()));
-        grSet('grFallbackNote', grPlan && grPlan.uygunToplam === 0 && grPlan.toplamBasarim
-          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.', grPlan.toplamBasarim)
+        grSet('grFallbackNote', grPlan && grPlan.suitableTotal === 0 && grPlan.totalAchievements
+          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.', grPlan.totalAchievements)
           : t('Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.'));
       }
 
       // Next-in-line card
       if (hasAchievements || isRunning){
-        const position = isRunning ? grStatus.siradaki : (grPlan.kuyruk[0] && grPlan.kuyruk[0].name);
-        const orderPct = isRunning ? grStatus.siradakiPct : (grPlan.kuyruk[0] && grPlan.kuyruk[0].rarityPct);
-        const rank = isRunning ? (grStatus.acilan + 1) : 1;
-        grSet('grNextName', grStatus.basarimlarBitti ? t('Başarımlar bitti') : (position || '-'));
-        grSet('grNextMeta', grStatus.basarimlarBitti
+        const position = isRunning ? grStatus.upNext : (grPlan.queueList[0] && grPlan.queueList[0].name);
+        const orderPct = isRunning ? grStatus.upNextPct : (grPlan.queueList[0] && grPlan.queueList[0].rarityPct);
+        const rank = isRunning ? (grStatus.openedGames + 1) : 1;
+        grSet('grNextName', grStatus.achievementsDone ? t('Başarımlar bitti') : (position || '-'));
+        grSet('grNextMeta', grStatus.achievementsDone
           ? t('Süre sonuna kadar saat toplanıyor')
-          : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.ortalamaAralikMs : grPlan.ortalamaAralikMs), rank));
+          : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : grPlan.averageIntervalMs), rank));
         const pctEl = grEl('grNextPct');
         pctEl.textContent = Number.isFinite(orderPct) ? fmtPercent(localDecimal(orderPct, 1)) : '-';
         pctEl.style.color = grPctColor(orderPct);
@@ -402,7 +402,7 @@
       // Unlock order table
       grSet('grOpenedCount', opened + ' / ' + sumTotal);
       const el = grEl('grList');
-      if (!grPlan || !grPlan.kuyruk || !grPlan.kuyruk.length){
+      if (!grPlan || !grPlan.queueList || !grPlan.queueList.length){
         el.innerHTML = '<div style="padding:36px 0;text-align:center;font-size:12px;color:#656D80">'
           + (grQueue.length ? 'Açılacak başarım yok.' : 'Soldan oyun ekle, açılma sırası burada görünecek.') + '</div>';
         return;
@@ -410,7 +410,7 @@
       const openedNames = new Set(grOpened.map(a=>a.name));
       let html = '';
       let lastLabel = null;
-      grPlan.kuyruk.forEach((a, i)=>{
+      grPlan.queueList.forEach((a, i)=>{
         // Divider when the rarity changes: the "isDivider" row in the template.
         const et = grRarityLabel(a.rarityPct);
         if (et !== lastLabel){
@@ -432,7 +432,7 @@
           + '<span style="width:52px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+colorVal+';text-align:right">'
           + (Number.isFinite(a.rarityPct) ? fmtPercent(localDecimal(a.rarityPct, 1)) : '-')+'</span>'
           + '<span style="width:92px;flex-shrink:0;white-space:nowrap;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;text-align:right">'
-          + (wasOpened ? 'AÇILDI' : grTimeLabel(a.zaman))+'</span>'
+          + (wasOpened ? 'AÇILDI' : grTimeLabel(a.timeValue))+'</span>'
           + '</div>';
       });
       el.innerHTML = html;
@@ -442,7 +442,7 @@
     // " başarım açılacaktır"; every language was condemned to Turkish syntax,
     // the English came out "2 h over 12 achievements will unlock".
     function grWritePlanSentence(durationMs, goal){
-      const el = grEl('grPlanCumle');
+      const el = grEl('grPlanSentence');
       if (!el) return;
       el.innerHTML = tf('# içinde # başarım açılacak',
         '<span style="font-family:Geist Mono,monospace;color:#C2AAEE">' + esc(grDurationLabel(durationMs)) + '</span>',
@@ -453,13 +453,13 @@
     function grPaintAccount(){
       const game = grQueue[0];
       let durationMs = grDurationMs();
-      const suitable = grPlan ? (grPlan.uygunToplam || 0) : 0;
+      const suitable = grPlan ? (grPlan.suitableTotal || 0) : 0;
       const auto = !!grVal('grTargetAuto', true);
 
       grSet('grTargetTotal', String(suitable));
 
       const crRaw = grVal('grCR', '2.0');
-      const { tcSa: tc, zorluk: diff, elleGirildi: manuallyEntered, oynanmisSa: playtimeHours } = grTcAndDifficulty(game);
+      const { tcHours: tc, difficultyValue: diff, manuallyEntered: manuallyEntered, playedHours: playtimeHours } = grTcAndDifficulty(game);
       let durationHours = durationMs / 3600000;
 
       // The automatic target is made of TWO parts:
@@ -470,8 +470,8 @@
       // There used to be only the 2nd part: the calculation said "how many achievements would a player who starts from zero get in this
       // time". The result was a suggestion like 2 achievements in 8 hours for a game with 180 hours played;
       // yet in that game almost all of them should already have been unlocked.
-      const totalB = grPlan ? (grPlan.toplamBasarim || 0) : 0;
-      const acilmisB = grPlan ? (grPlan.acilmis || 0) : 0;
+      const totalB = grPlan ? (grPlan.totalAchievements || 0) : 0;
+      const acilmisB = grPlan ? (grPlan.unlockedState || 0) : 0;
       const denominator = Math.max(0.1, tc * diff);
       const scale = totalB || suitable;
       const expected = scale ? Math.min(scale, scale * (playtimeHours / denominator)) : 0;
@@ -482,7 +482,7 @@
       //   (behind / total) x completion time x difficulty
       // It is clamped between 15 minutes and 12 hours. If the user typed the duration by hand it is left alone,
       // and it is left alone if the switch in Ayarlar is off.
-      if (grVal('grOtoSure', true) && !grDurationTouched && game && scale && remainingBehind > 0){
+      if (grVal('grAutoDuration', true) && !grDurationTouched && game && scale && remainingBehind > 0){
         const neededHours = Math.max(0.25, Math.min(12, (remainingBehind / scale) * denominator));
         const newMs = Math.round(neededHours * 3600000);
         if (Math.abs(newMs - durationMs) > 60000){
@@ -502,12 +502,12 @@
         const el = grEl(id); if (el) el.style.color = goalColor;
       });
       const goal = auto ? autoTarget : Math.max(0, Math.min(suitable, +grEl('grTarget').value || 0));
-      grWritePlanSentence(durationMs, goal || (grPlan ? grPlan.toplam : 0));
+      grWritePlanSentence(durationMs, goal || (grPlan ? grPlan.totalSum : 0));
 
       // Backlog note
       const not = grEl('grCatchUpNote');
       if (not){
-        const one = (grPlan && grPlan.birikim) || 0;
+        const one = (grPlan && grPlan.accumulation) || 0;
         if (one > 0 && grVal('grCatchUp', true)){
           not.style.display = 'block';
           not.textContent = game
@@ -565,10 +565,10 @@
 
     // ---- pace settings (advanced panel) ----
     const GR_SPEED_FIELD = [
-      ['grHiz', 'grHiz', 1, 0.1, 4],
-      ['grUltraCarpan', 'grUltraCarpan', 3, 1, 10],
-      ['grTelafiPay', 'grTelafiPay', 20, 2, 90],
-      ['grBitmisSik', 'grBitmisSik', 50, 5, 100],
+      ['grSpeed', 'grSpeed', 1, 0.1, 4],
+      ['grUltraMultiplier', 'grUltraMultiplier', 3, 1, 10],
+      ['grCatchUpShare', 'grCatchUpShare', 20, 2, 90],
+      ['grFinishedRatio', 'grFinishedRatio', 50, 5, 100],
     ];
     function grPaintSpeed(){
       GR_SPEED_FIELD.forEach(([id, keyName, defaultVal])=>{
@@ -576,15 +576,15 @@
         if (el && document.activeElement !== el) el.value = String(grVal(keyName, defaultVal));
       });
       const game = grQueue[0];
-      const not = grEl('grHizNote');
+      const not = grEl('grSpeedNote');
       if (!not) return;
       if (!game){ not.textContent = t('Önce soldan bir oyun ekle.'); return; }
-      const { tcSa: tcHours, oynanmisSa: playedHours } = grTcAndDifficulty(game);
+      const { tcHours: tcHours, playedHours: playedHours } = grTcAndDifficulty(game);
       const isFinished = playedHours > 0 && playedHours >= tcHours;
-      const frequent = +grVal('grBitmisSik', 50) || 50;
+      const frequent = +grVal('grFinishedRatio', 50) || 50;
       not.textContent = isFinished
         ? tf('# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Çizelge %# oranına sıkıştırıldı.', game.name, Math.round(playedHours), Math.round(tcHours), frequent)
-        : tf('Oyun henüz bitmemiş (# / # saat), sıkıştırma uygulanmıyor. Ultra nadir başarımlar # kat daha uzun bekler.', Math.round(playedHours), Math.round(tcHours), (+grVal('grUltraCarpan', 3) || 3));
+        : tf('Oyun henüz bitmemiş (# / # saat), sıkıştırma uygulanmıyor. Ultra nadir başarımlar # kat daha uzun bekler.', Math.round(playedHours), Math.round(tcHours), (+grVal('grUltraMultiplier', 3) || 3));
     }
     GR_SPEED_FIELD.forEach(([id, keyName, defaultVal, lower, upper])=>{
       const el = grEl(id); if (!el) return;
@@ -601,7 +601,7 @@
       document.querySelectorAll('#tab-gercekci .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
         // grCatchUp is ON by default: if there is no backlog it changes nothing anyway.
-        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grOtoSure');
+        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grAutoDuration');
         el.style.background = on ? GRC.brand : '#151C28';
         el.style.borderColor = on ? GRC.brand : '#2B3345';
         const knob = el.firstElementChild;
@@ -696,8 +696,8 @@
     // when the language changed later. If old presets lack the field it falls back to the saved text.
     const GR_MODEL_NAME = { linear:'doğrusal', exp:'üstel (önden yüklemeli)', pareto:'Pareto (80/20)' };
     function grPresetMeta(p){
-      if (!p || !p.sureSec || !Array.isArray(p.oyunlar)) return (p && p.meta) || '';
-      return grDurationLabel(p.sureSec * 1000) + ' · ' + tf('# oyun', p.oyunlar.length) + ' · ' + t(GR_MODEL_NAME[p.model] || p.model || '-');
+      if (!p || !p.spanSec || !Array.isArray(p.gameEntries)) return (p && p.meta) || '';
+      return grDurationLabel(p.spanSec * 1000) + ' · ' + tf('# oyun', p.gameEntries.length) + ' · ' + t(GR_MODEL_NAME[p.model] || p.model || '-');
     }
     function grPaintPreset(){
       const box = grEl('grPresetsBox');
@@ -706,7 +706,7 @@
         '<div data-grpreset="'+i+'" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #101621;cursor:pointer">'
         + '<span style="width:20px;height:20px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;display:flex;align-items:center;justify-content:center;font-family:Geist Mono,monospace;font-size:10px;font-weight:700;color:#C2AAEE">'+(i+1)+'</span>'
         + '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">'
-        + '<span style="font-size:12px;color:#B9C0D6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.baslik||'-')+'</span>'
+        + '<span style="font-size:12px;color:#B9C0D6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.heading||'-')+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(grPresetMeta(p))+'</span>'
         + '</div>'
         + '<button data-grpdel="'+i+'" class="h-stop" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
@@ -723,13 +723,13 @@
       }
       const durationMs = grDurationMs();
       const p = {
-        baslik: grQueue.map(g=>g.name).join(', ').slice(0, 60),
+        heading: grQueue.map(g=>g.name).join(', ').slice(0, 60),
         meta: '',
-        oyunlar: grQueue.map(g=>g.appid),
-        sureSec: Math.round(durationMs/1000),
+        gameEntries: grQueue.map(g=>g.appid),
+        spanSec: Math.round(durationMs/1000),
         model: grVal('grModel','linear'),
         cr: grVal('grCR','2.0'), diff: grVal('grDiff','1.2'),
-        hedefAuto: !!grVal('grTargetAuto', true), hedef: Math.max(0, +grEl('grTarget').value || 0),
+        goalAuto: !!grVal('grTargetAuto', true), goalValue: Math.max(0, +grEl('grTarget').value || 0),
         ts: Date.now(),
       };
       grPresets = [p].concat(grPresets).slice(0, GR_PRESET_LIMIT);
@@ -750,14 +750,14 @@
       if (grStatus.calisiyor){ if (typeof toast === 'function') toast('Preset').fail('Çalışırken preset yüklenemez.'); return; }
       const p = grPresets[+row.getAttribute('data-grpreset')];
       if (!p) return;
-      grQueue = (p.oyunlar||[]).map(id=>grGames.find(g=>g.appid===+id)).filter(Boolean);
-      grWriteDuration((p.sureSec||7200)*1000);
+      grQueue = (p.gameEntries||[]).map(id=>grGames.find(g=>g.appid===+id)).filter(Boolean);
+      grWriteDuration((p.spanSec||7200)*1000);
       await grSave({
-        grQueue: grQueue.map(g=>g.appid), grDurationSec: p.sureSec||7200, grModel: p.model||'linear',
-        grCR: p.cr||'2.0', grDiff: p.diff||'1.2', grTargetAuto: p.hedefAuto !== false, grTarget: p.hedef||0,
+        grQueue: grQueue.map(g=>g.appid), grDurationSec: p.spanSec||7200, grModel: p.model||'linear',
+        grCR: p.cr||'2.0', grDiff: p.diff||'1.2', grTargetAuto: p.goalAuto !== false, grTarget: p.goalValue||0,
       });
       grPaintSelect(); grPaintToggle(); grPaintLibrary();
-      grEl('grTarget').value = String(p.hedef||0);
+      grEl('grTarget').value = String(p.goalValue||0);
       grFetchPlan();
       if (typeof toast === 'function') toast('Preset').done('Yüklendi.');
     });
@@ -768,8 +768,8 @@
       if (!grQueue.length){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Önce sıraya oyun ekle.'); return; }
       const durationMs = grDurationMs();
       const pick = grOptions();
-      const goal = grPlan ? grPlan.toplam : 0;
-      const firsts = (grPlan && grPlan.kuyruk ? grPlan.kuyruk.slice(0,5) : [])
+      const goal = grPlan ? grPlan.totalSum : 0;
+      const firsts = (grPlan && grPlan.queueList ? grPlan.queueList.slice(0,5) : [])
         .map(a=>'  · '+a.name+(Number.isFinite(a.rarityPct)?(' ('+fmtPercent(localDecimal(a.rarityPct, 1))+')'):'')).join('\n');
       const ok = await edgeConfirm({
         tag:'Gerçekçi Mod',
@@ -777,11 +777,11 @@
         body: grQueue.map(g=>g.name).join(', ')
               + '\n\n' + t('Oyun sayısı:') + ' ' + grQueue.length
               + '\n' + t('Dağıtım:') + ' ' + t(GR_MODEL_NAME[pick.model] || GR_MODEL_NAME.linear)
-              + (grPlan ? ('\n' + t('Ortalama aralık:') + ' ' + grIntervalLabel(grPlan.ortalamaAralikMs)
+              + (grPlan ? ('\n' + t('Ortalama aralık:') + ' ' + grIntervalLabel(grPlan.averageIntervalMs)
                           + ' ' + t(pick.rastgeleAralik ? '(her seferinde rastgele sapmalı)' : '(sabit)')) : '')
               + (firsts ? ('\n\n' + t('İlk açılacaklar:') + '\n' + firsts) : '')
-              + (grPlan && grPlan.korumali ? ('\n\n' + tf('# başarım oyun tarafından korunduğu için atlanacak.', grPlan.korumali)) : '')
-              + (grPlan && grPlan.ultraAtlanan ? ('\n' + tf('# ultra nadir başarım ayara göre atlanacak.', grPlan.ultraAtlanan)) : ''),
+              + (grPlan && grPlan.protectedFlag ? ('\n\n' + tf('# başarım oyun tarafından korunduğu için atlanacak.', grPlan.protectedFlag)) : '')
+              + (grPlan && grPlan.ultraSkipped ? ('\n' + tf('# ultra nadir başarım ayara göre atlanacak.', grPlan.ultraSkipped)) : ''),
         warn: 'Bu işlem Steam hesabını kalıcı olarak değiştirir. Süre boyunca uygulama açık kalmalı; istediğin an durdurabilirsin.',
         confirmText:'Başlat', cancelText:'Vazgeç',
       });
@@ -790,13 +790,13 @@
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
         edgeConfirm({ tag:'Hata', danger:true, title:'Başlatılamadı',
-                      body:(r&&r.error)||'Bilinmeyen hata.', confirmText:'Tamam', tekDugme:true });
+                      body:(r&&r.error)||'Bilinmeyen hata.', confirmText:'Tamam', singleButton:true });
         return;
       }
       grOpened = [];
-      notify('boost', 'Gerçekçi Mod Başladı', (r.oyunAdi||'') + ' · ' + tf('# başarım', r.toplam));
+      notify('boost', 'Gerçekçi Mod Başladı', (r.gameTitle||'') + ' · ' + tf('# başarım', r.totalSum));
       pushFeed('saat', 'Gerçekçi Mod',
-               tf('# oyun', r.oyunSayisi) + ' · ' + tf('# başarım # süreye yayıldı.', r.toplam, grDurationLabel(durationMs)), 'Çalışıyor');
+               tf('# oyun', r.gameCount) + ' · ' + tf('# başarım # süreye yayıldı.', r.totalSum, grDurationLabel(durationMs)), 'Çalışıyor');
     };
     grEl('grStop').onclick = ()=>{
       if (!grStatus.calisiyor) return;
@@ -819,26 +819,26 @@
         if (!d || !d.calisiyor){
           grPaintHours(0);
           if (d && d.bitti){
-            notify('boost', 'Gerçekçi Mod Bitti', tf('# / # başarım açıldı', d.acilan, d.toplam));
+            notify('boost', 'Gerçekçi Mod Bitti', tf('# / # başarım açıldı', d.openedGames, d.totalSum));
             pushFeed(d.hata?'hata':'kart', 'Gerçekçi Mod',
-                     t(d.sebep || 'Bitti') + ' · ' + tf('# / # başarım', d.acilan, d.toplam), d.hata?'Hata':'Başarılı');
+                     t(d.cause || 'Bitti') + ' · ' + tf('# / # başarım', d.openedGames, d.totalSum), d.hata?'Hata':'Başarılı');
           }
           grPaintLibrary();
           grPaintList();
           return;
         }
 
-        const refresh = ()=> grPaintHours(Math.max(0, Math.floor((d.bitis - Date.now())/1000)));
+        const refresh = ()=> grPaintHours(Math.max(0, Math.floor((d.finishTime - Date.now())/1000)));
         refresh();
         grTimerUI = setInterval(()=>{ if (typeof uiTickAllowed !== 'function' || uiTickAllowed()) refresh(); }, 1000);
-        if (d.oyunDegisti) grPaintLibrary();
+        if (d.gameChanged) grPaintLibrary();
         grPaintList();
       });
     }
-    if (window.imu.gercekci && window.imu.gercekci.onAcildi){
-      window.imu.gercekci.onAcildi((a)=>{
+    if (window.imu.gercekci && window.imu.gercekci.onOpened){
+      window.imu.gercekci.onOpened((a)=>{
         grOpened.push({ name:a.name, rarityPct:a.rarityPct, ts:Date.now() });
-        pushFeed('kart', 'Başarım açıldı', a.name + (a.oyunAdi ? (' · ' + a.oyunAdi) : ''), 'Başarılı');
+        pushFeed('kart', 'Başarım açıldı', a.name + (a.gameTitle ? (' · ' + a.gameTitle) : ''), 'Başarılı');
         grPaintList();
       });
     }

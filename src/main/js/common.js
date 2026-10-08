@@ -19,7 +19,7 @@
       if (tab === 'cikis') { window.imu.logout(); return; }
       // Open windows that belong to another page close (see edgeConfirm > o.sayfa).
       document.querySelectorAll('.e-modal-back[data-sayfa]').forEach(m=>{
-        if (m.getAttribute('data-sayfa') !== tab && typeof m._kapat === 'function') m._kapat(false);
+        if (m.getAttribute('data-sayfa') !== tab && typeof m._shutdownInner === 'function') m._shutdownInner(false);
       });
       document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
       // Sohbet has no link in the sidebar; then none of them stays marked.
@@ -57,17 +57,17 @@
     // sorting and filters stay on the JS side too, so nothing is lost on return.
     // Not a single extra request goes to Steam.
     const HEAVY_LISTS = {
-      kart:    { kap: 'kartQueue',    ciz: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
-      env:     { kap: 'envRows',      ciz: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
-      saat:    { kap: 'saatListBody', ciz: () => (typeof renderHoursList === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) && renderHoursList() },
-      basarim: { kap: 'acBody',       ciz: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
+      kart:    { container: 'kartQueue',    draw: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
+      env:     { container: 'envRows',      draw: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
+      saat:    { container: 'hoursListBody', draw: () => (typeof renderHoursList === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) && renderHoursList() },
+      basarim: { container: 'acBody',       draw: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
     };
     const suspendedTabs = new Set();
 
     function flushHeavyLists(openedTab){
       Object.keys(HEAVY_LISTS).forEach(t => {
         if (t === openedTab || suspendedTabs.has(t)) return;
-        const container = document.getElementById(HEAVY_LISTS[t].kap);
+        const container = document.getElementById(HEAVY_LISTS[t].container);
         // There is no point suspending a list that was never filled; also let us not delete one line
         // status texts like "loading" and leave the user alone with an empty screen.
         if (!container || container.children.length < 2) return;
@@ -78,7 +78,7 @@
     function redrawHeavyList(tab){
       if (!suspendedTabs.has(tab)) return;
       suspendedTabs.delete(tab);
-      try { HEAVY_LISTS[tab].ciz(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
+      try { HEAVY_LISTS[tab].draw(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
     }
 
     // ---- shared helpers (all pages use them) ----
@@ -117,7 +117,7 @@
     //   two settings held the same state.
     function edgeConfirm(opts){
       const o = opts || {};
-      const key = o.sormaAyari || null;
+      const key = o.askSetting || null;
       // If "bir daha sorma" was said before, do not show at all
       if (key && typeof appSettings === 'object' && appSettings && appSettings[key] === false) return Promise.resolve(true);
 
@@ -128,7 +128,7 @@
         // o.sayfa: the window belongs to a page; if the user moves to another tab it closes
         // on its own (counts as cancelled). Envanter's "fiyatlar getirilsin mi" question used to open on top of
         // another page after the tab was changed.
-        if (o.sayfa) back.setAttribute('data-sayfa', o.sayfa);
+        if (o.pageName) back.setAttribute('data-sayfa', o.pageName);
         back.innerHTML =
           '<div class="e-modal" role="dialog" aria-modal="true">'
           + '<div class="e-modal-hd"><span class="dot" style="background:'+accent+'"></span>'
@@ -137,7 +137,7 @@
             + '<span class="h">'+esc(t(o.title || 'Emin misin?'))+'</span>'
             + (o.body ? '<span class="p">'+esc(t(o.body))+'</span>' : '')
             // Red warning: for cases where one should not hurry (e.g. the price is below the 24 hour average)
-            + (o.uyariKirmizi ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.uyariKirmizi)+'</span>' : '')
+            + (o.warningRed ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.warningRed)+'</span>' : '')
             + (o.warn ? '<span class="warn">'+esc(t(o.warn))+'</span>' : '')
           + '</div>'
           + (key ? '<div class="e-modal-ask" data-ask><span class="box">'
@@ -145,8 +145,8 @@
               + '</span><span>Bir daha sorma</span></div>' : '')
           + '<div class="e-modal-ft">'
             // o.tekDugme: a window that only informs (like a result summary), there is nothing to cancel
-            + (o.tekDugme ? '' : '<button class="cancel" data-no>'+esc(t(o.cancelText || 'Vazgeç'))+'</button>')
-            + (o.altText ? '<button class="alt" data-alt>'+esc(t(o.altText))+'</button>' : '')
+            + (o.singleButton ? '' : '<button class="cancel" data-no>'+esc(t(o.cancelText || 'Vazgeç'))+'</button>')
+            + (o.subText ? '<button class="alt" data-alt>'+esc(t(o.subText))+'</button>' : '')
             + '<button class="ok'+(o.danger?' danger':'')+'" data-yes>'+esc(t(o.confirmText || 'Devam Et'))+'</button>'
           + '</div></div>';
         document.body.appendChild(back);
@@ -171,7 +171,7 @@
           else if (e.key === 'Enter') close(true);
         }
         document.addEventListener('keydown', onKey);
-        back._kapat = close;
+        back._shutdownInner = close;
         const isNo = back.querySelector('[data-no]');
         if (isNo) isNo.onclick = ()=>close(false);
         back.querySelector('[data-yes]').onclick = ()=>close(true);
@@ -376,11 +376,11 @@
     // The fix: on losing focus stop the per-second drawing and pause the animations.
     let windowFocused = document.hasFocus();
     function lightModeOn(){
-      return typeof appSettings !== 'object' || !appSettings || appSettings.hafifMod !== false;
+      return typeof appSettings !== 'object' || !appSettings || appSettings.lightMode !== false;
     }
     function paintIdle(){
       const idle = lightModeOn() && !windowFocused;
-      document.documentElement.classList.toggle('e-durgun', idle);
+      document.documentElement.classList.toggle('e-idle', idle);
     }
     window.addEventListener('focus', () => { windowFocused = true; paintIdle(); });
     window.addEventListener('blur',  () => { windowFocused = false; paintIdle(); });
@@ -438,7 +438,7 @@
     let imuProfileFresh = false;      // did it come from the cache or from Steam
 
     function cachedProfile(){
-      const p = (typeof appSettings === 'object' && appSettings && appSettings.profil) || null;
+      const p = (typeof appSettings === 'object' && appSettings && appSettings.profileInfo) || null;
       if (!p || (!p.persona && !p.avatar)) return false;
       imuProfile = { ...p };
       applyProfile();
@@ -498,21 +498,21 @@
       set('lifeCards', localNumber(lifeStats.cardsDropped||0));
       set('lifeSold', localNumber(lifeStats.cardsSold||0));
       set('lifeBoost', fmtHrs(lifeStats.boostRuntimeMs||0));
-      const days = Object.entries(lifeStats.gunlukKart || {}).filter(x => x[1] > 0);
+      const days = Object.entries(lifeStats.dailyCards || {}).filter(x => x[1] > 0);
       if (days.length){
         const [day, count] = days.reduce((m, x) => (x[1] > m[1] ? x : m));
         const [y, a, g] = day.split('-').map(Number);
         set('lifeBestDay', new Date(y, a - 1, g).toLocaleDateString(localCode()) + ' · ' + tf('# kart', count));
       } else set('lifeBestDay', '-');
-      set('lifeAvgSale', (lifeStats.satisFiyatli > 0 && typeof fmtMoney === 'function')
-        ? fmtMoney(lifeStats.satisTutar / lifeStats.satisFiyatli / 100) : '-');
-      set('lifeStreak', lifeStats.enUzunCalismaMs >= 60000 ? fmtHrs(lifeStats.enUzunCalismaMs) : '-');
+      set('lifeAvgSale', (lifeStats.pricedForSale > 0 && typeof fmtMoney === 'function')
+        ? fmtMoney(lifeStats.saleAmount / lifeStats.pricedForSale / 100) : '-');
+      set('lifeStreak', lifeStats.longestRunMs >= 60000 ? fmtHrs(lifeStats.longestRunMs) : '-');
       set('lifeSince', lifeStats.since ? new Date(lifeStats.since).toLocaleDateString(localCode()) : '-');
-      const h = document.getElementById('lifeHesap');
+      const h = document.getElementById('lifeAccount');
       if (h) h.textContent = (typeof appSettings === 'object' && appSettings && appSettings.persona) ? appSettings.persona : '';
     }
     // Statistics are counted in the main process; they come here as they change (only for the account on screen).
-    if (window.imu.stats.onDegisti) window.imu.stats.onDegisti((d)=>renderLifeStats(d));
+    if (window.imu.stats.onChanged) window.imu.stats.onChanged((d)=>renderLifeStats(d));
     // 16:9 - Library Logo (logo.png). contain: a transparent logo fits without being cropped.
     function imgTag(appid){ return '<img src="'+gameImg(appid)+'" class="gt" style="width:85px;height:40px;object-fit:cover;border-radius:7px" onerror="this.style.background=\'#26313f\';this.src=\'\'">'; }
     function fmtDur(pick){ const m=Math.floor(pick/60), s=pick%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
@@ -563,7 +563,7 @@
 
     // ---- top bar: version badge and update warning ----
     // The version is read from package.json (preload > imu.surum); it is written by hand nowhere.
-    const APP_VERSION = (window.imu && window.imu.surum) || '';
+    const APP_VERSION = (window.imu && window.imu.versionStr) || '';
     (function paintVersion(){
       const e = document.getElementById('tbVersion');
       if (e) e.textContent = APP_VERSION ? ('v' + APP_VERSION) : 'v-';
@@ -582,11 +582,11 @@
       if (updateWindowOpen) return;
       updateWindowOpen = true;
       try {
-        const date = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString(localCode()) : '';
+        const date = d.releaseTs ? new Date(d.releaseTs).toLocaleDateString(localCode()) : '';
         const ac = await edgeConfirm({
           tag: 'Güncelleme',
-          title: t('Yeni sürüm yayımlandı:') + ' v' + d.son,
-          body: t('Kurulu sürüm') + ' v' + d.kurulu + (date ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + date) : '')
+          title: t('Yeni sürüm yayımlandı:') + ' v' + d.lastOne,
+          body: t('Kurulu sürüm') + ' v' + d.installed + (date ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + date) : '')
                 + '\n' + t('Değişiklikleri yayın sayfasında okuyabilirsin.'),
           warn: 'Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yeni klasöre kopyalarsın.',
           confirmText: 'Yayın Sayfasını Aç',
@@ -601,25 +601,25 @@
     function updateStatus(d, manuallyChecked){
       latestUpdateStatus = d || null;
       const badge = document.getElementById('tbUpdateBadge');
-      const hasNew = !!(d && d.ok && d.guncelMi === false);
+      const hasNew = !!(d && d.ok && d.isUpToDate === false);
       // The dot above the button: lit when there is a new version, off when current.
       if (badge) badge.style.display = hasNew ? 'block' : 'none';
       const btn = document.getElementById('tbUpdate');
-      if (btn) btn.title = hasNew ? (t('Yeni sürüm var:') + ' v' + d.son) : 'Güncellemeleri denetle';
+      if (btn) btn.title = hasNew ? (t('Yeni sürüm var:') + ' v' + d.lastOne) : 'Güncellemeleri denetle';
       if (hasNew){ updateWindow(d); return; }
       // Current or could not check: only answer if the user asked by hand.
       if (!manuallyChecked || !d || typeof toast !== 'function') return;
-      if (d.ok) toast('Güncelleme').done(tf('En güncel sürümü kullanıyorsun (v#).', d.kurulu));
+      if (d.ok) toast('Güncelleme').done(tf('En güncel sürümü kullanıyorsun (v#).', d.installed));
       else toast('Güncelleme').fail(t(d.hata || 'Sürüm bilgisi alınamadı.') + ' ' + t('Kurulu sürümün çalışmaya devam eder.'));
     }
 
-    if (window.imu && window.imu.guncelleme){
+    if (window.imu && window.imu.updateInfo){
       // The result of the single check at startup comes from here.
-      window.imu.guncelleme.onDurum((d) => updateStatus(d, false));
+      window.imu.updateInfo.onStatus((d) => updateStatus(d, false));
       const ub = document.getElementById('tbUpdate');
       if (ub) ub.onclick = async ()=>{
         ub.disabled = true;
-        const d = await window.imu.guncelleme.kontrol().catch(e=>({ ok:false, hata:(e&&e.message)||'Denetim başarısız.' }));
+        const d = await window.imu.updateInfo.checkIt().catch(e=>({ ok:false, hata:(e&&e.message)||'Denetim başarısız.' }));
         ub.disabled = false;
         updateStatus(d, true);
       };
@@ -643,12 +643,12 @@
       const accountRef = sid - STEAM64_BASE;
       return {
         idSteam64: rawText,
-        idKlasik : 'STEAM_1:' + (accountRef % 2n) + ':' + (accountRef / 2n),
+        idClassic : 'STEAM_1:' + (accountRef % 2n) + ':' + (accountRef / 2n),
         idSteam3 : '[U:1:' + accountRef + ']',
-        idHesap  : String(accountRef),
+        idAccount  : String(accountRef),
         idHex    : '0x' + sid.toString(16).toUpperCase().padStart(16, '0'),
-        idProfil : 'https://steamcommunity.com/profiles/' + rawText,
-        idOzel   : vanity ? ('https://steamcommunity.com/id/' + vanity) : null,
+        idProfile : 'https://steamcommunity.com/profiles/' + rawText,
+        idCustom   : vanity ? ('https://steamcommunity.com/id/' + vanity) : null,
       };
     }
 
@@ -656,7 +656,7 @@
       const sid = (imuProfile && imuProfile.steamID)
         || (typeof appSettings === 'object' && appSettings && appSettings.steamID) || null;
       identities = idFormats(sid, imuProfile && imuProfile.vanity);
-      ['idSteam64','idKlasik','idSteam3','idHesap','idHex','idProfil','idOzel'].forEach(id=>{
+      ['idSteam64','idClassic','idSteam3','idAccount','idHex','idProfile','idCustom'].forEach(id=>{
         const e = document.getElementById(id);
         if (!e) return;
         const v = identities ? identities[id] : null;
@@ -679,8 +679,8 @@
         e.classList.toggle('bos', !v);
         if (v) e.parentNode.title = v;      // the full value shows when hovered
       });
-      document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
-        const v = identities && identities[b.getAttribute('data-kopya')];
+      document.querySelectorAll('#identityBox [data-copy]').forEach(b=>{
+        const v = identities && identities[b.getAttribute('data-copy')];
         b.disabled = !v;
         b.style.opacity = v ? '1' : '0.45';
       });
@@ -696,10 +696,10 @@
       }).catch(()=>{});
     }
 
-    document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
+    document.querySelectorAll('#identityBox [data-copy]').forEach(b=>{
       b.addEventListener('click', (e)=>{
         e.stopPropagation();
-        const v = identities && identities[b.getAttribute('data-kopya')];
+        const v = identities && identities[b.getAttribute('data-copy')];
         if (v) copyId(v, 'Kimlik');
       });
     });
@@ -709,18 +709,18 @@
       if (!identities) return;
       copyId([
         'SteamID64'.padEnd(15) + ': ' + identities.idSteam64,
-        'SteamID'.padEnd(15) + ': ' + identities.idKlasik,
+        'SteamID'.padEnd(15) + ': ' + identities.idClassic,
         'SteamID3'.padEnd(15) + ': ' + identities.idSteam3,
-        t('Hesap numarası').padEnd(15) + ': ' + identities.idHesap,
+        t('Hesap numarası').padEnd(15) + ': ' + identities.idAccount,
         'Hex'.padEnd(15) + ': ' + identities.idHex,
-        t('Profil adresi').padEnd(15) + ': ' + identities.idProfil,
-        t('Özel adres').padEnd(15) + ': ' + (identities.idOzel || t('tanımlı değil')),
+        t('Profil adresi').padEnd(15) + ': ' + identities.idProfile,
+        t('Özel adres').padEnd(15) + ': ' + (identities.idCustom || t('tanımlı değil')),
       ].join('\n'), 'Tüm kimlik biçimleri');
     };
     const idOpenProfileBtn = document.getElementById('idOpenProfile');
     if (idOpenProfileBtn) idOpenProfileBtn.onclick = (e)=>{
       e.stopPropagation();
-      if (identities) window.imu.openExternal(identities.idOzel || identities.idProfil);
+      if (identities) window.imu.openExternal(identities.idCustom || identities.idProfile);
     };
 
     // ---- top bar: Notifications + Profile/Account accordion (references first, event binding after) ----
@@ -793,29 +793,29 @@
     // (durum, sebep, deneme, bekleme, sinir). The strip used to say ASCII Turkish
     // "yeniden baglaniyor (deneme 2, 10 sn sonra)" in every language.
     function connectionText(d){
-      if (d.durum === 'koptu') return t('Steam bağlantısı koptu.') + (d.sebep ? (' (' + d.sebep + ')') : '');
-      if (d.durum === 'baglaniyor'){
-        const sn = Math.max(1, Math.round((d.bekleMs || 0) / 1000));
-        return d.sinir
-          ? tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).', sn, d.deneme || 1, d.sinir)
-          : tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).', sn, d.deneme || 1);
+      if (d.condition === 'dropped') return t('Steam bağlantısı koptu.') + (d.cause ? (' (' + d.cause + ')') : '');
+      if (d.condition === 'connecting'){
+        const sn = Math.max(1, Math.round((d.waitMs || 0) / 1000));
+        return d.limitValue
+          ? tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).', sn, d.attemptCount || 1, d.limitValue)
+          : tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).', sn, d.attemptCount || 1);
       }
-      if (d.durum === 'vazgecildi'){
-        if (d.kalici) return +d.eresult === 34
+      if (d.condition === 'abandoned'){
+        if (d.permanent) return +d.eresult === 34
           ? t('Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.')
           : t('Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.');
-        return d.deneme
-          ? tf('Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.', d.deneme)
+        return d.attemptCount
+          ? tf('Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.', d.attemptCount)
           : t('Steam bağlantısı koptu; yeniden bağlanma kapalı.');
       }
-      if (d.durum === 'bagli' && d.yenidenBaglandi) return tf('Steam bağlantısı geri geldi, # oyun yeniden açıldı.', d.oyunlar || 0);
+      if (d.condition === 'connected' && d.reconnected) return tf('Steam bağlantısı geri geldi, # oyun yeniden açıldı.', d.gameEntries || 0);
       return '';
     }
     function connectionStrip(d){
-      const status = d.durum;
+      const status = d.condition;
       const message = connectionText(d);
       let el = document.getElementById('baglantiSerit');
-      if (status === 'bagli'){
+      if (status === 'connected'){
         if (el) el.remove();
         return;
       }
@@ -832,31 +832,31 @@
         const goal = (rowEl && rowEl.parentNode) ? rowEl : (mainEl || document.body);
         goal.parentNode.insertBefore(el, goal);
       }
-      const colorVal = (status === 'koptu' || status === 'vazgecildi') ? '#B32453' : '#B37E24';
+      const colorVal = (status === 'dropped' || status === 'abandoned') ? '#B32453' : '#B37E24';
       el.style.borderBottomColor = colorVal; el.style.color = colorVal;
       el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0;'
-        + (status === 'vazgecildi' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(message||'')+'</span>'
-        + (status === 'vazgecildi'
+        + (status === 'abandoned' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(message||'')+'</span>'
+        + (status === 'abandoned'
             ? '<button data-yeniden style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
               + ';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
             : '');
       const b = el.querySelector('[data-yeniden]');
       if (b) b.onclick = async ()=>{
         b.disabled = true;
-        const r = await window.imu.engine.yenidenBaglan().catch(()=>null);
+        const r = await window.imu.engine.reconnect().catch(()=>null);
         if (!r || !r.ok){ b.disabled = false; toast('Steam Bağlantısı').fail(t((r && r.error) || 'Yeniden bağlanılamadı.')); }
       };
     }
-    if (window.imu.engine && window.imu.engine.onDurum){
-      window.imu.engine.onDurum((d)=>{
-        if (!d || !d.aktif) return;          // only the account open on screen
+    if (window.imu.engine && window.imu.engine.onStatus){
+      window.imu.engine.onStatus((d)=>{
+        if (!d || !d.activeIds) return;          // only the account open on screen
         connectionStrip(d);
-        if (d.durum === 'koptu'){
+        if (d.condition === 'dropped'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
           if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', connectionText(d), 'Hata');
           // If reconnecting is off "vazgeçildi" comes right after, and that gives the notification.
-          if (d.sinir !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
-        } else if (d.durum === 'bagli' && d.yenidenBaglandi){
+          if (d.limitValue !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
+        } else if (d.condition === 'connected' && d.reconnected){
           if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', connectionText(d), 'Başarılı');
         }
       });
@@ -874,7 +874,7 @@
       const goals = [
         ['kartRows', 'Oyun listesi yükleniyor...'],
         ['envRows', 'Envanter yükleniyor...'],
-        ['saatListBody', 'Kütüphane yükleniyor...'],
+        ['hoursListBody', 'Kütüphane yükleniyor...'],
         ['activeBoostBox', 'Kuyruk yükleniyor...'],
         ['acBody', 'Başarımlar yükleniyor...'],
         ['grListe', 'Yükleniyor...'],
@@ -921,7 +921,7 @@
       closeAcct();
       const r = await window.imu.accounts.switch(steamID).catch(()=>null);
       if (!r || !r.ok){
-        edgeConfirm({ tag:'Hata', danger:true, title:'Hesap değiştirilemedi.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', tekDugme:true });
+        edgeConfirm({ tag:'Hata', danger:true, title:'Hesap değiştirilemedi.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', singleButton:true });
         return;
       }
       resetPageCaches();
@@ -946,7 +946,7 @@
       if (!ok) return;
       const r = await window.imu.accounts.remove(steamID).catch(()=>null);
       if (!r || !r.ok) {
-        edgeConfirm({ tag:'Hata', danger:true, title:'Hesap kaldırılamadı.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', tekDugme:true });
+        edgeConfirm({ tag:'Hata', danger:true, title:'Hesap kaldırılamadı.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', singleButton:true });
         return;
       }
       if (r.loggedOut) return; // main.js already moved to the login screen

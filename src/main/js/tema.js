@@ -54,7 +54,7 @@
   let observation = null;
   function applyTheme(name) {
     const choice = PALETTE[name] ? name : 'dark';
-    try { localStorage.setItem('se_tema', choice); } catch (_) {}
+    try { localStorage.setItem('se_theme', choice); } catch (_) {}
     const previous = document.documentElement.getAttribute('data-tema') || 'dark';
     if (previous === choice) return;
     // Returning from another theme reloads the page: the mapping cannot be undone, the source is dark.
@@ -81,8 +81,8 @@
     } });
     observation.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: OZ });
   }
-  window.temaUygula = applyTheme;
-  let initial = 'dark'; try { initial = localStorage.getItem('se_tema') || 'dark'; } catch (_) {}
+  window.applyTheme = applyTheme;
+  let initial = 'dark'; try { initial = (localStorage.getItem('se_theme') || localStorage.getItem('se_tema')) || 'dark'; } catch (_) {}
   if (initial !== 'dark') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(initial));
     else applyTheme(initial);

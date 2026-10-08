@@ -67,7 +67,7 @@
         <div style="display:flex;gap:22px">
           <div style="display:flex;flex-direction:column;gap:4px">
             <span style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)">Sürüm</span>
-            <span id="lgSurum" style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">-</span>
+            <span id="lgVersion" style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">-</span>
           </div>
           <div style="width:1px;background:var(--e-bdPassive)"></div>
           <div style="display:flex;flex-direction:column;gap:4px">
@@ -100,7 +100,7 @@
     // Surum numarasi elle yazilmisti ve 1.0.8'de kalmisti. Tek kaynak package.json;
     // ana surec app.getVersion() ile veriyor.
     window.imu.appBilgi().then(b => {
-      const el = document.getElementById('lgSurum');
+      const el = document.getElementById('lgVersion');
       if (el && b && b.surum) el.textContent = 'v' + b.surum;
     }).catch(()=>{});
     const A = window.imu, $id = id => document.getElementById(id);
@@ -159,7 +159,7 @@
             + '<div style="font-size:11px;line-height:1.6;color:var(--e-muted);text-align:center;max-width:30ch">'
               + 'Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.'
             + '</div>'
-            + '<button id="qrYenile-' + i + '" style="background:transparent;border:0;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Kodu Yenile</button>'
+            + '<button id="qrRefresh-' + i + '" style="background:transparent;border:0;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Kodu Yenile</button>'
           + '</div>'
           + '<div id="pwWrap-' + i + '" class="hide" style="display:flex;flex-direction:column;gap:16px">'
           + '<div class="lgfield"><label>Kullanıcı adı</label><div class="wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg><input id="acc-' + i + '" spellcheck="false" autocomplete="off" placeholder="steam kullanıcı adı"></div></div>'
@@ -243,7 +243,7 @@
       const g = id => $id(id + '-' + i);
       g('mQr').onclick = () => setMode(i, 'qr');
       g('mPw').onclick = () => setMode(i, 'pw');
-      g('qrYenile').onclick = () => startQR(i);
+      g('qrRefresh').onclick = () => startQR(i);
       g('go').onclick = () => {
         if (!g('guardField').classList.contains('hide')) {
           const c = g('guard').value.trim();

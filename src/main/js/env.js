@@ -161,12 +161,12 @@
     if (E.onHistoryProgress){
       E.onHistoryProgress((d)=>{
         if (!d) return;
-        avgDone = d.yapilan || 0; avgTotal = d.toplam || avgTotal;
+        avgDone = d.doneOnes || 0; avgTotal = d.totalSum || avgTotal;
         if (d.bitti){
           avgFetching = false;
           renderEnv(); paintAvgBtn();
           if (typeof toast === 'function'){
-            if (d.iptal) toast('Ortalama').done(tf('İptal edildi · # öğe alındı.', avgDone));
+            if (d.abandon) toast('Ortalama').done(tf('İptal edildi · # öğe alındı.', avgDone));
             else toast('Ortalama').done(tf('# öğenin ortalaması güncellendi.', avgDone));
           }
           return;
@@ -324,7 +324,7 @@
         warn: 'Steam pazar isteklerini sınırlıyor. Çok sayıda öğede bu işlem uzun sürer; önce filtre uygulayıp yalnızca ilgilendiğin öğeleri çekmek daha hızlıdır.',
         confirmText: 'Evet, Getir',
         cancelText: 'Hayır, Sonra',
-        sayfa: 'env',
+        pageName: 'env',
       });
       if (ok) fetchPricesForView();
       else if (typeof toast === 'function') toast('Fiyat').done('Filtreni kur, sonra alttaki "Fiyatları Getir" düğmesine bas.');
@@ -466,7 +466,7 @@
     // Düşük değer eşiği are shown dimmed. Since it was written nowhere the user
     // thought it was a sort and got confused. Now there is a small explanation in the top bar.
     function drawThresholdBadge(){
-      const el = document.getElementById('envEsikNot');
+      const el = document.getElementById('envThresholdNote');
       if (!el) return;
       const threshold = lowLimit();
       const faded = (viewRows || []).filter(isLowValue).length;
@@ -936,15 +936,15 @@
     async function prepareFees(buyerSubunits){
       const lacking = [...new Set(buyerSubunits.filter(k => k > 0 && !feeCache.has(k)))];
       if (!lacking.length) return true;
-      const r = await E.satisUcreti(lacking).catch(e => ({ ok:false, error:(e && e.message) }));
-      if (!r || !r.ok || !Array.isArray(r.sonuc)) return (r && r.error) || 'Steam ücret hesabı yüklenemedi.';
-      r.sonuc.forEach(x => feeCache.set(x.toplam, { satici: x.satici, alici: x.alici }));
+      const r = await E.saleFee(lacking).catch(e => ({ ok:false, error:(e && e.message) }));
+      if (!r || !r.ok || !Array.isArray(r.outcomeData)) return (r && r.error) || 'Steam ücret hesabı yüklenemedi.';
+      r.outcomeData.forEach(x => feeCache.set(x.totalSum, { seller: x.seller, buyer: x.buyer }));
       return true;
     }
     // The amount you will get (in currency units). null if the account has not arrived yet.
     function sellerAmount(buyerValue){
       const u = feeCache.get(subunit(buyerValue));
-      return u ? u.satici / 100 : null;
+      return u ? u.seller / 100 : null;
     }
     // "Eline geçecek" in the bottom bar: if the fee calculation has not arrived it is requested in the background and drawn when it arrives.
     // If the calculation failed (could not reach Steam) it is not tried again for a minute; otherwise every
@@ -976,7 +976,7 @@
       const d = (price.medianValue - price.lowestValue) / price.medianValue;
       if (d < priceDropThreshold()) { priceDrops.delete(hashName); return; }
       const earlier = priceDrops.get(hashName);
-      priceDrops.set(hashName, { yuzde: Math.round(d * 100), ts: earlier ? earlier.ts : Date.now() });
+      priceDrops.set(hashName, { percentValue: Math.round(d * 100), ts: earlier ? earlier.ts : Date.now() });
       if (earlier && Date.now() - earlier.ts < 24 * 3600 * 1000) return;
       if (!appSettings || !appSettings.notifyPriceDrop) return;
       const it = invMerged && invMerged.find(x => x.marketHashName === hashName);
@@ -1004,7 +1004,7 @@
     function saleBatchWait(){ return Math.max(0, +((appSettings || {}).sellBatchWaitMin) || 0); }
     const cancellableWait = (ms, g) => new Promise((solve)=>{
       const latest = Date.now() + ms;
-      const t = setInterval(()=>{ if (g.iptal || g.simdiDevam || Date.now() >= latest){ clearInterval(t); solve(); } else drawSaleStatus(); }, 1000);
+      const t = setInterval(()=>{ if (g.abandon || g.continueNow || Date.now() >= latest){ clearInterval(t); solve(); } else drawSaleStatus(); }, 1000);
     });
 
     function drawSaleStatus(){
@@ -1021,23 +1021,23 @@
         el.addEventListener('click', (e)=>{
           const b = e.target.closest('[data-sg]'); if (!b || !saleTask) return;
           const a = b.getAttribute('data-sg');
-          if (a === 'durdur'){ saleTask.iptal = true; drawSaleStatus(); }
-          else if (a === 'devam'){ saleTask.simdiDevam = true; }
+          if (a === 'durdur'){ saleTask.abandon = true; drawSaleStatus(); }
+          else if (a === 'devam'){ saleTask.continueNow = true; }
         });
       }
       const remaining = g.plan.length - g.i;
       let text, buttons = '';
-      if (g.bekleme){
-        const sn = Math.max(0, Math.round((g.bekleme - Date.now()) / 1000));
+      if (g.waiting){
+        const sn = Math.max(0, Math.round((g.waiting - Date.now()) / 1000));
         text = tf('Parti tamamlandı · sonraki parti # sonra', fmtDuration(sn)) + ' · ' + tf('# öğe bekliyor', remaining);
         buttons = '<button data-sg="devam" class="h-brand" style="'+SG_BTN+'">'+esc(t('Şimdi Devam Et'))+'</button>';
-      } else if (g.soruyor){
+      } else if (g.isAsking){
         text = tf('Parti tamamlandı · # öğe bekliyor', remaining);
         buttons = '<button data-sg="devam" class="h-brand" style="'+SG_BTN+'">'+esc(t('Sonraki Partiyi Listele'))+'</button>';
       } else {
         text = tf('Satışa sunuluyor · # / #', g.i, g.plan.length);
       }
-      if (g.mobilOnay) text += ' · ' + tf('# ilan Steam Guard onayı bekliyor', g.mobilOnay);
+      if (g.mobileConfirm) text += ' · ' + tf('# ilan Steam Guard onayı bekliyor', g.mobileConfirm);
       el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
         + '<span style="font-size:12px;color:#DCE2FA;line-height:1.5">' + esc(text) + '</span>'
         + buttons
@@ -1058,17 +1058,17 @@
       let totalBuyer = 0, totalSeller = 0;
       sellable.forEach(i=>{
         const u = feeCache.get(subunit(strategyPrice(i, strat)));
-        if (!u || !(u.satici > 0)) return;
+        if (!u || !(u.seller > 0)) return;
         const assets = i.assetIds.filter(a => !listedAssets.has(a));
         if (!assets.length) return;
-        assets.forEach(aid => plan.push({ assetId: aid, satici: u.satici, alici: u.alici, name: i.name, dedupKey: i.dedupKey }));
-        totalBuyer += u.alici * assets.length; totalSeller += u.satici * assets.length;
-        rowsList.push('• ' + i.name + ' ×' + assets.length + ' → ' + fmtLira(u.alici/100) + ' (' + t('eline geçecek') + ' ' + fmtLira(u.satici/100) + ')');
+        assets.forEach(aid => plan.push({ assetId: aid, seller: u.seller, buyer: u.buyer, name: i.name, dedupKey: i.dedupKey }));
+        totalBuyer += u.buyer * assets.length; totalSeller += u.seller * assets.length;
+        rowsList.push('• ' + i.name + ' ×' + assets.length + ' → ' + fmtLira(u.buyer/100) + ' (' + t('eline geçecek') + ' ' + fmtLira(u.seller/100) + ')');
         // Warn if the selected price is clearly below Steam's 24 hour average
         const p = priceOf(i);
         if (p && p.medianValue > 0){
-          const d = (p.medianValue - u.alici/100) / p.medianValue;
-          if (d >= priceDropThreshold()) dropList.push(i.name + ': ' + fmtLira(u.alici/100) + ' < ' + fmtLira(p.medianValue) + ' (' + t('24 saatlik ortalama') + ', -' + fmtPercent(Math.round(d*100)) + ')');
+          const d = (p.medianValue - u.buyer/100) / p.medianValue;
+          if (d >= priceDropThreshold()) dropList.push(i.name + ': ' + fmtLira(u.buyer/100) + ' < ' + fmtLira(p.medianValue) + ' (' + t('24 saatlik ortalama') + ', -' + fmtPercent(Math.round(d*100)) + ')');
         }
       });
       if (!plan.length){ toast('Satış').fail('Listelenecek geçerli fiyat bulunamadı.'); return; }
@@ -1086,7 +1086,7 @@
                 + '\n\n' + t('Alıcının ödeyeceği toplam:') + ' ' + fmtLira(totalBuyer/100)
                 + '\n' + t('Steam kesintisi sonrası eline geçecek:') + ' ' + fmtLira(totalSeller/100)
                 + batchNote,
-          uyariKirmizi: dropList.length
+          warningRed: dropList.length
             ? (t('Dikkat: bu öğelerin fiyatı Steam\'in 24 saatlik ortalamasının belirgin şekilde altında. Acele etme, fiyatı kontrol et.') + '\n' + dropList.slice(0,6).join('\n'))
             : '',
           warn: 'Satışa sunulan öğe geri alınamaz; ilanı iptal etmek için Steam\'e girmen gerekir. Mobil doğrulayıcı açıksa her ilanı Steam uygulamasından onaylaman gerekir.',
@@ -1094,52 +1094,52 @@
         });
         if (!ok) return;
       }
-      saleTask = { plan, i: 0, basarili: 0, mobilOnay: 0, epostaOnay: 0, eposta: null,
-                      hatalar: [], atlanan: 0, limit: null, iptal: false, ardisik: 0, bekleme: null, soruyor: false, simdiDevam: false };
+      saleTask = { plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
+                      failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, isAsking: false, continueNow: false };
       drawSaleStatus();
       await runSaleTask(saleTask);
     }
 
     async function runSaleTask(g){
       let perBatch = g.i;
-      while (g.i < g.plan.length && !g.iptal){
+      while (g.i < g.plan.length && !g.abandon){
         const p = g.plan[g.i];
-        const r = await E.sellItem(p.assetId, p.satici, 1).catch(e=>({ ok:false, error:(e && e.message), tur:'genel' }));
+        const r = await E.sellItem(p.assetId, p.seller, 1).catch(e=>({ ok:false, error:(e && e.message), typeName:'genel' }));
         g.i++;
         if (r && r.ok){
-          g.basarili++; g.ardisik = 0;
+          g.successful++; g.consecutive = 0;
           listedAssets.add(p.assetId);
           const s = r.result || {};
-          if (s.needs_mobile_confirmation || s.requires_confirmation) g.mobilOnay++;
-          if (s.needs_email_confirmation){ g.epostaOnay++; g.eposta = s.email_domain || g.eposta; }
+          if (s.needs_mobile_confirmation || s.requires_confirmation) g.mobileConfirm++;
+          if (s.needs_email_confirmation){ g.emailConfirm++; g.emailAddr = s.email_domain || g.emailAddr; }
         } else {
-          const category = (r && r.tur) || 'genel';
-          if (category === 'atla'){ g.atlanan++; g.hatalar.push(p.name + ': ' + (r.error || '')); }
+          const category = (r && r.typeName) || 'genel';
+          if (category === 'atla'){ g.skipped++; g.failures.push(p.name + ': ' + (r.error || '')); }
           else {
-            g.ardisik++;
-            g.hatalar.push(p.name + ': ' + ((r && r.error) || ''));
+            g.consecutive++;
+            g.failures.push(p.name + ': ' + ((r && r.error) || ''));
             // If Steam stopped there is no point sending the remaining requests: it only piles up errors
             // and narrows the account's limit even more.
-            if (category === 'limit' || g.ardisik >= 2){ g.limit = (r && r.error) || t('Steam listelemeyi durdurdu.'); g.i--; g.basarisizAsset = p.assetId; break; }
+            if (category === 'limit' || g.consecutive >= 2){ g.limit = (r && r.error) || t('Steam listelemeyi durdurdu.'); g.i--; g.failedAsset = p.assetId; break; }
           }
         }
         drawSaleStatus();
-        if (g.i < g.plan.length && !g.iptal){
+        if (g.i < g.plan.length && !g.abandon){
           // Batch limit (the setting is read live)
           const lot = saleBatchSize();
           if (lot && g.i - perBatch >= lot){
             perBatch = g.i;
             const waitMin = saleBatchWait();
             if (waitMin > 0){
-              g.bekleme = Date.now() + waitMin * 60000; drawSaleStatus();
+              g.waiting = Date.now() + waitMin * 60000; drawSaleStatus();
               await cancellableWait(waitMin * 60000, g);
-              g.bekleme = null; g.simdiDevam = false;
+              g.waiting = null; g.continueNow = false;
             } else {
-              g.soruyor = true; drawSaleStatus();
-              await new Promise((solve)=>{ const t = setInterval(()=>{ if (g.iptal || g.simdiDevam){ clearInterval(t); solve(); } }, 300); });
-              g.soruyor = false; g.simdiDevam = false;
+              g.isAsking = true; drawSaleStatus();
+              await new Promise((solve)=>{ const t = setInterval(()=>{ if (g.abandon || g.continueNow){ clearInterval(t); solve(); } }, 300); });
+              g.isAsking = false; g.continueNow = false;
             }
-            if (g.iptal) break;
+            if (g.abandon) break;
           }
           await new Promise(r2=>setTimeout(r2, 400));
         }
@@ -1154,20 +1154,20 @@
     function saleResult(g){
       const remaining = g.plan.length - g.i;
       const rowsList = [];
-      if (g.mobilOnay) rowsList.push(tf('# ilan Steam Guard onayı bekliyor: Steam mobil uygulamasında Onaylar bölümünden onayla.', g.mobilOnay));
-      if (g.epostaOnay) rowsList.push(tf('# ilan e-posta onayı bekliyor (#).', g.epostaOnay, g.eposta || 'e-posta'));
-      if (g.atlanan) rowsList.push(tf('# öğe atlandı (zaten onay bekleyen ilanı var ya da envanterde yok).', g.atlanan));
+      if (g.mobileConfirm) rowsList.push(tf('# ilan Steam Guard onayı bekliyor: Steam mobil uygulamasında Onaylar bölümünden onayla.', g.mobileConfirm));
+      if (g.emailConfirm) rowsList.push(tf('# ilan e-posta onayı bekliyor (#).', g.emailConfirm, g.emailAddr || 'e-posta'));
+      if (g.skipped) rowsList.push(tf('# öğe atlandı (zaten onay bekleyen ilanı var ya da envanterde yok).', g.skipped));
       if (remaining) rowsList.push(tf('# öğe listelenmedi.', remaining));
-      if (g.hatalar.length) rowsList.push('\n' + t('Steam yanıtları:') + '\n' + g.hatalar.slice(0, 5).map(x=>'  · ' + x).join('\n'));
-      const title = g.basarili ? tf('# öğe satışa sunuldu', g.basarili) : t('Hiçbir öğe satışa sunulamadı');
-      pushFeed(g.limit ? 'hata' : 'pazar', 'Satış', title + (g.mobilOnay ? (' · ' + tf('# Steam Guard onayı bekliyor', g.mobilOnay)) : ''), g.limit ? 'Uyarı' : 'Başarılı');
+      if (g.failures.length) rowsList.push('\n' + t('Steam yanıtları:') + '\n' + g.failures.slice(0, 5).map(x=>'  · ' + x).join('\n'));
+      const title = g.successful ? tf('# öğe satışa sunuldu', g.successful) : t('Hiçbir öğe satışa sunulamadı');
+      pushFeed(g.limit ? 'hata' : 'pazar', 'Satış', title + (g.mobileConfirm ? (' · ' + tf('# Steam Guard onayı bekliyor', g.mobileConfirm)) : ''), g.limit ? 'Uyarı' : 'Başarılı');
       edgeConfirm({
         tag: g.limit ? 'Steam Sınırı' : 'Satış', danger: !!g.limit,
         title: title,
         body: rowsList.join('\n') || t('Tüm ilanlar gönderildi.'),
         warn: g.limit
           ? (t('Steam listelemeyi durdurdu:') + ' ' + g.limit + '\n' + t('Steam bu sınırı hesabın yaşına, seviyesine ve güvenilirliğine göre belirliyor. Onay bekleyen ilanları onayla ya da birkaç saat sonra kalanları tekrar dene. Ayarlar > Pazar > Parti büyüklüğü ile daha küçük partiler seçebilirsin.'))
-          : (g.iptal ? t('İşlemi sen durdurdun.') : ''),
-        confirmText: 'Tamam', tekDugme: true,
+          : (g.abandon ? t('İşlemi sen durdurdun.') : ''),
+        confirmText: 'Tamam', singleButton: true,
       });
     }

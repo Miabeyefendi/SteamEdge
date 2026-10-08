@@ -33,13 +33,13 @@
     // 5/6 looking to trade/play. There is no need to show the detail, three is enough.
     function chStatusColor(d){ return d > 0 ? CHC.ok : CHC.off; }
     function chStatusName(a){
-      if (a.oyun) return a.oyun;
-      return a.durum > 0 ? 'Çevrimiçi' : 'Çevrimdışı';
+      if (a.gameEntry) return a.gameEntry;
+      return a.condition > 0 ? 'Çevrimiçi' : 'Çevrimdışı';
     }
 
     async function loadChat(){
       if (chLoaded){ chPaintList(); return; }
-      const listing = chEl('chListe');
+      const listing = chEl('chList');
       listing.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Arkadaş listesi alınıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
       if (!con.ok){ listing.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
@@ -48,7 +48,7 @@
     }
 
     async function chFetchFriends(){
-      const listing = chEl('chListe');
+      const listing = chEl('chList');
       const r = await window.imu.sohbet.friends().catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
         listing.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc((r&&r.error)||'Arkadaş listesi alınamadı.')+'</div>';
@@ -58,17 +58,17 @@
       // Unread counts come from the recent conversations; the friend list does not have this information.
       const k = await window.imu.sohbet.conversations().catch(()=>null);
       if (k && k.ok){
-        chUnread = new Map((k.konusmalar||[]).map(x=>[x.steamid, x.okunmamis||0]));
+        chUnread = new Map((k.conversationList||[]).map(x=>[x.steamid, x.unreadCount||0]));
       }
       chPaintList();
     }
 
     function chPaintList(){
-      const q = (chEl('chAra').value || '').trim().toLowerCase();
-      const listing = chEl('chListe');
+      const q = (chEl('chSearch').value || '').trim().toLowerCase();
+      const listing = chEl('chList');
       const refined = q ? chFriends.filter(a=>a.persona.toLowerCase().includes(q)) : chFriends;
-      chEl('chSayi').textContent = tf('# kişi', refined.length);
-      chEl('chOnline').textContent = String(chFriends.filter(a=>a.durum > 0).length);
+      chEl('chCount').textContent = tf('# kişi', refined.length);
+      chEl('chOnline').textContent = String(chFriends.filter(a=>a.condition > 0).length);
       if (!refined.length){
         listing.innerHTML = '<div style="color:#656D80;padding:14px;font-size:12px">'
           + (chFriends.length ? 'Sonuç yok.' : 'Arkadaş bulunamadı.') + '</div>';
@@ -83,10 +83,10 @@
             + '<div style="width:32px;height:32px;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
             + (a.avatar ? '<img src="'+esc(a.avatar)+'" loading="lazy" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' : '')
             + '</div>'
-            + '<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:12px;border:2px solid #090C12;background:'+chStatusColor(a.durum)+'"></span>'
+            + '<span style="position:absolute;right:-1px;bottom:-1px;width:9px;height:9px;border-radius:12px;border:2px solid #090C12;background:'+chStatusColor(a.condition)+'"></span>'
           + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
-            + '<span style="font-size:12px;font-weight:600;color:'+(a.durum>0?CHC.title:CHC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.persona)+'</span>'
+            + '<span style="font-size:12px;font-weight:600;color:'+(a.condition>0?CHC.title:CHC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.persona)+'</span>'
             + '<span style="font-size:10px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(chStatusName(a))+'</span>'
           + '</div>'
           + (unread
@@ -95,10 +95,10 @@
           + '</div>';
       }).join('');
     }
-    chEl('chAra').addEventListener('input', chPaintList);
-    chEl('chYenile').onclick = ()=>{ chLoaded = false; loadChat(); };
+    chEl('chSearch').addEventListener('input', chPaintList);
+    chEl('chRefresh').onclick = ()=>{ chLoaded = false; loadChat(); };
 
-    chEl('chListe').addEventListener('click', (e)=>{
+    chEl('chList').addEventListener('click', (e)=>{
       const row = e.target.closest('[data-chkisi]'); if (!row) return;
       chSelectPerson(row.getAttribute('data-chkisi'));
     });
@@ -106,56 +106,56 @@
     async function chSelectPerson(steamid){
       chSelected = steamid;
       const a = chFriends.find(x=>x.steamid===steamid);
-      chEl('chAd').textContent = a ? a.persona : steamid;
-      chEl('chDurum').textContent = a ? chStatusName(a) : '';
+      chEl('chName').textContent = a ? a.persona : steamid;
+      chEl('chStatus').textContent = a ? chStatusName(a) : '';
       chEl('chAvatar').innerHTML = (a && a.avatar)
         ? '<img src="'+esc(a.avatar)+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block">' : '';
-      chEl('chProfil').style.display = '';
-      chEl('chGiris').disabled = false;
-      chEl('chGonder').disabled = false;
+      chEl('chProfile').style.display = '';
+      chEl('chInput').disabled = false;
+      chEl('chSendBtn').disabled = false;
       chUnread.set(steamid, 0);
       chPaintList();
 
       const request = ++chRequest;
-      chEl('chMesajlar').innerHTML = '<div style="color:#8B8F9E;font-size:12px">Yazışma yükleniyor...</div>';
+      chEl('chMessages').innerHTML = '<div style="color:#8B8F9E;font-size:12px">Yazışma yükleniyor...</div>';
       const r = await window.imu.sohbet.history(steamid, 50).catch(e=>({ ok:false, error:(e&&e.message) }));
       if (request !== chRequest) return;                 // the user moved to another person
       if (!r || !r.ok){
-        chEl('chMesajlar').innerHTML = '<div style="color:#B32453;font-size:12px">'+esc((r&&r.error)||'Yazışma alınamadı.')+'</div>';
+        chEl('chMessages').innerHTML = '<div style="color:#B32453;font-size:12px">'+esc((r&&r.error)||'Yazışma alınamadı.')+'</div>';
         return;
       }
-      chMessages.set(steamid, r.mesajlar || []);
+      chMessages.set(steamid, r.messageList || []);
       chPaintMessages();
       window.imu.sohbet.read(steamid).catch(()=>{});   // so it also counts as read on Steam
     }
 
     function chPaintMessages(){
-      const container = chEl('chMesajlar');
+      const container = chEl('chMessages');
       const m = chMessages.get(chSelected) || [];
       if (!m.length){
         container.innerHTML = '<div style="color:#656D80;font-size:12px">Henüz mesaj yok. İlk mesajı sen yaz.</div>';
         return;
       }
       container.innerHTML = m.map(x=>
-        '<div style="display:flex;flex-direction:column;gap:3px;max-width:70%;align-self:'+(x.ben?'flex-end':'flex-start')+'">'
+        '<div style="display:flex;flex-direction:column;gap:3px;max-width:70%;align-self:'+(x.me?'flex-end':'flex-start')+'">'
         + '<div style="padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:break-word;'
-          + (x.ben ? 'background:#2A1B47;border:1px solid #5624B3;color:#DCE2FA'
+          + (x.me ? 'background:#2A1B47;border:1px solid #5624B3;color:#DCE2FA'
                    : 'background:#0D1118;border:1px solid #2B3345;color:#B9C0D6') + '">'
-          + esc(x.metin) + '</div>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80;align-self:'+(x.ben?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'
+          + esc(x.textValue) + '</div>'
+        + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80;align-self:'+(x.me?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'
         + '</div>').join('');
       container.scrollTop = container.scrollHeight;
     }
 
     async function chSend(){
-      const login = chEl('chGiris');
+      const login = chEl('chInput');
       const text = login.value.trim();
       if (!text || !chSelected) return;
       login.value = '';
       login.style.height = 'auto';
       // Optimistic drawing: show the message right away, if Steam rejects it take it back and say why.
       const listing = chMessages.get(chSelected) || [];
-      const temporary = { ben: true, metin: text, ts: Date.now(), gecici: true };
+      const temporary = { me: true, textValue: text, ts: Date.now(), isTemporary: true };
       listing.push(temporary);
       chMessages.set(chSelected, listing);
       chPaintMessages();
@@ -167,12 +167,12 @@
         if (typeof toast === 'function') toast('Sohbet').fail((r && r.error) || 'Mesaj gönderilemedi.');
         return;
       }
-      temporary.gecici = false;
+      temporary.isTemporary = false;
       temporary.ts = r.ts || temporary.ts;
       chPaintMessages();
     }
-    chEl('chGonder').onclick = chSend;
-    chEl('chGiris').addEventListener('keydown', (e)=>{
+    chEl('chSendBtn').onclick = chSend;
+    chEl('chInput').addEventListener('keydown', (e)=>{
       // Enter sends, Shift+Enter breaks the line - the common pattern of chat apps.
       if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); chSend(); return; }
       // "Typing..." notification: not sent more than once a second.
@@ -182,11 +182,11 @@
       }
     });
     // The box grows as you type, stops at 120 px (together with the CSS max-height).
-    chEl('chGiris').addEventListener('input', (e)=>{
+    chEl('chInput').addEventListener('input', (e)=>{
       e.target.style.height = 'auto';
       e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px';
     });
-    chEl('chProfil').onclick = ()=>{
+    chEl('chProfile').onclick = ()=>{
       if (chSelected) window.imu.openExternal('https://steamcommunity.com/profiles/' + chSelected);
     };
 
@@ -195,7 +195,7 @@
       window.imu.onChatMessage((m)=>{
         if (!m || !m.from) return;
         const listing = chMessages.get(m.from) || [];
-        listing.push({ ben: false, metin: String(m.message || ''), ts: m.ts || Date.now() });
+        listing.push({ me: false, textValue: String(m.message || ''), ts: m.ts || Date.now() });
         chMessages.set(m.from, listing);
         if (m.from === chSelected){
           chPaintMessages();

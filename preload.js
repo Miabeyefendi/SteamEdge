@@ -10,18 +10,18 @@ try { PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package
 catch (_) { PACKAGE_VERSION = ''; }
 
 contextBridge.exposeInMainWorld('imu', {
-  surum: PACKAGE_VERSION,
+  versionStr: PACKAGE_VERSION,
   // Update check: only LOOKS. No download, no automatic install - the interface just links to
   // the release page. Runs once at startup and once more from the top bar button.
-  guncelleme: {
-    kontrol: () => ipcRenderer.invoke('guncelleme:kontrol'),
-    sonDurum: () => ipcRenderer.invoke('guncelleme:sonDurum'),
-    onDurum: (cb) => ipcRenderer.on('guncelleme:durum', (_e, d) => cb(d)),
+  updateInfo: {
+    checkIt: () => ipcRenderer.invoke('guncelleme:kontrol'),
+    lastStatus: () => ipcRenderer.invoke('guncelleme:sonDurum'),
+    onStatus: (cb) => ipcRenderer.on('guncelleme:durum', (_e, d) => cb(d)),
   },
-  appBilgi: () => ipcRenderer.invoke('app:bilgi'),
-  appBellek: () => ipcRenderer.invoke('app:bellek'),
+  appInfo: () => ipcRenderer.invoke('app:bilgi'),
+  appMemory: () => ipcRenderer.invoke('app:bellek'),
   // Clears the image and network cache. No settings or session are lost.
-  appBellekTemizle: () => ipcRenderer.invoke('app:bellekTemizle'),
+  appMemoryClear: () => ipcRenderer.invoke('app:bellekTemizle'),
   pages: {
     // Reads the page HTML fragments synchronously - they must be injected into the DOM BEFORE main.html's
     // <script> tags run (those scripts bind to the matching ids immediately).
@@ -30,12 +30,12 @@ contextBridge.exposeInMainWorld('imu', {
       catch (_) { return ''; }
     },
   },
-  dil: {
+  lang: {
     // Reads only the selected language's dictionary; the other five files are never opened. Synchronous like
     // the page HTML, because the translation must be ready before the first paint.
     // The file name comes from outside: only letters are accepted and the folder is fixed, otherwise
     // a code containing "../" could make this read any file on disk.
-    yukle: (codeStr) => {
+    loadIt: (codeStr) => {
       if (!/^[a-z]{2}$/.test(String(codeStr || ''))) return null;
       try {
         const p = path.join(__dirname, 'src', 'main', 'js', 'lang', codeStr + '.json');
@@ -88,10 +88,10 @@ contextBridge.exposeInMainWorld('imu', {
     set: (patch) => ipcRenderer.invoke('settings:set', patch),
     // Save button of the Settings page: only changed keys are sent; the reply says which
     // running jobs will continue with the new settings.
-    kaydet: (patch) => ipcRenderer.invoke('settings:kaydet', patch),
+    saveIt: (patch) => ipcRenderer.invoke('settings:kaydet', patch),
     // Defaults: Reset loads them into the page's draft and writes nothing.
-    varsayilanlar: () => ipcRenderer.invoke('settings:varsayilanlar'),
-    bilgi: () => ipcRenderer.invoke('settings:bilgi'),
+    defaultsMap: () => ipcRenderer.invoke('settings:varsayilanlar'),
+    details: () => ipcRenderer.invoke('settings:bilgi'),
     clearPriceCache: () => ipcRenderer.invoke('settings:clearPriceCache'),
     openConfigFolder: () => ipcRenderer.invoke('settings:openConfigFolder'),
     export: () => ipcRenderer.invoke('settings:export'),
@@ -102,11 +102,11 @@ contextBridge.exposeInMainWorld('imu', {
   stats: {
     get: () => ipcRenderer.invoke('stats:get'),
     reset: () => ipcRenderer.invoke('stats:reset'),
-    onDegisti: (cb) => ipcRenderer.on('stats:degisti', (_e, d) => cb(d)),
+    onChanged: (cb) => ipcRenderer.on('stats:degisti', (_e, d) => cb(d)),
   },
   // Account events (card dropped, cards finished, achievement unlocked, time ran out...). Events of
   // background accounts arrive too; the notification is shown from here.
-  onHesapOlayi: (cb) => ipcRenderer.on('hesap:olay', (_e, d) => cb(d)),
+  onAccountEvent: (cb) => ipcRenderer.on('hesap:olay', (_e, d) => cb(d)),
   // Remembered data (selected games, achievement log). Retention is set in Settings > Backup.
   state: {
     get: (key) => ipcRenderer.invoke('state:get', key),
@@ -119,22 +119,22 @@ contextBridge.exposeInMainWorld('imu', {
   gercekci: {
     // G11: duration in milliseconds, options = { hedef, model, rastgeleAralik, ultraNadirAtla,
     // otoSira, saatiSurdur, gecikmisHizlandir }. oyunlar = array of appids (the queue).
-    plan: (appid, durationMs, options) => ipcRenderer.invoke('gercekci:plan', { appid, sureMs: durationMs, secenekler: options }),
-    start: (gameList, durationMs, options) => ipcRenderer.invoke('gercekci:start', { oyunlar: gameList, sureMs: durationMs, secenekler: options }),
+    plan: (appid, durationMs, options) => ipcRenderer.invoke('gercekci:plan', { appid, spanMs: durationMs, optionList: options }),
+    start: (gameList, durationMs, options) => ipcRenderer.invoke('gercekci:start', { gameEntries: gameList, spanMs: durationMs, optionList: options }),
     stop: () => ipcRenderer.send('gercekci:stop'),
     // Games found to have no achievements. Learned once, written to disk, and that game
     // never shows up in this page's list again.
-    basarimsizlar: () => ipcRenderer.invoke('gercekci:basarimsizlar'),
-    basarimsizTemizle: () => ipcRenderer.invoke('gercekci:basarimsizTemizle'),
+    noAchievementsList: () => ipcRenderer.invoke('gercekci:basarimsizlar'),
+    noAchievementsClear: () => ipcRenderer.invoke('gercekci:basarimsizTemizle'),
     onTick: (cb) => ipcRenderer.on('gercekci:tick', (_e, d) => cb(d)),
-    onAcildi: (cb) => ipcRenderer.on('gercekci:acildi', (_e, d) => cb(d)),
+    onOpened: (cb) => ipcRenderer.on('gercekci:acildi', (_e, d) => cb(d)),
   },
   // Steam chat - one-to-one friend messages. Group chat is out of scope.
   sohbet: {
     friends: () => ipcRenderer.invoke('chat:friends'),
     conversations: () => ipcRenderer.invoke('chat:conversations'),
-    history: (steamid, count) => ipcRenderer.invoke('chat:history', { steamid, adet: count }),
-    send: (steamid, text) => ipcRenderer.invoke('chat:send', { steamid, metin: text }),
+    history: (steamid, count) => ipcRenderer.invoke('chat:history', { steamid, itemCount: count }),
+    send: (steamid, text) => ipcRenderer.invoke('chat:send', { steamid, textValue: text }),
     read: (steamid) => ipcRenderer.invoke('chat:read', steamid),
     typing: (steamid) => ipcRenderer.send('chat:typing', steamid),
   },
@@ -142,52 +142,52 @@ contextBridge.exposeInMainWorld('imu', {
     connect: () => ipcRenderer.invoke('engine:connect'),
     dropGames: () => ipcRenderer.invoke('engine:dropGames'),
     // Last fetched card/library lists - makes no request to Steam, reads from disk.
-    sonListeler: () => ipcRenderer.invoke('engine:sonListeler'),
+    lastLists: () => ipcRenderer.invoke('engine:sonListeler'),
     inventory: () => ipcRenderer.invoke('engine:inventory'),
     pricesFor: (hashNames) => ipcRenderer.invoke('engine:pricesFor', hashNames),
     // Makes no request to Steam, only reads the cache on disk (used when the inventory opens)
-    pricesForCached: (hashNames) => ipcRenderer.invoke('engine:pricesFor', { hashNames, sadeceOnbellek: true }),
+    pricesForCached: (hashNames) => ipcRenderer.invoke('engine:pricesFor', { hashNames, cacheOnly: true }),
     onPriceOne: (cb) => ipcRenderer.on('price:one', (_e, data) => cb(data)),
     onPriceProgress: (cb) => ipcRenderer.on('price:progress', (_e, data) => cb(data)),
     priceHistory: (hashName) => ipcRenderer.invoke('engine:priceHistory', hashName),
     // G8: fetch the sale history (average/median) in BULK. It goes through the same market gate
     // as the price queue, so it never exceeds Steam's limit. Progress arrives through history:progress.
     historyFor: (hashNames) => ipcRenderer.invoke('engine:historyFor', hashNames),
-    historyForCached: (hashNames) => ipcRenderer.invoke('engine:historyFor', { hashNames, sadeceOnbellek: true }),
+    historyForCached: (hashNames) => ipcRenderer.invoke('engine:historyFor', { hashNames, cacheOnly: true }),
     historyCancel: () => ipcRenderer.send('engine:historyCancel'),
     onHistoryOne: (cb) => ipcRenderer.on('history:one', (_e, d) => cb(d)),
     onHistoryProgress: (cb) => ipcRenderer.on('history:progress', (_e, d) => cb(d)),
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
     sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
     // Steam's own fee calculation: the amounts the buyer pays (cents) -> what the seller keeps
-    satisUcreti: (totals) => ipcRenderer.invoke('engine:satisUcreti', totals),
+    saleFee: (totals) => ipcRenderer.invoke('engine:satisUcreti', totals),
     ownedGames: () => ipcRenderer.invoke('engine:ownedGames'),
     profile: () => ipcRenderer.invoke('engine:profile'),
     // The custom profile address is separate: it needs a web request, so name/avatar must not wait for it.
     vanity: () => ipcRenderer.invoke('engine:vanity'),
     // With taze=true the 5 minute schema cache is skipped; used after a bulk operation
     // to verify what Steam actually saved.
-    achievements: (appid, isFresh) => ipcRenderer.invoke('engine:achievements', { appid, taze: isFresh }),
+    achievements: (appid, isFresh) => ipcRenderer.invoke('engine:achievements', { appid, freshFlag: isFresh }),
     setAchievements: (appid, changes) => ipcRenderer.invoke('engine:setAchievements', { appid, changes }),
     startFarm: (mode, games, durationMs) => ipcRenderer.send('engine:startFarm', { mode, games, durationMs }),
     stopFarm: () => ipcRenderer.send('engine:stopFarm'),
     onTick: (cb) => ipcRenderer.on('farm:tick', (_e, data) => cb(data)),
     // The main process badge watcher's current card list (for the account on screen).
-    onFarmListe: (cb) => ipcRenderer.on('farm:liste', (_e, data) => cb(data)),
+    onFarmList: (cb) => ipcRenderer.on('farm:liste', (_e, data) => cb(data)),
     // games: [{appid, playtimeMin}] - needed to build the hour sync steps.
     // tumu: every selected game; if the "at most at once" limit changes while a job runs, the list is cut from here.
-    boostStart: (appids, durationMs, games, allOfIt) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games, tumu: allOfIt }),
+    boostStart: (appids, durationMs, games, allOfIt) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games, allItems: allOfIt }),
     boostSyncPlan: (games, mode, targetHours) => ipcRenderer.invoke('engine:boostSyncPlan', { games, mode, targetHours }),
     onBoostSync: (cb) => ipcRenderer.on('boost:sync', (_e, d) => cb(d)),
     // G3: Steam connection state (bagli | koptu | baglaniyor | vazgecildi)
-    onDurum: (cb) => ipcRenderer.on('engine:durum', (_e, d) => cb(d)),
-    baglantiDurumu: () => ipcRenderer.invoke('engine:baglantiDurumu'),
+    onStatus: (cb) => ipcRenderer.on('engine:durum', (_e, d) => cb(d)),
+    connectionStatus: () => ipcRenderer.invoke('engine:baglantiDurumu'),
     // Retries a connection that has run out of attempts or was permanently dropped.
-    yenidenBaglan: () => ipcRenderer.invoke('engine:yenidenBaglan'),
+    reconnect: () => ipcRenderer.invoke('engine:yenidenBaglan'),
     boostStop: () => ipcRenderer.send('engine:boostStop'),
     onBoostTick: (cb) => ipcRenderer.on('boost:tick', (_e, data) => cb(data)),
     boostStartSeq: (games, durationMs, loop) => ipcRenderer.send('engine:boostStartSeq', { games, durationMs, loop }),
     boostStopSeq: () => ipcRenderer.send('engine:boostStopSeq'),
-    onSaatFarmTick: (cb) => ipcRenderer.on('saatFarm:tick', (_e, data) => cb(data)),
+    onHourFarmTick: (cb) => ipcRenderer.on('saatFarm:tick', (_e, data) => cb(data)),
   },
 });

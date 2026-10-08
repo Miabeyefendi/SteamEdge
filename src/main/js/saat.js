@@ -24,7 +24,7 @@
     async function loadHours(){
       await applyBoostFlags();
       if (hoursLoaded){ renderHoursList(); renderActiveBox(); return; }
-      const body = document.getElementById('saatListBody');
+      const body = document.getElementById('hoursListBody');
       body.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
       if (!con.ok){ body.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
@@ -34,7 +34,7 @@
       restoreBoostList();
       renderHoursList(); renderHoursSelected();
     }
-    document.getElementById('saatSearch').addEventListener('input', renderHoursList);
+    document.getElementById('hoursSearch').addEventListener('input', renderHoursList);
 
     // if the "Oyun listesini hatırla" setting is on the selection is persistent
     function persistBoostList(){
@@ -61,11 +61,11 @@
 
     // ---- library list ----
     function renderHoursList(){
-      const q = document.getElementById('saatSearch').value.trim().toLowerCase();
-      const body = document.getElementById('saatListBody');
+      const q = document.getElementById('hoursSearch').value.trim().toLowerCase();
+      const body = document.getElementById('hoursListBody');
       const selIds = new Set(selectedHours.map(g=>g.appid));
       const filtered = (q ? ownedGames.filter(g=>g.name.toLowerCase().includes(q)) : ownedGames).slice(0,300);
-      document.getElementById('saatFound').textContent = (q?filtered.length:ownedGames.length) + ' bulundu';
+      document.getElementById('hoursFound').textContent = (q?filtered.length:ownedGames.length) + ' bulundu';
       if (!filtered.length){ body.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Sonuç yok.</div>'; return; }
       body.innerHTML = filtered.map(g=>{
         const on = selIds.has(g.appid);
@@ -81,7 +81,7 @@
           + '</div>';
       }).join('');
     }
-    document.getElementById('saatListBody').addEventListener('click', (e)=>{
+    document.getElementById('hoursListBody').addEventListener('click', (e)=>{
       const row = e.target.closest('[data-appid]'); if (!row) return;
       toggleSaatGame(+row.getAttribute('data-appid'));
     });
@@ -101,14 +101,14 @@
       const on = idx < 0;
       if (!on) selectedHours.splice(idx,1);
       else { const g = ownedGames.find(x=>x.appid===appid); if (g) selectedHours.push(g); }
-      const row = document.querySelector('#saatListBody [data-appid="'+appid+'"]');
+      const row = document.querySelector('#hoursListBody [data-appid="'+appid+'"]');
       if (row) paintLibRow(row, on);
       persistBoostList();
       renderHoursSelected();
     }
-    document.getElementById('saatClearQueue').onclick = ()=>{
+    document.getElementById('hoursClearQueue').onclick = ()=>{
       selectedHours = []; persistBoostList();
-      document.querySelectorAll('#saatListBody [data-appid]').forEach(r=>paintLibRow(r, false));
+      document.querySelectorAll('#hoursListBody [data-appid]').forEach(r=>paintLibRow(r, false));
       renderHoursSelected();
     };
 
@@ -119,23 +119,23 @@
     // algorithm decides both. So they are visually locked and the reason is written.
     function renderSyncSettings(){
       const isOpen = !!(appSettings && appSettings.boostSync) && !boostFlags.seqIdle;
-      const opts = document.getElementById('saatSyncOpts');
+      const opts = document.getElementById('hoursSyncOpts');
       if (opts) opts.style.display = isOpen ? 'flex' : 'none';
 
       const mod = (appSettings && appSettings.boostSyncMode) || 'highest';
-      const mSel = document.getElementById('saatSyncMode');
+      const mSel = document.getElementById('hoursSyncMode');
       if (mSel && mSel.value !== mod) mSel.value = mod;
-      const tRow = document.getElementById('saatSyncTargetRow');
+      const tRow = document.getElementById('hoursSyncTargetRow');
       if (tRow) tRow.style.display = (isOpen && mod === 'manual') ? 'flex' : 'none';
-      const tIn = document.getElementById('saatSyncTarget');
+      const tIn = document.getElementById('hoursSyncTarget');
       if (tIn && document.activeElement !== tIn) tIn.value = (appSettings && appSettings.boostSyncTargetHours) || 100;
-      const stSel = document.getElementById('saatSyncStrategy');
+      const stSel = document.getElementById('hoursSyncStrategy');
       const st = (appSettings && appSettings.boostSyncStrategy) || 'parallel';
       if (stSel && stSel.value !== st) stSel.value = st;
 
-      lock(document.getElementById('saatConcBlock'), isOpen,
+      lock(document.getElementById('hoursConcBlock'), isOpen,
               'Eşitleme açık: oyunları eşitleme çalıştırır (en fazla 32 eşzamanlı).');
-      lock(document.getElementById('saatDurBlock'), isOpen,
+      lock(document.getElementById('hoursDurBlock'), isOpen,
               'Eşitleme açık: süreyi hedef saat belirler.');
     }
     function lock(block, locked, cause){
@@ -154,19 +154,19 @@
       } else if (not) not.remove();
     }
     (function bindSyncSettings(){
-      const mSel = document.getElementById('saatSyncMode');
+      const mSel = document.getElementById('hoursSyncMode');
       if (mSel) mSel.addEventListener('change', ()=>{
         appSettings.boostSyncMode = mSel.value;
         window.imu.settings.set({ boostSyncMode: mSel.value }).catch(()=>{});
         renderSyncSettings();
       });
-      const tIn = document.getElementById('saatSyncTarget');
+      const tIn = document.getElementById('hoursSyncTarget');
       if (tIn) tIn.addEventListener('change', ()=>{
         const v = Math.max(1, Math.min(20000, +tIn.value || 100));
         tIn.value = v; appSettings.boostSyncTargetHours = v;
         window.imu.settings.set({ boostSyncTargetHours: v }).catch(()=>{});
       });
-      const stSel = document.getElementById('saatSyncStrategy');
+      const stSel = document.getElementById('hoursSyncStrategy');
       if (stSel) stSel.addEventListener('change', ()=>{
         appSettings.boostSyncStrategy = stSel.value;
         window.imu.settings.set({ boostSyncStrategy: stSel.value }).catch(()=>{});
@@ -179,16 +179,16 @@
       if (!box) return;
       const activeIds = boostState.running ? (boostState.activeAppids || boostState.appids || []) : [];
       const activeSet = new Set(activeIds);
-      document.getElementById('statOyunSayisi').textContent = boostState.running ? activeIds.length : selectedHours.length;
+      document.getElementById('statGameCount').textContent = boostState.running ? activeIds.length : selectedHours.length;
 
       // Time indicators
       const elapsed = boostState.running ? Math.floor((Date.now()-(boostState.startedAt||Date.now()))/1000) : 0;
       const left = boostState.running && boostState.durationMs
         ? Math.max(0, Math.floor((boostState.durationMs - (Date.now()-(boostState.startedAt||Date.now())))/1000))
         : (selectedHours.length ? (boostFlags.seqIdle ? hourDurSec*selectedHours.length : hourDurSec) : 0);
-      document.getElementById('statToplamSure').innerHTML = monoHMS(elapsed);
+      document.getElementById('statTotalDuration').innerHTML = monoHMS(elapsed);
       const unlimited = boostState.running ? (!boostState.durationMs && !boostState.sync && !syncGameInfo.size) : !hourDurSec;
-      document.getElementById('saatRemain').innerHTML = unlimited ? '∞' : monoHMS(left);
+      document.getElementById('hoursRemain').innerHTML = unlimited ? '∞' : monoHMS(left);
 
       if (!selectedHours.length){
         box.innerHTML = '<div style="grid-column:1/-1;padding:48px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">'
@@ -210,7 +210,7 @@
         const details = syncGameInfo.get(g.appid);
         if (details && syncJobTotalMs > 0){
           if (details.bitti) return 100;
-          const remaining = Math.max(0, details.kalanMs || 0);
+          const remaining = Math.max(0, details.remainingMs || 0);
           return Math.max(0, Math.min(100, Math.round((1 - remaining / syncJobTotalMs) * 100)));
         }
         return active ? pct : 0;
@@ -256,7 +256,7 @@
       const id = +b.getAttribute('data-saatdel');
       selectedHours = selectedHours.filter(g=>g.appid!==id);
       persistBoostList();
-      const row = document.querySelector('#saatListBody [data-appid="'+id+'"]');
+      const row = document.querySelector('#hoursListBody [data-appid="'+id+'"]');
       if (row) paintLibRow(row, false);
       renderActiveBox();
     });
@@ -289,12 +289,12 @@
 
     // ---- simultaneous limit ----
     function paintConc(){
-      document.querySelectorAll('#saatConc button[data-n]').forEach(b=>{
+      document.querySelectorAll('#hoursConc button[data-n]').forEach(b=>{
         const v = b.getAttribute('data-n');
         const on = concurrentCustom ? v==='custom' : (+v === maxConcurrent);
         Object.assign(b.style, on ? BSEG_ON : BSEG_OFF);
       });
-      document.getElementById('saatConcCustom').style.display = concurrentCustom ? '' : 'none';
+      document.getElementById('hoursConcCustom').style.display = concurrentCustom ? '' : 'none';
     }
     // The limit is written to disk INSTANTLY. The reason: the main process runs the hour sync and reads the simultaneous
     // count from settings.boostMaxGames. This value used to be written only with "Preset olarak
@@ -303,20 +303,20 @@
       concUserTouched = true;
       window.imu.settings.set({ boostMaxGames: maxConcurrent }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
     }
-    document.querySelectorAll('#saatConc button[data-n]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelectorAll('#hoursConc button[data-n]').forEach(b=>b.addEventListener('click', ()=>{
       const v = b.getAttribute('data-n');
       if (v === 'custom'){ concurrentCustom = true; }
       else { concurrentCustom = false; maxConcurrent = +v; writeLimit(); }
       paintConc(); renderActiveBox();
     }));
-    document.getElementById('saatConcCustom').addEventListener('change', (e)=>{
+    document.getElementById('hoursConcCustom').addEventListener('change', (e)=>{
       maxConcurrent = Math.max(1, Math.min(32, +e.target.value || 1));
       e.target.value = maxConcurrent; writeLimit(); renderActiveBox();
     });
     paintConc();
 
     // ---- boost duration ----
-    const bH = document.getElementById('saatH'), bM = document.getElementById('saatM'), bS = document.getElementById('saatS');
+    const bH = document.getElementById('hoursH'), bM = document.getElementById('hoursM'), bS = document.getElementById('hoursS');
     // hourDurSec 0 = UNLIMITED: the session continues until it is stopped (same as Ayarlar > "Varsayılan hedef
     // süre" > Sınırsız). The page used to be unable to show unlimited; the setting was dead.
     function writeSegs(){
@@ -344,7 +344,7 @@
     });
     function paintBoostPresets(){
       const hours = hourDurSec/3600;
-      document.querySelectorAll('#saatPresets button[data-h]').forEach(b=>{
+      document.querySelectorAll('#hoursPresets button[data-h]').forEach(b=>{
         const h = b.getAttribute('data-h');
         const on = h==='inf' ? !hourDurSec
                  : h==='custom' ? (!!hourDurSec && ![6,12,18,24].includes(hours)) : (+h === hours);
@@ -358,7 +358,7 @@
         }
       });
     }
-    document.querySelectorAll('#saatPresets button[data-h]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelectorAll('#hoursPresets button[data-h]').forEach(b=>b.addEventListener('click', ()=>{
       const h = b.getAttribute('data-h');
       if (h === 'custom'){ if (!hourDurSec){ hourDurSec = 3600; writeDuration(); writeSegs(); } bH.focus(); return; }
       hourDurSec = h === 'inf' ? 0 : (+h)*3600; writeDuration(); writeSegs(); renderActiveBox();
@@ -422,7 +422,7 @@
     // A switch looking on and doing nothing was met in 1.1.10 at the achievement unlock
     // interval; we close the same trap here too.
     function paintHourGate(){
-      const rowEl = document.getElementById('saatLoopRow');
+      const rowEl = document.getElementById('hoursLoopRow');
       if (!rowEl) return;
       const isOpen = !!boostFlags.seqIdle;
       rowEl.style.opacity = isOpen ? '1' : '.4';
@@ -446,7 +446,7 @@
     });
 
     // "Preset olarak kaydet" - writes the current configuration (limit, duration, switches, selected games)
-    document.getElementById('saatSavePreset').onclick = async ()=>{
+    document.getElementById('hoursSavePreset').onclick = async ()=>{
       await window.imu.settings.set({
         boostMaxGames: maxConcurrent,
         boostDurationSec: hourDurSec,
@@ -478,14 +478,14 @@
         }
         if (plan.behind){
           let bodyEl, title;
-          if (plan.strateji === 'parallel'){
+          if (plan.strategyName === 'parallel'){
             // Show the first few endings - so the user sees what will end when
-            const firsts = (plan.bitisler||[]).slice(0,6).map(b=>
-              '  · ' + b.name + ': ' + tf('# sonra', fmtHours(Math.round(b.bitisMs/60000)))).join('\n');
-            const remainingNumber = Math.max(0, (plan.bitisler||[]).length-6);
+            const firsts = (plan.finishTimes||[]).slice(0,6).map(b=>
+              '  · ' + b.name + ': ' + tf('# sonra', fmtHours(Math.round(b.finishMs/60000)))).join('\n');
+            const remainingNumber = Math.max(0, (plan.finishTimes||[]).length-6);
             title = tf('# oyun # hedefine çekilecek', plan.behind, fmtHours(plan.targetMin));
             bodyEl = t('Seçili oyunların hepsi aynı anda çalışır. Hedefe ulaşan oyun listeden çıkar, kalanlar devam eder.') + '\n\n'
-                  + tf('Aynı anda açık: # oyun', plan.ilkAktif) + '\n\n'
+                  + tf('Aynı anda açık: # oyun', plan.firstActive) + '\n\n'
                   + t('Tahmini bitiş sırası:') + '\n' + firsts
                   + (remainingNumber ? ('\n  · ' + tf('ve # oyun daha', remainingNumber)) : '')
                   + '\n\n' + t('Hepsinin tamamlanması:') + ' ' + fmtHours(Math.round(plan.totalMs/60000));
@@ -533,7 +533,7 @@
       return durationUnit(m, 'dk');
     }
     if (E.onBoostSync) E.onBoostSync((d)=>{
-      const bar = document.getElementById('saatSyncBar');
+      const bar = document.getElementById('hoursSyncBar');
       if (!bar) return;
       if (!d.running){
         bar.style.display = 'none';
@@ -544,25 +544,25 @@
       }
       bar.style.display = 'flex';
       syncTargetMin = d.targetMin || 0;
-      if (d.isToplamMs) syncJobTotalMs = d.isToplamMs;
-      const txt = document.getElementById('saatSyncText');
-      const eta = document.getElementById('saatSyncEta');
-      const fill = document.getElementById('saatSyncBarFill');
+      if (d.jobTotalMs) syncJobTotalMs = d.jobTotalMs;
+      const txt = document.getElementById('hoursSyncText');
+      const eta = document.getElementById('hoursSyncEta');
+      const fill = document.getElementById('hoursSyncBarFill');
 
-      if (d.strateji === 'parallel'){
-        syncGameInfo = new Map((d.oyunlar||[]).map(o=>[o.appid, o]));
-        const percent = d.toplam ? Math.round(d.biten/d.toplam*100) : 0;
+      if (d.strategyName === 'parallel'){
+        syncGameInfo = new Map((d.gameEntries||[]).map(o=>[o.appid, o]));
+        const percent = d.totalSum ? Math.round(d.finishedOne/d.totalSum*100) : 0;
         if (txt) txt.innerHTML =
             '<span style="font-size:12px;font-weight:600;color:#DCE2FA">'+esc(tf('Saat eşitleme · hedef #', fmtHours(d.targetMin)))+'</span>'
           + '<span style="font-size:11px;color:#8B8F9E">'
-          + esc(tf('# / # oyun hedefte · # oyun çalışıyor', d.biten, d.toplam, d.aktifSayi)) + '</span>';
-        if (eta) eta.textContent = d.kalanMs ? msShort(d.kalanMs) : t('bitiyor');
+          + esc(tf('# / # oyun hedefte · # oyun çalışıyor', d.finishedOne, d.totalSum, d.activeTotal)) + '</span>';
+        if (eta) eta.textContent = d.remainingMs ? msShort(d.remainingMs) : t('bitiyor');
         if (fill) fill.style.width = percent + '%';
       } else {
         // G13: the game ledger comes on the stepped side too. This place used to be emptied and
         // every game showed the same session percentage; a game with 1 hour left to the target and a game with
         // 47 hours left were on the same bar.
-        syncGameInfo = new Map((d.oyunlar||[]).map(o=>[o.appid, o]));
+        syncGameInfo = new Map((d.gameEntries||[]).map(o=>[o.appid, o]));
         const percent = d.steps ? Math.round((d.step-1)/d.steps*100) : 0;
         if (txt) txt.innerHTML =
             '<span style="font-size:12px;font-weight:600;color:#DCE2FA">'+esc(tf('Eşitleme adımı # / #', d.step, d.steps))+'</span>'
@@ -592,4 +592,4 @@
       renderActiveBox();
     }
     E.onBoostTick(onHourTick);
-    E.onSaatFarmTick((data) => onHourTick({ running: data.running, activeAppids: data.activeAppids, startedAt: Date.now()-(data.elapsedMs||0), durationMs: data.durationMs }));
+    E.onHourFarmTick((data) => onHourTick({ running: data.running, activeAppids: data.activeAppids, startedAt: Date.now()-(data.elapsedMs||0), durationMs: data.durationMs }));

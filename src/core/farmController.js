@@ -25,7 +25,7 @@ class FarmController {
   constructor(engine, emit, ownerId) {
     this.engine = engine;
     this.emit = emit;
-    this.sahip = ownerId || 'kart';
+    this.ownerId = ownerId || 'kart';
     this.timer = null;
     this.timer2 = null;
     this.running = false;
@@ -34,12 +34,12 @@ class FarmController {
     this.index = 0;
     this.startedAt = 0;
     this.durationMs = 0;
-    this.oturumBaslangic = 0;
-    this.aktifAppid = null;
-    this.faz = null;               // fast mode: 'warmup' | 'rotate'
+    this.sessionStart = 0;
+    this.currentActiveAppid = null;
+    this.phaseName = null;               // fast mode: 'warmup' | 'rotate'
     this.fastPool = [];
-    this._uyku = null;             // resolver of the fast mode warm-up wait
-    this.nesil = 0;                // every start() is a new generation: an old loop must not interfere with the restart
+    this._napFn = null;             // resolver of the fast mode warm-up wait
+    this.generation = 0;                // every start() is a new generation: an old loop must not interfere with the restart
   }
 
   // opts.loop === false → runs a single round and stops by itself when the queue ends (Hour Booster with "Repeat
@@ -53,14 +53,14 @@ class FarmController {
   // opts.karistir → in sequential mode the game order is shuffled every round (Hour Booster).
   // opts.devam → { index, passedMs }: to resume where it was after a settings change.
   start(mode, games, durationMs, opts) {
-    this._temizle();
+    this._cleanup();
     this.running = false;
-    this.nesil++;
+    this.generation++;
     this.mode = mode;
     this.opts = { ...(opts || {}) };
     this.loop = !opts || opts.loop !== false;
     this.autoNext = !opts || opts.autoNext !== false;
-    this.karistir = !!(opts && opts.karistir);
+    this.shuffle = !!(opts && opts.shuffle);
     this.maxGames = (opts && +opts.maxGames > 0) ? Math.min(32, +opts.maxGames) : 32;
     this.fastMinPlaytimeMin = (opts && +opts.fastMinPlaytimeMin >= 0) ? +opts.fastMinPlaytimeMin : 120;
     this.fastRotateMinMs = ((opts && +opts.fastRotateMinSec) || 90) * 1000;
@@ -70,42 +70,42 @@ class FarmController {
     let list = (games || []).map((g) => ({ ...g }));
     if (mode === 'most') list.sort((a, b) => b.remaining - a.remaining);
     else if (mode === 'least') list.sort((a, b) => a.remaining - b.remaining);
-    if (this.karistir) list = FarmController.karistir(list);
+    if (this.shuffle) list = FarmController.shuffle(list);
     this.games = list;
     this.running = true;
     const proceed = opts && opts.devam;
     this.index = proceed && +proceed.index >= 0 ? Math.min(+proceed.index, Math.max(0, list.length - 1)) : 0;
-    this.oturumBaslangic = (proceed && proceed.oturumBaslangic) || Date.now();
+    this.sessionStart = (proceed && proceed.sessionStart) || Date.now();
 
     if (!this.games.length) { this.stop('bitti'); return; }
     if (mode === 'fast') this._runFast();
-    else this._runRoundRobin(proceed && +proceed.gecenMs > 0 ? +proceed.gecenMs : 0);
+    else this._runRoundRobin(proceed && +proceed.passedMs > 0 ? +proceed.passedMs : 0);
   }
 
   // Where the running job is. When a setting changes the job continues from this point with the new setting.
   // The time spent in the warm-up phase of fast mode is credited to the games in the batch; otherwise warm-up
   // would start over when the job is rebuilt (with the 2 hour threshold 1 hour 50 minutes would be wasted).
-  konum() {
-    if (this.running && this.mode === 'fast' && this.faz === 'warmup' && this.startedAt && this._partiIds) {
+  location() {
+    if (this.running && this.mode === 'fast' && this.phaseName === 'warmup' && this.startedAt && this._batchIds) {
       const dk = Math.floor((Date.now() - this.startedAt) / 60000);
       if (dk > 0) {
-        const ids = new Set(this._partiIds);
+        const ids = new Set(this._batchIds);
         this.games.forEach((g) => { if (ids.has(g.appid)) g.playtimeMin = (g.playtimeMin || 0) + dk; });
         this.startedAt += dk * 60000;          // so the same time is not credited a second time
       }
     }
     return {
       index: this.index,
-      gecenMs: this.startedAt ? Math.max(0, Date.now() - this.startedAt) : 0,
-      oturumBaslangic: this.oturumBaslangic,
+      passedMs: this.startedAt ? Math.max(0, Date.now() - this.startedAt) : 0,
+      sessionStart: this.sessionStart,
     };
   }
 
-  _temizle() {
+  _cleanup() {
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     if (this.timer2) { clearTimeout(this.timer2); this.timer2 = null; }
     // The warm-up wait must not hang: an unresolved Promise would stay suspended in the background.
-    if (this._uyku) { const r = this._uyku; this._uyku = null; r(); }
+    if (this._napFn) { const r = this._napFn; this._napFn = null; r(); }
   }
 
   // sebep: 'kullanici' | 'bitti' | 'sure' | 'oyunBitti' | 'boost' | 'ayar' - the interface and the
@@ -113,52 +113,52 @@ class FarmController {
   stop(cause) {
     const wasRunning = this.running;
     this.running = false;
-    this._temizle();
-    this.aktifAppid = null;
-    this.faz = null;
-    if (this.engine) this.engine.stop(this.sahip);
-    this.emit('farm:tick', { running: false, sebep: cause || 'kullanici', calisiyordu: wasRunning });
+    this._cleanup();
+    this.currentActiveAppid = null;
+    this.phaseName = null;
+    if (this.engine) this.engine.stop(this.ownerId);
+    this.emit('farm:tick', { running: false, cause: cause || 'kullanici', calisiyordu: wasRunning });
   }
 
   // The current list from the badge watcher. `bitenler`: games for which Steam CONFIRMS no cards are left
   // ("No card drops remaining" on the badge row). A game that is missing from the list but not marked
   // as finished is not removed: the scrape may have been incomplete.
-  oyunlariGuncelle(current, finished) {
-    if (!this.running) return { kalan: 0, cikan: [] };
+  updateGames(current, finished) {
+    if (!this.running) return { leftover: 0, removedOne: [] };
     const remainders = new Map((current || []).map((g) => [g.appid, g]));
     const isDone = finished instanceof Set ? finished : new Set(finished || []);
     const removed = [];
-    const oldActive = this.aktifAppid;
+    const oldActive = this.currentActiveAppid;
     const oldIndex = this.index;
     const newItem = [];
     this.games.forEach((g, i) => {
       const k = remainders.get(g.appid);
       const hasFinished = isDone.has(g.appid) || (k && k.remaining <= 0);
-      if (hasFinished) { removed.push({ ...g, sira: i }); return; }
+      if (hasFinished) { removed.push({ ...g, orderPos: i }); return; }
       if (k) { g.remaining = k.remaining; if (k.name) g.name = k.name; }
       newItem.push(g);
     });
-    if (!removed.length) return { kalan: this.games.length, cikan: removed };
+    if (!removed.length) return { leftover: this.games.length, removedOne: removed };
     this.games = newItem;
 
-    if (!this.games.length) { this.stop('bitti'); return { kalan: 0, cikan: removed }; }
+    if (!this.games.length) { this.stop('bitti'); return { leftover: 0, removedOne: removed }; }
 
     if (this.mode === 'fast') {
-      this._havuzuYenile();
-      return { kalan: this.games.length, cikan: removed };
+      this._refreshPool();
+      return { leftover: this.games.length, removedOne: removed };
     }
     // Sequential/most/least/priority: if the active game left, move to the next without waiting out the time.
     const activeOutput = oldActive != null && removed.some((c) => c.appid === oldActive);
     // The index shifts back by the number of games that left; otherwise a game would be skipped.
-    const previouslyRemoved = removed.filter((c) => c.sira < oldIndex).length;
+    const previouslyRemoved = removed.filter((c) => c.orderPos < oldIndex).length;
     this.index = Math.max(0, oldIndex - previouslyRemoved);
     if (activeOutput) {
       if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-      if (!this.autoNext) { this.stop('oyunBitti'); return { kalan: this.games.length, cikan: removed }; }
+      if (!this.autoNext) { this.stop('oyunBitti'); return { leftover: this.games.length, removedOne: removed }; }
       if (this.index >= this.games.length) this.index = this.loop ? 0 : this.games.length;
       this._runRoundRobin(0);
     }
-    return { kalan: this.games.length, cikan: removed };
+    return { leftover: this.games.length, removedOne: removed };
   }
 
   _runRoundRobin(passedMs) {
@@ -166,11 +166,11 @@ class FarmController {
     if (this.index >= this.games.length) {
       if (!this.loop) { this.stop('bitti'); return; }
       this.index = 0;
-      if (this.karistir) this.games = FarmController.karistir(this.games);
+      if (this.shuffle) this.games = FarmController.shuffle(this.games);
     }
     const g = this.games[this.index];
-    this.aktifAppid = g.appid;
-    this.engine.play([g.appid], this.sahip);
+    this.currentActiveAppid = g.appid;
+    this.engine.play([g.appid], this.ownerId);
     this.startedAt = Date.now() - (passedMs || 0);
     this._tick(g.appid);
     const remainingMs = Math.max(1000, this.durationMs - (passedMs || 0));
@@ -185,19 +185,19 @@ class FarmController {
   _tick(activeAppid) {
     if (!this.running) return;
     this.emit('farm:tick', {
-      running: true, mode: this.mode, activeAppids: this._calanlar(),
+      running: true, mode: this.mode, activeAppids: this._playingApps(),
       currentAppid: activeAppid, elapsedMs: Date.now() - this.startedAt, durationMs: this.durationMs,
-      oturumBaslangic: this.oturumBaslangic, oyunSayisi: this.games.length,
+      sessionStart: this.sessionStart, gameCount: this.games.length,
     });
     if (this.timer2) clearTimeout(this.timer2);
     this.timer2 = setTimeout(() => this._tick(activeAppid), 1000);
   }
 
   async _runFast() {
-    const generation = this.nesil;
-    const mustFinish = () => !this.running || this.nesil !== generation;
+    const generation = this.generation;
+    const mustFinish = () => !this.running || this.generation !== generation;
     const thresholdMin = this.fastMinPlaytimeMin;
-    this.faz = 'warmup';
+    this.phaseName = 'warmup';
     // ---- 1) WARM-UP: push the games under 2 hours above the threshold ----
     // Steam credits time to EVERY game that is open at once, so running the batch together
     // takes as long as closing the longest gap - instead of waiting one by one we wait for the batch's
@@ -210,8 +210,8 @@ class FarmController {
       const batch = cold.slice(0, this.maxGames);
       const needMs = Math.max(...batch.map((g) => (thresholdMin - (g.playtimeMin || 0)) * 60000));
       const ids = batch.map((g) => g.appid);
-      this._partiIds = ids;
-      this.engine.play(ids, this.sahip);
+      this._batchIds = ids;
+      this.engine.play(ids, this.ownerId);
       this.startedAt = Date.now();
       this._fastHoldTick(ids, needMs, 'warmup');
       await this._sleep(needMs);
@@ -222,16 +222,16 @@ class FarmController {
     if (mustFinish()) return;
 
     // ---- 2) LOOP: the games past the threshold are open together, the featured game changes every 1.5-2 min ----
-    this.faz = 'rotate';
+    this.phaseName = 'rotate';
     this.index = 0;
-    this._havuzuYenile();
+    this._refreshPool();
   }
 
   // The games fast mode puts into the loop: the first `maxGames` games that still have cards. When one finishes
   // the next waiting game enters the pool.
-  _havuzuYenile() {
+  _refreshPool() {
     if (!this.running) return;
-    if (this.faz !== 'rotate') return;           // warm-up reads the list in its own loop
+    if (this.phaseName !== 'rotate') return;           // warm-up reads the list in its own loop
     this.fastPool = this.games.slice(0, this.maxGames);
     if (!this.fastPool.length) { this.stop('bitti'); return; }
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
@@ -248,9 +248,9 @@ class FarmController {
   _fastHoldTick(all, durationMs, phase) {
     if (!this.running) return;
     this.emit('farm:tick', {
-      running: true, mode: 'fast', phase, activeAppids: all, currentAppid: this.aktifAppid,
+      running: true, mode: 'fast', phase, activeAppids: all, currentAppid: this.currentActiveAppid,
       elapsedMs: Date.now() - this.startedAt, durationMs,
-      oturumBaslangic: this.oturumBaslangic, oyunSayisi: this.games.length,
+      sessionStart: this.sessionStart, gameCount: this.games.length,
     });
     if (this.timer2) clearTimeout(this.timer2);
     if (Date.now() - this.startedAt < durationMs) this.timer2 = setTimeout(() => this._fastHoldTick(all, durationMs, phase), 1000);
@@ -263,8 +263,8 @@ class FarmController {
     const all = pool.map((g) => g.appid);
     const g = pool[this.index % pool.length];
     this.index++;
-    this.aktifAppid = g.appid;
-    this.engine.play(all, this.sahip); // gamesPlayed refresh - the drop is triggered at this moment
+    this.currentActiveAppid = g.appid;
+    this.engine.play(all, this.ownerId); // gamesPlayed refresh - the drop is triggered at this moment
     this.startedAt = Date.now();
     const wait = this._rotateMs();
     this._fastHoldTick(all, wait, 'rotate:' + g.appid);
@@ -272,19 +272,19 @@ class FarmController {
   }
 
   // Of this job's games, the ones that are really open in the engine (those that do not fit the 32 limit are dropped).
-  _calanlar() {
-    if (this.engine && typeof this.engine.calanlar === 'function') return this.engine.calanlar(this.sahip);
+  _playingApps() {
+    if (this.engine && typeof this.engine.calanlar === 'function') return this.engine.calanlar(this.ownerId);
     return this.engine ? this.engine.playing : [];
   }
 
   _sleep(ms) {
     return new Promise((r) => {
-      this._uyku = r;
-      this.timer = setTimeout(() => { this._uyku = null; r(); }, ms);
+      this._napFn = r;
+      this.timer = setTimeout(() => { this._napFn = null; r(); }, ms);
     });
   }
 
-  static karistir(listing) {
+  static shuffle(listing) {
     const a = listing.slice();
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
     return a;

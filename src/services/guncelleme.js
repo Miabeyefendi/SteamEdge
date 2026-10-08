@@ -80,7 +80,7 @@ function request(url) {
 // installedVersion: the version in package.json (app.getVersion()).
 // The return always has the same shape: { ok, kurulu, son, guncelMi, url, yayinAdi, yayinTs, hata }
 async function check(installedVersion) {
-  const basis = { kurulu: installedVersion, son: null, guncelMi: null, url: RELEASES_PAGE, yayinAdi: null, yayinTs: null };
+  const basis = { installed: installedVersion, lastOne: null, isUpToDate: null, url: RELEASES_PAGE, releaseName: null, releaseTs: null };
   try {
     const listing = await request(LIST_URL);
     if (!Array.isArray(listing)) return { ok: false, ...basis, hata: 'GitHub beklenmeyen bir yanıt döndürdü.' };
@@ -93,15 +93,15 @@ async function check(installedVersion) {
     return {
       ok: true,
       ...basis,
-      son: latest,
-      guncelMi: compareVersion(installedVersion, latest) >= 0,
+      lastOne: latest,
+      isUpToDate: compareVersion(installedVersion, latest) >= 0,
       url: newest.html_url || RELEASES_PAGE,
-      yayinAdi: newest.name || newest.tag_name,
-      yayinTs: newest.published_at ? Date.parse(newest.published_at) : null,
+      releaseName: newest.name || newest.tag_name,
+      releaseTs: newest.published_at ? Date.parse(newest.published_at) : null,
     };
   } catch (e) {
     return { ok: false, ...basis, hata: errorText(e) };
   }
 }
 
-module.exports = { kontrolEt: check, surumKarsilastir: compareVersion, YAYIN_SAYFASI: RELEASES_PAGE, DEPO: STORE };
+module.exports = { checkNow: check, compareVersion: compareVersion, RELEASES_PAGE: RELEASES_PAGE, STORE: STORE };

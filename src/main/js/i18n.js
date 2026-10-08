@@ -29,7 +29,7 @@
       if (codeStr === 'tr' || !I18N[codeStr]) return false;
       if (Object.keys(I18N[codeStr]).length) return true;         // already loaded
       try {
-        const table = window.imu && window.imu.dil && window.imu.dil.yukle(codeStr);
+        const table = window.imu && window.imu.lang && window.imu.lang.loadIt(codeStr);
         if (!table) return false;
         Object.assign(I18N[codeStr], table);
         return true;

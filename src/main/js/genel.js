@@ -15,7 +15,7 @@
       'Hata':      { color: GC.bad, bd: GC.bad },
       'Mesaj':     { color: GC.blue || '#24AEB3', bd: GC.blue || '#24AEB3' },
     };
-    const DEFAULT_STATUS_BY_KIND = { hata:'Hata', uyari:'Uyarı' };
+    const DEFAULT_STATUS_BY_KIND = { hata:'Hata', warning:'Uyarı' };
 
     // {kind, title, text, status, ts} - real application events.
     // PERSISTENT: kept in the account store, the history is not lost when the app closes and reopens.
@@ -155,7 +155,7 @@
     let listsFresh = false;    // did the lists on screen come from Steam or from disk
     async function cachedLists(){
       try {
-        const r = await E.sonListeler();
+        const r = await E.lastLists();
         if (!r || !r.ok) return;
         if (!kartLoaded && Array.isArray(r.drop) && r.drop.length){ dropGames = r.drop; kartLoaded = true; }
         if (!hoursLoaded && Array.isArray(r.owned) && r.owned.length){ ownedGames = r.owned; hoursLoaded = true; }
@@ -212,10 +212,10 @@
     // was not counted, a game that ran out of cards did not leave the queue. Now the main process watches each account
     // separately; the event and the current list come here.
     let farmDroppedCount = 0;
-    E.onFarmListe((d)=>{
+    E.onFarmList((d)=>{
       if (!d || !Array.isArray(d.games)) return;
       dropGames = d.games; kartLoaded = true;
-      farmDroppedCount = d.oturumDusen || 0;
+      farmDroppedCount = d.sessionDropped || 0;
       if (typeof renderKart === 'function' && designed.kart && !designed.kart.classList.contains('hidden')) renderKart();
       renderGenelStats(); renderGenelActive();
     });
@@ -224,34 +224,34 @@
     // only the on-screen account's are written to the activity feed; the main process writes the background one's
     // to that account's own feed.
     const EVENT_NOTIFICATION = {
-      kartDustu:     (o)=>['farm',  tf('# kart düştü', o.adet), o.ad],
-      kartlarBitti:  ()=>['farm',  'Kart Düşürme Bitti', 'Tüm kartlar toplandı.'],
-      basarimAcildi: (o)=>['ach',   'Başarım açıldı', o.ad],
-      boostBitti:    (o)=>['boost', 'Saat Yükseltme Bitti', o.akis ? o.akis.text : ''],
-      esitlemeBitti: ()=>['boost', 'Saat Eşitleme Tamamlandı', 'Tüm oyunlar hedefe ulaştı.'],
-      baglantiVazgecildi: (o)=>['error', 'Steam Bağlantısı', o.kalici
+      cardDropped:     (o)=>['farm',  tf('# kart düştü', o.itemCount), o.displayName],
+      cardsDone:  ()=>['farm',  'Kart Düşürme Bitti', 'Tüm kartlar toplandı.'],
+      achievementUnlocked: (o)=>['ach',   'Başarım açıldı', o.displayName],
+      boostFinished:    (o)=>['boost', 'Saat Yükseltme Bitti', o.feedEntry ? o.feedEntry.text : ''],
+      syncFinished: ()=>['boost', 'Saat Eşitleme Tamamlandı', 'Tüm oyunlar hedefe ulaştı.'],
+      connectionAbandoned: (o)=>['error', 'Steam Bağlantısı', o.permanent
         ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.'],
-      kartDurdu:     (o)=>['farm',  'Kart Düşürme Durdu', o.akis ? o.akis.text : ''],
+      cardStopped:     (o)=>['farm',  'Kart Düşürme Durdu', o.feedEntry ? o.feedEntry.text : ''],
     };
-    window.imu.onHesapOlayi((o)=>{
-      if (!o || !o.tur) return;
-      const b = EVENT_NOTIFICATION[o.tur];
+    window.imu.onAccountEvent((o)=>{
+      if (!o || !o.typeName) return;
+      const b = EVENT_NOTIFICATION[o.typeName];
       // The card drop depends on a separate setting ("Kart düşünce bildir")
-      const report = b && (o.tur !== 'kartDustu' || (appSettings && appSettings.notifyCardDrop));
+      const report = b && (o.typeName !== 'cardDropped' || (appSettings && appSettings.notifyCardDrop));
       if (report){
         const [category, title, bodyEl] = b(o);
-        notify(category, title, o.aktif ? t(bodyEl || '') : ('[' + o.hesap + '] ' + t(bodyEl || '')));
+        notify(category, title, o.activeIds ? t(bodyEl || '') : ('[' + o.accountRef + '] ' + t(bodyEl || '')));
       }
-      if (!o.aktif) return;
-      if (o.tur === 'kartDustu'){
-        pushFeed('kart', tf('# kart düştü', o.adet), o.ad, 'Başarılı');
-        if (typeof pushDrop === 'function') pushDrop(o.appid, o.ad, o.adet);
+      if (!o.activeIds) return;
+      if (o.typeName === 'cardDropped'){
+        pushFeed('kart', tf('# kart düştü', o.itemCount), o.displayName, 'Başarılı');
+        if (typeof pushDrop === 'function') pushDrop(o.appid, o.displayName, o.itemCount);
         // "Pazarda Otomatik Satış": list that game's new cards
-        if (appSettings && appSettings.farmAutoSell && typeof autoSellDropped === 'function') autoSellDropped(o.ad);
-      } else if (o.akis){
-        pushFeed(o.akis.kind, o.akis.title, o.akis.text, o.akis.status);
+        if (appSettings && appSettings.farmAutoSell && typeof autoSellDropped === 'function') autoSellDropped(o.displayName);
+      } else if (o.feedEntry){
+        pushFeed(o.feedEntry.kind, o.feedEntry.title, o.feedEntry.text, o.feedEntry.status);
       }
-      if (o.tur === 'basarimAcildi' && typeof acCache !== 'undefined') acCache.delete(o.appid);
+      if (o.typeName === 'achievementUnlocked' && typeof acCache !== 'undefined') acCache.delete(o.appid);
     });
 
     // The "Aktif Görev" panel.
@@ -290,7 +290,7 @@
     // What was added is only DISPLAY: the percentage number, the session's start time. None fetches new
     // data, all of it is already inside the tick that comes to the panel.
     function taskRow(g){
-      const percent = Math.max(0, Math.min(100, Math.round(g.yuzde || 0)));
+      const percent = Math.max(0, Math.min(100, Math.round(g.percentValue || 0)));
       return '<div style="display:flex;flex-direction:column;gap:11px;padding:14px 0 4px;border-top:1px solid #101621">'
         + '<div style="display:flex;align-items:flex-start;gap:14px">'
           // Library header ratio (920x430, ~2.14:1)
@@ -298,30 +298,30 @@
             + 'background:#101621;overflow:hidden;display:flex;align-items:center;justify-content:center">'
             + (g.appid ? gameThumb(g.appid)
                        : '<span style="display:flex;align-items:center;justify-content:center;transform:scale(1.7);transform-origin:center">'
-                         + detailIcon(g.ikon, g.renk || GC.sub) + '</span>')
+                         + detailIcon(g.iconRef, g.colorValue || GC.sub) + '</span>')
           + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex:1">'
             + '<span style="font-size:15px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
-              + 'text-overflow:ellipsis;line-height:1.2">' + esc(g.baslik) + '</span>'
+              + 'text-overflow:ellipsis;line-height:1.2">' + esc(g.heading) + '</span>'
             + '<span style="font-family:Geist Mono,monospace;font-size:10.5px;color:#8B8F9E">'
-              + (g.appid ? ('APP_ID: ' + g.appid) : esc(g.altBilgi || '')) + '</span>'
+              + (g.appid ? ('APP_ID: ' + g.appid) : esc(g.subInfo || '')) + '</span>'
             + '<div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap">'
-              + (g.rozetler || []).map(chip).join('') + '</div>'
+              + (g.badges || []).map(chip).join('') + '</div>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:22px;flex-shrink:0">'
-            + (g.sutunlar || []).map(c=>statCol(c[0], c[1], c[2])).join('')
+            + (g.columns || []).map(c=>statCol(c[0], c[1], c[2])).join('')
           + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:11px">'
           + '<div style="flex:1;min-width:0;height:8px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
-            + '<div style="height:100%;width:' + percent + '%;border-radius:12px;background:' + (g.renk || '#24AEB3') + '"></div>'
+            + '<div style="height:100%;width:' + percent + '%;border-radius:12px;background:' + (g.colorValue || '#24AEB3') + '"></div>'
           + '</div>'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;flex-shrink:0;'
-            + 'min-width:38px;text-align:right;color:' + (g.renk || '#24AEB3') + '">' + fmtPercent(percent) + '</span>'
+            + 'min-width:38px;text-align:right;color:' + (g.colorValue || '#24AEB3') + '">' + fmtPercent(percent) + '</span>'
         + '</div>'
-        + (g.basladi
+        + (g.started
             ? ('<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80">' + esc(t('Başlangıç:')) + ' '
-               + fmtClock(g.basladi) + '</span>')
+               + fmtClock(g.started) + '</span>')
             : '')
         + '</div>';
     }
@@ -359,14 +359,14 @@
         const cur = dropGames.find(g=>g.appid===heroId);
         const nextDrop = lastTick.durationMs ? fmtSessionDur(Math.max(0, lastTick.durationMs - (lastTick.elapsedMs||0))) : '-';
         tasks.push({
-          tab:'kart', appid:heroId, baslik:(cur?cur.name:'Kart Düşürme'),
-          rozetler:[modeLabels[selectedMode]||selectedMode, tf('# oyun eşzamanlı', activeIds.length)],
-          sutunlar:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
-                    ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(lastTick.oturumBaslangic||Date.now())))],
+          tab:'kart', appid:heroId, heading:(cur?cur.name:'Kart Düşürme'),
+          badges:[modeLabels[selectedMode]||selectedMode, tf('# oyun eşzamanlı', activeIds.length)],
+          columns:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
+                    ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(lastTick.sessionStart||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
-          yuzde: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
-          basladi: lastTick.oturumBaslangic || null,
-          renk:'#24AEB3', durdur: stopCard,
+          percentValue: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
+          started: lastTick.sessionStart || null,
+          colorValue:'#24AEB3', durdur: stopCard,
         });
       }
       if (boostOn){
@@ -376,14 +376,14 @@
         const passed = Date.now()-(boostState.startedAt||Date.now());
         const left = boostState.durationMs ? fmtSessionDur(Math.max(0, boostState.durationMs-passed)) : '-';
         tasks.push({
-          tab:'saat', appid:bId, baslik:(g?g.name:'Saat Yükseltici'),
-          rozetler:['Saat Yükseltici', tf('# oyun eşzamanlı', ids.length)],
-          sutunlar:[['Aktif Oyun', ids.length, GC.sub],
+          tab:'saat', appid:bId, heading:(g?g.name:'Saat Yükseltici'),
+          badges:['Saat Yükseltici', tf('# oyun eşzamanlı', ids.length)],
+          columns:[['Aktif Oyun', ids.length, GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(passed))],
                     ['Kalan', monoTime(left)]],
-          yuzde: boostState.durationMs ? (passed/boostState.durationMs*100) : 100,
-          basladi: boostState.startedAt || null,
-          renk:'#5624B3', durdur: ()=>pressPageButton('btnBoostStop'),
+          percentValue: boostState.durationMs ? (passed/boostState.durationMs*100) : 100,
+          started: boostState.startedAt || null,
+          colorValue:'#5624B3', durdur: ()=>pressPageButton('btnBoostStop'),
         });
       }
       if (achOn){
@@ -391,28 +391,28 @@
         const top = (typeof acRunTotal !== 'undefined') ? acRunTotal : 0;
         tasks.push({
           tab:'basarim', appid:(typeof acAppid !== 'undefined' ? acAppid : 0),
-          baslik:'Başarım İşlemi', altBilgi:'toplu aç / kilitle',
-          rozetler:['Başarımlar', (top ? (perform+' / '+top) : 'çalışıyor')],
-          sutunlar:[['İşlenen', perform+' / '+top, GC.ok]],
-          yuzde: top ? (perform/top*100) : 0,
-          renk:'#5FB324', ikon:'sayac', durdur: ()=>pressPageButton('acStop'),
+          heading:'Başarım İşlemi', subInfo:'toplu aç / kilitle',
+          badges:['Başarımlar', (top ? (perform+' / '+top) : 'çalışıyor')],
+          columns:[['İşlenen', perform+' / '+top, GC.ok]],
+          percentValue: top ? (perform/top*100) : 0,
+          colorValue:'#5FB324', iconRef:'sayac', durdur: ()=>pressPageButton('acStop'),
         });
       }
       if (grOn){
-        const opened = grStatus.acilan || 0, sumTotal = grStatus.toplam || 0;
-        const remainingTime = grStatus.bitis ? Math.max(0, grStatus.bitis - Date.now()) : 0;
+        const opened = grStatus.openedGames || 0, sumTotal = grStatus.totalSum || 0;
+        const remainingTime = grStatus.finishTime ? Math.max(0, grStatus.finishTime - Date.now()) : 0;
         tasks.push({
           tab:'gercekci', appid: grStatus.appid || 0,
-          baslik: grStatus.oyunAdi || 'Gerçekçi Mod',
-          altBilgi: 'başarımlar zamana yayılıyor',
-          rozetler:['Gerçekçi Mod',
-                    (grStatus.oyunSayisi > 1 ? ('oyun ' + ((grStatus.oyunIndeks||0)+1) + ' / ' + grStatus.oyunSayisi) : 'tek oyun')],
-          sutunlar:[['Açılan', opened + ' / ' + sumTotal, GC.ok],
+          heading: grStatus.gameTitle || 'Gerçekçi Mod',
+          subInfo: 'başarımlar zamana yayılıyor',
+          badges:['Gerçekçi Mod',
+                    (grStatus.gameCount > 1 ? ('oyun ' + ((grStatus.gameIndex||0)+1) + ' / ' + grStatus.gameCount) : 'tek oyun')],
+          columns:[['Açılan', opened + ' / ' + sumTotal, GC.ok],
                     ['Kalan Süre', monoTime(fmtSessionDur(remainingTime))],
-                    ['Sıradaki', grStatus.siradaki ? shorten(grStatus.siradaki, 16) : '-']],
-          yuzde: sumTotal ? (opened/sumTotal*100) : 0,
-          basladi: grStatus.baslangic || null,
-          renk:'#C2AAEE', durdur: ()=>pressPageButton('grStop'),
+                    ['Sıradaki', grStatus.upNext ? shorten(grStatus.upNext, 16) : '-']],
+          percentValue: sumTotal ? (opened/sumTotal*100) : 0,
+          started: grStatus.startPoint || null,
+          colorValue:'#C2AAEE', durdur: ()=>pressPageButton('grStop'),
         });
       }
 
@@ -547,8 +547,8 @@
         if (hasInfo){
           const b = syncGameInfo.get(g.appid);
           if (b){
-            percent = b.bitti ? 100 : Math.max(0, Math.min(100, (1 - Math.max(0, b.kalanMs||0) / syncJobTotalMs) * 100));
-            rightSide = b.bitti ? 'bitti' : monoTime(fmtSessionDur(Math.max(0, b.kalanMs||0)));
+            percent = b.bitti ? 100 : Math.max(0, Math.min(100, (1 - Math.max(0, b.remainingMs||0) / syncJobTotalMs) * 100));
+            rightSide = b.bitti ? 'bitti' : monoTime(fmtSessionDur(Math.max(0, b.remainingMs||0)));
           }
         }
         return detailRow('#'+(i+1), g.name, rightSide, percent, '#5624B3', on);
@@ -558,14 +558,14 @@
     // Realistic Mode: unlocked / remaining achievements and the time to the next one.
     function detailRealistic(){
       if (typeof grStatus === 'undefined' || !grStatus) return detailEmpty('Gerçekçi Mod çalışmıyor.');
-      const opened = grStatus.acilan || 0, sumTotal = grStatus.toplam || 0;
-      const remainingName = grStatus.siradaki || '-';
+      const opened = grStatus.openedGames || 0, sumTotal = grStatus.totalSum || 0;
+      const remainingName = grStatus.upNext || '-';
       // siradakiZaman is an absolute timestamp, converted to a countdown.
-      const following = grStatus.siradakiZaman
-        ? monoTime(fmtSessionDur(Math.max(0, grStatus.siradakiZaman - Date.now()))) : '-';
-      const remainingTime = grStatus.bitis ? Math.max(0, grStatus.bitis - Date.now()) : 0;
-      const sessionPercent = (grStatus.baslangic && grStatus.bitis)
-        ? ((Date.now() - grStatus.baslangic) / Math.max(1, grStatus.bitis - grStatus.baslangic) * 100)
+      const following = grStatus.upNextTime
+        ? monoTime(fmtSessionDur(Math.max(0, grStatus.upNextTime - Date.now()))) : '-';
+      const remainingTime = grStatus.finishTime ? Math.max(0, grStatus.finishTime - Date.now()) : 0;
+      const sessionPercent = (grStatus.startPoint && grStatus.finishTime)
+        ? ((Date.now() - grStatus.startPoint) / Math.max(1, grStatus.finishTime - grStatus.startPoint) * 100)
         : null;
       return detailRow('sonraki', 'Sıradaki', shorten(remainingName, 20) + '  ' + following, null, null, true)
         + detailRow('sayac', 'Açılan başarım', opened + ' / ' + sumTotal, sumTotal ? (opened/sumTotal*100) : 0, '#C2AAEE', true)
@@ -605,7 +605,7 @@
 
     E.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
     E.onBoostTick(()=>{ renderGenelActive(); renderGenelStats(); });
-    E.onSaatFarmTick(()=>{ renderGenelActive(); renderGenelStats(); });
+    E.onHourFarmTick(()=>{ renderGenelActive(); renderGenelStats(); });
     // gercekci.js registers its own listener FIRST (file order), so by the time we get here
     // grStatus has been updated. Otherwise the panel would be one tick behind.
     if (window.imu.gercekci && window.imu.gercekci.onTick){
@@ -749,7 +749,7 @@
     });
 
     // "Pazarı Yenile" - refreshes the market PRICES, not the inventory (skips the cache).
-    quickAction('qaPazar', 'Pazar fiyatları yenileniyor…', async ()=>{
+    quickAction('qaMarket', 'Pazar fiyatları yenileniyor…', async ()=>{
       if (!invMerged || !invMerged.length) return { hata: 'Önce envanteri yükle.' };
       if (typeof fetchPricesForView !== 'function') return { hata: 'Envanter sayfası hazır değil.' };
       await window.imu.settings.clearPriceCache();

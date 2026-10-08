@@ -125,8 +125,8 @@
       const q = document.getElementById('kartQueue');
       const live = orderedForMode();
       const total = live.reduce((s,g)=>s+g.remaining,0);
-      document.getElementById('kartKalan').textContent = total;
-      document.getElementById('listeLabel').textContent = tf('Düşürme Kuyruğu · # Oyun', live.length);
+      document.getElementById('cardRemaining').textContent = total;
+      document.getElementById('listLabel').textContent = tf('Düşürme Kuyruğu · # Oyun', live.length);
       document.getElementById('dropCount').textContent = recentDrops.length + ' öğe';
 
       // sort arrows

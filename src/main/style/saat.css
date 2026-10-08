@@ -1,7 +1,7 @@
   /* ---- Hour Booster ---- */
   #tab-saat .stat{position:relative;overflow:hidden}
   .ic{position:absolute;right:12px;top:12px;width:34px;height:34px;opacity:.16;pointer-events:none}
-  .saatcols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px;align-items:stretch}
+  .hourscols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px;align-items:stretch}
   /* Target time presets + simultaneous count (technical structure of active-boost, IMU theme) */
   .tbadge{padding:0 13px;height:32px;display:inline-flex;align-items:center;border-radius:var(--radius-sm);background:var(--card2);
           border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}

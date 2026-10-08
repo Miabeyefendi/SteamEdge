@@ -91,7 +91,7 @@ async function compute(wallet, totals) {
     + 'return L.map(function(t){var s=GetItemPriceFromTotal(t,W);return {toplam:t,satici:s,alici:GetTotalWithFees(s,pp,sp,W)};});})()';
   const outcome = await windowObj.webContents.executeJavaScript(scriptText, true);
   if (!Array.isArray(outcome)) throw new Error('Steam ücret hesabı sonuç vermedi');
-  return outcome.map((x) => ({ toplam: +x.toplam || 0, satici: +x.satici || 0, alici: +x.alici || 0 }));
+  return outcome.map((x) => ({ totalSum: +x.totalSum || 0, seller: +x.seller || 0, buyer: +x.buyer || 0 }));
 }
 
-module.exports = { hesapla: compute, kapat: shutDown };
+module.exports = { hesapla: compute, shutDown: shutDown };

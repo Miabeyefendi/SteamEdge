@@ -258,7 +258,7 @@
     // G4: protected achievement badge - only the game's own server can write it, it cannot be
     // unlocked through the app. It is marked so the user sees the reason for the EResult 8 error.
     function acProtectedBadge(a){
-      if (!a || !a.korumali) return '';
+      if (!a || !a.protectedFlag) return '';
       return '<span title="'+esc(t('Bu başarımı yalnızca oyunun kendi sunucusu açabilir'))+'" style="font-size:9px;'
         + 'font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#B37E24;'
         + 'border:1px solid #B37E24;border-radius:12px;padding:2px 6px;flex-shrink:0">'+esc(t('Korumalı'))+'</span>';
@@ -506,7 +506,7 @@
           warn: unlock ? 'Geri almak için başarımı yeniden kilitleyebilirsin.' : '',
           confirmText: unlock ? 'Aç' : 'Kilitle',
           danger: !unlock,
-          sormaAyari: 'achConfirmSingle',
+          askSetting: 'achConfirmSingle',
         });
         if (!ok) return false;
       }
@@ -527,7 +527,7 @@
         acData.unlocked = acData.achievements.filter(a=>a.achieved).length;
         renderAchievements();
         edgeConfirm({ tag:'Hata', danger:true, title:'Başarım değiştirilemedi',
-                      body: res.error || 'Steam isteği reddetti.', confirmText:'Tamam', tekDugme:true });
+                      body: res.error || 'Steam isteği reddetti.', confirmText:'Tamam', singleButton:true });
         return false;
       }
       acSelected.delete(apiName);   // the operation is done, no selection mark should remain
@@ -551,13 +551,13 @@
       // targets. Steam always rejected them with EResult 8; sending them only
       // inflated the error counter and lengthened the loop.
       const allGoals = pool.filter(a=>a.achieved!==unlock);
-      const protectedCount = allGoals.filter(a=>a.korumali).length;
-      const targets = allGoals.filter(a=>!a.korumali);
+      const protectedCount = allGoals.filter(a=>a.protectedFlag).length;
+      const targets = allGoals.filter(a=>!a.protectedFlag);
       if (!targets.length){
         if (protectedCount){
           edgeConfirm({ tag:'Bilgi', title:'Bu başarımlar dışarıdan açılamaz',
             body: tf('# başarım oyun tarafından korunuyor. Steam bunları yalnızca oyunun kendi sunucusundan kabul eder; uygulama üzerinden açılamaz.', protectedCount),
-            confirmText:'Tamam', tekDugme:true });
+            confirmText:'Tamam', singleButton:true });
         } else toast('Başarımlar').fail('Değiştirilecek başarım yok.');
         return;
       }
@@ -606,12 +606,12 @@
           if (r.ok){
             ok++; repeatedError = 0;
             a.achieved = unlock; if (unlock && !a.unlockTime) a.unlockTime = Date.now();
-            a.sonHata = null;
+            a.lastError = null;
             window.imu.state.achLog({ appid: acAppid, game: acData.gameName, apiName: a.apiName, name: a.name, unlock }).catch(()=>{});
           } else {
             fail++; repeatedError++;
-            a.sonHata = r.error || t('Steam isteği reddetti.');
-            failures.push({ ad: a.name, hata: a.sonHata });
+            a.lastError = r.error || t('Steam isteği reddetti.');
+            failures.push({ displayName: a.name, hata: a.lastError });
           }
           acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
           paintRunBox(i+1, targets.length, fail ? tf('# başarılı, # hata', ok, fail) : null);
@@ -654,7 +654,7 @@
           for (const a of targets){
             if (!actual.has(a.apiName)) continue;
             const g = !!actual.get(a.apiName);
-            if (a.achieved !== g){ a.achieved = g; a.sonHata = t('Steam kaydetmedi'); mismatched++; }
+            if (a.achieved !== g){ a.achieved = g; a.lastError = t('Steam kaydetmedi'); mismatched++; }
           }
           if (mismatched){
             ok -= mismatched; fail += mismatched;
@@ -667,7 +667,7 @@
 
       // Say the result CLEARLY - silently saying "done" was misleading
       if (fail){
-        const initial = failures.slice(0,4).map(b=>'  · '+b.ad+': '+b.hata).join('\n');
+        const initial = failures.slice(0,4).map(b=>'  · '+b.displayName+': '+b.hata).join('\n');
         const remaining = Math.max(0, failures.length-4);
         edgeConfirm({
           tag:'Sonuç', danger:true,
@@ -678,7 +678,7 @@
                 + (verifyNote ? verifyNote+'\n\n' : '')
                 + (initial ? (t('Hatalar:') + '\n' + initial + (remaining ? ('\n  · ' + tf('ve # tane daha', remaining)) : '')) : ''),
           warn: 'Bazı başarımlar oyun içi ilerlemeye bağlıdır ve doğrudan açılamaz; Steam bunları reddeder.',
-          confirmText:'Tamam', tekDugme:true,
+          confirmText:'Tamam', singleButton:true,
         });
       }
       acStopReason = null;

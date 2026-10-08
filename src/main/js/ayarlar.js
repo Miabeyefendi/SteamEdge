@@ -62,7 +62,7 @@
     }
     function settingRow(k){
       const el = document.querySelector('#tab-ayarlar [data-set="'+k+'"]');
-      return el ? el.closest('[data-ayar-satir]') : null;
+      return el ? el.closest('[data-setting-row]') : null;
     }
     // The page name of a changed setting (shown in the exit question instead of the key name)
     function settingLabel(k){
@@ -92,27 +92,27 @@
     // turned off on the page the child dims right away, no need to save.
     const NOTIFICATIONS_OFF = 'Masaüstü bildirimleri kapalıyken hiçbir bildirim gösterilmez.';
     const SETTING_GATES = [
-      { anahtar: 'achSpread', kosul: () => rawValue('achSafeMode') !== false, not: 'Güvenli mod kapalıyken açılış aralığı sapmaz.' },
-      { anahtar: 'undercutCents', kosul: () => rawValue('saleMode') === 'undercut', not: 'Yalnızca varsayılan satış fiyatı "En ucuzun altına in" iken kullanılır.' },
-      { anahtar: 'priceRefreshMin', kosul: () => !!rawValue('autoRefreshPrices'), not: '"Fiyatları otomatik yenile" kapalıyken fiyatlar kendiliğinden yenilenmez.' },
-      { anahtar: 'sellBatchWaitMin', kosul: () => +rawValue('bulkSellLimit') > 0, not: 'Parti büyüklüğü 0 iken satış partilere bölünmez.' },
-      { anahtar: 'shuffleBoost', kosul: () => !!appSettings.seqIdle, not: 'Yalnızca Saat Yükseltici\'de sıralı bekletme açıkken geçerli; eş zamanlı yükseltmede sıra yoktur.' },
-      { anahtar: 'boostSyncMode', kosul: () => !!rawValue('boostSync'), not: '"Saatleri eşitle" kapalıyken kullanılmaz.' },
-      { anahtar: 'boostSyncTargetHours', kosul: () => !!rawValue('boostSync') && rawValue('boostSyncMode') === 'manual', not: 'Yalnızca hedef "Elle girilen saat" iken kullanılır.' },
-      { anahtar: 'notifyFarm', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'notifyBoost', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'notifyAch', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'notifyError', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'notifyPriceDrop', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'quietHoursEnabled', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'notifSound', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'notifyChat', kosul: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { anahtar: 'quietFrom', kosul: () => rawValue('notifications') !== false && !!rawValue('quietHoursEnabled'), not: '"Sessiz saatler" kapalıyken kullanılmaz.' },
-      { anahtar: 'chatReplyText', kosul: () => !!rawValue('chatAutoReply'), not: '"Otomatik yanıt gönder" kapalıyken kullanılmaz.' },
-      { anahtar: 'chatReplyCooldown', kosul: () => !!rawValue('chatAutoReply'), not: '"Otomatik yanıt gönder" kapalıyken kullanılmaz.' },
+      { keyField: 'achSpread', ruleCondition: () => rawValue('achSafeMode') !== false, not: 'Güvenli mod kapalıyken açılış aralığı sapmaz.' },
+      { keyField: 'undercutCents', ruleCondition: () => rawValue('saleMode') === 'undercut', not: 'Yalnızca varsayılan satış fiyatı "En ucuzun altına in" iken kullanılır.' },
+      { keyField: 'priceRefreshMin', ruleCondition: () => !!rawValue('autoRefreshPrices'), not: '"Fiyatları otomatik yenile" kapalıyken fiyatlar kendiliğinden yenilenmez.' },
+      { keyField: 'sellBatchWaitMin', ruleCondition: () => +rawValue('bulkSellLimit') > 0, not: 'Parti büyüklüğü 0 iken satış partilere bölünmez.' },
+      { keyField: 'shuffleBoost', ruleCondition: () => !!appSettings.seqIdle, not: 'Yalnızca Saat Yükseltici\'de sıralı bekletme açıkken geçerli; eş zamanlı yükseltmede sıra yoktur.' },
+      { keyField: 'boostSyncMode', ruleCondition: () => !!rawValue('boostSync'), not: '"Saatleri eşitle" kapalıyken kullanılmaz.' },
+      { keyField: 'boostSyncTargetHours', ruleCondition: () => !!rawValue('boostSync') && rawValue('boostSyncMode') === 'manual', not: 'Yalnızca hedef "Elle girilen saat" iken kullanılır.' },
+      { keyField: 'notifyFarm', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'notifyBoost', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'notifyAch', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'notifyError', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'notifyPriceDrop', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'quietHoursEnabled', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'notifSound', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'notifyChat', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'quietFrom', ruleCondition: () => rawValue('notifications') !== false && !!rawValue('quietHoursEnabled'), not: '"Sessiz saatler" kapalıyken kullanılmaz.' },
+      { keyField: 'chatReplyText', ruleCondition: () => !!rawValue('chatAutoReply'), not: '"Otomatik yanıt gönder" kapalıyken kullanılmaz.' },
+      { keyField: 'chatReplyCooldown', ruleCondition: () => !!rawValue('chatAutoReply'), not: '"Otomatik yanıt gönder" kapalıyken kullanılmaz.' },
     ];
     function paintSettingGates(){
-      SETTING_GATES.forEach(({ anahtar: keyName, kosul: condition, not }) => {
+      SETTING_GATES.forEach(({ keyField: keyName, ruleCondition: condition, not }) => {
         const el = settingRow(keyName);
         if (!el) return;
         const isOpen = !!condition();
@@ -296,39 +296,39 @@
       writeConnectionState();
       writeConfigCard();
       // The version comes from package.json (preload > imu.surum). There is no hand-written version line.
-      const version = (window.imu && window.imu.surum) || '';
+      const version = (window.imu && window.imu.versionStr) || '';
       set('setVersion', version ? ('SteamEdge v' + version) : 'SteamEdge');
       set('setVersionSide', version ? ('v' + version) : '-');
       showSetSection(currentSetSec);
     }
 
     // ---- Hesap Statüsü: the connection state the engine last reported, not a guess ----
-    let activeConnection = { durum: 'yok' };
+    let activeConnection = { condition: 'yok' };
     const CONNECTION_VIEW = {
-      bagli:      { metin: 'Bağlı',                renk: '#5FB324' },
-      baglaniyor: { metin: 'Yeniden bağlanıyor',   renk: '#B37E24' },
-      koptu:      { metin: 'Bağlantı koptu',       renk: '#B32453' },
-      vazgecildi: { metin: 'Bağlantı kurulamadı',  renk: '#B32453' },
-      yok:        { metin: 'Bağlı değil',          renk: '#8B8F9E' },
+      connected:      { textValue: 'Bağlı',                colorValue: '#5FB324' },
+      connecting: { textValue: 'Yeniden bağlanıyor',   colorValue: '#B37E24' },
+      dropped:      { textValue: 'Bağlantı koptu',       colorValue: '#B32453' },
+      abandoned: { textValue: 'Bağlantı kurulamadı',  colorValue: '#B32453' },
+      yok:        { textValue: 'Bağlı değil',          colorValue: '#8B8F9E' },
     };
     function writeConnectionState(){
       const el = document.getElementById('setAcctStatus');
       if (!el) return;
-      const g = CONNECTION_VIEW[activeConnection.durum] || CONNECTION_VIEW.yok;
-      el.textContent = t(g.metin);
-      el.style.color = g.renk;
-      el.title = (activeConnection.durum === 'bagli' && activeConnection.ts)
+      const g = CONNECTION_VIEW[activeConnection.condition] || CONNECTION_VIEW.yok;
+      el.textContent = t(g.textValue);
+      el.style.color = g.colorValue;
+      el.title = (activeConnection.condition === 'connected' && activeConnection.ts)
         ? (t('Bağlantı kuruldu:') + ' ' + new Date(activeConnection.ts).toLocaleString(localCode())) : '';
     }
     async function readConnectionState(){
-      const d = await window.imu.engine.baglantiDurumu().catch(()=>null);
-      activeConnection = d || { durum: 'yok' };
+      const d = await window.imu.engine.connectionStatus().catch(()=>null);
+      activeConnection = d || { condition: 'yok' };
       writeConnectionState();
     }
-    if (window.imu.engine && window.imu.engine.onDurum){
-      window.imu.engine.onDurum((d)=>{
-        if (!d || !d.aktif) return;
-        activeConnection = { durum: d.durum, ts: d.durum === 'bagli' ? Date.now() : null };
+    if (window.imu.engine && window.imu.engine.onStatus){
+      window.imu.engine.onStatus((d)=>{
+        if (!d || !d.activeIds) return;
+        activeConnection = { condition: d.condition, ts: d.condition === 'connected' ? Date.now() : null };
         writeConnectionState();
       });
     }
@@ -358,11 +358,11 @@
     }
     async function readConfigInfo(){
       const [v, b] = await Promise.all([
-        defaultSettings ? Promise.resolve(defaultSettings) : S.varsayilanlar().catch(()=>null),
-        S.bilgi().catch(()=>null),
+        defaultSettings ? Promise.resolve(defaultSettings) : S.defaultsMap().catch(()=>null),
+        S.details().catch(()=>null),
       ]);
       if (v) defaultSettings = v;
-      if (b) settingSaveTime = b.kayitZamani || null;
+      if (b) settingSaveTime = b.saveTime || null;
       writeConfigCard();
     }
 
@@ -379,12 +379,12 @@
       if (!sumTotal) return;
       if (!d){ sumTotal.textContent = '-'; return; }
       const mb = (kb)=> (kb/1024);
-      sumTotal.textContent = mb(d.toplamKb).toFixed(0) + ' MB';
+      sumTotal.textContent = mb(d.totalKb).toFixed(0) + ' MB';
       // Process types: Browser = main process, Tab = interface, GPU = graphics card, Utility = network.
       // The keys are deliberately long: a one-word key would catch other texts in the dictionary too.
       const name = { Browser:'ana süreç', Tab:'arayüz süreci', GPU:'ekran kartı süreci', Utility:'ağ süreci' };
-      const pieces = (d.surecler||[])
-        .map(p => t(name[p.tur] || p.tur) + ' ' + mb(p.kb).toFixed(0))
+      const pieces = (d.processList||[])
+        .map(p => t(name[p.typeName] || p.typeName) + ' ' + mb(p.kb).toFixed(0))
         .join(' · ');
       b.textContent = pieces ? (pieces + '  (MB)') : t('Tüm SteamEdge süreçlerinin toplamı');
     }
@@ -392,21 +392,21 @@
       if (document.hidden) return;
       if (typeof currentSetSec === 'string' && currentSetSec !== 'advanced') return;
       if (designed.ayarlar.classList.contains('hidden')) return;
-      const d = await window.imu.appBellek().catch(()=>null);
+      const d = await window.imu.appMemory().catch(()=>null);
       writeMemory(d);
     }
     // Empty the image and network cache. In long sessions thousands of game covers pile up;
     // this is the most direct way to win memory back without losing settings or session.
     (function bindMemoryClear(){
-      const b = document.getElementById('memTemizle');
+      const b = document.getElementById('memClear');
       if (!b) return;
       b.onclick = async ()=>{
         b.disabled = true; b.style.opacity = '0.5';
         const ts = (typeof toast === 'function') ? toast('Önbellek boşaltılıyor...') : null;
-        const r = await window.imu.appBellekTemizle().catch(e=>({ ok:false, error:(e&&e.message) }));
+        const r = await window.imu.appMemoryClear().catch(e=>({ ok:false, error:(e&&e.message) }));
         b.disabled = false; b.style.opacity = '1';
         if (!r || !r.ok){ if (ts) ts.fail((r && r.error) || 'Boşaltılamadı.'); return; }
-        const mb = Math.round((r.kazancKb || 0) / 1024);
+        const mb = Math.round((r.gainKb || 0) / 1024);
         if (ts) ts.done(mb > 0 ? tf('# MB geri alındı.', mb) : 'Önbellek boşaltıldı.');
         readMemory();
       };
@@ -444,7 +444,7 @@
       if (inQuietHours(a)){
         edgeConfirm({ tag:'Test bildirimi', title:'Sessiz saatler şu an aktif',
           body: (a.quietFrom||'23:00') + ' - ' + (a.quietTo||'08:00') + '\n' + t('Bu aralıkta bildirim gösterilmez.'),
-          confirmText:'Tamam', tekDugme:true });
+          confirmText:'Tamam', singleButton:true });
         return;
       }
       testBtn.disabled = true;
@@ -456,7 +456,7 @@
         toast('Test bildirimi').done('Bildirim gönderildi. Görünmediyse Windows > Ayarlar > Bildirimler altında SteamEdge iznini kontrol et.');
       } else {
         edgeConfirm({ tag:'Hata', danger:true, title:'Bildirim gösterilemedi',
-                      body: (r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', tekDugme:true });
+                      body: (r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', singleButton:true });
       }
     };
 
@@ -471,7 +471,7 @@
     // ---- controls: they only change the draft ----
     // These switches are given to Chromium BEFORE app.whenReady(); changing them only takes effect
     // when the app is reopened. Saving says so.
-    const RESTART = ['hwAccel', 'gpuArkaUc', 'gpuKompozisyon'];
+    const RESTART = ['hwAccel', 'gpuBackend', 'gpuComposition'];
     function writeToDraft(key, val){
       if (!draft) startDraft();
       draft[key] = val;
@@ -514,16 +514,16 @@
       saving = true;
       const btn = document.getElementById('setSave');
       if (btn) btn.disabled = true;
-      const r = await S.kaydet(patchData).catch(e=>({ ok:false, error:(e && e.message) }));
+      const r = await S.saveIt(patchData).catch(e=>({ ok:false, error:(e && e.message) }));
       saving = false;
       if (btn) btn.disabled = false;
       if (!r || !r.ok){
         edgeConfirm({ tag:'Hata', danger:true, title:'Ayarlar kaydedilemedi',
-                      body: t((r && r.error) || 'Bilinmeyen hata.'), confirmText:'Tamam', tekDugme:true });
+                      body: t((r && r.error) || 'Bilinmeyen hata.'), confirmText:'Tamam', singleButton:true });
         return false;
       }
       appSettings = r.settings || appSettings;
-      if (r.kayitZamani) settingSaveTime = r.kayitZamani;
+      if (r.saveTime) settingSaveTime = r.saveTime;
       const langChanged = listing.includes('language');
       startDraft();
       paintAll();
@@ -537,16 +537,16 @@
     const JOB_NAME = { kart:'Kart düşürme', saat:'Saat yükseltme', sirali:'Sıralı saat yükseltme' };
     function announceSaveResult(r, listing){
       const rowsList = [];
-      const pausing = (r.uygulanan || []).filter(u => u.nasil === 'duraklatildi');
-      const multi = new Set((r.uygulanan || []).map(u => u.steamID)).size > 1;
-      pausing.forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is) + (multi ? (' (' + u.hesap + ')') : '') + ': '
-        + tf('# sn duraklatıldı, yeni ayarla sürecek.', Math.round((r.duraklamaMs || 5000) / 1000))));
-      (r.uygulanan || []).filter(u => u.nasil === 'aninda').forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is)
-        + (multi ? (' (' + u.hesap + ')') : '') + ': ' + t('yeni ayar hemen uygulandı.')));
-      (r.uygulanan || []).filter(u => u.nasil === 'bekletildi').forEach(u => rowsList.push(t('Kart düşürme')
-        + (multi ? (' (' + u.hesap + ')') : '') + ': ' + t('saat yükseltme bitene kadar duraklatıldı.')));
-      (r.uygulanan || []).filter(u => u.nasil === 'surduruldu').forEach(u => rowsList.push(t('Kart düşürme')
-        + (multi ? (' (' + u.hesap + ')') : '') + ': ' + t('kaldığı yerden sürüyor.')));
+      const pausing = (r.appliedOne || []).filter(u => u.how === 'duraklatildi');
+      const multi = new Set((r.appliedOne || []).map(u => u.steamID)).size > 1;
+      pausing.forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is) + (multi ? (' (' + u.accountRef + ')') : '') + ': '
+        + tf('# sn duraklatıldı, yeni ayarla sürecek.', Math.round((r.pauseMs || 5000) / 1000))));
+      (r.appliedOne || []).filter(u => u.how === 'aninda').forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is)
+        + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('yeni ayar hemen uygulandı.')));
+      (r.appliedOne || []).filter(u => u.how === 'bekletildi').forEach(u => rowsList.push(t('Kart düşürme')
+        + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('saat yükseltme bitene kadar duraklatıldı.')));
+      (r.appliedOne || []).filter(u => u.how === 'surduruldu').forEach(u => rowsList.push(t('Kart düşürme')
+        + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('kaldığı yerden sürüyor.')));
       if (listing.some(k => RESTART.includes(k))) rowsList.push(t('Grafik ayarları SteamEdge yeniden başlatılınca etkili olur.'));
       const title = tf('# ayar kaydedildi.', listing.length);
       if (typeof toast === 'function') toast('Ayarlar').done(rowsList.length ? (t(title) + ' ' + rowsList.join(' ')) : title);
@@ -573,7 +573,7 @@
         body: t('Değişen:') + ' ' + names.slice(0, 6).join(', ') + (names.length > 6 ? ' …' : ''),
         warn: 'Kaydetmezsen bu değişiklikler uygulanmaz ve kaybolur.',
         confirmText: 'Kaydet ve Çık',
-        altText: 'Kaydetmeden Çık',
+        subText: 'Kaydetmeden Çık',
         cancelText: 'Sayfada Kal',
       });
       if (r === false) return false;
@@ -592,7 +592,7 @@
         body:'Varsayılan değerler sayfaya yüklenir; Kaydet\'e basana kadar hiçbir şey uygulanmaz. Uygulama dili, seçili oyunlar, istatistikler ve Steam oturumun etkilenmez.',
         confirmText:'Varsayılanları Yükle' });
       if (!ok) return;
-      if (!defaultSettings) defaultSettings = await S.varsayilanlar().catch(()=>null);
+      if (!defaultSettings) defaultSettings = await S.defaultsMap().catch(()=>null);
       if (!defaultSettings){ toast('Sıfırlama').fail('Varsayılanlar okunamadı.'); return; }
       if (!draft) startDraft();
       pageKeys().forEach(k=>{
@@ -658,7 +658,7 @@
         if (typeof toast === 'function') toast('Dışa aktarma').done('Yedek kaydedildi.');
       } else {
         edgeConfirm({ tag:'Hata', danger:true, title:'Dışa aktarılamadı',
-                      body:(r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', tekDugme:true });
+                      body:(r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', singleButton:true });
       }
     }
     // Import saves and applies the settings IN THE FILE directly (the user explicitly confirms by choosing
@@ -681,10 +681,10 @@
         readConfigInfo();
         setBackupInfo(t('Son içe aktarma:') + ' ' + r.file);
         if (typeof toast === 'function') toast('İçe aktarma').done(tf('# ayar geri yüklendi.', r.applied)
-          + (r.hesapSayisi ? (' ' + tf('# hesabın verisi geri yüklendi.', r.hesapSayisi)) : ''));
+          + (r.accountCount ? (' ' + tf('# hesabın verisi geri yüklendi.', r.accountCount)) : ''));
       } else {
         edgeConfirm({ tag:'Hata', danger:true, title:'İçe aktarılamadı',
-                      body:(r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', tekDugme:true });
+                      body:(r && r.error) || 'Bilinmeyen hata.', confirmText:'Tamam', singleButton:true });
       }
     }
     document.getElementById('setExport').onclick = exportOut;

@@ -18,7 +18,7 @@ class SteamEngine {
     this.steamID = null;
     this.persona = null;
     this._playing = [];
-    this._sahipler = new Map();    // job name -> the games that job opened (see play)
+    this._owners = new Map();    // job name -> the games that job opened (see play)
     this._offline = false;
     this._hideGameName = false;
     // The account's wallet currency. It starts as UNKNOWN - giving it a default made us fetch prices
@@ -34,19 +34,19 @@ class SteamEngine {
     // There used to be no 'disconnected'/'error' listener at run time. When Steam dropped the
     // connection the app did not notice AT ALL, the interface kept saying "running" and the games were
     // actually closed. Hours of silent loss.
-    this.bagli = false;
+    this.isConnected = false;
     this._refreshToken = null;
     this._offlineSecenek = false;
-    this._yenidenBaglanTimer = null;
-    this._yenidenBaglanDeneme = 0;
-    this._kapatildi = false;       // do not reconnect if logOff() was called
+    this._reconnectTimer = null;
+    this._reconnectAttempt = 0;
+    this._wasShutDown = false;       // do not reconnect if logOff() was called
     // Settings > "Bağlantı koparsa yeniden bağlan" (set by main): null = unlimited, 0 = off,
     // n = at most n attempts. When the limit is reached 'vazgecildi' is reported and the loop stops.
-    this.yenidenBaglanmaSiniri = null;
-    this.vazgecti = false;
-    this.kaliciKopma = false;      // a drop where trying again is pointless (below)
-    this.onDurum = null;           // (durum) => void   durum: 'bagli'|'koptu'|'baglaniyor'|'vazgecildi'
-    this._nabizTimer = null;
+    this.reconnectLimit = null;
+    this.gaveUp = false;
+    this.permanentDisconnect = false;      // a drop where trying again is pointless (below)
+    this.onStatus = null;           // (durum) => void   durum: 'bagli'|'koptu'|'baglaniyor'|'vazgecildi'
+    this._pulseTimer = null;
   }
   // Only puts in a guess while the wallet currency is still unknown; once the wallet event arrives
   // its value is taken as final and the value here is overwritten.
@@ -61,8 +61,8 @@ class SteamEngine {
   // Here: a timeout, exponential backoff on transient errors and an understandable error text.
   // The text is built in the interface language (translation: main process dictionary). It used to be written
   // without Turkish letters and was not translated in any language.
-  static hataMetni(e, whereAt) {
-    const m = String((e && (e.kod || e.message)) || e || '');
+  static errorText(e, whereAt) {
+    const m = String((e && (e.codeValue || e.message)) || e || '');
     const place = translation.t(whereAt || 'Steam') + ': ';
     if (/abort|timeout|ETIMEDOUT/i.test(m)) return place + translation.t('İstek zaman aşımına uğradı. Bağlantını kontrol et.');
     if (/ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(m)) return place + translation.t('Sunucuya ulaşılamadı. İnternet bağlantın kesilmiş olabilir.');
@@ -77,7 +77,7 @@ class SteamEngine {
   // language. A Chinese error notification in the Turkish interface was seen because of this: the text
   // came from Steam itself, not from the dictionary. The `Steam_Language` cookie pins this choice;
   // the `l=english` parameter does the same for calls without a cookie.
-  cerezBasligi() {
+  cookieHeader() {
     const c = this.cookies ? this.cookies.slice() : [];
     c.push('Steam_Language=english');
     return c.join('; ');
@@ -85,7 +85,7 @@ class SteamEngine {
 
   // If the error text Steam sends still comes out non-Latin it is not shown. It carries information,
   // so we do not drop the text entirely, we only replace the part that cannot be read with a question mark.
-  static steamMesaji(text, backup) {
+  static steamMessage(text, backup) {
     const m = String(text || '').trim();
     if (!m) return backup;
     // ASCII + Latin-1 supplement + Latin Extended A/B: English, German, Spanish and
@@ -93,10 +93,10 @@ class SteamEngine {
     return /^[\x20-\x7E\u00A0-\u024F\s]+$/.test(m) ? m : backup;
   }
 
-  async _iste(url, options = {}, whereAt = 'Steam') {
-    const { deneme: attemptNo = 3, zamanAsimiMs: timeoutMs = 20000, cerezli: withCookies = true, ...fetchSec } = options;
+  async _requestItem(url, options = {}, whereAt = 'Steam') {
+    const { attemptCount: attemptNo = 3, timeoutLimitMs: timeoutMs = 20000, withCookies: withCookies = true, ...fetchSec } = options;
     const titles = { 'User-Agent': SteamEngine.UA, ...(fetchSec.headers || {}) };
-    if (withCookies && this.cookies) titles.Cookie = this.cerezBasligi();
+    if (withCookies && this.cookies) titles.Cookie = this.cookieHeader();
 
     let lastError = null;
     for (let i = 0; i < attemptNo; i++) {
@@ -122,7 +122,7 @@ class SteamEngine {
         await new Promise((res) => setTimeout(res, 1500 * Math.pow(2, i)));
       }
     }
-    const errorInfo = new Error(SteamEngine.hataMetni(lastError, whereAt));
+    const errorInfo = new Error(SteamEngine.errorText(lastError, whereAt));
     errorInfo.ham = lastError;
     throw errorInfo;
   }
@@ -135,9 +135,9 @@ class SteamEngine {
   async detectMarketCurrency() {
     if (!this.cookies) return null;
     try {
-      const r = await this._iste('https://steamcommunity.com/market/?l=english', { deneme: 2 }, 'Pazar kuru');
+      const r = await this._requestItem('https://steamcommunity.com/market/?l=english', { attemptCount: 2 }, 'Pazar kuru');
       const html = await r.text();
-      this._cuzdaniOku(html);
+      this._readWallet(html);
       const m = html.match(/"wallet_currency"\s*:\s*(\d+)/);
       if (!m) return null;
       const code = SteamEngine.currencyName(+m[1]);
@@ -151,7 +151,7 @@ class SteamEngine {
   // Inputs of the sale fee. Steam embeds these in the page as `g_rgWalletInfo` and its own
   // fee calculation (economy_common.js) works with this object. Only the fee fields are kept;
   // fields like the wallet balance are not kept in memory at all.
-  _cuzdaniOku(html) {
+  _readWallet(html) {
     const m = String(html || '').match(/g_rgWalletInfo\s*=\s*(\{[\s\S]*?\});/);
     if (!m) return null;
     let rawText;
@@ -161,19 +161,19 @@ class SteamEngine {
     const c = {};
     fields.forEach((k) => { if (rawText[k] != null) c[k] = rawText[k]; });
     if (c.wallet_fee_percent == null && c.wallet_publisher_fee_percent_default == null) return null;
-    this._cuzdan = c;
-    this._cuzdanTs = Date.now();
+    this._wallet = c;
+    this._walletTs = Date.now();
     return c;
   }
   // Fee fields. If they are not found on the market page the inventory page is checked (the sale
   // window is there). Kept in memory for one hour.
-  async cuzdanBilgisi() {
-    if (this._cuzdan && Date.now() - (this._cuzdanTs || 0) < 3600000) return this._cuzdan;
+  async walletInfo() {
+    if (this._wallet && Date.now() - (this._walletTs || 0) < 3600000) return this._wallet;
     if (!this.cookies) throw new Error('web oturumu yok');
-    const r1 = await this._iste('https://steamcommunity.com/market/?l=english', { deneme: 2 }, 'Pazar');
-    if (this._cuzdaniOku(await r1.text())) return this._cuzdan;
-    const r2 = await this._iste(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { deneme: 2 }, 'Envanter');
-    if (this._cuzdaniOku(await r2.text())) return this._cuzdan;
+    const r1 = await this._requestItem('https://steamcommunity.com/market/?l=english', { attemptCount: 2 }, 'Pazar');
+    if (this._readWallet(await r1.text())) return this._wallet;
+    const r2 = await this._requestItem(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
+    if (this._readWallet(await r2.text())) return this._wallet;
     throw new Error(translation.t('Steam cüzdan bilgisi okunamadı'));
   }
   // Automatic reply setting. If text is empty/off only a notification is shown, no reply is written.
@@ -237,40 +237,40 @@ class SteamEngine {
       // Logon succeeded: set up the permanent listeners (once).
       this._refreshToken = refreshToken;
       this._offlineSecenek = !!offline;
-      this.bagli = true;
-      this._yenidenBaglanDeneme = 0;
-      this.vazgecti = false; this.kaliciKopma = false;
-      this._kopmaDinleyicileriniKur();
-      this._nabziBaslat();
-      this._durumBildir('bagli');
+      this.isConnected = true;
+      this._reconnectAttempt = 0;
+      this.gaveUp = false; this.permanentDisconnect = false;
+      this._setupDisconnectListeners();
+      this._startPulse();
+      this._reportStatus('connected');
       return r;
     });
   }
 
-  _durumBildir(status, extra) {
-    if (this.onDurum) { try { this.onDurum(status, extra || {}); } catch (_) {} }
+  _reportStatus(status, extra) {
+    if (this.onStatus) { try { this.onStatus(status, extra || {}); } catch (_) {} }
   }
 
   // Drop/error listeners. Flagged so they are not added again every time logOn is called.
-  _kopmaDinleyicileriniKur() {
-    if (this._dinleyiciKuruldu) return;
-    this._dinleyiciKuruldu = true;
+  _setupDisconnectListeners() {
+    if (this._listenerSetUp) return;
+    this._listenerSetUp = true;
 
     const broke = (cause, eresult) => {
-      if (this._kapatildi) return;
-      this.bagli = false;
+      if (this._wasShutDown) return;
+      this.isConnected = false;
       this.cookies = null;             // the web session dropped too, it will be fetched again
       // Drops where trying again is pointless or harmful: the logon token is no longer valid
       // (trying only collects rejections) or the same account was replaced by another session (two
       // apps drop each other in turn and fight). It does not say "Dropped, reconnecting";
       // it says directly that it gave up, together with the reason.
-      if (SteamEngine.KALICI_KOPMA.has(+eresult)) {
-        this.vazgecti = true; this.kaliciKopma = true;
-        this._durumBildir('vazgecildi', { kalici: true, eresult: +eresult, sebep: String(cause || '') });
+      if (SteamEngine.PERMANENT_DISCONNECT.has(+eresult)) {
+        this.gaveUp = true; this.permanentDisconnect = true;
+        this._reportStatus('abandoned', { permanent: true, eresult: +eresult, cause: String(cause || '') });
         return;
       }
-      this._durumBildir('koptu', { sebep: String(cause || ''), eresult: eresult || null });
-      this._yenidenBaglanmayiPlanla();
+      this._reportStatus('dropped', { cause: String(cause || ''), eresult: eresult || null });
+      this._scheduleReconnect();
     };
 
     this.user.on('disconnected', (eresult, msg) => broke(msg || ('EResult ' + eresult), eresult));
@@ -278,9 +278,9 @@ class SteamEngine {
 
     // After reconnecting, the web session and the games do NOT come back on their own.
     this.user.on('loggedOn', () => {
-      this.bagli = true;
-      this._yenidenBaglanDeneme = 0;
-      this.vazgecti = false; this.kaliciKopma = false;
+      this.isConnected = true;
+      this._reconnectAttempt = 0;
+      this.gaveUp = false; this.permanentDisconnect = false;
       try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
       try {
         this.user.setPersona(this._offlineSecenek ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
@@ -290,87 +290,87 @@ class SteamEngine {
       if (this._playing && this._playing.length) {
         try { this.user.gamesPlayed(this._playing); } catch (_) {}
       }
-      this._durumBildir('bagli', { yenidenBaglandi: true, oyunlar: (this._playing || []).length });
+      this._reportStatus('connected', { reconnected: true, gameEntries: (this._playing || []).length });
     });
     this.user.on('webSession', (_sid, cookies) => { this.cookies = cookies; });
   }
 
-  _yenidenBaglanmayiPlanla() {
-    if (this._kapatildi || this._yenidenBaglanTimer) return;
+  _scheduleReconnect() {
+    if (this._wasShutDown || this._reconnectTimer) return;
     if (!this._refreshToken) return;
-    const bound = this.yenidenBaglanmaSiniri;
-    if (bound != null && this._yenidenBaglanDeneme >= bound) {
-      this.vazgecti = true;
-      this._durumBildir('vazgecildi', { kalici: false, deneme: this._yenidenBaglanDeneme, sinir: bound });
+    const bound = this.reconnectLimit;
+    if (bound != null && this._reconnectAttempt >= bound) {
+      this.gaveUp = true;
+      this._reportStatus('abandoned', { permanent: false, attemptCount: this._reconnectAttempt, limitValue: bound });
       return;
     }
-    this._yenidenBaglanDeneme++;
+    this._reconnectAttempt++;
     // Exponential backoff, at most 5 minutes. Steam does not accept right away after
     // transient problems; trying every second makes it worse.
-    const wait = Math.min(300000, 5000 * Math.pow(2, Math.min(6, this._yenidenBaglanDeneme - 1)));
-    this._durumBildir('baglaniyor', { deneme: this._yenidenBaglanDeneme, bekleMs: wait });
-    this._yenidenBaglanTimer = setTimeout(() => {
-      this._yenidenBaglanTimer = null;
-      if (this._kapatildi) return;
+    const wait = Math.min(300000, 5000 * Math.pow(2, Math.min(6, this._reconnectAttempt - 1)));
+    this._reportStatus('connecting', { attemptCount: this._reconnectAttempt, waitMs: wait });
+    this._reconnectTimer = setTimeout(() => {
+      this._reconnectTimer = null;
+      if (this._wasShutDown) return;
       try { this.user.logOn({ refreshToken: this._refreshToken }); }
-      catch (_) { this._yenidenBaglanmayiPlanla(); }
+      catch (_) { this._scheduleReconnect(); }
     }, wait);
   }
 
   // Restarts a loop that gave up: the user said "Yeniden bağlan" or the attempt limit was raised
   // in the settings. elle: also tries after a permanent drop (the user may have closed the other session).
-  yenidenBaglanmayiDene(manual) {
-    if (this._kapatildi || this.bagli) return;
-    if (this.kaliciKopma && !manual) return;
-    this.vazgecti = false; this.kaliciKopma = false;
-    this._yenidenBaglanDeneme = 0;
-    if (this._yenidenBaglanTimer) { clearTimeout(this._yenidenBaglanTimer); this._yenidenBaglanTimer = null; }
-    const bound = this.yenidenBaglanmaSiniri;
+  tryReconnect(manual) {
+    if (this._wasShutDown || this.isConnected) return;
+    if (this.permanentDisconnect && !manual) return;
+    this.gaveUp = false; this.permanentDisconnect = false;
+    this._reconnectAttempt = 0;
+    if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
+    const bound = this.reconnectLimit;
     if (bound === 0 && !manual) return;
     // If requested by hand one attempt is made even when the limit is 0 (off).
     if (bound === 0) {
-      this._yenidenBaglanDeneme = 1;
-      this._durumBildir('baglaniyor', { deneme: 1, bekleMs: 1000 });
-      this._yenidenBaglanTimer = setTimeout(() => {
-        this._yenidenBaglanTimer = null;
-        if (this._kapatildi) return;
+      this._reconnectAttempt = 1;
+      this._reportStatus('connecting', { attemptCount: 1, waitMs: 1000 });
+      this._reconnectTimer = setTimeout(() => {
+        this._reconnectTimer = null;
+        if (this._wasShutDown) return;
         try { this.user.logOn({ refreshToken: this._refreshToken }); } catch (_) {}
       }, 1000);
       return;
     }
-    this._yenidenBaglanmayiPlanla();
+    this._scheduleReconnect();
   }
 
   // Heartbeat: we say "I am connected" but are the games really open? steam-user's own
   // state and our expectation can diverge (silent drop). Look every 60 seconds.
-  _nabziBaslat() {
-    if (this._nabizTimer) return;
-    this._nabizTimer = setInterval(() => {
-      if (this._kapatildi) return;
+  _startPulse() {
+    if (this._pulseTimer) return;
+    this._pulseTimer = setInterval(() => {
+      if (this._wasShutDown) return;
       const trulyConnected = !!(this.user && this.user.steamID);
-      if (this.bagli && !trulyConnected) {
-        this.bagli = false;
-        this._durumBildir('koptu', { sebep: 'nabiz: oturum yok' });
-        this._yenidenBaglanmayiPlanla();
+      if (this.isConnected && !trulyConnected) {
+        this.isConnected = false;
+        this._reportStatus('dropped', { cause: 'nabiz: oturum yok' });
+        this._scheduleReconnect();
         return;
       }
       // If the game should be open but is closed, send it again (cheap, no side effects)
-      if (this.bagli && this._playing && this._playing.length) {
+      if (this.isConnected && this._playing && this._playing.length) {
         try { this.user.gamesPlayed(this._playing); } catch (_) {}
       }
     }, 60000);
   }
 
-  _nabziDurdur() {
-    if (this._nabizTimer) { clearInterval(this._nabizTimer); this._nabizTimer = null; }
-    if (this._yenidenBaglanTimer) { clearTimeout(this._yenidenBaglanTimer); this._yenidenBaglanTimer = null; }
+  _stopPulse() {
+    if (this._pulseTimer) { clearInterval(this._pulseTimer); this._pulseTimer = null; }
+    if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
   }
 
   // The game name arrives in the badge page embedded with JavaScript string escapes:
   //   ShowCardDropInfo( &quot;Need for Speed™ Heat&quot;, ... )
   // Both HTML entities and \uXXXX / \" / \\ escapes have to be decoded, otherwise the
   // interface showed raw text like "Need for Speed™".
-  static decodeOyunAdi(rawText) {
+  static decodeGameName(rawText) {
     if (!rawText) return '';
     let s = String(rawText);
     // Numeric entities: &#174; (R) , &#8482; (TM) , &#x2122; ...
@@ -403,7 +403,7 @@ class SteamEngine {
 
     for (let p = 1; p <= lastPage && p <= 50; p++) {
       const url = `https://steamcommunity.com/profiles/${this.steamID}/badges/?l=english&p=${p}`;
-      const r = await this._iste(url, {}, 'Rozet sayfası');
+      const r = await this._requestItem(url, {}, 'Rozet sayfası');
       const html = await r.text();
 
       if (p === 1) {
@@ -446,7 +446,7 @@ class SteamEngine {
         if (found.has(appid)) continue;           // do not count the same game a second time
         const nm = row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;\s*,/)
           || row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;/);
-        const name = nm ? SteamEngine.decodeOyunAdi(nm[1]) : ('App ' + appid);
+        const name = nm ? SteamEngine.decodeGameName(nm[1]) : ('App ' + appid);
         found.set(appid, { appid, name: name || ('App ' + appid), remaining: +drop[1] });
       }
 
@@ -457,7 +457,7 @@ class SteamEngine {
     }
     const gameList = [...found.values()];
     found.forEach((_, id) => finished.delete(id));
-    return detay ? { oyunlar: gameList, bitenler: finished } : gameList;
+    return detay ? { gameEntries: gameList, finishedOnes: finished } : gameList;
   }
 
   // Own Steam profile: avatar, display name and account level - straight from the protocol
@@ -487,9 +487,9 @@ class SteamEngine {
     if (this._vanity !== undefined) return this._vanity;
     this._vanity = null;
     try {
-      const r = await this._iste(
+      const r = await this._requestItem(
         `https://steamcommunity.com/profiles/${this.steamID}/?xml=1`,
-        { deneme: 1, zamanAsimiMs: 8000 },
+        { attemptCount: 1, timeoutLimitMs: 8000 },
         'Steam profili',
       );
       const xml = await r.text();
@@ -518,7 +518,7 @@ class SteamEngine {
     const token = this._accessToken();
     if (!token) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&include_appinfo=true&include_played_free_games=true&format=json`;
-    const r = await this._iste(url, {}, 'Oyun listesi');
+    const r = await this._requestItem(url, {}, 'Oyun listesi');
     const j = await r.json();
     const games = (j.response && j.response.games) || [];
     // When the privacy setting is "Game details: Private" Steam returns an EMPTY reply; this used to
@@ -541,7 +541,7 @@ class SteamEngine {
   async getInventory() {
     if (!this.cookies) throw new Error('web oturumu yok');
     const url = `https://steamcommunity.com/inventory/${this.steamID}/753/6?l=english&count=2000`;
-    const r = await this._iste(url, {}, 'Envanter');
+    const r = await this._requestItem(url, {}, 'Envanter');
     const j = await r.json();
     const key = (a) => a.classid + '_' + a.instanceid;
     const descMap = {};
@@ -622,7 +622,7 @@ class SteamEngine {
   async getPriceHistory(marketHashName) {
     if (!this.cookies) throw new Error('web oturumu yok');
     const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
-    const r = await fetch(url, { headers: { Cookie: this.cerezBasligi() } });
+    const r = await fetch(url, { headers: { Cookie: this.cookieHeader() } });
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
     const j = await r.json().catch(() => null);
@@ -703,7 +703,7 @@ class SteamEngine {
     const url = `https://steamcommunity.com/market/listings/753/${encodeURIComponent(marketHashName)}?l=english`;
     const r = await fetch(url, {
       headers: {
-        Cookie: this.cerezBasligi(),
+        Cookie: this.cookieHeader(),
         // The language is pinned so that the summary sentences can be caught in English; without a browser-like
         // User-Agent Steam can return the page in a different form.
         'Accept-Language': 'en-US,en;q=0.9',
@@ -786,7 +786,7 @@ class SteamEngine {
     const r = await fetch('https://steamcommunity.com/market/sellitem/', {
       method: 'POST',
       headers: {
-        Cookie: this.cerezBasligi(),
+        Cookie: this.cookieHeader(),
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Referer: `https://steamcommunity.com/profiles/${this.steamID}/inventory`,
         Origin: 'https://steamcommunity.com',
@@ -798,13 +798,13 @@ class SteamEngine {
     // (stop), "atla" (this item cannot be listed, move on to the next) or a general error.
     if (!j) {
       const e = new Error(translation.tf('Pazar yanıtı okunamadı (HTTP #)', r.status));
-      e.httpDurum = r.status;
+      e.httpStatus = r.status;
       throw e;
     }
     if (!j.success) {
-      const e = new Error(SteamEngine.steamMesaji(j.message, 'Listeleme reddedildi'));
-      e.steamMesaji = String(j.message || '');
-      e.httpDurum = r.status;
+      const e = new Error(SteamEngine.steamMessage(j.message, 'Listeleme reddedildi'));
+      e.steamMessage = String(j.message || '');
+      e.httpStatus = r.status;
       throw e;
     }
     return j; // { success, requires_confirmation, needs_mobile_confirmation, needs_email_confirmation, email_domain }
@@ -815,9 +815,9 @@ class SteamEngine {
   // Protocol request. Steam sometimes does not answer a single request at all; this used to surface directly as
   // "Steam stat yanıtı zaman aşımı" and leave the achievements page empty.
   // Now it counts as transient and is tried once more, and the message says what to do.
-  _sendRecvTek(emsg, msgType, obj, respType, timeoutMs) {
+  _sendRecvSingle(emsg, msgType, obj, respType, timeoutMs) {
     return new Promise((resolve, reject) => {
-      const t = setTimeout(() => reject(Object.assign(new Error('zaman aşımı'), { zamanAsimi: true })), timeoutMs);
+      const t = setTimeout(() => reject(Object.assign(new Error('zaman aşımı'), { timeoutValue: true })), timeoutMs);
       let payload;
       try { payload = Buffer.from(msgType.encode(obj).finish()); }
       catch (e) { clearTimeout(t); reject(e); return; }
@@ -833,14 +833,14 @@ class SteamEngine {
   async _sendRecv(emsg, msgType, obj, respType, timeoutMs = 15000) {
     let latest = null;
     for (let i = 0; i < 2; i++) {
-      try { return await this._sendRecvTek(emsg, msgType, obj, respType, timeoutMs); }
+      try { return await this._sendRecvSingle(emsg, msgType, obj, respType, timeoutMs); }
       catch (e) {
         latest = e;
-        if (!(e && e.zamanAsimi)) break;
+        if (!(e && e.timeoutValue)) break;
         if (i === 0) await new Promise((r) => setTimeout(r, 1200));
       }
     }
-    if (latest && latest.zamanAsimi) {
+    if (latest && latest.timeoutValue) {
       throw new Error(translation.t('Steam bu oyunun başarım verisini zamanında göndermedi. Steam yoğun olabilir; birkaç saniye sonra yeniden dene.'));
     }
     throw latest;
@@ -900,7 +900,7 @@ class SteamEngine {
         if (!b || typeof b !== 'object') continue;
         const disp = b.display || {};
         defs.push({
-          statId: +statId, bit: +endIdx,
+          statId: +statId, finishAt: +endIdx,
           apiName: b.name || (statId + '_' + endIdx),
           name: loc(disp.name) || b.name || '?',
           desc: loc(disp.desc) || '',
@@ -912,7 +912,7 @@ class SteamEngine {
           // This field used to be ignored completely (it was dead code, `? false : false`), so the
           // user got an error without understanding why.
           hidden: (+(b.permission || 0) & 1) === 1,
-          korumali: (+(b.permission || 0) & 2) === 2,
+          protectedFlag: (+(b.permission || 0) & 2) === 2,
         });
       }
     }
@@ -926,7 +926,7 @@ class SteamEngine {
   async getAchievementRarity(appid) {
     try {
       const url = `https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appid}&format=json`;
-      const r = await this._iste(url, { cerezli: false, deneme: 2, zamanAsimiMs: 12000 }, 'Nadirlik');
+      const r = await this._requestItem(url, { withCookies: false, attemptCount: 2, timeoutLimitMs: 12000 }, 'Nadirlik');
       const j = await r.json().catch(() => null);
       const list = (j && j.achievementpercentages && j.achievementpercentages.achievements) || [];
       const map = {};
@@ -947,7 +947,7 @@ class SteamEngine {
       const token = this._accessToken();
       if (!token) return {};
       const url = `https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&appid=${appid}&format=json`;
-      const r = await this._iste(url, { deneme: 2, zamanAsimiMs: 12000 }, 'Açılma tarihleri');
+      const r = await this._requestItem(url, { attemptCount: 2, timeoutLimitMs: 12000 }, 'Açılma tarihleri');
       const j = await r.json().catch(() => null);
       const list = (j && j.playerstats && j.playerstats.achievements) || [];
       const map = {};
@@ -973,7 +973,7 @@ class SteamEngine {
     const achievements = raw.defs.map((d) => {
       const val = raw.statValues.get(d.statId >>> 0) || 0;
       // the korumali flag is carried to the interface (it is added to the object below)
-      const achieved = !!((val >> d.bit) & 1);
+      const achieved = !!((val >> d.finishAt) & 1);
       const pct = rarityMap[d.apiName];
       return {
         apiName: d.apiName, name: d.name, desc: d.desc, achieved,
@@ -984,8 +984,8 @@ class SteamEngine {
         rarityPct: Number.isFinite(pct) ? pct : null,
         // G4: an achievement that only the game server can write. The interface marks it and
         // makes it unselectable in bulk operations; sending it would always return EResult 8.
-        korumali: !!d.korumali,
-        gizli: !!d.hidden,
+        protectedFlag: !!d.protectedFlag,
+        isHidden: !!d.hidden,
       };
     });
     return { gameName: null, logo: null, total: achievements.length, unlocked: achievements.filter((a) => a.achieved).length, achievements };
@@ -1011,7 +1011,7 @@ class SteamEngine {
   // G5: for some games Steam only accepts writing statistics while that game looks "being played".
   // It opens the game for the duration of the write and returns to the previous state when done.
   // If a card/hour job is running it is ADDED to that list, not written over it.
-  async _oyunuAcikTut(appid, isFn) {
+  async _keepGameOpen(appid, isFn) {
     const previousOnes = (this._playing || []).slice();
     const alreadyOpen = previousOnes.includes(+appid);
     if (!alreadyOpen) {
@@ -1029,10 +1029,10 @@ class SteamEngine {
   }
 
   async setAchievements(appid, changes) {
-    return this._oyunuAcikTut(appid, () => this._setAchievementsIc(appid, changes));
+    return this._keepGameOpen(appid, () => this._setAchievementsInner(appid, changes));
   }
 
-  async _setAchievementsIc(appid, changes) {
+  async _setAchievementsInner(appid, changes) {
     const raw = await this._statsCached(appid);
     if (!raw) throw new Error(translation.t('Bu oyunun başarım şeması yok'));
     const byName = new Map(raw.defs.map((d) => [d.apiName, d]));
@@ -1040,19 +1040,19 @@ class SteamEngine {
     // sending them only inflates the error counter and keeps the loop busy for nothing.
     const protectedOnes = changes.filter((c) => {
       const d = byName.get(c.apiName);
-      return d && d.korumali;
+      return d && d.protectedFlag;
     });
     if (protectedOnes.length === changes.length && changes.length) {
       const e = new Error(translation.t('Bu başarım oyun tarafından korunuyor, dışarıdan açılamaz.'));
-      e.korumali = true;
+      e.protectedFlag = true;
       throw e;
     }
     const dirty = new Map(); // statId -> new value
     for (const c of changes) {
       const d = byName.get(c.apiName);
-      if (!d || d.korumali) continue;
+      if (!d || d.protectedFlag) continue;
       let val = dirty.has(d.statId) ? dirty.get(d.statId) : (raw.statValues.get(d.statId >>> 0) || 0);
-      val = c.unlock ? (val | (1 << d.bit)) : (val & ~(1 << d.bit));
+      val = c.unlock ? (val | (1 << d.finishAt)) : (val & ~(1 << d.finishAt));
       dirty.set(d.statId, val >>> 0);
     }
     if (!dirty.size) return { ok: true, changed: 0 };
@@ -1099,25 +1099,25 @@ class SteamEngine {
   // and the other way round. Now each job keeps its own list by name ("sahip"); the union of all of them
   // goes to Steam, at most 32 games (Steam does not count beyond that). Order: SAHIP_SIRASI.
   play(appids, ownerId) {
-    this._sahipler.set(ownerId || 'genel', (appids || []).slice());
-    this._oyunlariGonder();
+    this._owners.set(ownerId || 'genel', (appids || []).slice());
+    this._sendGames();
   }
   // If sahip is given only that job's games are closed; if not, all of them (exit, disconnect).
   stop(ownerId) {
-    if (ownerId) this._sahipler.delete(ownerId); else this._sahipler.clear();
-    this._oyunlariGonder();
+    if (ownerId) this._owners.delete(ownerId); else this._owners.clear();
+    this._sendGames();
   }
   // Of a job's games, the ones that fit the 32 limit and are really open.
   calanlar(ownerId) {
     const isOpen = new Set(this._playing);
-    return (this._sahipler.get(ownerId) || []).filter((id) => isOpen.has(id));
+    return (this._owners.get(ownerId) || []).filter((id) => isOpen.has(id));
   }
-  _oyunlariGonder() {
+  _sendGames() {
     const union = [];
     const seen = new Set();
-    const position = SteamEngine.SAHIP_SIRASI.concat([...this._sahipler.keys()]);
+    const position = SteamEngine.OWNER_ORDER.concat([...this._owners.keys()]);
     position.forEach((k) => {
-      (this._sahipler.get(k) || []).forEach((id) => {
+      (this._owners.get(k) || []).forEach((id) => {
         if (union.length >= 32 || seen.has(id)) return;
         seen.add(id); union.push(id);
       });
@@ -1160,11 +1160,11 @@ class SteamEngine {
         persona: k.player_name || translation.tf('Kullanıcı #', id.slice(-4)),
         avatar: k.avatar_url_medium || k.avatar_url_icon || null,
         // 0 = offline, 1 = online, others busy/away etc.
-        durum: typeof k.persona_state === 'number' ? k.persona_state : 0,
-        oyun: k.game_name || null,
+        condition: typeof k.persona_state === 'number' ? k.persona_state : 0,
+        gameEntry: k.game_name || null,
       };
     }).sort((a, b) => {
-      if ((b.durum > 0) !== (a.durum > 0)) return (b.durum > 0) ? 1 : -1;
+      if ((b.condition > 0) !== (a.condition > 0)) return (b.condition > 0) ? 1 : -1;
       return a.persona.localeCompare(b.persona, 'tr');
     });
   }
@@ -1175,8 +1175,8 @@ class SteamEngine {
     if (!r || !Array.isArray(r.sessions)) return [];
     return r.sessions.map((s) => ({
       steamid: s.steamid_friend ? s.steamid_friend.toString() : null,
-      sonMesajTs: s.last_message ? new Date(s.last_message).getTime() : 0,
-      okunmamis: s.unread_message_count || 0,
+      lastMessageTs: s.last_message ? new Date(s.last_message).getTime() : 0,
+      unreadCount: s.unread_message_count || 0,
     })).filter((s) => s.steamid);
   }
 
@@ -1187,14 +1187,14 @@ class SteamEngine {
     });
     const mine = this.user.steamID ? this.user.steamID.toString() : null;
     const messages = (r && r.messages ? r.messages : []).map((m) => ({
-      gonderen: m.sender ? m.sender.toString() : null,
-      ben: !!(mine && m.sender && m.sender.toString() === mine),
-      metin: String(m.message || ''),
+      senderName: m.sender ? m.sender.toString() : null,
+      me: !!(mine && m.sender && m.sender.toString() === mine),
+      textValue: String(m.message || ''),
       ts: m.server_timestamp ? m.server_timestamp.getTime() : 0,
-      okunmamis: !!m.unread,
+      unreadCount: !!m.unread,
     }));
     messages.sort((a, b) => a.ts - b.ts);
-    return { mesajlar: messages, dahaVar: !!(r && r.more_available) };
+    return { messageList: messages, hasMore: !!(r && r.more_available) };
   }
 
   async sendChat(steamid, text) {
@@ -1217,9 +1217,9 @@ class SteamEngine {
 
   // Deliberate exit: NO reconnect attempt is made (so it does not collide with the G3 loop).
   logOff() {
-    this._kapatildi = true;
-    this.bagli = false;
-    this._nabziDurdur();
+    this._wasShutDown = true;
+    this.isConnected = false;
+    this._stopPulse();
     try { this.user.logOff(); } catch (_) {}
   }
 }
@@ -1233,10 +1233,10 @@ SteamEngine.UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 // another session. LoggedInElsewhere (6) is NOT HERE: it arrives when the user opens a game elsewhere.
 // Since the games are reported without 'force', reconnecting does not close that game;
 // Steam does not count idling at that time, and when the game closes the heartbeat reports the games again.
-SteamEngine.KALICI_KOPMA = new Set([5, 15, 26, 27, 34]);
+SteamEngine.PERMANENT_DISCONNECT = new Set([5, 15, 26, 27, 34]);
 // Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
-SteamEngine.SAHIP_SIRASI = ['gercekci', 'kart', 'saat', 'sirali', 'genel'];
+SteamEngine.OWNER_ORDER = ['gercekci', 'kart', 'saat', 'sirali', 'genel'];
 SteamEngine.CURRENCY = SteamUser.ECurrencyCode;
 // Converts Steam price texts to numbers. The format varies by currency:
 //   "$1,084.65"  (comma thousands, dot decimal)
