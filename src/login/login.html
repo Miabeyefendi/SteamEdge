@@ -99,9 +99,9 @@
     }).catch(()=>{});
     // Surum numarasi elle yazilmisti ve 1.0.8'de kalmisti. Tek kaynak package.json;
     // ana surec app.getVersion() ile veriyor.
-    window.imu.appBilgi().then(b => {
+    window.imu.appInfo().then(b => {
       const el = document.getElementById('lgVersion');
-      if (el && b && b.surum) el.textContent = 'v' + b.surum;
+      if (el && b && b.versionStr) el.textContent = 'v' + b.versionStr;
     }).catch(()=>{});
     const A = window.imu, $id = id => document.getElementById(id);
     $id('min').onclick=()=>A.win.minimize(); $id('max').onclick=()=>A.win.maximize(); $id('close').onclick=()=>A.win.close();
@@ -141,7 +141,7 @@
       const c = colorFor(i);
       return '<div class="panel-account" data-slot="' + i + '" id="slotCard-' + i + '">'
         + (i > 0 ? '<div class="panel-remove" data-remove="' + i + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div>' : '')
-        + '<p class="panel-tag" style="color:' + c + '">' + (i === 0 ? 'Ana Hesap' : 'Ek Hesap #' + (i + 1)) + '</p>'
+        + '<p class="panel-tag" style="color:' + c + '">' + (i === 0 ? 'Ana Hesap' : 'Ek Hesap ' + (i + 1)) + '</p>'
         + '<div id="stLogin-' + i + '" style="display:flex;flex-direction:column;gap:16px">'
           // Giris yontemi secici. QR onerilen yol: parola hic girilmiyor, telefondan onaylaniyor.
           + '<div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--e-bg);border:1px solid var(--e-bd)">'
@@ -291,7 +291,7 @@
       const login = $id('stLogin-' + i), prep = $id('stPrep-' + i);
       if (!login || !prep) return;
       login.classList.add('hide'); prep.classList.remove('hide');
-      $id('prepMsg-' + i).textContent = (d.accountName ? d.accountName + ' - ' : '') + 'giriş başarılı, hazırlanıyor...';
+      $id('prepMsg-' + i).textContent = (d.accountName ? d.accountName + ' - ' : '') + t('giriş başarılı, hazırlanıyor...');
       $id('successName-' + i).textContent = d.accountName ? ('✓ ' + d.accountName) : 'Giriş başarılı';
       setTimeout(() => finishSlot(i), 800);
     });

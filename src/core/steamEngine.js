@@ -169,7 +169,7 @@ class SteamEngine {
   // window is there). Kept in memory for one hour.
   async walletInfo() {
     if (this._wallet && Date.now() - (this._walletTs || 0) < 3600000) return this._wallet;
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const r1 = await this._requestItem('https://steamcommunity.com/market/?l=english', { attemptCount: 2 }, 'Pazar');
     if (this._readWallet(await r1.text())) return this._wallet;
     const r2 = await this._requestItem(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
@@ -350,7 +350,7 @@ class SteamEngine {
       const trulyConnected = !!(this.user && this.user.steamID);
       if (this.isConnected && !trulyConnected) {
         this.isConnected = false;
-        this._reportStatus('dropped', { cause: 'pulse: no session' });
+        this._reportStatus('dropped', { cause: 'nabız: oturum yok' });
         this._scheduleReconnect();
         return;
       }
@@ -395,7 +395,7 @@ class SteamEngine {
   // remaining". The card watcher only removes a game from the queue when Steam SAYS so;
   // not appearing in the list alone does not mean "finished" (the scrape may be incomplete).
   async getDropGames(detay) {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const found = new Map();          // appid -> { appid, name, remaining }
     const finished = new Set();
     let lastSignature = null;
@@ -464,7 +464,7 @@ class SteamEngine {
   // (getPersonas/getSteamLevels), no Web API key needed. Used to fill the sidebar/account card.
   getProfile() {
     const sid = this.steamID;
-    if (!sid) return Promise.reject(new Error('Steam oturumu yok'));
+    if (!sid) return Promise.reject(new Error(translation.t('Steam oturumu yok')));
     const personas = () => new Promise((res) => this.user.getPersonas([sid], (err, p) => res(err ? null : (p && p[sid]))));
     const levels = () => new Promise((res) => this.user.getSteamLevels([sid], (err, l) => res(err ? null : (l && l[sid]))));
     // The custom address is NOT part of this call. It does not come from the protocol, it is
@@ -514,7 +514,7 @@ class SteamEngine {
   // Full game library (for the Hour Booster game picker) via the Steam Web API, authenticated
   // with the JWT embedded in the steamLoginSecure cookie from webLogOn (same token shape ASF uses).
   async getOwnedGames() {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const token = this._accessToken();
     if (!token) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
     const url = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?access_token=${encodeURIComponent(token)}&steamid=${this.steamID}&include_appinfo=true&include_played_free_games=true&format=json`;
@@ -527,8 +527,8 @@ class SteamEngine {
     if (!games.length) {
       const countUp = (j.response && typeof j.response.game_count === 'number') ? j.response.game_count : null;
       if (countUp === null || countUp === 0) {
-        throw new Error('Oyun listesi bos dondu. Steam profilinde Gizlilik > "Oyun ayrintilari" '
-          + 'ayarini Herkese Acik yapman gerekiyor, aksi halde Steam kutuphaneni paylasmiyor.');
+        throw new Error(translation.t('Oyun listesi boş döndü. Steam profilinde Gizlilik > "Oyun ayrıntıları" '
+          + 'ayarını Herkese Açık yapman gerekiyor, aksi halde Steam kütüphaneni paylaşmıyor.'));
       }
     }
     return games.map((g) => ({ appid: g.appid, name: g.name, playtimeForever: g.playtime_forever || 0, hasStats: !!g.has_community_visible_stats }))
@@ -539,7 +539,7 @@ class SteamEngine {
   // count=5000 returns HTTP 400 on some accounts; 2000 is the known-working cap (same limit the
   // old .NET app hit and fixed the same way).
   async getInventory() {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const url = `https://steamcommunity.com/inventory/${this.steamID}/753/6?l=english&count=2000`;
     const r = await this._requestItem(url, {}, 'Envanter');
     const j = await r.json();
@@ -620,7 +620,7 @@ class SteamEngine {
   // and quantity in that time slot. Amounts are in the account's wallet currency (the endpoint takes no currency
   // parameter, it replies according to the session).
   async getPriceHistory(marketHashName) {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
     const r = await fetch(url, { headers: { Cookie: this.cookieHeader() } });
     if (r.status === 429) return { rateLimited: true };
@@ -775,7 +775,7 @@ class SteamEngine {
   // its fee on top for the buyer). If the account has a mobile authenticator, Steam still requires
   // the user to approve each listing in the Steam app - we do not auto-confirm.
   async sellItem(assetId, priceCents, amount = 1) {
-    if (!this.cookies) throw new Error('web oturumu yok');
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
     if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
     const sessionid = sidCookie.split('=')[1];
@@ -880,7 +880,7 @@ class SteamEngine {
   // Fetch raw stats+schema for one app: achievement definitions (statId+bit → name/desc/icon)
   // plus current stat values (the achievement bits) and the crc needed to store back.
   async _getUserStatsRaw(appid) {
-    if (!this.steamID) throw new Error('Steam oturumu yok');
+    if (!this.steamID) throw new Error(translation.t('Steam oturumu yok'));
     const resp = await this._sendRecv(818 /* ClientGetUserStats */,
       Schema.CMsgClientGetUserStats, { game_id: String(appid), crc_stats: 0, schema_local_version: 0, steam_id_for_user: this.steamID },
       Schema.CMsgClientGetUserStatsResponse);

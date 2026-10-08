@@ -13,7 +13,7 @@ let lang = 'tr';
 let table = null;
 
 function pickLang(codeStr) {
-  const newItem = LANGS.includes(codeStr) ? codeStr : 'tr';
+  const newItem = LANGS.includes(codeStr) ? codeStr : 'en';
   if (newItem === lang && (newItem === 'tr' || table)) return;
   lang = newItem;
   table = null;

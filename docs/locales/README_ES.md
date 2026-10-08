@@ -136,7 +136,7 @@ Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos p
 | `reconnectPolicy` | `unlimited` | Reconexión tras perder la conexión: `unlimited` (sin límite), `10`, `3` o `off` (desactivado) |
 | `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad; las tareas en marcha no cuentan como inactividad |
 | `theme` | `dark` | Tema de color: `dark`, `midnight`, `white` |
-| `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Todas las claves están documentadas en la [referencia de configuración](./TUTORIAL_ES.md#️-referencia-de-configuración).
 

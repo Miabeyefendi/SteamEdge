@@ -143,7 +143,7 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3` or `off` |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes; running jobs do not count as idle |
 | `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
-| `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference).
 

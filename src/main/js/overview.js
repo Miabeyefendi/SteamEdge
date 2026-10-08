@@ -687,7 +687,7 @@
       };
       passive(begin, !!g);
       passive(halt, !g);
-      if (det) det.textContent = g ? ('Detay: ' + TASK_NAME[g.tab]) : 'Detay';
+      if (det) det.textContent = g ? (t('Detay') + ': ' + t(TASK_NAME[g.tab])) : 'Detay';
     }
     const TASK_NAME = { card:'Kart', hours:'Saat', realistic:'Gerçekçi', achievements:'Başarım' };
 

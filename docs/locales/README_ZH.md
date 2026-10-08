@@ -136,7 +136,7 @@ npm start
 | `reconnectPolicy` | `unlimited` | 断线后重新连线：`unlimited`（不限）、`10`、`3` 或 `off`（关闭） |
 | `sessionTimeout` | `never` | 閒置这麼多分钟后中断连线；运行中的任务不算閒置 |
 | `theme` | `dark` | 配色主题：`dark`、`midnight`、`white` |
-| `language` | `tr` | 界面语言：`tr`、`en`、`de`、`es`、`zh`、`ru` |
+| `language` | `en` | 界面语言：`tr`、`en`、`de`、`es`、`zh`、`ru` |
 
 所有键值都记载于[配置参考](./TUTORIAL_ZH.md#️-配置参考)。
 

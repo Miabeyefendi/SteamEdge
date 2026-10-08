@@ -225,7 +225,7 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
-| `language` | `tr` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
+| `language` | `en` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Mit Windows starten |
 | `theme` | `dark` | Farbschema: `dark`, `midnight` (Mitternachtslila), `white` |
 | `preventSleep` | `true` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |

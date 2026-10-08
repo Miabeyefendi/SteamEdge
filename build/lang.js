@@ -89,7 +89,7 @@ LANGS.forEach((d) => {
     warn++;
     print('  ' + d + ': ' + missing.length + ' missing');
     missing.slice(0, 8).forEach((k) => print('      ' + k.slice(0, 70)));
-    if (missing.length > 8) print('      ... ve ' + (missing.length - 8) + ' more');
+    if (missing.length > 8) print('      ... and ' + (missing.length - 8) + ' more');
   }
 });
 if (!missingTotal) print('  all languages have the same key set');
@@ -217,7 +217,7 @@ if (missingText.length) {
   print('  ' + missingText.length + ' texts have no dictionary entry');
   const list = [...new Set(missingText)];
   (FULL ? list : list.slice(0, 12)).forEach((x) => print('      ' + x));
-  if (!FULL && list.length > 12) print('      ... ve ' + (list.length - 12) + ' more (npm run lang -- --full)');
+  if (!FULL && list.length > 12) print('      ... and ' + (list.length - 12) + ' more (npm run lang -- --full)');
 } else print('  every Turkish interface text has an entry');
 
 // ---- 7. text produced by the page JS files ----
@@ -228,8 +228,19 @@ section(7, 'Page JS texts (no dictionary entry)');
 const normA = (x) => x.replace(/\d[\d.,]*/g, '#');
 const enNorm = new Set([...dictionary.en.keys()].map(normA));
 const jsMissing = new Map();
-fs.readdirSync(JS_DIR).filter((f) => f.endsWith('.js') && f !== 'i18n.js').forEach((f) => {
-  const source = fs.readFileSync(path.join(JS_DIR, f), 'utf8')
+// The <script> blocks inside HTML are scanned too. The whole logic of the sign-in screen lives inside
+// login.html; section 6 strips the scripts, so status texts such as "Kod gönderiliyor..." and
+// "Bağlanılıyor..." never showed up in any section until 1.3.3 and stayed Turkish in every language.
+const jsSources = fs.readdirSync(JS_DIR).filter((f) => f.endsWith('.js') && f !== 'i18n.js')
+  .map((f) => ({ displayName: f, text: fs.readFileSync(path.join(JS_DIR, f), 'utf8') }));
+HTML_FILES.forEach(({ ad: displayName, yol: pathStr }) => {
+  const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
+  const html = fs.readFileSync(pathStr, 'utf8');
+  let m;
+  while ((m = re.exec(html))) jsSources.push({ displayName, text: m[1] });
+});
+jsSources.forEach(({ displayName: f, text }) => {
+  const source = text
     .replace(/^\s*\/\/.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, '');
   const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
@@ -238,8 +249,11 @@ fs.readdirSync(JS_DIR).filter((f) => f.endsWith('.js') && f !== 'i18n.js').forEa
     // Escape sequences are turned into their run time form: text written as \' in the source becomes ' on screen.
     const raw = (m[1] !== undefined ? m[1] : m[2]);
     if (!raw || !TR_LETTER.test(raw)) continue;
-    // Strip the tags and keep only the visible text
-    raw.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ').split(/<[^>]*>/).forEach((p) => {
+    // Strip the tags and keep only the visible text. A piece can start and end in the middle of a tag
+    // ('">Giriş yap', '<span style="'): the remains of a half tag do not count as text.
+    const visible = raw.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ')
+      .replace(/^[^<>]*"[^<>]*>/, '').replace(/<[^>]*$/, '');
+    visible.split(/<[^>]*>/).forEach((p) => {
       const t = p.replace(/\s+/g, ' ').trim();
       if (t.length < 4 || !TR_LETTER.test(t)) return;
       if (dictionary.en.has(t) || enNorm.has(normA(t))) return;
@@ -271,7 +285,7 @@ if (jsMissing.size) {
   print('  ' + jsMissing.size + ' texts have no dictionary entry');
   const list = [...jsMissing].map(([t, f]) => f + ': ' + (FULL ? t : t.slice(0, 70)));
   (FULL ? list : list.slice(0, 12)).forEach((x) => print('      ' + x));
-  if (!FULL && list.length > 12) print('      ... ve ' + (list.length - 12) + ' more (npm run lang -- --full)');
+  if (!FULL && list.length > 12) print('      ... and ' + (list.length - 12) + ' more (npm run lang -- --full)');
 } else print('  every Turkish text inside JS has an entry');
 
 // ---- 8. the main process text that goes to the user ----
@@ -290,7 +304,8 @@ mainFiles.forEach((pathStr) => {
     .replace(/^\s*\/\/.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\blog\((?:[^()]|\([^()]*\))*\)/g, '')          // log lines do not go to the user
-    .replace(/\bcokmeYaz\((?:[^()]|\([^()]*\))*\)/g, '');
+    .replace(/\bwriteCrash\((?:[^()]|\([^()]*\))*\)/g, '')
+    .replace(/'\s*\+\s*'/g, '');                            // a text split across lines is one key
   const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
   let m;
   while ((m = re.exec(source))) {
@@ -307,7 +322,7 @@ if (mainMissing.size) {
   print('  ' + mainMissing.size + ' texts have no dictionary entry');
   const list = [...mainMissing].map(([t, f]) => f + ': ' + (FULL ? t : t.slice(0, 70)));
   (FULL ? list : list.slice(0, 12)).forEach((x) => print('      ' + x));
-  if (!FULL && list.length > 12) print('      ... ve ' + (list.length - 12) + ' more (npm run lang -- --full)');
+  if (!FULL && list.length > 12) print('      ... and ' + (list.length - 12) + ' more (npm run lang -- --full)');
 } else print('  every Turkish text of the main process has an entry');
 
 // ---- 9. a key that carries an HTML fragment ----

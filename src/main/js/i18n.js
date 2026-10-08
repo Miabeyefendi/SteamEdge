@@ -179,7 +179,7 @@
     // the open section is carried to the next startup with sessionStorage.
     const I18N_RETURN_KEY = 'se.langReturnSection';
     function setUiLang(codeStr, reload) {
-      const newItem = I18N_LANGS[codeStr] ? codeStr : 'tr';
+      const newItem = I18N_LANGS[codeStr] ? codeStr : 'en';
       if (newItem === uiLang) return;
       if (reload !== false) {
         try { sessionStorage.setItem(I18N_RETURN_KEY, typeof currentSetSec === 'string' ? currentSetSec : 'general'); } catch (_) {}
@@ -190,7 +190,7 @@
       applyI18n();
     }
     function initI18n(codeStr) {
-      uiLang = I18N_LANGS[codeStr] ? codeStr : 'tr';
+      uiLang = I18N_LANGS[codeStr] ? codeStr : 'en';
       document.documentElement.setAttribute('lang', uiLang === 'zh' ? 'zh-Hant' : uiLang);
       // If the dictionary cannot be read it falls back to Turkish: rather than showing a half translated screen
       // leaving it in the source language is the honest thing.

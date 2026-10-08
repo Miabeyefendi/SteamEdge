@@ -241,7 +241,7 @@
     function applyDensity(){
       const compact = (typeof appSettings==='object' && appSettings && appSettings.density==='compact');
       document.body.classList.toggle('e-compact', !!compact);
-      if (typeof temaUygula === 'function' && appSettings) temaUygula(appSettings.theme || 'dark');
+      if (typeof applyTheme === 'function' && appSettings) applyTheme(appSettings.theme || 'dark');
     }
 
     // ================= NOTIFICATION SOUNDS =================
@@ -793,7 +793,7 @@
     // (durum, sebep, deneme, bekleme, sinir). The strip used to say ASCII Turkish
     // "yeniden baglaniyor (deneme 2, 10 sn sonra)" in every language.
     function connectionText(d){
-      if (d.condition === 'dropped') return t('Steam bağlantısı koptu.') + (d.cause ? (' (' + d.cause + ')') : '');
+      if (d.condition === 'dropped') return t('Steam bağlantısı koptu.') + (d.cause ? (' (' + t(d.cause) + ')') : '');
       if (d.condition === 'connecting'){
         const sn = Math.max(1, Math.round((d.waitMs || 0) / 1000));
         return d.limitValue

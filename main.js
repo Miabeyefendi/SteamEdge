@@ -241,7 +241,7 @@ const DEFAULT_SETTINGS = {
   autoLaunch: false,        // start with Windows
   closeToTray: false,       // minimise to the system tray on close
   preventSleep: false,      // prevent sleep while the app is open
-  language: 'tr',
+  language: 'en',
   // Card farming
   cardPriorityMode: 'sequential',
   cardMaxGames: 32,         // games open at once in fast mode (Steam's known upper limit is 32)
@@ -612,10 +612,10 @@ const ACCOUNTS_FILE = path.join(CONFIG_DIR, 'accounts.json');
 function loadAccounts() {
   const r = readJson(ACCOUNTS_FILE);
   if (r.ok) {
-    if (r.fromBackup) readErrors.push({ displayName: 'Kayitli hesaplar', recoveredFlag: true });
+    if (r.fromBackup) readErrors.push({ displayName: 'Kayıtlı hesaplar', recoveredFlag: true });
     return Array.isArray(r.dataBlock) ? r.dataBlock : [];
   }
-  if (r.corrupt) readErrors.push({ displayName: 'Kayitli hesaplar', recoveredFlag: false });
+  if (r.corrupt) readErrors.push({ displayName: 'Kayıtlı hesaplar', recoveredFlag: false });
   return [];
 }
 function saveAccounts(list) { writeJson(ACCOUNTS_FILE, list, true); }
@@ -1881,10 +1881,10 @@ function loadState() {
       entries: (raw && typeof raw.entries === 'object' && raw.entries) || {},
       achLog: Array.isArray(raw && raw.achLog) ? raw.achLog : [],
     };
-    if (r.fromBackup) readErrors.push({ displayName: 'Kayitli durum', recoveredFlag: true });
+    if (r.fromBackup) readErrors.push({ displayName: 'Kayıtlı durum', recoveredFlag: true });
   } else {
     appState = { entries: {}, achLog: [] };
-    if (r.corrupt) readErrors.push({ displayName: 'Kayitli durum', recoveredFlag: false });
+    if (r.corrupt) readErrors.push({ displayName: 'Kayıtlı durum', recoveredFlag: false });
   }
   const dropped = pruneState();
   if (dropped) log('info', dropped + ' records past the retention period deleted');
@@ -3603,7 +3603,7 @@ app.whenReady().then(() => {
   if (!setup.ok) {
     log('error', 'mixed installation: version=' + setup.fileVersion + ' running=' + setup.runningItem);
     // The settings have not loaded yet; the language comes from the early setting read before the window opened.
-    translation.pickLang((earlySettings && earlySettings.language) || 'tr');
+    translation.pickLang((earlySettings && earlySettings.language) || 'en');
     try {
       dialog.showMessageBoxSync({
         type: 'error',
