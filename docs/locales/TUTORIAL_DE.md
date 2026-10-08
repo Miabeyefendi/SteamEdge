@@ -269,12 +269,12 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 |---|---|---|
 | `grDurationSec` | `7200` | Sitzungsdauer |
 | `grModel` | `linear` | Verteilungsmodell |
-| `grTcOyun` | `{}` | 100%-Abschlusszeit pro Spiel, in Stunden |
+| `grTcGame` | `{}` | 100%-Abschlusszeit pro Spiel, in Stunden |
 | `grCatchUp` | `true` | Den Rückstand in den Anfang der Sitzung stauchen |
-| `grHiz` | `1` | Geschwindigkeitsfaktor für den ganzen Plan |
-| `grUltraCarpan` | `3` | Wie viel länger Errungenschaften unter 5% warten |
-| `grTelafiPay` | `20` | Anteil der Sitzung für das Aufholen, in Prozent |
-| `grBitmisSik` | `50` | Wie stark der Plan bei einem abgeschlossenen Spiel staucht |
+| `grSpeed` | `1` | Geschwindigkeitsfaktor für den ganzen Plan |
+| `grUltraMultiplier` | `3` | Wie viel länger Errungenschaften unter 5% warten |
+| `grCatchUpShare` | `20` | Anteil der Sitzung für das Aufholen, in Prozent |
+| `grFinishedRatio` | `50` | Wie stark der Plan bei einem abgeschlossenen Spiel staucht |
 | `grKeepHours` | `true` | Nach den Freischaltungen weiter Stunden sammeln |
 | `grSkipUltraRare` | `false` | Errungenschaften unter 5% ganz überspringen |
 
@@ -291,7 +291,7 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
-| `yenidenBaglanma` | `sinirsiz` | Neu verbinden nach Abbruch: `sinirsiz` (unbegrenzt), `10`, `3`, `kapali` (aus) |
+| `reconnectPolicy` | `unlimited` | Neu verbinden nach Abbruch: `unlimited` (unbegrenzt), `10`, `3`, `off` (aus) |
 | `sessionTimeout` | `never` | Trennt nach so vielen Minuten ohne Eingabe. Laufende Aufgaben zählen nicht als Leerlauf |
 | `apiRequestDelayMs` | `350` | Kürzester Abstand zwischen Marktanfragen. Niedriger ist schneller, aber näher an Steams Ratenlimit (HTTP 429) |
 | `logLevel` | `error` | Was in `cache/steamedge.log` landet: `off`, `error`, `warn`, `info`, `debug` |

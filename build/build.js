@@ -123,7 +123,7 @@ async function main() {
   console.log('\nDONE.');
   console.log('  folder : ' + TARGET);
   console.log('  size   : ' + (size / 1024 / 1024).toFixed(1) + ' MB'
-    + (trimmed.kazanc ? '  (with locale trimming ' + (trimmed.kazanc / 1024 / 1024).toFixed(1) + ' MB az)' : ''));
+    + (trimmed.kazanc ? '  (with locale trimming ' + (trimmed.kazanc / 1024 / 1024).toFixed(1) + ' MB smaller)' : ''));
   console.log('  exe    : ' + pkg.productName + '.exe');
 }
 

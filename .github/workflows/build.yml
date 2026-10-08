@@ -1,14 +1,14 @@
 name: Build
 
-# Amac: depo temiz bir cekimden derlenebiliyor mu, onu dogrulamak. Yayinlanan arsiv
-# elle uretiliyor (WinRAR, -m5); bu is akisinin urettigi .zip yalnizca dogrulama icin
-# artifact olarak kalir, yayina eklenmez.
+# Purpose: check that the repository builds from a clean checkout. The published archive
+# is produced by hand (WinRAR, -m5); the .zip this workflow makes is kept as an artifact
+# for verification only and is not attached to the release.
 #
-# 1.1.8'de duzeltildi. Onceki hali iki ayri sebeple hic calismiyordu: etiket filtresi
-# "v*" idi ama surumler v'siz etiketleniyor (1.1.7), ve derleme ciktisini "Release V*"
-# adinda bir klasorde ariyordu - o isim depo yeniden adlandirilali beri yok.
-# 1.2.0'da tekrar: cikti klasoru ust dizinden releases/ altina tasindi, zip adimi
-# eski yeri ariyordu.
+# Fixed in 1.1.8. The earlier version never ran, for two separate reasons: the tag filter
+# was "v*" but versions are tagged without the v (1.1.7), and the build output was looked
+# up in a folder called "Release V*" - that name has not existed since the repository was renamed.
+# Again in 1.2.0: the output folder moved from the parent directory to releases/, and the
+# zip step was still looking in the old place.
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ on:
 permissions:
   contents: read
 
-# Ayni etiket ya da elle tetikleme ust uste gelirse yalnizca sonuncusu calisir.
+# If the same tag or a manual trigger overlaps, only the latest run is kept.
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true
@@ -55,11 +55,11 @@ jobs:
       - name: Zip
         shell: pwsh
         run: |
-          $ad = "SteamEdge-v${{ steps.ver.outputs.v }}-win-x64"
-          # build.js 1.1.11'den beri releases/ altina yaziyor (standart agac); ust klasor degil.
-          $src = Join-Path $PWD "releases\$ad"
+          $name = "SteamEdge-v${{ steps.ver.outputs.v }}-win-x64"
+          # build.js has written under releases/ since 1.1.11 (standard tree), not the parent folder.
+          $src = Join-Path $PWD "releases\$name"
           if (-not (Test-Path $src)) { throw "Build output folder not found: $src" }
-          Compress-Archive -Path "$src\*" -DestinationPath "$ad.zip"
+          Compress-Archive -Path "$src\*" -DestinationPath "$name.zip"
 
       - uses: actions/upload-artifact@v4
         with:

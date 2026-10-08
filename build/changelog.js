@@ -1,4 +1,4 @@
-/* /* Builds the root CHANGELOG.md from the build/changelog/<version>.md files.
+/* Builds the root CHANGELOG.md from the build/changelog/<version>.md files.
  *
  *  * Why it became a script: this step was done by hand and was forgotten in rounds 1.1.5 and 1.1.6.
  *  * The root changelog stayed two versions behind and nobody noticed. Now `npm run changelog`
@@ -9,7 +9,7 @@
  *  * "**As always:**" line and a last "###" heading whose content was emptied.
  *
  *  * Run:  npm run changelog
- *  *       npm run changelog -- --kontrol   (does not write, returns 1 if something is missing)
+ *  *       npm run changelog -- --check   (does not write, returns 1 if something is missing)
  */
 const fs = require('fs');
 const path = require('path');
@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, '..');
 const CL = path.join(ROOT, 'CHANGELOG.md');
 const DIR = path.join(__dirname, 'changelog');
 const URL = 'https://github.com/Miabeyefendi/SteamEdge/releases/tag/';
-const CHECK = process.argv.includes('--kontrol');
+const CHECK = process.argv.includes('--check');
 
 // "1.10.2" must be greater than "1.9.0"; text ordering gets this wrong.
 const numeric = (v) => v.split('.').map(Number);

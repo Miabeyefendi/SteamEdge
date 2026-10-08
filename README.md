@@ -140,7 +140,7 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `pauseFarmOnBoost` | `false` | Pause card farming while the hours booster or Realistic Mode runs |
 | `bulkSellLimit` | `50` | Bulk sales are split into batches of this many items; `0` lists until Steam stops it |
 | `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that marks a price drop |
-| `yenidenBaglanma` | `sinirsiz` | Reconnect after a dropped connection: `sinirsiz` (unlimited), `10`, `3` or `kapali` (off) |
+| `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3` or `off` |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes; running jobs do not count as idle |
 | `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
 | `language` | `tr` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |

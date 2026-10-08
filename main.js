@@ -150,7 +150,7 @@ function portableRoot() {
   const side = path.join(path.dirname(app.getPath('exe')));
   try {
     fs.mkdirSync(side, { recursive: true });
-    const attemptNo = path.join(side, '.yazma-testi');
+    const attemptNo = path.join(side, '.write-test');
     fs.writeFileSync(attemptNo, 'x');
     fs.unlinkSync(attemptNo);
     return side;
@@ -210,7 +210,7 @@ function writeJson(fileEntry, payloadData, formatted) {
 function readJson(fileEntry) {
   const attempt = (p) => {
     const rawText = fs.readFileSync(p, 'utf8');
-    if (!rawText.trim()) throw new Error('bos dosya');
+    if (!rawText.trim()) throw new Error('empty file');
     return migrateKeys(JSON.parse(rawText));
   };
   try { return { ok: true, dataBlock: attempt(fileEntry) }; }
@@ -1207,7 +1207,7 @@ function stopAccountJobs(s, steamID) {
   stopCardWatcher(s);
   if (steamID) {
     try { boostStopAccount(steamID, 'user'); } catch (_) {}
-    try { if (s.realistic) realisticFinish(steamID, 'kullanici durdurdu'); } catch (_) {}
+    try { if (s.realistic) realisticFinish(steamID, 'user stopped'); } catch (_) {}
     try { statsHour(steamID); } catch (_) {}
   }
   if (s.statHour) { clearInterval(s.statHour); s.statHour = null; }
@@ -1232,14 +1232,14 @@ function bindConnectionState(eng, steamID) {
     // Log text. The interface builds the text in its own language from the fields (durum, sebep, deneme, bekleMs,
     // sinir, oyunlar); the text here is only for the log file.
     const message = status === 'dropped'
-      ? ('Steam baglantisi koptu: ' + (extra.cause || '?'))
+      ? ('Steam connection dropped: ' + (extra.cause || '?'))
       : status === 'connecting'
-        ? ('yeniden baglaniyor (deneme ' + extra.attemptCount + ', ' + Math.round((extra.waitMs || 0) / 1000) + ' sn sonra)')
+        ? ('reconnecting (attempt ' + extra.attemptCount + ', in ' + Math.round((extra.waitMs || 0) / 1000) + ' s)')
         : status === 'abandoned'
-          ? ('yeniden baglanma durdu' + (extra.permanent ? (' (kalici: ' + (extra.cause || '?') + ')') : (' (' + (extra.attemptCount || 0) + ' deneme)')))
+          ? ('reconnecting stopped' + (extra.permanent ? (' (permanent: ' + (extra.cause || '?') + ')') : (' (' + (extra.attemptCount || 0) + ' attempts)')))
           : status === 'connected' && extra.reconnected
-            ? ('yeniden baglandi, ' + (extra.gameEntries || 0) + ' oyun geri acildi')
-            : 'baglandi';
+            ? ('reconnected, ' + (extra.gameEntries || 0) + ' games reopened')
+            : 'connected';
     log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message);
     const s2 = accounts.get(steamID);
     if (s2) s2.connectionStatus = { condition: status, ts: Date.now(), ...extra };
@@ -1336,7 +1336,7 @@ function accountDataMigration() {
   let moved = [];
   if (Array.isArray(settings.boostGameIds) && settings.boostGameIds.length && !v.boostGameIds.length) {
     v.boostGameIds = settings.boostGameIds.slice();
-    moved.push(v.boostGameIds.length + ' saat yukseltici oyunu');
+    moved.push(v.boostGameIds.length + ' hour-boost games');
   }
   if (appState && appState.entries && Object.keys(appState.entries).length && !Object.keys(v.entries).length) {
     v.entries = JSON.parse(JSON.stringify(appState.entries));
@@ -2266,7 +2266,7 @@ function boostStart(steamID, request) {
   boostClear(s);
   // Sequential and simultaneous boosting do not run at the same time; both write the same game list.
   if (s.hoursFarm && s.hoursFarm.running) s.hoursFarm.stop('boost');
-  if (settings.pauseFarmOnBoost) delayFarm(steamID, 'saat yukseltme');
+  if (settings.pauseFarmOnBoost) delayFarm(steamID, 'hour boosting');
   const appids = (request.appids || []).slice();
   const games = Array.isArray(request.games) ? request.games : null;
   const durationMs = +request.durationMs || 0;
@@ -2321,7 +2321,7 @@ function boostStart(steamID, request) {
       // is full from the start, the bar of the game that will run to the end is empty.
       b.sync.jobTotalMs = ledger.remainingTotalMs(b.sync);
       log('info', '[' + accountName(steamID) + '] hour sync (parallel): ' + b.sync.gameEntries.size + ' games, target ' + targetMin
-        + ' dk, limit ' + limit + ', toplam is ' + Math.round(b.sync.jobTotalMs / 60000) + ' dk');
+        + ' min, limit ' + limit + ', job total ' + Math.round(b.sync.jobTotalMs / 60000) + ' min');
       setupSyncHeartbeat(steamID);
       scheduleSync(steamID);
       return { ok: true };
@@ -2425,7 +2425,7 @@ function startSequential(steamID, request) {
   const s = accounts.get(steamID);
   if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
   if (s.boost && s.boost.runningFlag) boostFinish(steamID, 'sequential', true);
-  if (settings.pauseFarmOnBoost) delayFarm(steamID, 'sirali saat yukseltme');
+  if (settings.pauseFarmOnBoost) delayFarm(steamID, 'sequential hour boosting');
   if (!s.hoursFarm) s.hoursFarm = new FarmController(s.engine, sequentialBroadcast(steamID), 'sequential');
   s.hoursFarm.engine = s.engine;
   s.sequentialRequest = { games: request.games || [], durationMs: request.durationMs, loop: request.loop !== false };
@@ -2595,7 +2595,7 @@ async function realisticStep(steamID) {
   const s = accounts.get(steamID);
   const d = s && s.realistic;
   if (!d) return;
-  if (!s.engine) { realisticFinish(steamID, 'baglanti yok'); return; }
+  if (!s.engine) { realisticFinish(steamID, 'no connection'); return; }
   // If the connection is down an achievement cannot be sent; it continues when the engine reconnects.
   if (!s.ready) { d.timer = setTimeout(() => realisticStep(steamID), 30000); return; }
   const a = d.activeIds;
@@ -2607,9 +2607,9 @@ async function realisticStep(steamID) {
     realisticNotify(steamID, { achievementsDone: true });
     if (realisticNextGame(steamID)) return;
     if (d.optionList.continueHours && Date.now() < d.finishTime) {
-      d.timer = setTimeout(() => { if (realisticStatus(steamID) === d) realisticFinish(steamID, 'sure doldu'); }, d.finishTime - Date.now());
+      d.timer = setTimeout(() => { if (realisticStatus(steamID) === d) realisticFinish(steamID, 'time up'); }, d.finishTime - Date.now());
     } else {
-      realisticFinish(steamID, Date.now() >= d.finishTime ? 'sure doldu' : 'tum basarimlar acildi');
+      realisticFinish(steamID, Date.now() >= d.finishTime ? 'time up' : 'all unlocked');
     }
     return;
   }
@@ -2679,7 +2679,7 @@ function realisticNextGame(steamID) {
     };
     try { s.engine.play([o.appid], 'realistic'); } catch (_) {}
     log('info', '[' + accountName(steamID) + '] realistic mode: next ' + o.name + ' (' + ready.queueList.length + ' achievements, '
-      + (share / 60000).toFixed(0) + ' dk)');
+      + (share / 60000).toFixed(0) + ' min)');
     const delay = ready.queueList.length ? realisticNextDelay(d) : Math.max(0, d.activeIds.finishTime - Date.now());
     d.upNextTime = Date.now() + delay;
     realisticNotify(steamID, { gameChanged: true });
@@ -2691,8 +2691,8 @@ function realisticNextGame(steamID) {
 
 // The end reason is shown in the interface; the text is translated in the dictionary (the key is this Turkish text).
 const REALISTIC_REASON = {
-  'sure doldu': 'Süre doldu', 'tum basarimlar acildi': 'Tüm başarımlar açıldı',
-  'kullanici durdurdu': 'Durduruldu', 'baglanti yok': 'Steam bağlantısı yok',
+  'time up': 'Süre doldu', 'all unlocked': 'Tüm başarımlar açıldı',
+  'user stopped': 'Durduruldu', 'no connection': 'Steam bağlantısı yok',
 };
 function realisticFinish(steamID, cause) {
   const s = accounts.get(steamID);
@@ -2940,7 +2940,7 @@ ipcMain.handle('realistic:start', async (_e, arg) => {
     };
     s.realistic = d;
     log('info', '[' + accountName(steamID) + '] realistic mode started: ' + willRun.length + ' games, ' + totalTarget + ' achievements, '
-      + (duration / 3600000).toFixed(2) + ' saat, model=' + pick.model);
+      + (duration / 3600000).toFixed(2) + ' hours, model=' + pick.model);
     // The first unlock is not immediate - it is not realistic for an achievement to come the moment the game opens.
     const initial = firstReady.queueList.length
       ? realisticNextDelay(d)
@@ -2952,7 +2952,7 @@ ipcMain.handle('realistic:start', async (_e, arg) => {
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-ipcMain.on('realistic:stop', () => { if (realisticStatus(activeSteamID)) realisticFinish(activeSteamID, 'kullanici durdurdu'); });
+ipcMain.on('realistic:stop', () => { if (realisticStatus(activeSteamID)) realisticFinish(activeSteamID, 'user stopped'); });
 
 ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games, allItems: allOfIt }) => {
   if (!activeSteamID) return;
@@ -3299,7 +3299,7 @@ function applySettingsToJobs(changed) {
     }
     if (d.has('pauseFarmOnBoost')) {
       if (settings.pauseFarmOnBoost && (accountBoostRunning(s) || s.realistic) && s.farm && s.farm.running) {
-        if (delayFarm(steamID, 'ayar: saat yukseltirken duraklat')) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'delayed' });
+        if (delayFarm(steamID, 'setting: pause while boosting hours')) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'delayed' });
       } else if (!settings.pauseFarmOnBoost && s.pendingFarm && !s.realistic) {
         resumeFarm(steamID, true);
         summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'resumed' });
@@ -3471,7 +3471,7 @@ async function checkForUpdate(manual) {
     const outcome = await update.checkNow(app.getVersion());
     lastUpdateStatus = { ...outcome, ts: Date.now(), byHand: !!manual };
     log(outcome.ok ? 'info' : 'warn', 'update check: '
-      + (outcome.ok ? (outcome.isUpToDate ? 'guncel (' + outcome.installed + ')' : 'yeni surum ' + outcome.lastOne) : outcome.failure));
+      + (outcome.ok ? (outcome.isUpToDate ? 'up to date (' + outcome.installed + ')' : 'new version ' + outcome.lastOne) : outcome.failure));
     sendRaw('update:status', lastUpdateStatus);
     return lastUpdateStatus;
   } finally {

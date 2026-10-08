@@ -269,12 +269,12 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 |---|---|---|
 | `grDurationSec` | `7200` | Duración de la sesión |
 | `grModel` | `linear` | Modelo de distribución |
-| `grTcOyun` | `{}` | Tiempo de completado al 100% por juego, en horas |
+| `grTcGame` | `{}` | Tiempo de completado al 100% por juego, en horas |
 | `grCatchUp` | `true` | Comprimir el atraso acumulado al principio de la sesión |
-| `grHiz` | `1` | Multiplicador de velocidad para todo el calendario |
-| `grUltraCarpan` | `3` | Cuánto más esperan los logros por debajo del 5% |
-| `grTelafiPay` | `20` | Porcentaje de la sesión que se lleva la ráfaga de recuperación |
-| `grBitmisSik` | `50` | Cuánto se comprime el calendario en un juego ya terminado |
+| `grSpeed` | `1` | Multiplicador de velocidad para todo el calendario |
+| `grUltraMultiplier` | `3` | Cuánto más esperan los logros por debajo del 5% |
+| `grCatchUpShare` | `20` | Porcentaje de la sesión que se lleva la ráfaga de recuperación |
+| `grFinishedRatio` | `50` | Cuánto se comprime el calendario en un juego ya terminado |
 | `grKeepHours` | `true` | Seguir acumulando horas cuando terminen los desbloqueos |
 | `grSkipUltraRare` | `false` | Saltarse por completo los logros por debajo del 5% |
 
@@ -291,7 +291,7 @@ Los ajustes viven en `settings/settings.json`. Todo lo de abajo es editable desd
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
-| `yenidenBaglanma` | `sinirsiz` | Reconexión tras perder la conexión: `sinirsiz` (sin límite), `10`, `3`, `kapali` (desactivado) |
+| `reconnectPolicy` | `unlimited` | Reconexión tras perder la conexión: `unlimited` (sin límite), `10`, `3`, `off` (desactivado) |
 | `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad. Las tareas en marcha no cuentan como inactividad |
 | `apiRequestDelayMs` | `350` | Intervalo mínimo entre peticiones al mercado. Más bajo es más rápido pero más cerca del límite de Steam (HTTP 429) |
 | `logLevel` | `error` | Qué se escribe en `cache/steamedge.log`: `off`, `error`, `warn`, `info`, `debug` |

@@ -1,4 +1,4 @@
-/* /* Language audit.
+/* Language audit.
  *
  *  * Are the dictionaries (src/main/js/lang/<code>.json) consistent between languages, does every text
  *  * in the interface have a translation, is there a key that exists in one language and not in another.

@@ -837,10 +837,10 @@
       el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0;'
         + (status === 'abandoned' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(message||'')+'</span>'
         + (status === 'abandoned'
-            ? '<button data-yeniden style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
+            ? '<button data-reconnect style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
               + ';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
             : '');
-      const b = el.querySelector('[data-yeniden]');
+      const b = el.querySelector('[data-reconnect]');
       if (b) b.onclick = async ()=>{
         b.disabled = true;
         const r = await window.imu.engine.reconnect().catch(()=>null);

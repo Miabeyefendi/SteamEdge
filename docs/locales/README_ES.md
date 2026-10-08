@@ -133,7 +133,7 @@ Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos p
 | `pauseFarmOnBoost` | `false` | Pausa el farmeo mientras funciona el impulsor de horas o el Modo realista |
 | `bulkSellLimit` | `50` | La venta en lote se divide en lotes de este número de objetos; `0` publica hasta que Steam lo detenga |
 | `priceDropThreshold` | `10` | Porcentaje por debajo de la media de 24 horas de Steam que cuenta como bajada de precio |
-| `yenidenBaglanma` | `sinirsiz` | Reconexión tras perder la conexión: `sinirsiz` (sin límite), `10`, `3` o `kapali` (desactivado) |
+| `reconnectPolicy` | `unlimited` | Reconexión tras perder la conexión: `unlimited` (sin límite), `10`, `3` o `off` (desactivado) |
 | `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad; las tareas en marcha no cuentan como inactividad |
 | `theme` | `dark` | Tema de color: `dark`, `midnight`, `white` |
 | `language` | `tr` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |

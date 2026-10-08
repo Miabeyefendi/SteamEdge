@@ -350,7 +350,7 @@ class SteamEngine {
       const trulyConnected = !!(this.user && this.user.steamID);
       if (this.isConnected && !trulyConnected) {
         this.isConnected = false;
-        this._reportStatus('dropped', { cause: 'nabiz: oturum yok' });
+        this._reportStatus('dropped', { cause: 'pulse: no session' });
         this._scheduleReconnect();
         return;
       }
