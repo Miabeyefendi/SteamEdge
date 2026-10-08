@@ -105,10 +105,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.3.2-win-x64.rar`:
-`38fc5a55d56be415a54ab734ee842e9b731dc4ab6ad8f926634919b64de2fe31`
+SHA-256 of `SteamEdge-v1.4.0-win-x64.rar`:
+`84ca3de277e8a8f37569d8f801119c6000412cf4985d343d652abcd5cd35d350`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.3.2-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.0-win-x64.rar`.
 
 </details>
 
@@ -140,7 +140,7 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `pauseFarmOnBoost` | `false` | Pause card farming while the hours booster or Realistic Mode runs |
 | `bulkSellLimit` | `50` | Bulk sales are split into batches of this many items; `0` lists until Steam stops it |
 | `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that marks a price drop |
-| `yenidenBaglanma` | `sinirsiz` | Reconnect after a dropped connection: `sinirsiz` (unlimited), `10`, `3` or `kapali` (off) |
+| `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3` or `off` |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes; running jobs do not count as idle |
 | `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |

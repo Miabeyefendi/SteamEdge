@@ -28,7 +28,7 @@ cards still dropped" is worth more than "looks fine".
 -->
 
 - [ ] `npm start` runs with no console errors
-- [ ] `npm run dogrula` and `npm run dil` pass
+- [ ] `npm run verify` and `npm run lang` pass
 - [ ] I tested the affected screen by hand
 - [ ] Existing behaviour on other screens is unchanged
 

@@ -1,9 +1,10 @@
-<!-- ================================================================
-     BAŞARIMLAR
-     Ölçü, renk ve boşluk değerleri inline duruyor; :hover ve :focus
-     durumları edge.css icindeki .h-* / .f-* class'larına bağlıdır.
-     Veri: basarim.js - Steam protokolünden şema, global nadirlik ve açılma zamanı.
-     ================================================================ -->
+<!--
+  ================================================================
+  BAŞARIMLAR (ACHIEVEMENTS)
+  Sizes, colours and spacing are inline; :hover and :focus states are tied to the .h-* / .f-*
+  classes in edge.css. Data: achievements.js - schema from the Steam protocol, global rarity and unlock time.
+  ================================================================
+-->
 <div style="flex:1;overflow-y:auto;padding:24px 26px 30px 44px;display:flex;flex-direction:column;gap:18px;width:100%;margin:0">
 
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
@@ -32,7 +33,7 @@
   </div>
 
   <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:20px 22px;display:flex;align-items:center;gap:28px">
-    <!-- Kütüphane Başlığı oranı: 920x430 (~2.14:1) -->
+    <!-- Library Header ratio: 920x430 (~2.14:1) -->
     <div style="width:97px;height:45px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 6px,#101621 6px 12px);overflow:hidden">
       <img id="acLogo" style="width:100%;height:100%;object-fit:cover;transform:scale(1.03)">
     </div>
@@ -53,9 +54,7 @@
   </div>
 
   <div style="width:100%;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <!-- Sira: once OYUN, sonra basarim aramasi. Oyun adlari uzun olabildigi icin en genis
-         alan onun; basarim aramasi ondan kisa. Eskiden basarim aramasi soldaydi ve oyun
-         secici sagda kaliyordu, yani once oyun secmek gereken ekranda ikinci sirada. -->
+    <!-- Order: GAME first, then the achievement search. Since game names can be long it gets the widest area; the achievement search is shorter than it. The achievement search used to be on the left and the game picker on the right, that is second in line on a screen where the game must be picked first. -->
     <div id="acGameBox" style="position:relative;flex:1 1 300px;min-width:230px">
       <input id="acGameInput" type="text" placeholder="Oyun ara / seç..." autocomplete="off" class="f-focus"
              style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 30px 0 12px;outline:none">
@@ -83,9 +82,7 @@
       <option value="rarity">Nadirliğe göre</option>
       <option value="date">Tarihe göre</option>
     </select>
-    <!-- Yon dugmesi: ayri bir acilir liste koymak yerine tek dugme, cunku secenek iki tane.
-         Ok yonu o an hangi siranin gecerli oldugunu dogrudan gosteriyor. Varsayilan sirada
-         yon kavrami yok, o yuzden orada sonuk ve tiklanamaz. -->
+    <!-- Direction button: a single button instead of a separate dropdown, because there are only two options. The arrow direction directly shows which order applies at that moment. There is no notion of direction in the default order, so it is dimmed and unclickable there. -->
     <button id="acSortDir" class="h-bd" data-tip="Sıralama yönü" style="width:34px;height:34px;flex-shrink:0;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 11l6-6 6 6"></path></svg>
     </button>
@@ -100,24 +97,18 @@
     <button id="acReset" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sıfırla</button>
   </div>
 
-  <!-- Sayaç satırı FLEX SATIRININ DIŞINDA. İçerideyken yalnızca sol sütunu aşağı itiyor,
-       sağdaki Detay paneli ise satırın tepesinden başlıyordu; ilk başarım satırı ile panel
-       hizasız kalıyordu. Dışarı alınınca iki sütun da aynı y'den başlıyor. -->
+  <!-- The counter row is OUTSIDE THE FLEX ROW. When inside it only pushed the left column down, while the Detay panel on the right started at the top of the row; the first achievement row and the panel were misaligned. Taken outside, both columns start from the same y. -->
   <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="acCount">-</span>
 
   <div style="display:flex;gap:14px;align-items:flex-start">
     <div style="flex:1;min-width:0">
       <div id="acBody"></div>
     </div>
-    <!-- Detay paneli sayfayla birlikte kayar (sticky): yüzlerce başarımı olan oyunlarda
-         aşağı inince panel ekrandan çıkıyordu. `top` üstteki filtre çubuğunun altına denk
-         gelir; `max-height` ile panel kendi içinde kayar, sayfayı uzatmaz. -->
+    <!-- The detail panel scrolls with the page (sticky): in games with hundreds of achievements the panel went off screen when scrolling down. `top` matches the area under the filter bar above; with `max-height` the panel scrolls inside itself and does not lengthen the page. -->
     <aside id="acDetail" style="width:280px;flex-shrink:0;position:sticky;top:12px;align-self:flex-start;max-height:calc(100vh - 150px);overflow-y:auto;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:20px;display:flex;flex-direction:column;gap:14px"></aside>
   </div>
 
-  <!-- Seçim / toplu aç-kilitle çubuğu da sayfayla birlikte kayar (sticky, alta yapışık):
-       yüzlerce başarımda aşağı inerken çubuk ekrandan çıkıyordu, seçimi görmek için
-       en alta kadar inmek gerekiyordu. Detay paneliyle aynı davranış. -->
+  <!-- The selection / bulk unlock-lock bar scrolls with the page too (sticky, stuck to the bottom): with hundreds of achievements the bar went off screen while scrolling down, you had to go all the way down to see the selection. Same behaviour as the detail panel. -->
   <div style="position:sticky;bottom:0;z-index:20;margin-top:auto;border:1px solid #2B3345;border-radius:12px;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:26px;flex-wrap:wrap">
       <div style="display:flex;flex-direction:column;gap:4px">
@@ -133,8 +124,7 @@
         <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Güvenli Mod</span>
         <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5FB324" id="acSafeMode">Açık</span>
       </div>
-      <!-- MADDE 8: toplu islem sirasinda canli durum. Kullanici eskiden butona basip
-           hicbir sey gormuyordu: acildi mi, siradaki ne zaman, hata mi var bilinmiyordu. -->
+      <!-- ITEM 8: live state during a bulk operation. The user used to press the button and see nothing: whether it unlocked, when the next one is, whether there is an error was unknown. -->
       <div id="acRunBox" style="display:none;flex-direction:column;gap:5px;min-width:230px">
         <div style="display:flex;align-items:baseline;gap:8px">
           <span style="font-family:Geist Mono,monospace;font-size:15px;font-weight:700;color:#DCE2FA" id="acRunCount">0 / 0</span>

@@ -1,9 +1,10 @@
-<!-- ================================================================
-     SAAT YÜKSELTİCİ
-     Ölçü, renk ve boşluk değerleri inline duruyor; :hover ve :focus
-     durumları edge.css icindeki .h-* / .f-* class'larına bağlıdır.
-     Veri: saat.js - gerçek kütüphane listesi ve boost motoru.
-     ================================================================ -->
+<!--
+  ================================================================
+  SAAT YÜKSELTİCİ (HOUR BOOSTER)
+  Sizes, colours and spacing are inline; :hover and :focus states are tied to the .h-* / .f-*
+  classes in edge.css. Data: hours.js - the real library list and the boost engine.
+  ================================================================
+-->
 <div style="flex:1;min-height:0;display:flex;flex-direction:column">
 
   <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
@@ -14,7 +15,7 @@
     <div style="display:flex;align-items:center;gap:18px">
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Kalan süre</span>
-        <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#DCE2FA;line-height:1" id="saatRemain">00<span style="color:#C2AAEE">:</span>00<span style="color:#C2AAEE">:</span>00</span>
+        <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#DCE2FA;line-height:1" id="hoursRemain">00<span style="color:#C2AAEE">:</span>00<span style="color:#C2AAEE">:</span>00</span>
       </div>
       <div style="width:1px;height:34px;background:#1D2432"></div>
       <button id="btnBoostStart" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Başlat</button>
@@ -28,24 +29,24 @@
       <div style="padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Kütüphane</span>
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="saatFound">0 bulundu</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="hoursFound">0 bulundu</span>
         </div>
         <div style="position:relative;display:flex;align-items:center">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
-          <input id="saatSearch" type="text" placeholder="Oyun ara..." class="f-focus" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 33px;outline:none">
+          <input id="hoursSearch" type="text" placeholder="Oyun ara..." class="f-focus" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 33px;outline:none">
         </div>
       </div>
-      <div style="flex:1;overflow-y:auto;padding:10px" id="saatListBody"></div>
+      <div style="flex:1;overflow-y:auto;padding:10px" id="hoursListBody"></div>
     </div>
 
     <div style="flex:1;min-width:0;display:flex;flex-direction:column">
       <div style="flex-shrink:0;height:46px;padding:0 22px 0 44px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1D2432">
         <div style="display:flex;align-items:center;gap:12px">
-          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Aktif Kuyruk · <span style="font-family:Geist Mono,monospace;color:#5FB324" id="statOyunSayisi">0</span></span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Aktif Kuyruk · <span style="font-family:Geist Mono,monospace;color:#5FB324" id="statGameCount">0</span></span>
           <span style="width:1px;height:14px;background:#2B3345"></span>
-          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Şu Anki Oturum · <span style="font-family:Geist Mono,monospace;color:#DCE2FA" id="statToplamSure">00<span style="color:#C2AAEE">:</span>00<span style="color:#C2AAEE">:</span>00</span></span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Şu Anki Oturum · <span style="font-family:Geist Mono,monospace;color:#DCE2FA" id="statTotalDuration">00<span style="color:#C2AAEE">:</span>00<span style="color:#C2AAEE">:</span>00</span></span>
         </div>
-        <button id="saatClearQueue" class="h-signout" style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#B32453;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Kuyruğu Boşalt</button>
+        <button id="hoursClearQueue" class="h-signout" style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#B32453;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Kuyruğu Boşalt</button>
       </div>
       <div style="flex:1;overflow-y:auto;padding:18px 22px 18px 44px">
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px" id="activeBoostBox"></div>
@@ -54,7 +55,7 @@
 
     <div style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
 
-      <!-- MADDE 4: Saat esitleme ayarlari artik bu sayfada; Ayarlar ekranina gitmeye gerek yok. -->
+      <!-- ITEM 4: the hour sync settings are on this page now; there is no need to go to the Settings screen. -->
       <div style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Saat Eşitleme</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
@@ -62,25 +63,25 @@
             <span style="font-size:12px;color:#B9C0D6">Süreleri eşitle</span>
             <span class="e-toggle" data-bset="boostSync"><span class="e-knob"></span></span>
           </div>
-          <div id="saatSyncOpts" style="display:none;flex-direction:column">
+          <div id="hoursSyncOpts" style="display:none;flex-direction:column">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621">
               <span style="font-size:12px;color:#B9C0D6;flex-shrink:0">Hedef</span>
-              <select id="saatSyncMode" class="f-focus" style="height:30px;width:150px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+              <select id="hoursSyncMode" class="f-focus" style="height:30px;width:150px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
                 <option value="highest">Seçililerin en yükseği</option>
                 <option value="manual">Elle girilen saat</option>
                 <option value="library">Kütüphanedeki en yüksek</option>
               </select>
             </div>
-            <div id="saatSyncTargetRow" style="display:none;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621">
+            <div id="hoursSyncTargetRow" style="display:none;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621">
               <span style="font-size:12px;color:#B9C0D6">Hedef saat</span>
-              <input id="saatSyncTarget" type="number" min="1" max="20000" value="100" class="f-focus" style="width:92px;height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;padding:0 8px;outline:none">
+              <input id="hoursSyncTarget" type="number" min="1" max="20000" value="100" class="f-focus" style="width:92px;height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;padding:0 8px;outline:none">
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0">
               <div style="display:flex;align-items:center;gap:7px;min-width:0">
                 <span style="font-size:12px;color:#B9C0D6">Yöntem</span>
                 <span data-tip="Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
               </div>
-              <select id="saatSyncStrategy" class="f-focus" style="height:30px;width:120px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+              <select id="hoursSyncStrategy" class="f-focus" style="height:30px;width:120px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
                 <option value="parallel">Hepsi birden</option>
                 <option value="staged">Sıralı</option>
               </select>
@@ -89,37 +90,37 @@
         </div>
       </div>
 
-      <div id="saatConcBlock" style="display:flex;flex-direction:column;gap:10px">
+      <div id="hoursConcBlock" style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Eşzamanlı Limit</span>
-        <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345" id="saatConc">
+        <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345" id="hoursConc">
           <button data-n="2" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">2</button>
           <button data-n="8" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">8</button>
           <button data-n="16" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">16</button>
           <button data-n="32" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">32</button>
           <button data-n="custom" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10px;font-weight:700;cursor:pointer">ÖZEL</button>
         </div>
-        <input id="saatConcCustom" type="number" min="1" max="32" value="32" style="display:none;width:100%;height:32px;border-radius:12px;background:#0D1118;border:1px solid #7031CC;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 12px;outline:none">
+        <input id="hoursConcCustom" type="number" min="1" max="32" value="32" style="display:none;width:100%;height:32px;border-radius:12px;background:#0D1118;border:1px solid #7031CC;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 12px;outline:none">
       </div>
 
-      <div id="saatDurBlock" style="display:flex;flex-direction:column;gap:10px">
+      <div id="hoursDurBlock" style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Yükseltme Süresi</span>
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-            <input id="saatH" value="01" maxlength="3" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+            <input id="hoursH" value="01" maxlength="3" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
             <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SA</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-            <input id="saatM" value="00" maxlength="2" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+            <input id="hoursM" value="00" maxlength="2" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
             <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">DK</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-            <input id="saatS" value="00" maxlength="2" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+            <input id="hoursS" value="00" maxlength="2" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
             <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SN</span>
           </div>
         </div>
-        <div style="display:flex;gap:4px" id="saatPresets">
+        <div style="display:flex;gap:4px" id="hoursPresets">
           <button data-h="6" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">6H</button>
           <button data-h="12" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">12H</button>
           <button data-h="18" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:10.5px;font-weight:700;cursor:pointer">18H</button>
@@ -140,11 +141,8 @@
             <span style="font-size:12px;color:#B9C0D6">Sıralı bekletme modu</span>
             <span class="e-toggle" data-bset="seqIdle"><span class="e-knob"></span></span>
           </div>
-          <!-- "Sırayı tekrarla" yalnızca sıralı bekletme modunda anlamlıdır: eşzamanlı
-               modda kuyruk yoktur, oyunlar birlikte çalışıp hedefte düşer. Sıralı mod
-               kapalıyken bu satır sönükleşir ve tıklanamaz; yoksa açık görünüp hiçbir
-               şey yapmayan bir anahtar olur. -->
-          <div id="saatLoopRow" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
+          <!-- "Sırayı tekrarla" only makes sense in sequential idling mode: in simultaneous mode there is no queue, the games run together and drop off at the target. While sequential mode is off this row dims and cannot be clicked; otherwise it would be a switch that looks on and does nothing. -->
+          <div id="hoursLoopRow" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Sırayı tekrarla (kuyruk bitince baştan başlar)</span>
             <span class="e-toggle" data-bset="loopQueue"><span class="e-knob"></span></span>
           </div>
@@ -154,8 +152,7 @@
       <div style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Gizlilik</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-          <!-- "Oyun adını gizle" buradan kaldırıldı: Ayarlar > Gizlilik altında zaten var ve
-               açıklaması orada. İki yerde durunca hangisinin geçerli olduğu belirsizdi. -->
+          <!-- "Oyun adını gizle" was removed from here: it is already under Ayarlar > Gizlilik and its description is there. With it in two places it was unclear which one applied. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Çevrimdışı görün</span>
             <span class="e-toggle" data-bset="offlineMode"><span class="e-knob"></span></span>
@@ -163,23 +160,21 @@
         </div>
       </div>
 
-      <button id="saatSavePreset" class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Preset olarak kaydet</button>
+      <button id="hoursSavePreset" class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Preset olarak kaydet</button>
     </div>
   </div>
 
-  <!-- MADDE 14: Esitleme durumu SABIT alt bar. Eskiden icerik akisinin icindeydi ve
-       gorundugunde sayfayi asagi itip duzeni bozuyordu. Basarimlar sayfasindaki alt
-       barla ayni desen: position:sticky + bottom:0. -->
-  <div id="saatSyncBar" style="display:none;position:sticky;bottom:0;z-index:20;flex-shrink:0;border-top:1px solid #24AEB3;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:12px 30px;align-items:center;gap:16px;flex-wrap:wrap">
+  <!-- ITEM 14: the sync state is a FIXED bottom bar. It used to be inside the content flow and when it showed it pushed the page down and broke the layout. The same pattern as the bar on the Achievements page: position:sticky + bottom:0. -->
+  <div id="hoursSyncBar" style="display:none;position:sticky;bottom:0;z-index:20;flex-shrink:0;border-top:1px solid #24AEB3;background:#0D1118;box-shadow:0 -10px 26px rgba(3,3,5,.55);padding:12px 30px;align-items:center;gap:16px;flex-wrap:wrap">
     <span style="width:7px;height:7px;border-radius:12px;background:#24AEB3;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite"></span>
-    <div id="saatSyncText" style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px"></div>
+    <div id="hoursSyncText" style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:3px"></div>
     <div style="display:flex;align-items:center;gap:14px;flex-shrink:0">
       <div style="display:flex;flex-direction:column;gap:2px;align-items:flex-end">
         <span style="font-size:9.5px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">Tahmini bitiş</span>
-        <span id="saatSyncEta" style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:#DCE2FA">-</span>
+        <span id="hoursSyncEta" style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:#DCE2FA">-</span>
       </div>
       <div style="width:150px;height:6px;border-radius:12px;background:#090C12;border:1px solid #1D2432;overflow:hidden">
-        <div id="saatSyncBarFill" style="height:100%;width:0%;border-radius:12px;background:#24AEB3;transition:width .4s ease"></div>
+        <div id="hoursSyncBarFill" style="height:100%;width:0%;border-radius:12px;background:#24AEB3;transition:width .4s ease"></div>
       </div>
     </div>
   </div>

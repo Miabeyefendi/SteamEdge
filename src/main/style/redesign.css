@@ -1,18 +1,15 @@
-/* ================================================================
-   REDESIGN.CSS - sayfa kapsamlı palet katmanı.
-
-   Sayfa CSS dosyaları (genel/basarim/env/ayarlar) renklerini
-   var(--blue) / var(--card) / var(--line) gibi ortak değişkenlerden
-   alır; bunlar common.css içinde :root üzerinde tanımlıdır. Burada
-   aynı değişkenler sayfaların kök elemanlarında (#tab-genel vb.)
-   yeniden tanımlanıyor. CSS custom property kalıtımı sayesinde o alt
-   ağaçtaki her var(--xxx) otomatik olarak SteamEdge paletine boyanır,
-   JS ve HTML hiç değişmeden.
-
-   Kart Düşür ve Saat Yükseltici için aynı teknik edge.css içinde
-   (#tab-kart, #tab-saat kapsamında) uygulanıyor.
-   ================================================================ */
-#tab-genel, #tab-basarim, #tab-env, #tab-ayarlar {
+/*
+   ================================================================
+   REDESIGN.CSS - page-scoped palette layer.
+   The page CSS files (overview/achievements/inventory/settings) take their colours from shared variables
+   such as var(--blue) / var(--card) / var(--line); these are defined on :root in common.css.
+   Here the same variables are redefined on the pages' root elements (#tab-overview etc.).
+   Thanks to CSS custom property inheritance, every var(--xxx) in that subtree is automatically painted
+   with the SteamEdge palette, with no change to JS or HTML.
+   For Card Farming and Hour Booster the same technique is applied in edge.css (scoped to #tab-card, #tab-hours).
+   ================================================================
+*/
+#tab-overview, #tab-achievements, #tab-inventory, #tab-settings {
   --bg:#030305; --panel:#0D1118; --card:#0D1118; --card2:#151C28;
   --line:#1D2432; --line-2:#2B3345; --sheen:rgba(255,255,255,.04);
   --blue:#5624B3; --primary:#5624B3; --green:#5FB324; --success:#5FB324;
@@ -23,26 +20,22 @@
   background:#030305;
 }
 
-/* ---- ortak: Geist font (yeni sayfalar) ---- */
-#tab-genel, #tab-basarim, #tab-env, #tab-ayarlar {
+/* ---- shared: Geist font (new pages) ---- */
+#tab-overview, #tab-achievements, #tab-inventory, #tab-settings {
   font-family:"Geist",ui-sans-serif,system-ui,sans-serif;
 }
-#tab-genel .lbl, #tab-basarim .lbl { font-family:inherit; }
+#tab-overview .lbl, #tab-achievements .lbl { font-family:inherit; }
 
-/* ---- Electron titlebar (template'te yoktu, frameless pencere icin eklendi) ---- */
+/* ---- Electron titlebar (not in the template, added for the frameless window) ---- */
 .imu-titlebar{-webkit-app-region:drag}
 .imu-titlebar button{-webkit-app-region:no-drag}
 
-/* ---- sol kenar çubuğu: açılır/kapanır - YENİ shell artık .e-aside/.e-nav-item kullanıyor,
-   bu kural common.js'in eski #sideNav.collapsed/.lbl toggle mantığını edge.css'teki
-   .e-aside.collapsed/.e-lbl kurallarıyla eşleştiriyor (common.js DEĞİŞMEDİ). */
+/* ---- left sidebar: collapsible - the NEW shell now uses .e-aside/.e-nav-item; this rule maps the old #sideNav.collapsed/.lbl toggle logic of common.js onto the .e-aside.collapsed/.e-lbl rules in edge.css (common.js did NOT CHANGE). */
 #sideNav.collapsed{width:70px!important}
 #sideNav.collapsed .e-lbl{display:none}
 #sideNav .nav a.active{background:var(--e-s3);color:var(--e-title);border-color:var(--e-bdActive)}
 
-/* ---- üst çubuk: profil/bildirim açılır panelleri (JS common.js .open toggle) ----
-   Görsel (renk/kenarlık/gölge) main.html'de Tailwind class'lariyla verilir; burada
-   sadece JS'in yönettiği açık/kapalı davranışı ve konumlama var. */
+/* ---- top bar: profile/notification dropdown panels (JS common.js .open toggle) ---- The visuals (colour/border/shadow) are given in main.html with Tailwind classes; here there is only the open/closed behaviour and positioning that JS manages. */
 .acct-dropdown, .notif-dropdown{position:fixed;top:56px;right:16px;z-index:60;display:none;overflow:hidden}
 .acct-dropdown.open, .notif-dropdown.open{display:block}
 .acct-list, .notif-list{max-height:280px;overflow-y:auto;padding:6px}
@@ -66,7 +59,5 @@
 .acct-list::-webkit-scrollbar, .notif-list::-webkit-scrollbar{width:8px}
 .acct-list::-webkit-scrollbar-thumb, .notif-list::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.14);border-radius:8px}
 
-/* ---- ach/env/ayarlar sayfalarinin eski JS-uretimli class'lari zaten var()
-   kullaniyor, otomatik boyaniyor. Sadece JS içindeki birkaç hardcoded hex
-   (rarity renkleri, .spin rengi) eski paletten - kucuk gorsel dokunuslar: ---- */
-#tab-basarim .spin{color:#5FB324}
+/* ---- the old JS-generated classes of the achievements/inventory/settings pages already use var(), so they are painted automatically. Only a few hardcoded hex values inside JS (rarity colours, .spin colour) are from the old palette - small visual touches: ---- */
+#tab-achievements .spin{color:#5FB324}

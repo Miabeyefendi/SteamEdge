@@ -269,12 +269,12 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 |---|---|---|
 | `grDurationSec` | `7200` | 单次时长 |
 | `grModel` | `linear` | 分布模型 |
-| `grTcOyun` | `{}` | 每款游戏的 100% 完成时长，单位小时 |
+| `grTcGame` | `{}` | 每款游戏的 100% 完成时长，单位小时 |
 | `grCatchUp` | `true` | 把积压的欠账压缩到本次开头 |
-| `grHiz` | `1` | 整个排程的速度倍率 |
-| `grUltraCarpan` | `3` | 低于 5% 的成就要多等多久 |
-| `grTelafiPay` | `20` | 追赶爆发占本次时长的百分比 |
-| `grBitmisSik` | `50` | 已通关的游戏排程压缩到什么程度 |
+| `grSpeed` | `1` | 整个排程的速度倍率 |
+| `grUltraMultiplier` | `3` | 低于 5% 的成就要多等多久 |
+| `grCatchUpShare` | `20` | 追赶爆发占本次时长的百分比 |
+| `grFinishedRatio` | `50` | 已通关的游戏排程压缩到什么程度 |
 | `grKeepHours` | `true` | 解锁做完之后继续累积时长 |
 | `grSkipUltraRare` | `false` | 完全跳过低于 5% 的成就 |
 
@@ -291,7 +291,7 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 
 | 键名 | 默认值 | 作用 |
 |---|---|---|
-| `yenidenBaglanma` | `sinirsiz` | 断线后重新连接：`sinirsiz`（不限）、`10`、`3`、`kapali`（关闭） |
+| `reconnectPolicy` | `unlimited` | 断线后重新连接：`unlimited`（不限）、`10`、`3`、`off`（关闭） |
 | `sessionTimeout` | `never` | 在你这么多分钟无操作后断开。正在运行的任务不算闲置 |
 | `apiRequestDelayMs` | `350` | 市场请求之间的最短间隔。越低越快，但越接近 Steam 的速率限制（HTTP 429） |
 | `logLevel` | `error` | 写入 `cache/steamedge.log` 的内容：`off`、`error`、`warn`、`info`、`debug` |

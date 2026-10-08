@@ -269,12 +269,12 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 |---|---|---|
 | `grDurationSec` | `7200` | Oturum süresi |
 | `grModel` | `linear` | Dağıtım modeli |
-| `grTcOyun` | `{}` | Oyun başına %100 bitiş süresi, saat cinsinden |
+| `grTcGame` | `{}` | Oyun başına %100 bitiş süresi, saat cinsinden |
 | `grCatchUp` | `true` | Geride kalan birikimi oturumun başına sıkıştır |
-| `grHiz` | `1` | Tüm çizelge için hız çarpanı |
-| `grUltraCarpan` | `3` | %5 altındaki başarımlar ne kadar uzun bekler |
-| `grTelafiPay` | `20` | Telafi sıkışmasına ayrılan sürenin yüzdesi |
-| `grBitmisSik` | `50` | Bitmiş oyunda çizelge hangi orana iner |
+| `grSpeed` | `1` | Tüm çizelge için hız çarpanı |
+| `grUltraMultiplier` | `3` | %5 altındaki başarımlar ne kadar uzun bekler |
+| `grCatchUpShare` | `20` | Telafi sıkışmasına ayrılan sürenin yüzdesi |
+| `grFinishedRatio` | `50` | Bitmiş oyunda çizelge hangi orana iner |
 | `grKeepHours` | `true` | Başarımlar bitince saat toplamayı sürdür |
 | `grSkipUltraRare` | `false` | %5 altındaki başarımları tamamen atla |
 
@@ -291,7 +291,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
-| `yenidenBaglanma` | `sinirsiz` | Bağlantı koparsa yeniden bağlanma: `sinirsiz`, `10`, `3`, `kapali` |
+| `reconnectPolicy` | `unlimited` | Bağlantı koparsa yeniden bağlanma: `unlimited`, `10`, `3`, `off` |
 | `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser. Çalışan işler boşta sayılmaz; sayacı yalnızca senin etkileşimin sıfırlar |
 | `apiRequestDelayMs` | `350` | Pazar istekleri arasındaki en kısa süre. Düşük değer hızlıdır ama Steam'in hız sınırına (HTTP 429) yaklaştırır |
 | `logLevel` | `error` | `cache/steamedge.log` içine ne yazılacağı: `off`, `error`, `warn`, `info`, `debug` |

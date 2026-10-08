@@ -133,7 +133,7 @@ Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel ve
 | `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır |
 | `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür; `0` Steam durdurana kadar listeler |
 | `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
-| `yenidenBaglanma` | `sinirsiz` | Bağlantı koparsa yeniden bağlanma: `sinirsiz`, `10`, `3` ya da `kapali` |
+| `reconnectPolicy` | `unlimited` | Bağlantı koparsa yeniden bağlanma: `unlimited`, `10`, `3` ya da `off` |
 | `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser; çalışan işler boşta sayılmaz |
 | `theme` | `dark` | Renk teması: `dark`, `midnight`, `white` |
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |

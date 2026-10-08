@@ -40,7 +40,7 @@
   <div style="position:absolute;inset:0;pointer-events:none" class="bg-grid"></div>
   <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:rgba(86,36,179,.06);border-radius:999px;filter:blur(120px);pointer-events:none"></div>
 
-  <!-- TITLEBAR (Electron frameless pencere gereksinimi) -->
+  <!-- TITLEBAR (needed for the Electron frameless window) -->
   <div class="e-titlebar" style="position:relative;z-index:10">
     <span></span>
     <div class="e-tb-btns">
@@ -53,7 +53,7 @@
   <div style="flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:10;padding:32px;overflow:auto">
     <div style="display:flex;max-width:100%;overflow-x:auto;border:1px solid var(--e-bd);border-radius:12px;background:var(--e-s1)" class="glow">
 
-      <!-- SOL MARKA PANELİ -->
+      <!-- LEFT BRAND PANEL -->
       <div style="width:360px;flex-shrink:0;padding:40px 36px;display:flex;flex-direction:column;justify-content:space-between;background:var(--e-bgAlt)">
         <div style="display:flex;align-items:center;gap:12px">
           <img src="../assets/logo-mark.svg" alt="" style="height:48px;width:auto;display:block">
@@ -67,7 +67,7 @@
         <div style="display:flex;gap:22px">
           <div style="display:flex;flex-direction:column;gap:4px">
             <span style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)">Sürüm</span>
-            <span id="lgSurum" style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">-</span>
+            <span id="lgVersion" style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:700;color:var(--e-title)">-</span>
           </div>
           <div style="width:1px;background:var(--e-bdPassive)"></div>
           <div style="display:flex;flex-direction:column;gap:4px">
@@ -86,7 +86,7 @@
     <button id="multiAddBtn" style="margin-top:6px;background:transparent;border:0;color:var(--e-body);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer">+ Hesap Ekle</button>
   </div>
 
-  <script src="../main/js/tema.js"></script>
+  <script src="../main/js/theme.js"></script>
   <script src="../main/js/i18n.js"></script>
   <script>
     // Giris ekraninda da secili dil uygulanir (ayarlar main surecten okunur).
@@ -99,9 +99,9 @@
     }).catch(()=>{});
     // Surum numarasi elle yazilmisti ve 1.0.8'de kalmisti. Tek kaynak package.json;
     // ana surec app.getVersion() ile veriyor.
-    window.imu.appBilgi().then(b => {
-      const el = document.getElementById('lgSurum');
-      if (el && b && b.surum) el.textContent = 'v' + b.surum;
+    window.imu.appInfo().then(b => {
+      const el = document.getElementById('lgVersion');
+      if (el && b && b.versionStr) el.textContent = 'v' + b.versionStr;
     }).catch(()=>{});
     const A = window.imu, $id = id => document.getElementById(id);
     $id('min').onclick=()=>A.win.minimize(); $id('max').onclick=()=>A.win.maximize(); $id('close').onclick=()=>A.win.close();
@@ -159,7 +159,7 @@
             + '<div style="font-size:11px;line-height:1.6;color:var(--e-muted);text-align:center;max-width:30ch">'
               + 'Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.'
             + '</div>'
-            + '<button id="qrYenile-' + i + '" style="background:transparent;border:0;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Kodu Yenile</button>'
+            + '<button id="qrRefresh-' + i + '" style="background:transparent;border:0;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Kodu Yenile</button>'
           + '</div>'
           + '<div id="pwWrap-' + i + '" class="hide" style="display:flex;flex-direction:column;gap:16px">'
           + '<div class="lgfield"><label>Kullanıcı adı</label><div class="wrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg><input id="acc-' + i + '" spellcheck="false" autocomplete="off" placeholder="steam kullanıcı adı"></div></div>'
@@ -228,11 +228,11 @@
         b.style.color = on ? 'var(--e-title)' : 'var(--e-muted)';
       });
       setStatus(i, '');
-      if (qrOn) baslatQR(i);
+      if (qrOn) startQR(i);
       else A.auth.cancel(i);          // QR oturumu acik kaldiysa kapat
     }
 
-    function baslatQR(i) {
+    function startQR(i) {
       const box = $id('qrBox-' + i);
       if (box) box.innerHTML = '<div class="spin"></div>';
       setStatus(i, 'QR kodu alınıyor...');
@@ -243,7 +243,7 @@
       const g = id => $id(id + '-' + i);
       g('mQr').onclick = () => setMode(i, 'qr');
       g('mPw').onclick = () => setMode(i, 'pw');
-      g('qrYenile').onclick = () => baslatQR(i);
+      g('qrRefresh').onclick = () => startQR(i);
       g('go').onclick = () => {
         if (!g('guardField').classList.contains('hide')) {
           const c = g('guard').value.trim();

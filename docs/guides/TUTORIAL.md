@@ -269,12 +269,12 @@ Settings live in `settings/settings.json`. Everything below is editable from the
 |---|---|---|
 | `grDurationSec` | `7200` | Session length |
 | `grModel` | `linear` | Distribution model |
-| `grTcOyun` | `{}` | 100% completion time per game, in hours |
+| `grTcGame` | `{}` | 100% completion time per game, in hours |
 | `grCatchUp` | `true` | Compress the overdue backlog into the start of the session |
-| `grHiz` | `1` | Speed multiplier for the whole schedule |
-| `grUltraCarpan` | `3` | How much longer sub-5% achievements wait |
-| `grTelafiPay` | `20` | Percentage of the session the catch-up burst gets |
-| `grBitmisSik` | `50` | How far the schedule compresses on a finished game |
+| `grSpeed` | `1` | Speed multiplier for the whole schedule |
+| `grUltraMultiplier` | `3` | How much longer sub-5% achievements wait |
+| `grCatchUpShare` | `20` | Percentage of the session the catch-up burst gets |
+| `grFinishedRatio` | `50` | How far the schedule compresses on a finished game |
 | `grKeepHours` | `true` | Keep collecting hours after the unlocks finish |
 | `grSkipUltraRare` | `false` | Skip achievements under 5% entirely |
 
@@ -291,7 +291,7 @@ Settings live in `settings/settings.json`. Everything below is editable from the
 
 | Key | Default | What it does |
 |---|---|---|
-| `yenidenBaglanma` | `sinirsiz` | Reconnect after a dropped connection: `sinirsiz` (unlimited), `10`, `3`, `kapali` (off) |
+| `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3`, `off` |
 | `sessionTimeout` | `never` | Disconnect after this many idle minutes. Running jobs do not count as idle; only your interaction resets the timer |
 | `apiRequestDelayMs` | `350` | Shortest gap between market requests. Lower is faster but closer to Steam's rate limit (HTTP 429) |
 | `logLevel` | `error` | What goes into `cache/steamedge.log`: `off`, `error`, `warn`, `info`, `debug` |

@@ -133,7 +133,7 @@ npm start
 | `pauseFarmOnBoost` | `false` | 时数提升或擬真模式运行时暂停卡牌收集 |
 | `bulkSellLimit` | `50` | 批次出售按此数量分批；`0` 表示一直上架直到 Steam 停止 |
 | `priceDropThreshold` | `10` | 低于 Steam 24 小时平均价多少百分比视为跌价 |
-| `yenidenBaglanma` | `sinirsiz` | 断线后重新连线：`sinirsiz`（不限）、`10`、`3` 或 `kapali`（关闭） |
+| `reconnectPolicy` | `unlimited` | 断线后重新连线：`unlimited`（不限）、`10`、`3` 或 `off`（关闭） |
 | `sessionTimeout` | `never` | 閒置这麼多分钟后中断连线；运行中的任务不算閒置 |
 | `theme` | `dark` | 配色主题：`dark`、`midnight`、`white` |
 | `language` | `en` | 界面语言：`tr`、`en`、`de`、`es`、`zh`、`ru` |
