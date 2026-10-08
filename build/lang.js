@@ -166,14 +166,32 @@ function stripHtmlComments(s) {
   }
 }
 
+// Removes <script>...</script> and <style>...</style> blocks. Same result as
+// .replace(/<(script|style)[\s\S]*?<\/\1>/g, '') but done with a plain scan.
+function stripBlocks(s) {
+  let out = '';
+  let i = 0;
+  for (;;) {
+    const p = s.indexOf('<script', i);
+    const q = s.indexOf('<style', i);
+    let a = -1;
+    let tag = '';
+    if (p >= 0 && (q < 0 || p < q)) { a = p; tag = 'script'; } else if (q >= 0) { a = q; tag = 'style'; }
+    if (a < 0) return out + s.slice(i);
+    const e = s.indexOf('</' + tag + '>', a + 1 + tag.length);
+    if (e < 0) { out += s.slice(i, a + 1); i = a + 1; continue; }
+    out += s.slice(i, a);
+    i = e + tag.length + 3;
+  }
+}
+
 // Stripping comments and script/style is repeated until the result stops changing. A single pass
 // is not enough: when the stripped part's two sides join a new "<!--" can form.
 function extract(text) {
   let previous;
   do {
     previous = text;
-    text = stripHtmlComments(text)
-      .replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
+    text = stripBlocks(stripHtmlComments(text));
   } while (text !== previous);
   return text;
 }
