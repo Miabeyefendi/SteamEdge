@@ -415,7 +415,7 @@
     // Shared empty-state component (item 10): icon + title + description + optional redirect button.
     const EB_ICON = {
       idle:'<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/>',
-      pazar:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h11"/><path d="M6 6h15l-2 7H7"/>',
+      market:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 13h11"/><path d="M6 6h15l-2 7H7"/>',
       trophy:'<path d="M8 3h8v5a4 4 0 0 1-8 0Z"/><path d="M5 4h3M16 4h3M12 12v4M9 20h6M10 16h4"/>',
       box:'<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/>',
       search:'<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',

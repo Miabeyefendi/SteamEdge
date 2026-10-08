@@ -117,7 +117,7 @@ class FarmController {
     this.currentActiveAppid = null;
     this.phaseName = null;
     if (this.engine) this.engine.stop(this.ownerId);
-    this.emit('farm:tick', { running: false, cause: cause || 'user', calisiyordu: wasRunning });
+    this.emit('farm:tick', { running: false, cause: cause || 'user', wasRunning: wasRunning });
   }
 
   // The current list from the badge watcher. `bitenler`: games for which Steam CONFIRMS no cards are left
@@ -273,7 +273,7 @@ class FarmController {
 
   // Of this job's games, the ones that are really open in the engine (those that do not fit the 32 limit are dropped).
   _playingApps() {
-    if (this.engine && typeof this.engine.calanlar === 'function') return this.engine.calanlar(this.ownerId);
+    if (this.engine && typeof this.engine.playingApps === 'function') return this.engine.playingApps(this.ownerId);
     return this.engine ? this.engine.playing : [];
   }
 

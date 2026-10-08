@@ -350,7 +350,7 @@
       const achOn = (typeof acRunning !== 'undefined') && acRunning;
       // G12: Realistic Mode is a job too - it used to never be watched. While running alone the
       // panel said "no running job" and Başlat started card farming.
-      const grOn = (typeof grStatus !== 'undefined') && grStatus && grStatus.calisiyor;
+      const grOn = (typeof grStatus !== 'undefined') && grStatus && grStatus.runningFlag;
 
       let heroId = null;
       if (farmOn){

@@ -94,4 +94,4 @@ async function compute(wallet, totals) {
   return outcome.map((x) => ({ totalSum: +x.totalSum || 0, seller: +x.seller || 0, buyer: +x.buyer || 0 }));
 }
 
-module.exports = { hesapla: compute, shutDown: shutDown };
+module.exports = { compute: compute, shutDown: shutDown };

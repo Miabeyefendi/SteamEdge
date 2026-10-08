@@ -63,7 +63,7 @@ function uiList(status, currentTime) {
       appid: o.appid,
       name: o.name,
       startMin: o.startMin,
-      suankiMin: o.startMin + Math.floor((o.passedMs + extra) / 60000),
+      currentMin: o.startMin + Math.floor((o.passedMs + extra) / 60000),
       remainingMs: Math.max(0, o.remainingMs - extra),
       activeIds: activeSet.has(o.appid),
       isFinished: !!o.isFinished,

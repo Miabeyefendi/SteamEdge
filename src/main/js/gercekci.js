@@ -14,7 +14,7 @@
     let grGames = [], grLoaded = false;
     let grQueue = [];               // [{appid, name, playtimeMin, hasStats}] - selected games
     let grPlan = null;              // plan preview of the active game
-    let grStatus = { calisiyor: false };
+    let grStatus = { runningFlag: false };
     let grTimerUI = null;
     let grOpened = [];           // {name, rarityPct, ts} - those unlocked in this session
     let grPresets = [];
@@ -221,7 +221,7 @@
           + '</div>';
         return;
       }
-      const activeId = grStatus.calisiyor ? grStatus.appid : (grQueue[0] && grQueue[0].appid);
+      const activeId = grStatus.runningFlag ? grStatus.appid : (grQueue[0] && grQueue[0].appid);
       el.innerHTML = grQueue.map(g=>{
         const on = g.appid === activeId;
         const achEt = g.hasStats ? 'BAŞARIM' : 'SAAT';
@@ -243,14 +243,14 @@
     grEl('grLibrary').addEventListener('click', (e)=>{
       const remove = e.target.closest('[data-grdel]');
       if (remove){
-        if (grStatus.calisiyor){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Çalışırken sıra değiştirilemez.'); return; }
+        if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Çalışırken sıra değiştirilemez.'); return; }
         const id = +remove.getAttribute('data-grdel');
         grQueue = grQueue.filter(x=>x.appid!==id);
         grSaveQueue(); grPaintLibrary(); grFetchPlan();
         return;
       }
       const row = e.target.closest('[data-grrow]');
-      if (row && !grStatus.calisiyor){
+      if (row && !grStatus.runningFlag){
         // Move the clicked game to the front of the order: the preview shows its plan.
         const id = +row.getAttribute('data-grrow');
         const i = grQueue.findIndex(x=>x.appid===id);
@@ -294,8 +294,8 @@
       return {
         goalValue: grVal('grTargetAuto', true) ? 0 : Math.max(0, +grEl('grTarget').value || 0),
         model: grVal('grModel', 'linear'),
-        rastgeleAralik: !!grVal('grRandomGap', true),
-        ultraNadirAtla: !!grVal('grSkipUltraRare', false),
+        randomInterval: !!grVal('grRandomGap', true),
+        ultraRareSkip: !!grVal('grSkipUltraRare', false),
         autoOrder: !!grVal('grAuto', true),
         continueHours: !!grVal('grKeepHours', true),
         accelerateDelayed: !!grVal('grCatchUp', true),
@@ -345,7 +345,7 @@
     // ---- middle panel ----
     function grPaintList(){
       const game = grQueue[0];
-      const isRunning = !!grStatus.calisiyor;
+      const isRunning = !!grStatus.runningFlag;
       const hasAchievements = !!(grPlan && grPlan.totalSum);
       const noAchievements = !!(game && grPlan && !grPlan.totalSum);
 
@@ -747,7 +747,7 @@
       }
       const row = e.target.closest('[data-grpreset]');
       if (!row) return;
-      if (grStatus.calisiyor){ if (typeof toast === 'function') toast('Preset').fail('Çalışırken preset yüklenemez.'); return; }
+      if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Preset').fail('Çalışırken preset yüklenemez.'); return; }
       const p = grPresets[+row.getAttribute('data-grpreset')];
       if (!p) return;
       grQueue = (p.gameEntries||[]).map(id=>grGames.find(g=>g.appid===+id)).filter(Boolean);
@@ -764,7 +764,7 @@
 
     // ---- start / stop ----
     grEl('grStart').onclick = async ()=>{
-      if (grStatus.calisiyor){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Zaten çalışıyor.'); return; }
+      if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Zaten çalışıyor.'); return; }
       if (!grQueue.length){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Önce sıraya oyun ekle.'); return; }
       const durationMs = grDurationMs();
       const pick = grOptions();
@@ -778,7 +778,7 @@
               + '\n\n' + t('Oyun sayısı:') + ' ' + grQueue.length
               + '\n' + t('Dağıtım:') + ' ' + t(GR_MODEL_NAME[pick.model] || GR_MODEL_NAME.linear)
               + (grPlan ? ('\n' + t('Ortalama aralık:') + ' ' + grIntervalLabel(grPlan.averageIntervalMs)
-                          + ' ' + t(pick.rastgeleAralik ? '(her seferinde rastgele sapmalı)' : '(sabit)')) : '')
+                          + ' ' + t(pick.randomInterval ? '(her seferinde rastgele sapmalı)' : '(sabit)')) : '')
               + (firsts ? ('\n\n' + t('İlk açılacaklar:') + '\n' + firsts) : '')
               + (grPlan && grPlan.protectedFlag ? ('\n\n' + tf('# başarım oyun tarafından korunduğu için atlanacak.', grPlan.protectedFlag)) : '')
               + (grPlan && grPlan.ultraSkipped ? ('\n' + tf('# ultra nadir başarım ayara göre atlanacak.', grPlan.ultraSkipped)) : ''),
@@ -799,7 +799,7 @@
                tf('# oyun', r.gameCount) + ' · ' + tf('# başarım # süreye yayıldı.', r.totalSum, grDurationLabel(durationMs)), 'Çalışıyor');
     };
     grEl('grStop').onclick = ()=>{
-      if (!grStatus.calisiyor) return;
+      if (!grStatus.runningFlag) return;
       window.imu.realistic.stop();
       pushFeed('hours', 'Gerçekçi Mod', 'Durduruldu.', 'Durdu');
     };
@@ -813,10 +813,10 @@
     }
     if (window.imu.realistic && window.imu.realistic.onTick){
       window.imu.realistic.onTick((d)=>{
-        grStatus = d || { calisiyor:false };
+        grStatus = d || { runningFlag:false };
         if (grTimerUI){ clearInterval(grTimerUI); grTimerUI = null; }
 
-        if (!d || !d.calisiyor){
+        if (!d || !d.runningFlag){
           grPaintHours(0);
           if (d && d.isFinished){
             notify('boost', 'Gerçekçi Mod Bitti', tf('# / # başarım açıldı', d.openedGames, d.totalSum));

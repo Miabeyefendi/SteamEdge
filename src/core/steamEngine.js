@@ -123,7 +123,7 @@ class SteamEngine {
       }
     }
     const errorInfo = new Error(SteamEngine.errorText(lastError, whereAt));
-    errorInfo.ham = lastError;
+    errorInfo.rawError = lastError;
     throw errorInfo;
   }
 
@@ -1108,7 +1108,7 @@ class SteamEngine {
     this._sendGames();
   }
   // Of a job's games, the ones that fit the 32 limit and are really open.
-  calanlar(ownerId) {
+  playingApps(ownerId) {
     const isOpen = new Set(this._playing);
     return (this._owners.get(ownerId) || []).filter((id) => isOpen.has(id));
   }

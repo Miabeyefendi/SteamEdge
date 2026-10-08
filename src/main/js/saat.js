@@ -269,9 +269,9 @@
     function subRow(g, on, i, elapsed){
       const details = syncGameInfo.get(g.appid);
       if (details){
-        if (details.isFinished) return esc(tf('hedefe ulaştı · # ✓', fmtHours(details.suankiMin)));
+        if (details.isFinished) return esc(tf('hedefe ulaştı · # ✓', fmtHours(details.currentMin)));
         const goal = syncTargetMin ? (' → ' + fmtHours(syncTargetMin)) : '';
-        return esc(fmtHours(details.suankiMin) + goal + ' · ' + t(on ? 'çalışıyor' : 'sırada'));
+        return esc(fmtHours(details.currentMin) + goal + ' · ' + t(on ? 'çalışıyor' : 'sırada'));
       }
       // Sync is running but this game is not in the list, so it is already above the target
       if (syncTargetMin && (g.playtimeForever || 0) >= syncTargetMin){
