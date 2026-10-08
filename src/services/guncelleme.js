@@ -11,17 +11,17 @@
 
 const https = require('https');
 
-const DEPO = 'Miabeyefendi/steamedge';
-const LISTE_URL = 'https://api.github.com/repos/' + DEPO + '/releases?per_page=10';
-const YAYIN_SAYFASI = 'https://github.com/' + DEPO + '/releases/latest';
-const ZAMAN_ASIMI_MS = 12000;
+const STORE = 'Miabeyefendi/steamedge';
+const LIST_URL = 'https://api.github.com/repos/' + STORE + '/releases?per_page=10';
+const RELEASES_PAGE = 'https://github.com/' + STORE + '/releases/latest';
+const TIMEOUT_MS = 12000;
 
 // "1.0.10" must be greater than "1.0.9": compare the parts as NUMBERS, not as text.
 // Returns: 1 if a>b, -1 if a<b, 0 if equal. An undefined/broken part counts as 0.
-function surumKarsilastir(a, b) {
-  const ayir = (s) => String(s || '').trim().replace(/^v/i, '').split(/[.\-+]/).map((p) => parseInt(p, 10) || 0);
-  const x = ayir(a);
-  const y = ayir(b);
+function compareVersion(a, b) {
+  const separate = (s) => String(s || '').trim().replace(/^v/i, '').split(/[.\-+]/).map((p) => parseInt(p, 10) || 0);
+  const x = separate(a);
+  const y = separate(b);
   const n = Math.max(x.length, y.length);
   for (let i = 0; i < n; i++) {
     const fx = x[i] || 0;
@@ -34,74 +34,74 @@ function surumKarsilastir(a, b) {
 
 // Turns a network error into one sentence the user can understand. Raw ENOTFOUND/ETIMEDOUT
 // texts mean nothing in the interface.
-function hataMetni(e) {
-  const kod = (e && (e.code || e.errno)) || '';
-  if (kod === 'ENOTFOUND' || kod === 'EAI_AGAIN') return 'İnternet bağlantısı yok gibi görünüyor.';
-  if (kod === 'ETIMEDOUT' || kod === 'ESOCKETTIMEDOUT' || kod === 'ZAMANASIMI') return 'GitHub zamanında yanıt vermedi.';
-  if (kod === 'ECONNRESET' || kod === 'ECONNREFUSED') return 'Bağlantı kesildi.';
-  if (kod === 'CERT_HAS_EXPIRED' || String(kod).indexOf('CERT') === 0) return 'Güvenli bağlantı kurulamadı.';
+function errorText(e) {
+  const codeStr = (e && (e.code || e.errno)) || '';
+  if (codeStr === 'ENOTFOUND' || codeStr === 'EAI_AGAIN') return 'İnternet bağlantısı yok gibi görünüyor.';
+  if (codeStr === 'ETIMEDOUT' || codeStr === 'ESOCKETTIMEDOUT' || codeStr === 'ZAMANASIMI') return 'GitHub zamanında yanıt vermedi.';
+  if (codeStr === 'ECONNRESET' || codeStr === 'ECONNREFUSED') return 'Bağlantı kesildi.';
+  if (codeStr === 'CERT_HAS_EXPIRED' || String(codeStr).indexOf('CERT') === 0) return 'Güvenli bağlantı kurulamadı.';
   return (e && e.message) ? e.message : 'Bilinmeyen hata.';
 }
 
-function istek(url) {
-  return new Promise((cozum, hata) => {
+function request(url) {
+  return new Promise((solution, errorInfo) => {
     const r = https.get(url, {
       headers: {
         // GitHub's API returns 403 without a User-Agent.
         'User-Agent': 'SteamEdge',
         Accept: 'application/vnd.github+json',
       },
-    }, (yanit) => {
+    }, (reply) => {
       // Unauthenticated requests get 60 per hour. Past that a 403 comes; it has to be described not as an "error"
       // but as "could not check right now", otherwise the user thought it was broken.
-      if (yanit.statusCode === 403 || yanit.statusCode === 429) {
-        yanit.resume();
-        return hata(Object.assign(new Error('GitHub istek sınırı aşıldı, biraz sonra tekrar dene.'), { code: 'LIMIT' }));
+      if (reply.statusCode === 403 || reply.statusCode === 429) {
+        reply.resume();
+        return errorInfo(Object.assign(new Error('GitHub istek sınırı aşıldı, biraz sonra tekrar dene.'), { code: 'LIMIT' }));
       }
-      if (yanit.statusCode < 200 || yanit.statusCode >= 300) {
-        yanit.resume();
-        return hata(new Error('GitHub beklenmeyen bir yanıt döndürdü (HTTP #).'.replace('#', yanit.statusCode)));
+      if (reply.statusCode < 200 || reply.statusCode >= 300) {
+        reply.resume();
+        return errorInfo(new Error('GitHub beklenmeyen bir yanıt döndürdü (HTTP #).'.replace('#', reply.statusCode)));
       }
-      let govde = '';
-      yanit.setEncoding('utf8');
-      yanit.on('data', (p) => { govde += p; });
-      yanit.on('end', () => {
-        try { cozum(JSON.parse(govde)); }
-        catch (_) { hata(new Error('GitHub yanıtı okunamadı.')); }
+      let bodyEl = '';
+      reply.setEncoding('utf8');
+      reply.on('data', (p) => { bodyEl += p; });
+      reply.on('end', () => {
+        try { solution(JSON.parse(bodyEl)); }
+        catch (_) { errorInfo(new Error('GitHub yanıtı okunamadı.')); }
       });
     });
-    r.on('error', hata);
-    r.setTimeout(ZAMAN_ASIMI_MS, () => {
+    r.on('error', errorInfo);
+    r.setTimeout(TIMEOUT_MS, () => {
       r.destroy(Object.assign(new Error('zaman aşımı'), { code: 'ZAMANASIMI' }));
     });
   });
 }
 
-// kuruluSurum: the version in package.json (app.getVersion()).
+// installedVersion: the version in package.json (app.getVersion()).
 // The return always has the same shape: { ok, kurulu, son, guncelMi, url, yayinAdi, yayinTs, hata }
-async function kontrolEt(kuruluSurum) {
-  const temel = { kurulu: kuruluSurum, son: null, guncelMi: null, url: YAYIN_SAYFASI, yayinAdi: null, yayinTs: null };
+async function check(installedVersion) {
+  const basis = { kurulu: installedVersion, son: null, guncelMi: null, url: RELEASES_PAGE, yayinAdi: null, yayinTs: null };
   try {
-    const liste = await istek(LISTE_URL);
-    if (!Array.isArray(liste)) return { ok: false, ...temel, hata: 'GitHub beklenmeyen bir yanıt döndürdü.' };
+    const listing = await request(LIST_URL);
+    if (!Array.isArray(listing)) return { ok: false, ...basis, hata: 'GitHub beklenmeyen bir yanıt döndürdü.' };
     // Skip drafts and prereleases: an unfinished version is not offered to the user.
-    const yayinlar = liste.filter((y) => y && !y.draft && !y.prerelease && y.tag_name);
-    if (!yayinlar.length) return { ok: false, ...temel, hata: 'Yayımlanmış sürüm bulunamadı.' };
-    let enYeni = yayinlar[0];
-    yayinlar.forEach((y) => { if (surumKarsilastir(y.tag_name, enYeni.tag_name) > 0) enYeni = y; });
-    const son = String(enYeni.tag_name).replace(/^v/i, '');
+    const broadcasts = listing.filter((y) => y && !y.draft && !y.prerelease && y.tag_name);
+    if (!broadcasts.length) return { ok: false, ...basis, hata: 'Yayımlanmış sürüm bulunamadı.' };
+    let newest = broadcasts[0];
+    broadcasts.forEach((y) => { if (compareVersion(y.tag_name, newest.tag_name) > 0) newest = y; });
+    const latest = String(newest.tag_name).replace(/^v/i, '');
     return {
       ok: true,
-      ...temel,
-      son,
-      guncelMi: surumKarsilastir(kuruluSurum, son) >= 0,
-      url: enYeni.html_url || YAYIN_SAYFASI,
-      yayinAdi: enYeni.name || enYeni.tag_name,
-      yayinTs: enYeni.published_at ? Date.parse(enYeni.published_at) : null,
+      ...basis,
+      son: latest,
+      guncelMi: compareVersion(installedVersion, latest) >= 0,
+      url: newest.html_url || RELEASES_PAGE,
+      yayinAdi: newest.name || newest.tag_name,
+      yayinTs: newest.published_at ? Date.parse(newest.published_at) : null,
     };
   } catch (e) {
-    return { ok: false, ...temel, hata: hataMetni(e) };
+    return { ok: false, ...basis, hata: errorText(e) };
   }
 }
 
-module.exports = { kontrolEt, surumKarsilastir, YAYIN_SAYFASI, DEPO };
+module.exports = { kontrolEt: check, surumKarsilastir: compareVersion, YAYIN_SAYFASI: RELEASES_PAGE, DEPO: STORE };

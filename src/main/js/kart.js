@@ -33,13 +33,13 @@
     // It does not overwrite what the user changed by hand on the page; BUT a value changed with Kaydet in Ayarlar
     // (degisen) is always applied, because the user explicitly chose it a moment ago. The mode of a running
     // queue does not change (the order is set up in the engine); the main process applies a duration change to the running job
-    // too (see main.js > ayarlariIslereUygula).
+    // too (see main.js > applySettingsToJobs).
     let farmUserTouched = false;
-    function applyFarmSettings(degisen){
+    function applyFarmSettings(changed){
       if (typeof appSettings !== 'object' || !appSettings) return;
-      const d = degisen || [];
-      const calisiyor = !!(lastTick && lastTick.running);
-      if ((!farmUserTouched || (d.includes('cardPriorityMode') && !calisiyor))
+      const d = changed || [];
+      const isRunning = !!(lastTick && lastTick.running);
+      if ((!farmUserTouched || (d.includes('cardPriorityMode') && !isRunning))
           && appSettings.cardPriorityMode && appSettings.cardPriorityMode !== selectedMode) setMode(appSettings.cardPriorityMode);
       if (!farmUserTouched || d.includes('farmMaxMinutes')){
         const mins = +appSettings.farmMaxMinutes;
@@ -70,7 +70,7 @@
     // The order the user made by hand and the games they removed from the queue should come back
     // even after the app closes. Appids that are no longer owned are filtered out on load.
     const KART_STATE_KEY = 'kart.queue';
-    let kartStateReady = false;
+    let cardStateReady = false;
     async function restoreKartState(){
       const r = await window.imu.state.get(KART_STATE_KEY).catch(()=>null);
       const v = r && r.value;
@@ -83,10 +83,10 @@
           priorityOrder = kept.concat(rest);
         }
       }
-      kartStateReady = true;
+      cardStateReady = true;
     }
     function saveKartState(){
-      if (!kartStateReady) return;
+      if (!cardStateReady) return;
       window.imu.state.set(KART_STATE_KEY, { removed:[...removedIds], order: priorityOrder }).catch(()=>{});
     }
     document.getElementById('btnRefresh').onclick = () => { kartLoaded = false; loadKart(); };
@@ -296,7 +296,7 @@
             + '<span style="width:8px;height:8px;border-radius:999px;background:#5FB324"></span></div>'
           + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
             + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(tf('# kart düştü', d.count))+'</span>'
-            + '<span style="font-size:10.5px;color:#656D80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(yerelKod())+'</span></span>'
+            + '<span style="font-size:10.5px;color:#656D80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(localCode())+'</span></span>'
           + '</div></div>'
         + '<button class="h-brand" data-godrop="'+d.appid+'" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Envanter</button>'
         + '</div>').join('');
@@ -337,15 +337,15 @@
     // even while the tab was hidden: with a 400 game queue that was ~50 ms of processor per second and it refilled
     // the list the hidden tab had dropped from memory every second. Now drawing happens only when the running game
     // changes; on the ticks in between only the progress bar is updated.
-    let sonKartImza = '';
+    let lastCardSignature = '';
     E.onTick((data) => {
       // Card farming has just started: the inventory baseline for auto-sell is taken (env.js).
-      if (data.running && !lastTick.running && typeof autoSellTaban === 'function') autoSellTaban();
+      if (data.running && !lastTick.running && typeof autoSellFloor === 'function') autoSellFloor();
       lastTick = data;
       setKartPill(!!data.running);
-      if (!kartLoaded || !designed.kart || designed.kart.classList.contains('hidden')) { sonKartImza = ''; return; }
-      const imza = (data.running ? 1 : 0) + '|' + (data.activeAppids || []).join(',') + '|' + data.currentAppid;
-      if (imza !== sonKartImza){ sonKartImza = imza; renderKart(); return; }
-      const cubuk = document.querySelector('#kartQueue [data-row="' + data.currentAppid + '"] [data-ilerleme]');
-      if (cubuk && data.durationMs) cubuk.style.width = Math.min(100, Math.round((data.elapsedMs / data.durationMs) * 100)) + '%';
+      if (!kartLoaded || !designed.kart || designed.kart.classList.contains('hidden')) { lastCardSignature = ''; return; }
+      const signature = (data.running ? 1 : 0) + '|' + (data.activeAppids || []).join(',') + '|' + data.currentAppid;
+      if (signature !== lastCardSignature){ lastCardSignature = signature; renderKart(); return; }
+      const barEl = document.querySelector('#kartQueue [data-row="' + data.currentAppid + '"] [data-ilerleme]');
+      if (barEl && data.durationMs) barEl.style.width = Math.min(100, Math.round((data.elapsedMs / data.durationMs) * 100)) + '%';
     });

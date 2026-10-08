@@ -118,10 +118,10 @@ for (const e of anaSurec.matchAll(/ipcMain\.(?:handle|on)\(\s*'([^']+)'/g)) tani
 // Events that go from the main process to the interface (ipcRenderer.on) are sent from main.js with sendRaw/send.
 const gonderilen = new Set();
 for (const e of anaSurec.matchAll(/send(?:Raw)?\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
-// Per-account jobs send their events with hesapYayini(...)('channel', ...) or yay('channel', ...);
+// Per-account jobs send their events with accountBroadcast(...)('channel', ...) or broadcast('channel', ...);
 // FarmController sends its own 'farm:tick' event with emit. Those count as sent too.
-for (const e of anaSurec.matchAll(/(?:hesapYayini\([^)]*\)|yay)\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
-for (const e of anaSurec.matchAll(/IS_KANALLARI\s*=\s*\[([^\]]*)\]/g)) {
+for (const e of anaSurec.matchAll(/(?:accountBroadcast\([^)]*\)|broadcast)\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
+for (const e of anaSurec.matchAll(/JOB_CHANNELS\s*=\s*\[([^\]]*)\]/g)) {
   for (const k of e[1].matchAll(/'([^']+)'/g)) gonderilen.add(k[1]);
 }
 for (const e of oku(path.join(KOK, 'src', 'core', 'farmController.js')).matchAll(/this\.emit\(\s*'([^']+)'/g)) gonderilen.add(e[1]);

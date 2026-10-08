@@ -22,10 +22,10 @@
 class FarmController {
   // sahip: the name of this job's game list in the engine ('kart' | 'sirali'). So that when another job on the same
   // account (hour boosting, Realistic Mode) is running they do not close each other's games.
-  constructor(engine, emit, sahip) {
+  constructor(engine, emit, ownerId) {
     this.engine = engine;
     this.emit = emit;
-    this.sahip = sahip || 'kart';
+    this.sahip = ownerId || 'kart';
     this.timer = null;
     this.timer2 = null;
     this.running = false;
@@ -51,7 +51,7 @@ class FarmController {
   // opts.fastMinPlaytimeMin → the playtime threshold where card drops start (minutes, default 120).
   // opts.fastRotateMinSec / MaxSec → the interval at which the featured game changes in 'fast' mode (seconds).
   // opts.karistir → in sequential mode the game order is shuffled every round (Hour Booster).
-  // opts.devam → { index, gecenMs }: to resume where it was after a settings change.
+  // opts.devam → { index, passedMs }: to resume where it was after a settings change.
   start(mode, games, durationMs, opts) {
     this._temizle();
     this.running = false;
@@ -73,13 +73,13 @@ class FarmController {
     if (this.karistir) list = FarmController.karistir(list);
     this.games = list;
     this.running = true;
-    const devam = opts && opts.devam;
-    this.index = devam && +devam.index >= 0 ? Math.min(+devam.index, Math.max(0, list.length - 1)) : 0;
-    this.oturumBaslangic = (devam && devam.oturumBaslangic) || Date.now();
+    const proceed = opts && opts.devam;
+    this.index = proceed && +proceed.index >= 0 ? Math.min(+proceed.index, Math.max(0, list.length - 1)) : 0;
+    this.oturumBaslangic = (proceed && proceed.oturumBaslangic) || Date.now();
 
     if (!this.games.length) { this.stop('bitti'); return; }
     if (mode === 'fast') this._runFast();
-    else this._runRoundRobin(devam && +devam.gecenMs > 0 ? +devam.gecenMs : 0);
+    else this._runRoundRobin(proceed && +proceed.gecenMs > 0 ? +proceed.gecenMs : 0);
   }
 
   // Where the running job is. When a setting changes the job continues from this point with the new setting.
@@ -110,58 +110,58 @@ class FarmController {
 
   // sebep: 'kullanici' | 'bitti' | 'sure' | 'oyunBitti' | 'boost' | 'ayar' - the interface and the
   // statistics read this. 'sure' and 'oyunBitti': a game finished while moving on is off.
-  stop(sebep) {
-    const calisiyordu = this.running;
+  stop(cause) {
+    const wasRunning = this.running;
     this.running = false;
     this._temizle();
     this.aktifAppid = null;
     this.faz = null;
     if (this.engine) this.engine.stop(this.sahip);
-    this.emit('farm:tick', { running: false, sebep: sebep || 'kullanici', calisiyordu });
+    this.emit('farm:tick', { running: false, sebep: cause || 'kullanici', calisiyordu: wasRunning });
   }
 
   // The current list from the badge watcher. `bitenler`: games for which Steam CONFIRMS no cards are left
   // ("No card drops remaining" on the badge row). A game that is missing from the list but not marked
   // as finished is not removed: the scrape may have been incomplete.
-  oyunlariGuncelle(guncel, bitenler) {
+  oyunlariGuncelle(current, finished) {
     if (!this.running) return { kalan: 0, cikan: [] };
-    const kalanlar = new Map((guncel || []).map((g) => [g.appid, g]));
-    const bitti = bitenler instanceof Set ? bitenler : new Set(bitenler || []);
-    const cikan = [];
-    const eskiAktif = this.aktifAppid;
-    const eskiIndex = this.index;
-    const yeni = [];
+    const remainders = new Map((current || []).map((g) => [g.appid, g]));
+    const isDone = finished instanceof Set ? finished : new Set(finished || []);
+    const removed = [];
+    const oldActive = this.aktifAppid;
+    const oldIndex = this.index;
+    const newItem = [];
     this.games.forEach((g, i) => {
-      const k = kalanlar.get(g.appid);
-      const bittiMi = bitti.has(g.appid) || (k && k.remaining <= 0);
-      if (bittiMi) { cikan.push({ ...g, sira: i }); return; }
+      const k = remainders.get(g.appid);
+      const hasFinished = isDone.has(g.appid) || (k && k.remaining <= 0);
+      if (hasFinished) { removed.push({ ...g, sira: i }); return; }
       if (k) { g.remaining = k.remaining; if (k.name) g.name = k.name; }
-      yeni.push(g);
+      newItem.push(g);
     });
-    if (!cikan.length) return { kalan: this.games.length, cikan };
-    this.games = yeni;
+    if (!removed.length) return { kalan: this.games.length, cikan: removed };
+    this.games = newItem;
 
-    if (!this.games.length) { this.stop('bitti'); return { kalan: 0, cikan }; }
+    if (!this.games.length) { this.stop('bitti'); return { kalan: 0, cikan: removed }; }
 
     if (this.mode === 'fast') {
       this._havuzuYenile();
-      return { kalan: this.games.length, cikan };
+      return { kalan: this.games.length, cikan: removed };
     }
     // Sequential/most/least/priority: if the active game left, move to the next without waiting out the time.
-    const aktifCikti = eskiAktif != null && cikan.some((c) => c.appid === eskiAktif);
+    const activeOutput = oldActive != null && removed.some((c) => c.appid === oldActive);
     // The index shifts back by the number of games that left; otherwise a game would be skipped.
-    const oncekiCikan = cikan.filter((c) => c.sira < eskiIndex).length;
-    this.index = Math.max(0, eskiIndex - oncekiCikan);
-    if (aktifCikti) {
+    const previouslyRemoved = removed.filter((c) => c.sira < oldIndex).length;
+    this.index = Math.max(0, oldIndex - previouslyRemoved);
+    if (activeOutput) {
       if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-      if (!this.autoNext) { this.stop('oyunBitti'); return { kalan: this.games.length, cikan }; }
+      if (!this.autoNext) { this.stop('oyunBitti'); return { kalan: this.games.length, cikan: removed }; }
       if (this.index >= this.games.length) this.index = this.loop ? 0 : this.games.length;
       this._runRoundRobin(0);
     }
-    return { kalan: this.games.length, cikan };
+    return { kalan: this.games.length, cikan: removed };
   }
 
-  _runRoundRobin(gecenMs) {
+  _runRoundRobin(passedMs) {
     if (!this.running || this.games.length === 0) return;
     if (this.index >= this.games.length) {
       if (!this.loop) { this.stop('bitti'); return; }
@@ -171,15 +171,15 @@ class FarmController {
     const g = this.games[this.index];
     this.aktifAppid = g.appid;
     this.engine.play([g.appid], this.sahip);
-    this.startedAt = Date.now() - (gecenMs || 0);
+    this.startedAt = Date.now() - (passedMs || 0);
     this._tick(g.appid);
-    const kalanMs = Math.max(1000, this.durationMs - (gecenMs || 0));
+    const remainingMs = Math.max(1000, this.durationMs - (passedMs || 0));
     this.timer = setTimeout(() => {
       if (!this.running) return;
       if (!this.autoNext) { this.stop('sure'); return; }   // automatic move is off → stop
       this.index++;
       this._runRoundRobin(0);
-    }, kalanMs);
+    }, remainingMs);
   }
 
   _tick(activeAppid) {
@@ -194,8 +194,8 @@ class FarmController {
   }
 
   async _runFast() {
-    const nesil = this.nesil;
-    const bitmeli = () => !this.running || this.nesil !== nesil;
+    const generation = this.nesil;
+    const mustFinish = () => !this.running || this.nesil !== generation;
     const thresholdMin = this.fastMinPlaytimeMin;
     this.faz = 'warmup';
     // ---- 1) WARM-UP: push the games under 2 hours above the threshold ----
@@ -204,7 +204,7 @@ class FarmController {
     // largest deficit. Batch size is limited by cardMaxGames. The list is read AGAIN before each batch:
     // a game whose cards ran out in the meantime is not opened again.
     for (;;) {
-      if (bitmeli()) return;
+      if (mustFinish()) return;
       const cold = this.games.filter((g) => (g.playtimeMin || 0) < thresholdMin);
       if (!cold.length) break;
       const batch = cold.slice(0, this.maxGames);
@@ -215,11 +215,11 @@ class FarmController {
       this.startedAt = Date.now();
       this._fastHoldTick(ids, needMs, 'warmup');
       await this._sleep(needMs);
-      if (bitmeli()) return;
+      if (mustFinish()) return;
       // This batch has passed the threshold now; let it stay open in the loop too
       batch.forEach((g) => { g.playtimeMin = thresholdMin; });
     }
-    if (bitmeli()) return;
+    if (mustFinish()) return;
 
     // ---- 2) LOOP: the games past the threshold are open together, the featured game changes every 1.5-2 min ----
     this.faz = 'rotate';
@@ -284,8 +284,8 @@ class FarmController {
     });
   }
 
-  static karistir(liste) {
-    const a = liste.slice();
+  static karistir(listing) {
+    const a = listing.slice();
     for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
     return a;
   }

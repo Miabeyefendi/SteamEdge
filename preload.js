@@ -5,12 +5,12 @@ const path = require('path');
 // The version comes from ONE source: package.json. It used to be typed in several places by hand and one of them
 // was forgotten whenever the version moved. It is read synchronously here because main.html's <script>
 // blocks run right away; the badge in the top bar must show the correct value on the first paint.
-let PAKET_SURUM = '';
-try { PAKET_SURUM = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version || ''; }
-catch (_) { PAKET_SURUM = ''; }
+let PACKAGE_VERSION = '';
+try { PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version || ''; }
+catch (_) { PACKAGE_VERSION = ''; }
 
 contextBridge.exposeInMainWorld('imu', {
-  surum: PAKET_SURUM,
+  surum: PACKAGE_VERSION,
   // Update check: only LOOKS. No download, no automatic install - the interface just links to
   // the release page. Runs once at startup and once more from the top bar button.
   guncelleme: {
@@ -35,10 +35,10 @@ contextBridge.exposeInMainWorld('imu', {
     // the page HTML, because the translation must be ready before the first paint.
     // The file name comes from outside: only letters are accepted and the folder is fixed, otherwise
     // a code containing "../" could make this read any file on disk.
-    yukle: (kod) => {
-      if (!/^[a-z]{2}$/.test(String(kod || ''))) return null;
+    yukle: (codeStr) => {
+      if (!/^[a-z]{2}$/.test(String(codeStr || ''))) return null;
       try {
-        const p = path.join(__dirname, 'src', 'main', 'js', 'lang', kod + '.json');
+        const p = path.join(__dirname, 'src', 'main', 'js', 'lang', codeStr + '.json');
         return JSON.parse(fs.readFileSync(p, 'utf8'));
       } catch (_) { return null; }
     },
@@ -119,8 +119,8 @@ contextBridge.exposeInMainWorld('imu', {
   gercekci: {
     // G11: duration in milliseconds, options = { hedef, model, rastgeleAralik, ultraNadirAtla,
     // otoSira, saatiSurdur, gecikmisHizlandir }. oyunlar = array of appids (the queue).
-    plan: (appid, sureMs, secenekler) => ipcRenderer.invoke('gercekci:plan', { appid, sureMs, secenekler }),
-    start: (oyunlar, sureMs, secenekler) => ipcRenderer.invoke('gercekci:start', { oyunlar, sureMs, secenekler }),
+    plan: (appid, durationMs, options) => ipcRenderer.invoke('gercekci:plan', { appid, sureMs: durationMs, secenekler: options }),
+    start: (gameList, durationMs, options) => ipcRenderer.invoke('gercekci:start', { oyunlar: gameList, sureMs: durationMs, secenekler: options }),
     stop: () => ipcRenderer.send('gercekci:stop'),
     // Games found to have no achievements. Learned once, written to disk, and that game
     // never shows up in this page's list again.
@@ -133,8 +133,8 @@ contextBridge.exposeInMainWorld('imu', {
   sohbet: {
     friends: () => ipcRenderer.invoke('chat:friends'),
     conversations: () => ipcRenderer.invoke('chat:conversations'),
-    history: (steamid, adet) => ipcRenderer.invoke('chat:history', { steamid, adet }),
-    send: (steamid, metin) => ipcRenderer.invoke('chat:send', { steamid, metin }),
+    history: (steamid, count) => ipcRenderer.invoke('chat:history', { steamid, adet: count }),
+    send: (steamid, text) => ipcRenderer.invoke('chat:send', { steamid, metin: text }),
     read: (steamid) => ipcRenderer.invoke('chat:read', steamid),
     typing: (steamid) => ipcRenderer.send('chat:typing', steamid),
   },
@@ -160,14 +160,14 @@ contextBridge.exposeInMainWorld('imu', {
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
     sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
     // Steam's own fee calculation: the amounts the buyer pays (cents) -> what the seller keeps
-    satisUcreti: (toplamlar) => ipcRenderer.invoke('engine:satisUcreti', toplamlar),
+    satisUcreti: (totals) => ipcRenderer.invoke('engine:satisUcreti', totals),
     ownedGames: () => ipcRenderer.invoke('engine:ownedGames'),
     profile: () => ipcRenderer.invoke('engine:profile'),
     // The custom profile address is separate: it needs a web request, so name/avatar must not wait for it.
     vanity: () => ipcRenderer.invoke('engine:vanity'),
     // With taze=true the 5 minute schema cache is skipped; used after a bulk operation
     // to verify what Steam actually saved.
-    achievements: (appid, taze) => ipcRenderer.invoke('engine:achievements', { appid, taze }),
+    achievements: (appid, isFresh) => ipcRenderer.invoke('engine:achievements', { appid, taze: isFresh }),
     setAchievements: (appid, changes) => ipcRenderer.invoke('engine:setAchievements', { appid, changes }),
     startFarm: (mode, games, durationMs) => ipcRenderer.send('engine:startFarm', { mode, games, durationMs }),
     stopFarm: () => ipcRenderer.send('engine:stopFarm'),
@@ -176,7 +176,7 @@ contextBridge.exposeInMainWorld('imu', {
     onFarmListe: (cb) => ipcRenderer.on('farm:liste', (_e, data) => cb(data)),
     // games: [{appid, playtimeMin}] - needed to build the hour sync steps.
     // tumu: every selected game; if the "at most at once" limit changes while a job runs, the list is cut from here.
-    boostStart: (appids, durationMs, games, tumu) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games, tumu }),
+    boostStart: (appids, durationMs, games, allOfIt) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games, tumu: allOfIt }),
     boostSyncPlan: (games, mode, targetHours) => ipcRenderer.invoke('engine:boostSyncPlan', { games, mode, targetHours }),
     onBoostSync: (cb) => ipcRenderer.on('boost:sync', (_e, d) => cb(d)),
     // G3: Steam connection state (bagli | koptu | baglaniyor | vazgecildi)

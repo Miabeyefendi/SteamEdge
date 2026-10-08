@@ -9,7 +9,7 @@
     // Opening a tab. The body used to be directly inside the nav link's click listener; since the Sohbet button in the top bar
     // has no counterpart in the sidebar it was moved to a separate function. The nav links call it too,
     // so there is only one path left.
-    async function sekmeAc(tab, kaynakBaglanti) {
+    async function openTab(tab, sourceConnection) {
       // If leaving the Ayarlar tab, the unsaved changes warning (ayarlar.js)
       const leavingSettings = !designed.ayarlar.classList.contains('hidden');
       if (leavingSettings && typeof confirmLeaveSettings === 'function') {
@@ -23,28 +23,28 @@
       });
       document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
       // Sohbet has no link in the sidebar; then none of them stays marked.
-      if (kaynakBaglanti) kaynakBaglanti.classList.add('active');
+      if (sourceConnection) sourceConnection.classList.add('active');
       setRailTop(tab);
       Object.values(designed).forEach(s => s.classList.add('hidden'));
       empty.classList.add('hidden');
       if (designed[tab]) designed[tab].classList.remove('hidden');
       else {
         empty.classList.remove('hidden');
-        emptyName.textContent = kaynakBaglanti ? kaynakBaglanti.textContent.trim() : tab;
+        emptyName.textContent = sourceConnection ? sourceConnection.textContent.trim() : tab;
       }
-      agirListeleriBosalt(tab);
+      flushHeavyLists(tab);
       if (tab === 'genel') loadGenel();
       if (tab === 'kart') loadKart();
-      if (tab === 'saat') loadSaat();
+      if (tab === 'saat') loadHours();
       if (tab === 'env') loadEnv();
-      if (tab === 'gercekci') loadGercekci();
-      if (tab === 'basarim') loadBasarim();
-      if (tab === 'sohbet') loadSohbet();
-      if (tab === 'ayarlar') loadAyarlar();
-      agirListeyiGeriCiz(tab);
+      if (tab === 'gercekci') loadRealistic();
+      if (tab === 'basarim') loadAchievementsPage();
+      if (tab === 'sohbet') loadChat();
+      if (tab === 'ayarlar') loadSettingsPage();
+      redrawHeavyList(tab);
     }
     document.querySelectorAll('.nav a[data-tab]').forEach(a => {
-      a.addEventListener('click', () => sekmeAc(a.getAttribute('data-tab'), a));
+      a.addEventListener('click', () => openTab(a.getAttribute('data-tab'), a));
     });
 
     // ---- KEEPING THE LISTS OF HIDDEN TABS IN MEMORY ----
@@ -56,29 +56,29 @@
     // NO DATA IS DELETED - the lists are drawn from JS arrays anyway, only the DOM is deleted. Selections,
     // sorting and filters stay on the JS side too, so nothing is lost on return.
     // Not a single extra request goes to Steam.
-    const AGIR_LISTELER = {
+    const HEAVY_LISTS = {
       kart:    { kap: 'kartQueue',    ciz: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
       env:     { kap: 'envRows',      ciz: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
-      saat:    { kap: 'saatListBody', ciz: () => (typeof renderSaatList === 'function' && typeof saatLoaded !== 'undefined' && saatLoaded) && renderSaatList() },
+      saat:    { kap: 'saatListBody', ciz: () => (typeof renderHoursList === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) && renderHoursList() },
       basarim: { kap: 'acBody',       ciz: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
     };
-    const askidaSekmeler = new Set();
+    const suspendedTabs = new Set();
 
-    function agirListeleriBosalt(acilanTab){
-      Object.keys(AGIR_LISTELER).forEach(t => {
-        if (t === acilanTab || askidaSekmeler.has(t)) return;
-        const kap = document.getElementById(AGIR_LISTELER[t].kap);
+    function flushHeavyLists(openedTab){
+      Object.keys(HEAVY_LISTS).forEach(t => {
+        if (t === openedTab || suspendedTabs.has(t)) return;
+        const container = document.getElementById(HEAVY_LISTS[t].kap);
         // There is no point suspending a list that was never filled; also let us not delete one line
         // status texts like "loading" and leave the user alone with an empty screen.
-        if (!kap || kap.children.length < 2) return;
-        kap.innerHTML = '';
-        askidaSekmeler.add(t);
+        if (!container || container.children.length < 2) return;
+        container.innerHTML = '';
+        suspendedTabs.add(t);
       });
     }
-    function agirListeyiGeriCiz(tab){
-      if (!askidaSekmeler.has(tab)) return;
-      askidaSekmeler.delete(tab);
-      try { AGIR_LISTELER[tab].ciz(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
+    function redrawHeavyList(tab){
+      if (!suspendedTabs.has(tab)) return;
+      suspendedTabs.delete(tab);
+      try { HEAVY_LISTS[tab].ciz(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
     }
 
     // ---- shared helpers (all pages use them) ----
@@ -105,8 +105,8 @@
     }
     // Quotes are escaped too: the output of this function is used as an attribute value in many places
     // (src="'+esc(x)+'"), if the quote was not escaped the value could break out of the attribute.
-    const ESC_HARF = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-    function esc(s){ return (s||'').replace(/[&<>"']/g, c => ESC_HARF[c]); }
+    const ESC_CHAR = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    function esc(s){ return (s||'').replace(/[&<>"']/g, c => ESC_CHAR[c]); }
 
     // ================= THEMED CONFIRM MODAL =================
     // The native confirm() box opened Windows' grey window (outside the theme). This is the theme matching
@@ -172,11 +172,11 @@
         }
         document.addEventListener('keydown', onKey);
         back._kapat = close;
-        const hayir = back.querySelector('[data-no]');
-        if (hayir) hayir.onclick = ()=>close(false);
+        const isNo = back.querySelector('[data-no]');
+        if (isNo) isNo.onclick = ()=>close(false);
         back.querySelector('[data-yes]').onclick = ()=>close(true);
-        const alt = back.querySelector('[data-alt]');
-        if (alt) alt.onclick = ()=>close('alt');
+        const lower = back.querySelector('[data-alt]');
+        if (lower) lower.onclick = ()=>close('alt');
         back.addEventListener('mousedown', (e)=>{ if (e.target === back) close(false); });
         setTimeout(()=>{ const y = back.querySelector('[data-yes]'); if (y) y.focus(); }, 30);
       });
@@ -214,7 +214,7 @@
     function curSubunit(){ const c = curCode(); return c ? (CUR_SUBUNIT[c] || 'birim') : 'birim'; }
     function fmtMoney(n){
       const c = curCode();
-      const loc = CUR_LOCALE[c] || yerelKod();
+      const loc = CUR_LOCALE[c] || localCode();
       const v = +n || 0;
       // On the Steam market the lowest sale is 0.03; there is NO such price as 0.00. Values greater than zero
       // that look like 0.00 when rounded to two digits (sale history averages
@@ -233,9 +233,9 @@
     // "Saat biçimi" - 24 hour / 12 hour (AM-PM)
     function fmtClock(d){
       const use12 = (typeof appSettings==='object' && appSettings && String(appSettings.timeFormat)==='12');
-      return new Date(d).toLocaleTimeString(yerelKod(), { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: use12 });
+      return new Date(d).toLocaleTimeString(localCode(), { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: use12 });
     }
-    function fmtDateShort(d){ return new Date(d).toLocaleDateString(yerelKod()); }
+    function fmtDateShort(d){ return new Date(d).toLocaleDateString(localCode()); }
 
     // "Arayüz yoğunluğu" - in compact mode row heights and inner spacing shrink
     function applyDensity(){
@@ -317,41 +317,41 @@
         const t0 = ctx.currentTime + 0.02;
         let end = 0;
         // Applies a parameter as a number or as a [a,b,c...] sweep array
-        const ramp = (param, val, start, dur)=>{
+        const ramp = (param, val, start, halt)=>{
           const pts = Array.isArray(val) ? val : [val];
           param.setValueAtTime(Math.max(1, pts[0]), start);
           for (let i=1; i<pts.length; i++){
-            param.exponentialRampToValueAtTime(Math.max(1, pts[i]), start + dur*(i/(pts.length-1)));
+            param.exponentialRampToValueAtTime(Math.max(1, pts[i]), start + halt*(i/(pts.length-1)));
           }
         };
         def.voices.forEach(v=>{
-          const start = t0 + (v.at||0), dur = v.d;
+          const start = t0 + (v.at||0), halt = v.d;
           const g = ctx.createGain();
-          const atk = Math.min(v.a || .008, dur*0.5);
+          const atk = Math.min(v.a || .008, halt*0.5);
           g.gain.setValueAtTime(0.0001, start);
           g.gain.exponentialRampToValueAtTime(v.g, start + atk);           // attack
-          g.gain.exponentialRampToValueAtTime(0.0001, start + dur);        // decay
+          g.gain.exponentialRampToValueAtTime(0.0001, start + halt);        // decay
           let src;
           if (v.t === 'noise'){
             // White noise buffer - when passed through the filter the whoosh/smash/hit character comes out
-            const len = Math.ceil(ctx.sampleRate * dur);
+            const len = Math.ceil(ctx.sampleRate * halt);
             const buf = ctx.createBuffer(1, len, ctx.sampleRate);
             const ch = buf.getChannelData(0);
             for (let i=0;i<len;i++) ch[i] = Math.random()*2 - 1;
             src = ctx.createBufferSource(); src.buffer = buf;
             const flt = ctx.createBiquadFilter();
             flt.type = v.ftype; flt.Q.value = v.q;
-            ramp(flt.frequency, v.f, start, dur);
+            ramp(flt.frequency, v.f, start, halt);
             src.connect(flt); flt.connect(g);
           } else {
             src = ctx.createOscillator();
             src.type = v.wave;
-            ramp(src.frequency, v.f, start, dur);
+            ramp(src.frequency, v.f, start, halt);
             src.connect(g);
           }
           g.connect(ctx.destination);
-          src.start(start); src.stop(start + dur + 0.02);
-          end = Math.max(end, (v.at||0) + dur);
+          src.start(start); src.stop(start + halt + 0.02);
+          end = Math.max(end, (v.at||0) + halt);
         });
         setTimeout(()=>{ try{ ctx.close(); }catch(_){} }, (end + 0.4) * 1000);
       } catch(_){}
@@ -374,31 +374,31 @@
     // because the cost is not ours, it is the desktop compositor's.
     //
     // The fix: on losing focus stop the per-second drawing and pause the animations.
-    let pencereOdakta = document.hasFocus();
-    function hafifModAcik(){
+    let windowFocused = document.hasFocus();
+    function lightModeOn(){
       return typeof appSettings !== 'object' || !appSettings || appSettings.hafifMod !== false;
     }
-    function durgunlukBoya(){
-      const durgun = hafifModAcik() && !pencereOdakta;
-      document.documentElement.classList.toggle('e-durgun', durgun);
+    function paintIdle(){
+      const idle = lightModeOn() && !windowFocused;
+      document.documentElement.classList.toggle('e-durgun', idle);
     }
-    window.addEventListener('focus', () => { pencereOdakta = true; durgunlukBoya(); });
-    window.addEventListener('blur',  () => { pencereOdakta = false; durgunlukBoya(); });
+    window.addEventListener('focus', () => { windowFocused = true; paintIdle(); });
+    window.addEventListener('blur',  () => { windowFocused = false; paintIdle(); });
     function uiTickAllowed(){
       if (document.hidden) return false;
-      return !(hafifModAcik() && !pencereOdakta);
+      return !(lightModeOn() && !windowFocused);
     }
     document.addEventListener('visibilitychange', () => {
       if (document.hidden){
         // When "Arka Planda Topla" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
         // That was the promise of the setting ("en az işlemci ve bellek kullanımı"); before, it only skipped
         // per-second drawing and did nothing on the memory side.
-        if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) agirListeleriBosalt(null);
+        if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) flushHeavyLists(null);
         return;
       }
       // Came back: if there is a suspended list draw it, so the counters come to the fresh value.
-      Object.keys(AGIR_LISTELER).forEach(t => {
-        if (designed[t] && !designed[t].classList.contains('hidden')) agirListeyiGeriCiz(t);
+      Object.keys(HEAVY_LISTS).forEach(t => {
+        if (designed[t] && !designed[t].classList.contains('hidden')) redrawHeavyList(t);
       });
       try { if (typeof renderActiveBox === 'function' && !designed.saat.classList.contains('hidden')) renderActiveBox(); } catch (_) {}
       try { if (typeof renderGenelStats === 'function' && !designed.genel.classList.contains('hidden')) renderGenelStats(); } catch (_) {}
@@ -435,9 +435,9 @@
     // and comes instantly with the settings: the screen opens full on the first frame, when the connection is made
     // fresh data is written over it. The custom address comes last, with a separate request.
     let imuProfile = null;
-    let imuProfilTaze = false;      // did it come from the cache or from Steam
+    let imuProfileFresh = false;      // did it come from the cache or from Steam
 
-    function onbelleklenmisProfil(){
+    function cachedProfile(){
       const p = (typeof appSettings === 'object' && appSettings && appSettings.profil) || null;
       if (!p || (!p.persona && !p.avatar)) return false;
       imuProfile = { ...p };
@@ -447,12 +447,12 @@
 
     async function loadProfile(){
       // If there is something at hand show it right away; if it is not fresh keep refreshing in the background.
-      if (imuProfile) applyProfile(); else onbelleklenmisProfil();
-      if (!imuProfilTaze){
+      if (imuProfile) applyProfile(); else cachedProfile();
+      if (!imuProfileFresh){
         const r = await E.profile().catch(()=>null);
         if (r && r.ok && r.profile){
           imuProfile = { ...(imuProfile || {}), ...r.profile };
-          imuProfilTaze = true;
+          imuProfileFresh = true;
           applyProfile();
         }
       }
@@ -461,7 +461,7 @@
         E.vanity().then(v=>{
           if (v && v.ok && v.vanity){
             imuProfile.vanity = v.vanity;
-            if (typeof kimlikleriBoya === 'function') kimlikleriBoya();
+            if (typeof paintIds === 'function') paintIds();
           }
         }).catch(()=>{});
       }
@@ -481,33 +481,33 @@
       const setP = document.getElementById('setPersona'); if (setP) setP.textContent = nm;
       const setLevelRow = document.getElementById('setLevel'); if (setLevelRow) setLevelRow.textContent = imuProfile.level!=null ? imuProfile.level : '-';
       // The identity rows also show the custom address that comes from the profile; so it refreshes when the account changes.
-      if (typeof kimlikleriBoya === 'function') kimlikleriBoya();
+      if (typeof paintIds === 'function') paintIds();
     }
 
     // ---- lifetime statistics (main.js stats.json) ----
     let lifeStats = null;
-    function fmtHrs(ms){ const h=ms/3600000; return h>=1 ? (h.toLocaleString(yerelKod(), { maximumFractionDigits:1 })+' '+t('saat')) : (Math.round(ms/60000)+' '+t('dk')); }
+    function fmtHrs(ms){ const h=ms/3600000; return h>=1 ? (h.toLocaleString(localCode(), { maximumFractionDigits:1 })+' '+t('saat')) : (Math.round(ms/60000)+' '+t('dk')); }
     // if data is given no IPC is made (the main process's 'stats:degisti' event already carries the current data).
     // All of them are the real measurement of the account on screen counted in the main process. "En verimli gün", "Ortalama
     // satış" and "Kesintisiz çalışma" used to never be filled, they always showed a dash.
-    async function renderLifeStats(veri){
-      lifeStats = veri || await window.imu.stats.get().catch(()=>null);
+    async function renderLifeStats(payloadData){
+      lifeStats = payloadData || await window.imu.stats.get().catch(()=>null);
       if (!lifeStats) return;
       const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
       set('lifeRuntime', fmtHrs(lifeStats.totalRuntimeMs||0));
-      set('lifeCards', yerelSayi(lifeStats.cardsDropped||0));
-      set('lifeSold', yerelSayi(lifeStats.cardsSold||0));
+      set('lifeCards', localNumber(lifeStats.cardsDropped||0));
+      set('lifeSold', localNumber(lifeStats.cardsSold||0));
       set('lifeBoost', fmtHrs(lifeStats.boostRuntimeMs||0));
-      const gunler = Object.entries(lifeStats.gunlukKart || {}).filter(x => x[1] > 0);
-      if (gunler.length){
-        const [gun, adet] = gunler.reduce((m, x) => (x[1] > m[1] ? x : m));
-        const [y, a, g] = gun.split('-').map(Number);
-        set('lifeBestDay', new Date(y, a - 1, g).toLocaleDateString(yerelKod()) + ' · ' + tf('# kart', adet));
+      const days = Object.entries(lifeStats.gunlukKart || {}).filter(x => x[1] > 0);
+      if (days.length){
+        const [day, count] = days.reduce((m, x) => (x[1] > m[1] ? x : m));
+        const [y, a, g] = day.split('-').map(Number);
+        set('lifeBestDay', new Date(y, a - 1, g).toLocaleDateString(localCode()) + ' · ' + tf('# kart', count));
       } else set('lifeBestDay', '-');
       set('lifeAvgSale', (lifeStats.satisFiyatli > 0 && typeof fmtMoney === 'function')
         ? fmtMoney(lifeStats.satisTutar / lifeStats.satisFiyatli / 100) : '-');
       set('lifeStreak', lifeStats.enUzunCalismaMs >= 60000 ? fmtHrs(lifeStats.enUzunCalismaMs) : '-');
-      set('lifeSince', lifeStats.since ? new Date(lifeStats.since).toLocaleDateString(yerelKod()) : '-');
+      set('lifeSince', lifeStats.since ? new Date(lifeStats.since).toLocaleDateString(localCode()) : '-');
       const h = document.getElementById('lifeHesap');
       if (h) h.textContent = (typeof appSettings === 'object' && appSettings && appSettings.persona) ? appSettings.persona : '';
     }
@@ -515,7 +515,7 @@
     if (window.imu.stats.onDegisti) window.imu.stats.onDegisti((d)=>renderLifeStats(d));
     // 16:9 - Library Logo (logo.png). contain: a transparent logo fits without being cropped.
     function imgTag(appid){ return '<img src="'+gameImg(appid)+'" class="gt" style="width:85px;height:40px;object-fit:cover;border-radius:7px" onerror="this.style.background=\'#26313f\';this.src=\'\'">'; }
-    function fmtDur(sec){ const m=Math.floor(sec/60), s=sec%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+    function fmtDur(pick){ const m=Math.floor(pick/60), s=pick%60; return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
 
     // ---- sidebar expand/collapse (< / > ) ----
     const sideNav = document.getElementById('sideNav');
@@ -550,23 +550,23 @@
     // ---- top bar: Sohbet ----
     // It has no counterpart in the sidebar, it opens the tab directly. The badge holds the number of unread
     // messages; it is reset while the chat screen is open.
-    let chBekleyen = 0;
-    function chRozetBoya(){
+    let chPending = 0;
+    function chPaintBadge(){
       const r = document.getElementById('tbChatBadge');
       if (!r) return;
-      r.style.display = chBekleyen ? '' : 'none';
+      r.style.display = chPending ? '' : 'none';
     }
     document.getElementById('tbChat').onclick = () => {
-      chBekleyen = 0; chRozetBoya();
-      sekmeAc('sohbet');
+      chPending = 0; chPaintBadge();
+      openTab('sohbet');
     };
 
     // ---- top bar: version badge and update warning ----
     // The version is read from package.json (preload > imu.surum); it is written by hand nowhere.
-    const APP_SURUM = (window.imu && window.imu.surum) || '';
+    const APP_VERSION = (window.imu && window.imu.surum) || '';
     (function paintVersion(){
       const e = document.getElementById('tbVersion');
-      if (e) e.textContent = APP_SURUM ? ('v' + APP_SURUM) : 'v-';
+      if (e) e.textContent = APP_VERSION ? ('v' + APP_VERSION) : 'v-';
     })();
 
     // ---- UPDATE ----
@@ -575,18 +575,18 @@
     // The button in the top bar repeats the same check whenever asked; there the result is told
     // in every case, because whoever pressed the button is waiting for an answer.
     // There is NO download, install or self-update: only the version number is read.
-    let sonGuncellemeDurumu = null;
-    let guncellemePenceresiAcik = false;
+    let latestUpdateStatus = null;
+    let updateWindowOpen = false;
 
-    async function guncellemePenceresi(d){
-      if (guncellemePenceresiAcik) return;
-      guncellemePenceresiAcik = true;
+    async function updateWindow(d){
+      if (updateWindowOpen) return;
+      updateWindowOpen = true;
       try {
-        const tarih = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString(yerelKod()) : '';
+        const date = d.yayinTs ? new Date(d.yayinTs).toLocaleDateString(localCode()) : '';
         const ac = await edgeConfirm({
           tag: 'Güncelleme',
           title: t('Yeni sürüm yayımlandı:') + ' v' + d.son,
-          body: t('Kurulu sürüm') + ' v' + d.kurulu + (tarih ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + tarih) : '')
+          body: t('Kurulu sürüm') + ' v' + d.kurulu + (date ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + date) : '')
                 + '\n' + t('Değişiklikleri yayın sayfasında okuyabilirsin.'),
           warn: 'Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yeni klasöre kopyalarsın.',
           confirmText: 'Yayın Sayfasını Aç',
@@ -594,34 +594,34 @@
         });
         if (ac) window.imu.openExternal(d.url);
       } finally {
-        guncellemePenceresiAcik = false;
+        updateWindowOpen = false;
       }
     }
 
-    function guncellemeDurumu(d, elleBakildi){
-      sonGuncellemeDurumu = d || null;
-      const rozet = document.getElementById('tbUpdateBadge');
-      const yeniVar = !!(d && d.ok && d.guncelMi === false);
+    function updateStatus(d, manuallyChecked){
+      latestUpdateStatus = d || null;
+      const badge = document.getElementById('tbUpdateBadge');
+      const hasNew = !!(d && d.ok && d.guncelMi === false);
       // The dot above the button: lit when there is a new version, off when current.
-      if (rozet) rozet.style.display = yeniVar ? 'block' : 'none';
+      if (badge) badge.style.display = hasNew ? 'block' : 'none';
       const btn = document.getElementById('tbUpdate');
-      if (btn) btn.title = yeniVar ? (t('Yeni sürüm var:') + ' v' + d.son) : 'Güncellemeleri denetle';
-      if (yeniVar){ guncellemePenceresi(d); return; }
+      if (btn) btn.title = hasNew ? (t('Yeni sürüm var:') + ' v' + d.son) : 'Güncellemeleri denetle';
+      if (hasNew){ updateWindow(d); return; }
       // Current or could not check: only answer if the user asked by hand.
-      if (!elleBakildi || !d || typeof toast !== 'function') return;
+      if (!manuallyChecked || !d || typeof toast !== 'function') return;
       if (d.ok) toast('Güncelleme').done(tf('En güncel sürümü kullanıyorsun (v#).', d.kurulu));
       else toast('Güncelleme').fail(t(d.hata || 'Sürüm bilgisi alınamadı.') + ' ' + t('Kurulu sürümün çalışmaya devam eder.'));
     }
 
     if (window.imu && window.imu.guncelleme){
       // The result of the single check at startup comes from here.
-      window.imu.guncelleme.onDurum((d) => guncellemeDurumu(d, false));
+      window.imu.guncelleme.onDurum((d) => updateStatus(d, false));
       const ub = document.getElementById('tbUpdate');
       if (ub) ub.onclick = async ()=>{
         ub.disabled = true;
         const d = await window.imu.guncelleme.kontrol().catch(e=>({ ok:false, hata:(e&&e.message)||'Denetim başarısız.' }));
         ub.disabled = false;
-        guncellemeDurumu(d, true);
+        updateStatus(d, true);
       };
     }
 
@@ -631,35 +631,35 @@
     //   classic        = STEAM_1:<last bit of the number>:<half of the number>
     //   SteamID3       = [U:1:<account number>]
     // BigInt is used because whole numbers exceed 53 bits; with Number the last digits get corrupted.
-    const STEAM64_TABAN = 76561197960265728n;
-    let kimlikler = null;
+    const STEAM64_BASE = 76561197960265728n;
+    let identities = null;
 
-    function kimlikBicimleri(steamID64, vanity){
-      const ham = String(steamID64 || '').trim();
-      if (!/^\d{17}$/.test(ham)) return null;
+    function idFormats(steamID64, vanity){
+      const rawText = String(steamID64 || '').trim();
+      if (!/^\d{17}$/.test(rawText)) return null;
       let sid;
-      try { sid = BigInt(ham); } catch (_) { return null; }
-      if (sid < STEAM64_TABAN) return null;
-      const hesap = sid - STEAM64_TABAN;
+      try { sid = BigInt(rawText); } catch (_) { return null; }
+      if (sid < STEAM64_BASE) return null;
+      const accountRef = sid - STEAM64_BASE;
       return {
-        idSteam64: ham,
-        idKlasik : 'STEAM_1:' + (hesap % 2n) + ':' + (hesap / 2n),
-        idSteam3 : '[U:1:' + hesap + ']',
-        idHesap  : String(hesap),
+        idSteam64: rawText,
+        idKlasik : 'STEAM_1:' + (accountRef % 2n) + ':' + (accountRef / 2n),
+        idSteam3 : '[U:1:' + accountRef + ']',
+        idHesap  : String(accountRef),
         idHex    : '0x' + sid.toString(16).toUpperCase().padStart(16, '0'),
-        idProfil : 'https://steamcommunity.com/profiles/' + ham,
+        idProfil : 'https://steamcommunity.com/profiles/' + rawText,
         idOzel   : vanity ? ('https://steamcommunity.com/id/' + vanity) : null,
       };
     }
 
-    function kimlikleriBoya(){
+    function paintIds(){
       const sid = (imuProfile && imuProfile.steamID)
         || (typeof appSettings === 'object' && appSettings && appSettings.steamID) || null;
-      kimlikler = kimlikBicimleri(sid, imuProfile && imuProfile.vanity);
+      identities = idFormats(sid, imuProfile && imuProfile.vanity);
       ['idSteam64','idKlasik','idSteam3','idHesap','idHex','idProfil','idOzel'].forEach(id=>{
         const e = document.getElementById(id);
         if (!e) return;
-        const v = kimlikler ? kimlikler[id] : null;
+        const v = identities ? identities[id] : null;
         // The menu is 268 px: the full address did not fit the row and was cut with an ellipsis. In the addresses
         // the "https://steamcommunity.com" part is the same on every row anyway, so only the
         // path is shown. The value that is COPIED and OPENED stays the full address.
@@ -667,60 +667,60 @@
         // is Steam (like steamcommunity.com.someothersite.tr).
         // Here the value is already an address we produced ourselves, but this is the right way to compare and
         // the code scan was rightly flagging it.
-        let gorunen = v;
+        let shown = v;
         if (v) {
           try {
             const u = new URL(v);
-            if (u.origin === 'https://steamcommunity.com') gorunen = u.pathname + u.search + u.hash;
+            if (u.origin === 'https://steamcommunity.com') shown = u.pathname + u.search + u.hash;
           } catch (_) { /* adres degilse oldugu gibi gosterilir */ }
         }
         // An empty dash looks "broken"; a row with no value should write the reason.
-        e.textContent = gorunen || (kimlikler ? 'tanımlı değil' : 'hesap bağlı değil');
+        e.textContent = shown || (identities ? 'tanımlı değil' : 'hesap bağlı değil');
         e.classList.toggle('bos', !v);
         if (v) e.parentNode.title = v;      // the full value shows when hovered
       });
       document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
-        const v = kimlikler && kimlikler[b.getAttribute('data-kopya')];
+        const v = identities && identities[b.getAttribute('data-kopya')];
         b.disabled = !v;
         b.style.opacity = v ? '1' : '0.45';
       });
-      const hepsi = document.getElementById('idCopyAll');
-      const profil = document.getElementById('idOpenProfile');
-      if (hepsi) hepsi.disabled = !kimlikler;
-      if (profil) profil.disabled = !kimlikler;
+      const everything = document.getElementById('idCopyAll');
+      const profileData = document.getElementById('idOpenProfile');
+      if (everything) everything.disabled = !identities;
+      if (profileData) profileData.disabled = !identities;
     }
 
-    function kimlikKopyala(metin, etiket){
-      navigator.clipboard.writeText(metin).then(()=>{
-        if (typeof toast === 'function') toast('Kopyalandı').done(t(etiket || 'Değer') + ' ' + t('panoya kopyalandı.'));
+    function copyId(text, labelText){
+      navigator.clipboard.writeText(text).then(()=>{
+        if (typeof toast === 'function') toast('Kopyalandı').done(t(labelText || 'Değer') + ' ' + t('panoya kopyalandı.'));
       }).catch(()=>{});
     }
 
     document.querySelectorAll('#kimlikBox [data-kopya]').forEach(b=>{
       b.addEventListener('click', (e)=>{
         e.stopPropagation();
-        const v = kimlikler && kimlikler[b.getAttribute('data-kopya')];
-        if (v) kimlikKopyala(v, 'Kimlik');
+        const v = identities && identities[b.getAttribute('data-kopya')];
+        if (v) copyId(v, 'Kimlik');
       });
     });
     const idCopyAllBtn = document.getElementById('idCopyAll');
     if (idCopyAllBtn) idCopyAllBtn.onclick = (e)=>{
       e.stopPropagation();
-      if (!kimlikler) return;
-      kimlikKopyala([
-        'SteamID64'.padEnd(15) + ': ' + kimlikler.idSteam64,
-        'SteamID'.padEnd(15) + ': ' + kimlikler.idKlasik,
-        'SteamID3'.padEnd(15) + ': ' + kimlikler.idSteam3,
-        t('Hesap numarası').padEnd(15) + ': ' + kimlikler.idHesap,
-        'Hex'.padEnd(15) + ': ' + kimlikler.idHex,
-        t('Profil adresi').padEnd(15) + ': ' + kimlikler.idProfil,
-        t('Özel adres').padEnd(15) + ': ' + (kimlikler.idOzel || t('tanımlı değil')),
+      if (!identities) return;
+      copyId([
+        'SteamID64'.padEnd(15) + ': ' + identities.idSteam64,
+        'SteamID'.padEnd(15) + ': ' + identities.idKlasik,
+        'SteamID3'.padEnd(15) + ': ' + identities.idSteam3,
+        t('Hesap numarası').padEnd(15) + ': ' + identities.idHesap,
+        'Hex'.padEnd(15) + ': ' + identities.idHex,
+        t('Profil adresi').padEnd(15) + ': ' + identities.idProfil,
+        t('Özel adres').padEnd(15) + ': ' + (identities.idOzel || t('tanımlı değil')),
       ].join('\n'), 'Tüm kimlik biçimleri');
     };
     const idOpenProfileBtn = document.getElementById('idOpenProfile');
     if (idOpenProfileBtn) idOpenProfileBtn.onclick = (e)=>{
       e.stopPropagation();
-      if (kimlikler) window.imu.openExternal(kimlikler.idOzel || kimlikler.idProfil);
+      if (identities) window.imu.openExternal(identities.idOzel || identities.idProfil);
     };
 
     // ---- top bar: Notifications + Profile/Account accordion (references first, event binding after) ----
@@ -756,7 +756,7 @@
       const feed = activityFeed || [];
       if (!feed.length){ box.innerHTML = '<div style="padding:14px;color:var(--muted2);font-size:12px;text-align:center">Henüz bildirim yok.</div>'; return; }
       box.innerHTML = feed.slice(0,8).map(f=>{
-        const t = new Date(f.ts).toLocaleTimeString(yerelKod());
+        const t = new Date(f.ts).toLocaleTimeString(localCode());
         return '<div class="notif-item"><div class="a">'+esc(f.title)+'</div><div class="b">'+esc(f.text)+'</div><div class="t">'+t+'</div></div>';
       }).join('');
     }
@@ -792,7 +792,7 @@
     // The text is built here in the interface language, not from the main process; the main process only sends the fields
     // (durum, sebep, deneme, bekleme, sinir). The strip used to say ASCII Turkish
     // "yeniden baglaniyor (deneme 2, 10 sn sonra)" in every language.
-    function baglantiMetni(d){
+    function connectionText(d){
       if (d.durum === 'koptu') return t('Steam bağlantısı koptu.') + (d.sebep ? (' (' + d.sebep + ')') : '');
       if (d.durum === 'baglaniyor'){
         const sn = Math.max(1, Math.round((d.bekleMs || 0) / 1000));
@@ -811,11 +811,11 @@
       if (d.durum === 'bagli' && d.yenidenBaglandi) return tf('Steam bağlantısı geri geldi, # oyun yeniden açıldı.', d.oyunlar || 0);
       return '';
     }
-    function baglantiSeridi(d){
-      const durum = d.durum;
-      const mesaj = baglantiMetni(d);
+    function connectionStrip(d){
+      const status = d.durum;
+      const message = connectionText(d);
       let el = document.getElementById('baglantiSerit');
-      if (durum === 'bagli'){
+      if (status === 'bagli'){
         if (el) el.remove();
         return;
       }
@@ -827,17 +827,17 @@
         // The strip goes above the BODY ROW. It used to be added directly as a sibling of <main>;
         // since that row is the same flex row as the side panel the strip fell next to the sidebar instead of
         // below the top bar.
-        const ana = document.querySelector('main');
-        const satir = ana && ana.parentNode;                   // aside + main row
-        const hedef = (satir && satir.parentNode) ? satir : (ana || document.body);
-        hedef.parentNode.insertBefore(el, hedef);
+        const mainEl = document.querySelector('main');
+        const rowEl = mainEl && mainEl.parentNode;                   // aside + main row
+        const goal = (rowEl && rowEl.parentNode) ? rowEl : (mainEl || document.body);
+        goal.parentNode.insertBefore(el, goal);
       }
-      const renk = (durum === 'koptu' || durum === 'vazgecildi') ? '#B32453' : '#B37E24';
-      el.style.borderBottomColor = renk; el.style.color = renk;
-      el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+renk+';flex-shrink:0;'
-        + (durum === 'vazgecildi' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(mesaj||'')+'</span>'
-        + (durum === 'vazgecildi'
-            ? '<button data-yeniden style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+renk+';color:'+renk
+      const colorVal = (status === 'koptu' || status === 'vazgecildi') ? '#B32453' : '#B37E24';
+      el.style.borderBottomColor = colorVal; el.style.color = colorVal;
+      el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0;'
+        + (status === 'vazgecildi' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(message||'')+'</span>'
+        + (status === 'vazgecildi'
+            ? '<button data-yeniden style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
               + ';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
             : '');
       const b = el.querySelector('[data-yeniden]');
@@ -850,14 +850,14 @@
     if (window.imu.engine && window.imu.engine.onDurum){
       window.imu.engine.onDurum((d)=>{
         if (!d || !d.aktif) return;          // only the account open on screen
-        baglantiSeridi(d);
+        connectionStrip(d);
         if (d.durum === 'koptu'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
-          if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', baglantiMetni(d), 'Hata');
+          if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', connectionText(d), 'Hata');
           // If reconnecting is off "vazgeçildi" comes right after, and that gives the notification.
           if (d.sinir !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
         } else if (d.durum === 'bagli' && d.yenidenBaglandi){
-          if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', baglantiMetni(d), 'Başarılı');
+          if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', connectionText(d), 'Başarılı');
         }
       });
     }
@@ -870,8 +870,8 @@
     // stayed on screen and when that tab was switched to the PREVIOUS ACCOUNT's games showed; if the data
     // came late or the connection could not be made it stayed that way forever.
     // The fix: when the account changes empty the content of all tabs and put in a "loading" skeleton.
-    function iskeletKoy(){
-      const hedefler = [
+    function placeSkeleton(){
+      const goals = [
         ['kartRows', 'Oyun listesi yükleniyor...'],
         ['envRows', 'Envanter yükleniyor...'],
         ['saatListBody', 'Kütüphane yükleniyor...'],
@@ -880,15 +880,15 @@
         ['grListe', 'Yükleniyor...'],
         ['gFeed', 'Yükleniyor...'],
       ];
-      hedefler.forEach(([id, metin])=>{
+      goals.forEach(([id, text])=>{
         const el = document.getElementById(id);
-        if (el) el.innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">'+metin+'</div>';
+        if (el) el.innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">'+text+'</div>';
       });
     }
     function resetPageCaches(){
-      iskeletKoy();
+      placeSkeleton();
       if (typeof kartLoaded !== 'undefined'){ kartLoaded = false; dropGames = []; }
-      if (typeof saatLoaded !== 'undefined'){ saatLoaded = false; ownedGames = []; selectedSaat = []; }
+      if (typeof hoursLoaded !== 'undefined'){ hoursLoaded = false; ownedGames = []; selectedHours = []; }
       if (typeof envLoaded !== 'undefined'){ envLoaded = false; invMerged = null; invItems = null; detailKey = null; }
       if (typeof priceMap !== 'undefined') priceMap.clear();
       if (typeof selected !== 'undefined') selected.clear();
@@ -896,8 +896,8 @@
       if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; }
       if (typeof acCache !== 'undefined') acCache.clear();
       // Chat must not show another account's friend list
-      if (typeof chYuklendi !== 'undefined'){ chYuklendi = false; chArkadaslar = []; chSecili = null; chMesajlar.clear(); chOkunmamis.clear(); }
-      if (typeof genelLoaded !== 'undefined') genelLoaded = false;
+      if (typeof chLoaded !== 'undefined'){ chLoaded = false; chFriends = []; chSelected = null; chMessages.clear(); chUnread.clear(); }
+      if (typeof overviewLoaded !== 'undefined') overviewLoaded = false;
       // The activity feed is account specific; the old account's history must not stay on screen
       if (typeof activityFeed !== 'undefined') activityFeed.length = 0;
       // Recent drops are account specific too
@@ -909,12 +909,12 @@
     function reloadActiveTab(){
       const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'genel';
       if (tab === 'kart' && typeof loadKart === 'function') loadKart();
-      else if (tab === 'saat' && typeof loadSaat === 'function') loadSaat();
+      else if (tab === 'saat' && typeof loadHours === 'function') loadHours();
       else if (tab === 'env' && typeof loadEnv === 'function') loadEnv();
-      else if (tab === 'basarim' && typeof loadBasarim === 'function') loadBasarim();
-      else if (tab === 'gercekci' && typeof loadGercekci === 'function') loadGercekci();
-      else if (tab === 'sohbet' && typeof loadSohbet === 'function') loadSohbet();
-      else if (tab === 'ayarlar' && typeof loadAyarlar === 'function') loadAyarlar();
+      else if (tab === 'basarim' && typeof loadAchievementsPage === 'function') loadAchievementsPage();
+      else if (tab === 'gercekci' && typeof loadRealistic === 'function') loadRealistic();
+      else if (tab === 'sohbet' && typeof loadChat === 'function') loadChat();
+      else if (tab === 'ayarlar' && typeof loadSettingsPage === 'function') loadSettingsPage();
       else if (typeof loadGenel === 'function') loadGenel();
     }
     async function switchAccount(steamID){
@@ -925,7 +925,7 @@
         return;
       }
       resetPageCaches();
-      imuProfile = null; imuProfilTaze = false; loadProfile();
+      imuProfile = null; imuProfileFresh = false; loadProfile();
       reloadActiveTab();
       renderAcctList();
     }
@@ -951,7 +951,7 @@
       }
       if (r.loggedOut) return; // main.js already moved to the login screen
       resetPageCaches();
-      imuProfile = null; imuProfilTaze = false; loadProfile();
+      imuProfile = null; imuProfileFresh = false; loadProfile();
       reloadActiveTab();
       renderAcctList();
     }
@@ -965,7 +965,7 @@
     if (window.imu.onChatMessage) window.imu.onChatMessage((m)=>{
       // If the chat screen is not open let the badge in the top bar show.
       if (designed.sohbet && designed.sohbet.classList.contains('hidden')){
-        chBekleyen++; chRozetBoya();
+        chPending++; chPaintBadge();
       }
       const who = m.persona || m.from;
       if (typeof pushFeed === 'function'){

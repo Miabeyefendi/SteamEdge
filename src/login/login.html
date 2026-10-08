@@ -228,11 +228,11 @@
         b.style.color = on ? 'var(--e-title)' : 'var(--e-muted)';
       });
       setStatus(i, '');
-      if (qrOn) baslatQR(i);
+      if (qrOn) startQR(i);
       else A.auth.cancel(i);          // QR oturumu acik kaldiysa kapat
     }
 
-    function baslatQR(i) {
+    function startQR(i) {
       const box = $id('qrBox-' + i);
       if (box) box.innerHTML = '<div class="spin"></div>';
       setStatus(i, 'QR kodu alınıyor...');
@@ -243,7 +243,7 @@
       const g = id => $id(id + '-' + i);
       g('mQr').onclick = () => setMode(i, 'qr');
       g('mPw').onclick = () => setMode(i, 'pw');
-      g('qrYenile').onclick = () => baslatQR(i);
+      g('qrYenile').onclick = () => startQR(i);
       g('go').onclick = () => {
         if (!g('guardField').classList.contains('hide')) {
           const c = g('guard').value.trim();

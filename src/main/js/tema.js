@@ -5,7 +5,7 @@
 // The dark theme is the source itself, there is no mapping. Palettes are from Vantagraph (R34Purple, VantaWhite).
 // Since the login screen cannot read the settings the choice is also kept in localStorage.
 (function () {
-  const PALET = {
+  const PALETTE = {
     midnight: {
       '030305': '050410', '090c12': '0c0818', '0d1118': '130b24', '101621': '160b2a', '151c28': '200e3c',
       '1d2432': '2a1648', '2b3345': '3a2060', '333d4d': '45286e', '252a3a': '2c1850', '1e2836': '231040',
@@ -19,72 +19,72 @@
       'c2aaee': '5624b3', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '6e6e6e', '0f1720': 'f5f4f2',
     },
   };
-  let esle = null;
+  let matchUp = null;
   const hex2 = (n) => Number(n).toString(16).padStart(2, '0');
-  function donustur(metin) {
-    if (!esle || !metin) return metin;
-    return metin
-      .replace(/#([0-9a-fA-F]{6})\b/g, (m, h) => { const y = esle[h.toLowerCase()]; return y ? '#' + y : m; })
-      .replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g, (m, r, g, b) => { const y = esle[hex2(r) + hex2(g) + hex2(b)]; return y ? '#' + y : m; });
+  function convert(text) {
+    if (!matchUp || !text) return text;
+    return text
+      .replace(/#([0-9a-fA-F]{6})\b/g, (m, h) => { const y = matchUp[h.toLowerCase()]; return y ? '#' + y : m; })
+      .replace(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/g, (m, r, g, b) => { const y = matchUp[hex2(r) + hex2(g) + hex2(b)]; return y ? '#' + y : m; });
   }
   // SVG icons carry their colour in the fill/stroke attribute (like the sidebar button).
   const OZ = ['style', 'fill', 'stroke'];
-  function eleman(el) {
+  function elem(el) {
     if (!el.getAttribute) return;
     for (const o of OZ) {
       const s = el.getAttribute(o);
-      if (s) { const y = donustur(s); if (y !== s) el.setAttribute(o, y); }
+      if (s) { const y = convert(s); if (y !== s) el.setAttribute(o, y); }
     }
   }
-  function agac(kok) {
-    if (kok.nodeType !== 1) return;
-    eleman(kok);
-    kok.querySelectorAll('[style],[fill],[stroke]').forEach(eleman);
+  function tree(rootDir) {
+    if (rootDir.nodeType !== 1) return;
+    elem(rootDir);
+    rootDir.querySelectorAll('[style],[fill],[stroke]').forEach(elem);
   }
-  function kurallar() {
-    for (const sayfa of document.styleSheets) {
-      let liste; try { liste = sayfa.cssRules; } catch (_) { continue; }
-      const gez = (rs) => { for (const r of rs) {
-        if (r.style) { for (let i = 0; i < r.style.length; i++) { const ad = r.style[i]; const v = r.style.getPropertyValue(ad); const y = donustur(v); if (y !== v) r.style.setProperty(ad, y, r.style.getPropertyPriority(ad)); } }
-        if (r.cssRules) gez(r.cssRules);
+  function rules() {
+    for (const page of document.styleSheets) {
+      let listing; try { listing = page.cssRules; } catch (_) { continue; }
+      const browse = (rs) => { for (const r of rs) {
+        if (r.style) { for (let i = 0; i < r.style.length; i++) { const name = r.style[i]; const v = r.style.getPropertyValue(name); const y = convert(v); if (y !== v) r.style.setProperty(name, y, r.style.getPropertyPriority(name)); } }
+        if (r.cssRules) browse(r.cssRules);
       } };
-      gez(liste);
+      browse(listing);
     }
   }
-  let gozlem = null;
-  function temaUygula(ad) {
-    const secim = PALET[ad] ? ad : 'dark';
-    try { localStorage.setItem('se_tema', secim); } catch (_) {}
-    const onceki = document.documentElement.getAttribute('data-tema') || 'dark';
-    if (onceki === secim) return;
+  let observation = null;
+  function applyTheme(name) {
+    const choice = PALETTE[name] ? name : 'dark';
+    try { localStorage.setItem('se_tema', choice); } catch (_) {}
+    const previous = document.documentElement.getAttribute('data-tema') || 'dark';
+    if (previous === choice) return;
     // Returning from another theme reloads the page: the mapping cannot be undone, the source is dark.
     // If Settings is open it returns to the same section (the same key as the language change, see i18n.js).
-    if (onceki !== 'dark') {
-      try { if (typeof currentSetSec === 'string' && typeof I18N_DONUS_ANAHTARI === 'string') sessionStorage.setItem(I18N_DONUS_ANAHTARI, currentSetSec); } catch (_) {}
+    if (previous !== 'dark') {
+      try { if (typeof currentSetSec === 'string' && typeof I18N_RETURN_KEY === 'string') sessionStorage.setItem(I18N_RETURN_KEY, currentSetSec); } catch (_) {}
       location.reload(); return;
     }
-    esle = PALET[secim];
-    document.documentElement.setAttribute('data-tema', secim);
-    document.documentElement.style.colorScheme = secim === 'white' ? 'light' : 'dark';
-    kurallar();
+    matchUp = PALETTE[choice];
+    document.documentElement.setAttribute('data-tema', choice);
+    document.documentElement.style.colorScheme = choice === 'white' ? 'light' : 'dark';
+    rules();
     // In the white theme the light text colour turns dark; the text of the purple buttons and the white
     // letter in the logo must stay light.
-    if (secim === 'white') {
+    if (choice === 'white') {
       const st = document.createElement('style');
       st.textContent = '[style*="background:#5624B3"],[style*="background: rgb(86, 36, 179)"]{color:#fff !important}'
         + 'img[src*="logo"]{filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}';
       document.head.appendChild(st);
     }
-    if (document.body) agac(document.body);
-    gozlem = new MutationObserver((ms) => { for (const m of ms) {
-      if (m.type === 'attributes') eleman(m.target); else m.addedNodes.forEach(agac);
+    if (document.body) tree(document.body);
+    observation = new MutationObserver((ms) => { for (const m of ms) {
+      if (m.type === 'attributes') elem(m.target); else m.addedNodes.forEach(tree);
     } });
-    gozlem.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: OZ });
+    observation.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: OZ });
   }
-  window.temaUygula = temaUygula;
-  let ilk = 'dark'; try { ilk = localStorage.getItem('se_tema') || 'dark'; } catch (_) {}
-  if (ilk !== 'dark') {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => temaUygula(ilk));
-    else temaUygula(ilk);
+  window.temaUygula = applyTheme;
+  let initial = 'dark'; try { initial = localStorage.getItem('se_tema') || 'dark'; } catch (_) {}
+  if (initial !== 'dark') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(initial));
+    else applyTheme(initial);
   }
 })();
