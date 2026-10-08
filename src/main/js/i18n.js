@@ -96,7 +96,7 @@
       let translation;
       if (rawText !== undefined){
         // The value can be HTML (<b>12</b>); the number is searched for with the tags stripped.
-        const num = degerler.map(v => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim()).find(v => /^\d[\d.,]*$/.test(v));
+        const num = degerler.map(v => stripTags(String(v)).trim()).find(v => /^\d[\d.,]*$/.test(v));
         translation = pluralPick(rawText, num);
       } else translation = t(template);
       return fillPlaceholder(translation, degerler);
@@ -104,6 +104,24 @@
 
     // Percent format by language: in Turkish "%13", in English/German/Spanish/Russian "13%",
     // in Chinese "13%". The Turkish format used to be written everywhere.
+    // Removes <...> tags (a "<" with no closing ">" and stray ">" characters are dropped too). Done with a plain
+    // scan instead of replace(): same result as .replace(/<[^>]*>/g, '').replace(/[<>]/g, '').
+    function stripTags(s) {
+      let out = '';
+      let i = 0;
+      while (i < s.length) {
+        const c = s[i];
+        if (c === '<') {
+          const j = s.indexOf('>', i + 1);
+          i = j >= 0 ? j + 1 : i + 1;
+        } else {
+          if (c !== '>') out += c;
+          i++;
+        }
+      }
+      return out;
+    }
+
     function fmtPercent(n){ return uiLang === 'tr' ? ('%' + n) : (n + '%'); }
     // Date, time and number format follow the interface language too. 'tr-TR' used to be written everywhere:
     // in the English interface the date came out "20.09.2026" and the thousands separator was a dot.

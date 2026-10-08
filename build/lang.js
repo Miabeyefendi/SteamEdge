@@ -151,14 +151,28 @@ else print('  variant is consistent');
 section(6, 'Interface text without a dictionary entry');
 const TR_LETTER = /[çğıöşüÇĞİÖŞÜ]/;
 
+// Removes <!-- ... --> comments (an unterminated one stays). Same result as .replace(/<!--[\s\S]*?-->/g, '')
+// but done with a plain scan.
+function stripHtmlComments(s) {
+  let out = '';
+  let i = 0;
+  for (;;) {
+    const a = s.indexOf('<!--', i);
+    if (a < 0) return out + s.slice(i);
+    const b = s.indexOf('-->', a + 4);
+    if (b < 0) return out + s.slice(i);
+    out += s.slice(i, a);
+    i = b + 3;
+  }
+}
+
 // Stripping comments and script/style is repeated until the result stops changing. A single pass
 // is not enough: when the stripped part's two sides join a new "<!--" can form.
 function extract(text) {
   let previous;
   do {
     previous = text;
-    text = text
-      .replace(/<!--[\s\S]*?-->/g, '')
+    text = stripHtmlComments(text)
       .replace(/<(script|style)[\s\S]*?<\/\1>/g, '');
   } while (text !== previous);
   return text;

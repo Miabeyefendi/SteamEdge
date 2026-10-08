@@ -96,13 +96,28 @@ docIds.forEach((counter, doc) => {
 });
 if (!repeated) console.log('  no duplicates');
 
+// Removes <!-- ... --> comments (an unterminated one stays). Same result as .replace(/<!--[\s\S]*?-->/g, '')
+// but done with a plain scan.
+function stripHtmlComments(s) {
+  let out = '';
+  let i = 0;
+  for (;;) {
+    const a = s.indexOf('<!--', i);
+    if (a < 0) return out + s.slice(i);
+    const b = s.indexOf('-->', a + 4);
+    if (b < 0) return out + s.slice(i);
+    out += s.slice(i, a);
+    i = b + 3;
+  }
+}
+
 // ---- 4. Tag balance ----
 section('4. Tag balance (div)');
 htmlFiles.forEach((f) => {
   // Comments are not counted. The counter once gave a false alarm because of comment blindness: a comment describing a layout
   // bug contained "<div>" so the file looked unbalanced.
   // A block wrapped in a comment would produce a false alarm the same way.
-  const m = read(f).replace(/<!--[\s\S]*?-->/g, '');
+  const m = stripHtmlComments(read(f));
   const ac = (m.match(/<div\b/g) || []).length;
   const close = (m.match(/<\/div>/g) || []).length;
   if (ac !== close) fail(relative(f) + ' <div> ' + ac + ' / </div> ' + close);

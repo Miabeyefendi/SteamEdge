@@ -63,12 +63,30 @@ function t(src) {
   } else goal = pluralPick(goal, null);
   return goal;
 }
+// Removes <...> tags (a "<" with no closing ">" and stray ">" characters are dropped too). Done with a plain
+// scan instead of replace(): same result as .replace(/<[^>]*>/g, '').replace(/[<>]/g, '').
+function stripTags(s) {
+  let out = '';
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === '<') {
+      const j = s.indexOf('>', i + 1);
+      i = j >= 0 ? j + 1 : i + 1;
+    } else {
+      if (c !== '>') out += c;
+      i++;
+    }
+  }
+  return out;
+}
+
 // Template that carries values: tf('# oyun sırada.', 5). The plural form follows the first numeric value.
 function tf(template, ...degerler) {
   const rawText = (lang !== 'tr' && table) ? table[String(template).replace(/\s+/g, ' ').trim()] : undefined;
   let translation;
   if (rawText !== undefined) {
-    const num = degerler.map((v) => String(v).replace(/<[^>]*>/g, '').replace(/[<>]/g, '').trim()).find((v) => /^\d[\d.,]*$/.test(v));
+    const num = degerler.map((v) => stripTags(String(v)).trim()).find((v) => /^\d[\d.,]*$/.test(v));
     translation = pluralPick(rawText, num);
   } else translation = t(template);
   return fillPlaceholder(translation, degerler);
