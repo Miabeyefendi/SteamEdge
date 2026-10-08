@@ -15,9 +15,9 @@ class SteamAuth {
     this.emit = emit;
     this.session = null;
     this.result = null;          // { refreshToken, accountName, steamID, cookies }
-    // Ayarlanırsa (main.js "Add Account" akışını başlatırken), yeni hesap kaydedilen listeye
-    // eklenir ama aktif oturum (session.json) değiştirilmez - kullanıcı halihazırda kullandığı
-    // hesapta kalmaya devam eder, yeni hesabı istediğinde hesap değiştiriciden seçer.
+    // When set (main.js, when it starts the "Add Account" flow), the new account is added to the saved list
+    // but the active session (session.json) is not changed - the user stays on the account they were
+    // already using and picks the new one from the account switcher when they want it.
     this.addingAccount = false;
   }
 
@@ -93,9 +93,9 @@ class SteamAuth {
   }
 
   // ---- config helpers ----
-  // Hesabı accounts.json listesine ekler/günceller (steamID ile eşleşir - yeniden giriş yenilenmiş
-  // refreshToken'ı üzerine yazar). addingAccount açıkken aktif oturuma (session.json) dokunmaz;
-  // kapalıyken (normal giriş) bu hesabı aynı zamanda aktif hesap yapar.
+  // Adds/updates the account in the accounts.json list (matched by steamID - logging in again overwrites the
+  // refreshed refreshToken). When addingAccount is on it does not touch the active session (session.json);
+  // when off (a normal login) it also makes this account the active account.
   _saveSession() {
     fs.mkdirSync(this.configDir, { recursive: true });
     const entry = { accountName: this.result.accountName, steamID: this.result.steamID, refreshToken: this.result.refreshToken };

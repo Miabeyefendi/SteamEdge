@@ -9,58 +9,58 @@ const Schema = require('steam-user/protobufs/generated/_load.js');
 // drops trading cards. No Steam client required.
 class SteamEngine {
   constructor() {
-    // Yeniden bağlanmayı steam-user'ın kendi döngüsü değil aşağıdaki döngü yapar. İkisi
-    // birlikte çalışınca aynı anda iki giriş denemesi oluyor, biri "Already attempting to log
-    // on" hatasıyla düşüyordu; Ayarlar'daki deneme sınırı ve "Kapalı" seçeneği de steam-user'ın
-    // kendi denemelerine işlemiyordu.
+    // The loop below does the reconnecting, not steam-user's own loop. When both
+    // run, two logon attempts happen at once and one dropped with "Already attempting to log
+    // on"; the attempt limit and the "Off" option in Settings also did not reach steam-user's
+    // own attempts.
     this.user = new SteamUser({ autoRelogin: false });
     this.cookies = null;
     this.steamID = null;
     this.persona = null;
     this._playing = [];
-    this._sahipler = new Map();    // is adi -> o isin actigi oyunlar (bkz play)
+    this._sahipler = new Map();    // job name -> the games that job opened (see play)
     this._offline = false;
     this._hideGameName = false;
-    // Hesabın cüzdan para birimi. BİLİNMİYOR olarak başlar - varsayılan vermek, cüzdan
-    // olayı gelmediğinde Steam'den yanlış kurda fiyat çekip doğru kurun simgesiyle
-    // göstermeye yol açıyordu (ör. TRY tutarların başına $ konması).
+    // The account's wallet currency. It starts as UNKNOWN - giving it a default made us fetch prices
+    // from Steam in the wrong currency when the wallet event did not arrive and show them with the right
+    // currency's symbol (e.g. a $ in front of TRY amounts).
     this.walletCurrency = null;
     this._currency = null;
-    // Gelen Steam sohbet mesajı geri çağrısı - main.js atar. (SteamEngine EventEmitter değil.)
+    // Callback for an incoming Steam chat message - assigned by main.js. (SteamEngine is not an EventEmitter.)
     this.onChatMessage = null;
-    this._autoReply = null;        // { text, cooldownMs } - null ise otomatik yanıt yok
-    this._repliedAt = new Map();   // steamID64 -> son otomatik yanıt zamanı
-    // ---- G3: baglanti durumu ----
-    // Eskiden calisma aninda hicbir 'disconnected'/'error' dinleyicisi yoktu. Steam
-    // baglantiyi dusurdugunde uygulama bunu HIC fark etmiyor, arayuz "calisiyor"
-    // gostermeye devam ediyor, oyunlar aslinda kapali oluyordu. Saatlerce sessiz kayip.
+    this._autoReply = null;        // { text, cooldownMs } - null means no automatic reply
+    this._repliedAt = new Map();   // steamID64 -> time of the last automatic reply
+    // ---- G3: connection state ----
+    // There used to be no 'disconnected'/'error' listener at run time. When Steam dropped the
+    // connection the app did not notice AT ALL, the interface kept saying "running" and the games were
+    // actually closed. Hours of silent loss.
     this.bagli = false;
     this._refreshToken = null;
     this._offlineSecenek = false;
     this._yenidenBaglanTimer = null;
     this._yenidenBaglanDeneme = 0;
-    this._kapatildi = false;       // logOff() cagrildiysa yeniden baglanma
-    // Ayarlar > "Bağlantı koparsa yeniden bağlan" (main atar): null = sınırsız, 0 = kapalı,
-    // n = en fazla n deneme. Sınır dolunca 'vazgecildi' bildirilir, döngü durur.
+    this._kapatildi = false;       // do not reconnect if logOff() was called
+    // Settings > "Bağlantı koparsa yeniden bağlan" (set by main): null = unlimited, 0 = off,
+    // n = at most n attempts. When the limit is reached 'vazgecildi' is reported and the loop stops.
     this.yenidenBaglanmaSiniri = null;
     this.vazgecti = false;
-    this.kaliciKopma = false;      // tekrar denemenin anlamsız olduğu kopma (aşağıda)
+    this.kaliciKopma = false;      // a drop where trying again is pointless (below)
     this.onDurum = null;           // (durum) => void   durum: 'bagli'|'koptu'|'baglaniyor'|'vazgecildi'
     this._nabizTimer = null;
   }
-  // Yalnızca cüzdan kuru henüz bilinmiyorken bir tahmin koyar; cüzdan olayı geldiğinde
-  // onun değeri kesin kabul edilir ve buradaki değer ezilir.
+  // Only puts in a guess while the wallet currency is still unknown; once the wallet event arrives
+  // its value is taken as final and the value here is overwritten.
   setCurrency(code) { if (!this.walletCurrency && code) this._currency = code; }
-  // Fiyatların çekildiği ve gösterildiği TEK kur. null = henüz bilinmiyor.
+  // The ONE currency prices are fetched and shown in. null = not known yet.
   currencyCode() { return this.walletCurrency || this._currency || null; }
 
-  // ---- ORTAK STEAM ISTEK KATMANI ----
-  // Eskiden her cagri ham `fetch` kullaniyordu. Ag koptugunda kullaniciya `TypeError: fetch
-  // failed` gibi anlamsiz bir metin donuyor, gecici hatalarda da hic yeniden denenmiyordu;
-  // "basarimlar bazen hic yuklenmiyor" sikayetinin kaynagi buydu.
-  // Burada: zaman asimi, gecici hatalarda ustel geri cekilme ve anlasilir hata metni.
-  // Metin arayüz dilinde kurulur (ceviri: ana süreç sözlüğü). Eskiden Türkçe harf
-  // kullanılmadan yazılmıştı ve hiçbir dilde çevrilmiyordu.
+  // ---- SHARED STEAM REQUEST LAYER ----
+  // Every call used to use a raw `fetch`. When the network dropped the user got a meaningless text like `TypeError: fetch
+  // failed`, and transient errors were never retried;
+  // this was the source of the "achievements sometimes never load" complaint.
+  // Here: a timeout, exponential backoff on transient errors and an understandable error text.
+  // The text is built in the interface language (translation: main process dictionary). It used to be written
+  // without Turkish letters and was not translated in any language.
   static hataMetni(e, nerede) {
     const m = String((e && (e.kod || e.message)) || e || '');
     const yer = ceviri.t(nerede || 'Steam') + ': ';
@@ -73,23 +73,23 @@ class SteamEngine {
     return (nerede ? yer : '') + ceviri.t(m);
   }
 
-  // Steam topluluk sayfalari ve pazar uclari yaniti hesabin Steam diline gore
-  // yereller. Turkce arayuzde Cince bir hata bildirimi bu yuzden gorulmustu: metin
-  // sozlukten degil, Steam'in kendisinden geliyordu. `Steam_Language` cerezi bu secimi
-  // sabitler; `l=english` parametresi de cerezsiz cagrilar icin ayni isi yapar.
+  // Steam community pages and market endpoints localise the response by the account's Steam
+  // language. A Chinese error notification in the Turkish interface was seen because of this: the text
+  // came from Steam itself, not from the dictionary. The `Steam_Language` cookie pins this choice;
+  // the `l=english` parameter does the same for calls without a cookie.
   cerezBasligi() {
     const c = this.cookies ? this.cookies.slice() : [];
     c.push('Steam_Language=english');
     return c.join('; ');
   }
 
-  // Steam'in gonderdigi hata metni yine de Latin disi cikarsa gosterilmez. Bilgi
-  // tasidigi icin metni tamamen atmiyoruz, sadece okunamayacak olani yediyle degistiriyoruz.
+  // If the error text Steam sends still comes out non-Latin it is not shown. It carries information,
+  // so we do not drop the text entirely, we only replace the part that cannot be read with a question mark.
   static steamMesaji(metin, yedek) {
     const m = String(metin || '').trim();
     if (!m) return yedek;
-    // ASCII + Latin-1 eki + Latin Genisletilmis A/B: Ingilizce, Almanca, Ispanyolca,
-    // Turkce hepsi bu araliga siger. Kiril, CJK, Arapca girmez.
+    // ASCII + Latin-1 supplement + Latin Extended A/B: English, German, Spanish and
+    // Turkish all fit in this range. Cyrillic, CJK and Arabic do not.
     return /^[\x20-\x7E\u00A0-\u024F\s]+$/.test(m) ? m : yedek;
   }
 
@@ -105,7 +105,7 @@ class SteamEngine {
       try {
         const r = await fetch(url, { ...fetchSec, headers: basliklar, signal: kes.signal });
         clearTimeout(sayac);
-        // 429 ve 5xx gecici kabul edilir, yeniden denenir. Digerleri hemen hata.
+        // 429 and 5xx count as transient and are retried. Anything else is an immediate error.
         if (r.status === 429 || r.status >= 500) {
           sonHata = new Error('HTTP ' + r.status);
           if (i < deneme - 1) { await new Promise((res) => setTimeout(res, 1500 * Math.pow(2, i))); continue; }
@@ -127,11 +127,11 @@ class SteamEngine {
     throw hata;
   }
 
-  // Hesabın PAZAR para birimini doğrudan Steam Topluluk Pazarı'ndan okur.
-  // Neden protokoldeki 'wallet' olayı yetmiyor: o olay yalnızca cüzdanı olan hesaplarda ve
-  // her zaman zamanında gelmiyor; gelmediğinde kur tahmin ediliyor, fiyatlar yanlış kurda
-  // çekiliyordu. Pazar sayfası ise oturum açmış kullanıcı için `g_rgWalletInfo` içinde
-  // `wallet_currency` alanını gömüyor - kullanıcının pazarında gördüğü kurun ta kendisi.
+  // Reads the account's MARKET currency straight from the Steam Community Market.
+  // Why the protocol's 'wallet' event is not enough: it only arrives for accounts that have a wallet and
+  // not always on time; when it did not arrive the currency was guessed and prices were
+  // fetched in the wrong currency. The market page embeds the `wallet_currency` field in `g_rgWalletInfo`
+  // for a logged in user - exactly the currency the user sees in their market.
   async detectMarketCurrency() {
     if (!this.cookies) return null;
     try {
@@ -148,9 +148,9 @@ class SteamEngine {
     } catch (_) { return null; }
   }
 
-  // Satis ucretinin girdileri. Steam bunlari sayfaya `g_rgWalletInfo` olarak gomuyor ve kendi
-  // ucret hesabi (economy_common.js) bu nesneyle calisiyor. Yalnizca ucret alanlari tutulur;
-  // cuzdan bakiyesi gibi alanlar bellekte bile saklanmaz.
+  // Inputs of the sale fee. Steam embeds these in the page as `g_rgWalletInfo` and its own
+  // fee calculation (economy_common.js) works with this object. Only the fee fields are kept;
+  // fields like the wallet balance are not kept in memory at all.
   _cuzdaniOku(html) {
     const m = String(html || '').match(/g_rgWalletInfo\s*=\s*(\{[\s\S]*?\});/);
     if (!m) return null;
@@ -165,8 +165,8 @@ class SteamEngine {
     this._cuzdanTs = Date.now();
     return c;
   }
-  // Ucret alanlari. Pazar sayfasinda bulunamazsa envanter sayfasina bakilir (satis
-  // penceresi orada). Bir saat bellekte tutulur.
+  // Fee fields. If they are not found on the market page the inventory page is checked (the sale
+  // window is there). Kept in memory for one hour.
   async cuzdanBilgisi() {
     if (this._cuzdan && Date.now() - (this._cuzdanTs || 0) < 3600000) return this._cuzdan;
     if (!this.cookies) throw new Error('web oturumu yok');
@@ -176,7 +176,7 @@ class SteamEngine {
     if (this._cuzdaniOku(await r2.text())) return this._cuzdan;
     throw new Error(ceviri.t('Steam cüzdan bilgisi okunamadı'));
   }
-  // Otomatik yanıt ayarı. text boşsa/kapalıysa sadece bildirim gösterilir, yanıt yazılmaz.
+  // Automatic reply setting. If text is empty/off only a notification is shown, no reply is written.
   setAutoReply(text, cooldownMinutes) {
     this._autoReply = (text && String(text).trim())
       ? { text: String(text).trim(), cooldownMs: Math.max(1, +cooldownMinutes || 60) * 60000 }
@@ -191,23 +191,23 @@ class SteamEngine {
       this.user.once('loggedOn', () => {
         this.steamID = this.user.steamID.getSteamID64();
         // Steam only shows "in game" on the profile / to friends once persona state is Online
-        // (Invisible if "Çevrimdışı görün" ayarı açıksa - arkadaşlar farming'i göremez).
+        // (Invisible if the "Çevrimdışı görün" setting is on - friends cannot see the farming).
         // Without this, gamesPlayed() registers at the protocol level but nothing is visible.
         this.user.setPersona(offline ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
         this.user.webLogOn();
       });
       this.user.once('accountInfo', (name) => { this.persona = name; done.info = true; maybe(); });
-      // Hesabın cüzdan para birimi - Steam fiyatlarını hangi kurda çekeceğimizi belirler.
-      // (Ayarlar > Genel > Para birimi "Otomatik" iken bu kullanılır.)
+      // The account's wallet currency - decides which currency we fetch Steam prices in.
+      // (Used when Settings > General > Currency is "Otomatik".)
       this.user.on('wallet', (_hasWallet, currency) => {
         const code = SteamEngine.currencyName(currency);
-        // Cüzdan kuru KESİN kaynaktır - önceki tahmini her zaman ezer. (Eskiden
-        // `this._currency || code` yazıyordu; _currency kurucuda 'TRY' olduğu için
-        // koşul hiç tutmuyor, hesap USD olsa bile fiyatlar TRY olarak çekiliyordu.)
+        // The wallet currency is the FINAL source - it always overrides the earlier guess. (It used to
+        // say `this._currency || code`; since _currency is 'TRY' in the constructor the
+        // condition never held and prices were fetched in TRY even for a USD account.)
         if (code) { this.walletCurrency = code; this._currency = code; }
       });
-      // Gelen arkadaş mesajları. Headless çalışırken kimse cevap veremiyordu; artık uygulamada
-      // bildirim çıkıyor ve istenirse tek seferlik otomatik yanıt gönderiliyor.
+      // Incoming friend messages. Nobody could reply while running headless; now the app
+      // shows a notification and, if wanted, sends a one-time automatic reply.
       this.user.on('friendMessage', (senderID, message) => {
         const from = senderID && senderID.getSteamID64 ? senderID.getSteamID64() : String(senderID);
         let persona = null;
@@ -226,15 +226,15 @@ class SteamEngine {
       });
       this.user.once('webSession', (_sid, cookies) => {
         this.cookies = cookies;
-        // Web oturumu açılır açılmaz pazarın kendi kurunu doğrula (aşağıya bak) - cüzdan
-        // olayı gecikirse ya da hiç gelmezse fiyatlar yine de doğru kurda çekilsin.
+        // As soon as the web session opens, verify the market's own currency (see below) - if the wallet
+        // event is late or never arrives the prices are still fetched in the right currency.
         this.detectMarketCurrency().catch(() => {});
         done.web = true; maybe();
       });
       this.user.once('error', reject);
       setTimeout(() => reject(new Error(ceviri.t('Steam sunucusuna giriş zaman aşımına uğradı'))), 25000);
     }).then((r) => {
-      // Giris basarili: kalici dinleyicileri kur (bir kez).
+      // Logon succeeded: set up the permanent listeners (once).
       this._refreshToken = refreshToken;
       this._offlineSecenek = !!offline;
       this.bagli = true;
@@ -251,7 +251,7 @@ class SteamEngine {
     if (this.onDurum) { try { this.onDurum(durum, ek || {}); } catch (_) {} }
   }
 
-  // Kopma/hata dinleyicileri. logOn her cagrildiginda tekrar eklenmesin diye bayrakli.
+  // Drop/error listeners. Flagged so they are not added again every time logOn is called.
   _kopmaDinleyicileriniKur() {
     if (this._dinleyiciKuruldu) return;
     this._dinleyiciKuruldu = true;
@@ -259,11 +259,11 @@ class SteamEngine {
     const kopdu = (sebep, eresult) => {
       if (this._kapatildi) return;
       this.bagli = false;
-      this.cookies = null;             // web oturumu da dustu, yeniden alinacak
-      // Tekrar denemenin anlamsız ya da zararlı olduğu kopmalar: giriş anahtarı artık geçersiz
-      // (denemek yalnızca ret toplar) ya da aynı hesap başka bir oturumla değiştirildi (iki
-      // uygulama birbirini sırayla düşürerek kavgaya girer). "Koptu, yeniden bağlanılıyor"
-      // denmez; doğrudan sebebiyle birlikte vazgeçildiği söylenir.
+      this.cookies = null;             // the web session dropped too, it will be fetched again
+      // Drops where trying again is pointless or harmful: the logon token is no longer valid
+      // (trying only collects rejections) or the same account was replaced by another session (two
+      // apps drop each other in turn and fight). It does not say "Dropped, reconnecting";
+      // it says directly that it gave up, together with the reason.
       if (SteamEngine.KALICI_KOPMA.has(+eresult)) {
         this.vazgecti = true; this.kaliciKopma = true;
         this._durumBildir('vazgecildi', { kalici: true, eresult: +eresult, sebep: String(sebep || '') });
@@ -276,7 +276,7 @@ class SteamEngine {
     this.user.on('disconnected', (eresult, msg) => kopdu(msg || ('EResult ' + eresult), eresult));
     this.user.on('error', (e) => kopdu((e && e.message) || 'bilinmeyen hata', e && e.eresult));
 
-    // Yeniden baglandiginda web oturumu ve oyunlar KENDILIGINDEN geri gelmez.
+    // After reconnecting, the web session and the games do NOT come back on their own.
     this.user.on('loggedOn', () => {
       this.bagli = true;
       this._yenidenBaglanDeneme = 0;
@@ -286,7 +286,7 @@ class SteamEngine {
         this.user.setPersona(this._offlineSecenek ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
       } catch (_) {}
       try { this.user.webLogOn(); } catch (_) {}
-      // Kopmadan once acik olan oyunlari geri ac - asil kayip buradaydi.
+      // Reopen the games that were open before the drop - the real loss was here.
       if (this._playing && this._playing.length) {
         try { this.user.gamesPlayed(this._playing); } catch (_) {}
       }
@@ -305,8 +305,8 @@ class SteamEngine {
       return;
     }
     this._yenidenBaglanDeneme++;
-    // Ustel geri cekilme, en fazla 5 dakika. Steam tarafi gecici sorunlarda hemen
-    // kabul etmiyor; saniyede bir denemek isi kotulestiriyor.
+    // Exponential backoff, at most 5 minutes. Steam does not accept right away after
+    // transient problems; trying every second makes it worse.
     const bekle = Math.min(300000, 5000 * Math.pow(2, Math.min(6, this._yenidenBaglanDeneme - 1)));
     this._durumBildir('baglaniyor', { deneme: this._yenidenBaglanDeneme, bekleMs: bekle });
     this._yenidenBaglanTimer = setTimeout(() => {
@@ -317,8 +317,8 @@ class SteamEngine {
     }, bekle);
   }
 
-  // Vazgeçilmiş döngüyü baştan başlatır: kullanıcı "Yeniden bağlan" dedi ya da deneme sınırı
-  // ayarlardan büyütüldü. elle: kalıcı kopmada da dener (kullanıcı öbür oturumu kapatmış olabilir).
+  // Restarts a loop that gave up: the user said "Yeniden bağlan" or the attempt limit was raised
+  // in the settings. elle: also tries after a permanent drop (the user may have closed the other session).
   yenidenBaglanmayiDene(elle) {
     if (this._kapatildi || this.bagli) return;
     if (this.kaliciKopma && !elle) return;
@@ -327,7 +327,7 @@ class SteamEngine {
     if (this._yenidenBaglanTimer) { clearTimeout(this._yenidenBaglanTimer); this._yenidenBaglanTimer = null; }
     const sinir = this.yenidenBaglanmaSiniri;
     if (sinir === 0 && !elle) return;
-    // Elle istendiyse sınır 0 (kapalı) olsa da bir deneme yapılır.
+    // If requested by hand one attempt is made even when the limit is 0 (off).
     if (sinir === 0) {
       this._yenidenBaglanDeneme = 1;
       this._durumBildir('baglaniyor', { deneme: 1, bekleMs: 1000 });
@@ -341,8 +341,8 @@ class SteamEngine {
     this._yenidenBaglanmayiPlanla();
   }
 
-  // Nabiz: "bagliyim" diyoruz ama oyunlar gercekten acik mi? steam-user'in kendi
-  // durumu ile bizim beklentimiz ayrisabiliyor (sessiz kopma). 60 saniyede bir bak.
+  // Heartbeat: we say "I am connected" but are the games really open? steam-user's own
+  // state and our expectation can diverge (silent drop). Look every 60 seconds.
   _nabziBaslat() {
     if (this._nabizTimer) return;
     this._nabizTimer = setInterval(() => {
@@ -354,7 +354,7 @@ class SteamEngine {
         this._yenidenBaglanmayiPlanla();
         return;
       }
-      // Oyun acik olmasi gerekirken kapaliysa tekrar gonder (ucuz, yan etkisiz)
+      // If the game should be open but is closed, send it again (cheap, no side effects)
       if (this.bagli && this._playing && this._playing.length) {
         try { this.user.gamesPlayed(this._playing); } catch (_) {}
       }
@@ -366,14 +366,14 @@ class SteamEngine {
     if (this._yenidenBaglanTimer) { clearTimeout(this._yenidenBaglanTimer); this._yenidenBaglanTimer = null; }
   }
 
-  // Oyun adi rozet sayfasinda JavaScript dizgi kacisiyla gomulu gelir:
+  // The game name arrives in the badge page embedded with JavaScript string escapes:
   //   ShowCardDropInfo( &quot;Need for Speed™ Heat&quot;, ... )
-  // Hem HTML varliklarini hem \uXXXX / \" / \\ kaciislarini cozmek gerekiyor, yoksa
-  // arayuzde "Need for Speed™" gibi ham metin gorunuyordu.
+  // Both HTML entities and \uXXXX / \" / \\ escapes have to be decoded, otherwise the
+  // interface showed raw text like "Need for Speed™".
   static decodeOyunAdi(ham) {
     if (!ham) return '';
     let s = String(ham);
-    // Sayisal varliklar: &#174; (R) , &#8482; (TM) , &#x2122; ...
+    // Numeric entities: &#174; (R) , &#8482; (TM) , &#x2122; ...
     s = s.replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
     s = s.replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
     s = s.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
@@ -385,15 +385,15 @@ class SteamEngine {
 
   // Scrapes the badges page for games that still have card drops remaining.
   //
-  // DIKKAT: Steam, var olmayan sayfa numarasi istendiginde BOS sayfa dondurmuyor; son
-  // gecerli sayfayi (ya da 1. sayfayi) tekrar veriyor. Eski kod p=1..20 arasi kor donguyle
-  // gezip sadece "hic badge_row yok" durumunda duruyordu, bu yuzden ayni oyunlar 20 kez
-  // listeye ekleniyordu: 2 oyun -> 40 satir, 5 kart -> 100 kart gibi.
-  // Simdi sayfa sayisi sayfalama kutusundan okunuyor, ayrica ayni appid kumesi tekrar
-  // gelirse dongu kiriliyor ve sonuc appid uzerinden tekillestiriliyor.
-  // `detay` verilirse { oyunlar, bitenler } doner: bitenler, rozet satirinda "No card drops
-  // remaining" yazan oyunlar. Kart izleyicisi bir oyunu ancak Steam bunu SOYLEYINCE kuyruktan
-  // cikarir; listede gorunmemek tek basina "bitti" demek degildir (kazima eksik kalabilir).
+  // NOTE: when a page number that does not exist is requested Steam does not return an EMPTY page; it returns the last
+  // valid page (or page 1) again. The old code walked p=1..20 blindly and only stopped on "no badge_row at all",
+  // so the same games were added to the list 20 times:
+  // 2 games -> 40 rows, 5 cards -> 100 cards.
+  // Now the page count is read from the pagination box, the loop is also broken if the same appid set
+  // comes again, and the result is made unique by appid.
+  // If `detay` is given it returns { oyunlar, bitenler }: bitenler are the games whose badge row says "No card drops
+  // remaining". The card watcher only removes a game from the queue when Steam SAYS so;
+  // not appearing in the list alone does not mean "finished" (the scrape may be incomplete).
   async getDropGames(detay) {
     if (!this.cookies) throw new Error('web oturumu yok');
     const bulunan = new Map();          // appid -> { appid, name, remaining }
@@ -407,12 +407,12 @@ class SteamEngine {
       const html = await r.text();
 
       if (p === 1) {
-        // SAHIBININ GORUNUMU MU? Web oturumu dustugunde rozet sayfasi yine aciliyor (profil
-        // herkese acik), ama kart dusus bilgisi YOK. O sayfa "hicbir oyunda kart kalmamis"
-        // gibi okunur ve kart dusurme butun kuyrugu bitti sanirdi. Sayfadaki oturum kimligi
-        // bizimkiyle eslesmiyorsa sonuc kullanilmaz, web oturumu tazelenir.
-        // Steam bu degiskenin bicimini degistirirse kilitlenmeyelim: hic bulunamazsa sayfada
-        // sahibine ozel dusus metni olup olmadigina bakilir.
+        // IS IT THE OWNER'S VIEW? When the web session drops the badge page still opens (the profile is
+        // public) but there is NO card drop information. That page reads as "no game has cards left"
+        // and card farming would think the whole queue is done. If the session id on the page does not match
+        // ours the result is not used and the web session is refreshed.
+        // In case Steam changes the format of this variable we must not lock up: if nothing is found at all, we look
+        // for the owner-only drop text on the page.
         const oturum = html.match(/g_steamID\s*=\s*("?)(\d{17}|false)\1/);
         const sahibi = oturum
           ? oturum[2] === String(this.steamID)
@@ -421,13 +421,13 @@ class SteamEngine {
           try { this.user.webLogOn(); } catch (_) {}
           throw new Error(ceviri.t('Rozet sayfası oturum açılmadan geldi'));
         }
-        // Gercek sayfa sayisini ogren: sayfalama baglantilarindaki en buyuk p degeri.
+        // Learn the real page count: the largest p value in the pagination links.
         const sayfalar = [...html.matchAll(/[?&]p=(\d+)/g)].map((m) => +m[1]).filter((n) => n > 0 && n < 1000);
         if (sayfalar.length) sonSayfa = Math.max(...sayfalar);
       }
 
       const rows = html.split('class="badge_row');
-      if (rows.length <= 1) break;                 // gercekten bos sayfa
+      if (rows.length <= 1) break;                 // a truly empty page
 
       const buSayfa = [];
       for (const row of rows.slice(1)) {
@@ -435,22 +435,22 @@ class SteamEngine {
         if (!app) continue;
         buSayfa.push(app[1]);
         const appid = +app[1];
-        // TEKIL/COGUL: Steam tek kart kalinca "1 card drop remaining" yaziyor. Desen eskiden
-        // yalnizca "drops" ariyordu; son karti kalan oyun listeden dusuyor ve o kart hic
-        // toplanmiyordu. ASF de sayiyi bu yuzden metinden bagimsiz okuyor.
+        // SINGULAR/PLURAL: Steam writes "1 card drop remaining" when one card is left. The pattern used to
+        // look only for "drops"; a game with its last card left dropped off the list and that card was never
+        // collected. ASF reads the number independently of the text for the same reason.
         const drop = row.match(/(\d+)\s+card\s+drops?\s+remaining/i);
         if (!drop) {
           if (/No card drops remaining/i.test(row)) bitenler.add(appid);
           continue;
         }
-        if (bulunan.has(appid)) continue;           // ayni oyun ikinci kez sayilmasin
+        if (bulunan.has(appid)) continue;           // do not count the same game a second time
         const nm = row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;\s*,/)
           || row.match(/ShowCardDropInfo\(\s*&quot;([\s\S]*?)&quot;/);
         const name = nm ? SteamEngine.decodeOyunAdi(nm[1]) : ('App ' + appid);
         bulunan.set(appid, { appid, name: name || ('App ' + appid), remaining: +drop[1] });
       }
 
-      // Steam ayni sayfayi tekrar verdiyse dur (sayfalama okunamadigi durumlar icin emniyet).
+      // Stop if Steam returned the same page again (a safety net for when pagination could not be read).
       const imza = buSayfa.join(',');
       if (imza && imza === sonImza) break;
       sonImza = imza;
@@ -467,10 +467,10 @@ class SteamEngine {
     if (!sid) return Promise.reject(new Error('Steam oturumu yok'));
     const personas = () => new Promise((res) => this.user.getPersonas([sid], (err, p) => res(err ? null : (p && p[sid]))));
     const levels = () => new Promise((res) => this.user.getSteamLevels([sid], (err, l) => res(err ? null : (l && l[sid]))));
-    // Ozel adres BU CAGRIYA DAHIL DEGIL. Protokolden gelmiyor, profil sayfasindan
-    // cekiliyor ve Promise.all icindeyken tum profil cevabini kendi suresince bekletiyordu
-    // (olculen 75-350 ms, Steam yavasladiginda 8 saniyeye kadar). Isim, avatar ve seviye
-    // ekranda gorunmek icin bir web istegini beklememeli; ozel adresi arayuz ayrica ister.
+    // The custom address is NOT part of this call. It does not come from the protocol, it is
+    // fetched from the profile page and while it was inside Promise.all it held the whole profile reply for its own duration
+    // (measured 75-350 ms, up to 8 seconds when Steam is slow). Name, avatar and level
+    // must not wait for a web request to be shown on screen; the interface asks for the custom address separately.
     return Promise.all([personas(), levels()]).then(([p, level]) => ({
       steamID: sid,
       persona: (p && p.player_name) || this.persona || null,
@@ -479,10 +479,10 @@ class SteamEngine {
     }));
   }
 
-  // Ozel profil adresi (steamcommunity.com/id/<ad>). Protokol bu bilgiyi vermiyor;
-  // profilin XML ciktisinda <customURL> olarak duruyor. Kullanici bunu hic degistirmez,
-  // o yuzden oturum boyunca bir kez cekilip saklanir. Basarisiz olursa null doner ve
-  // arayuz "tanimli degil" gosterir - hicbir sey kirilmaz.
+  // Custom profile address (steamcommunity.com/id/<name>). The protocol does not give this;
+  // it is in the profile's XML output as <customURL>. The user never changes it,
+  // so it is fetched once per session and kept. If it fails it returns null and the
+  // interface shows "tanimli degil" - nothing breaks.
   async getVanityURL() {
     if (this._vanity !== undefined) return this._vanity;
     this._vanity = null;
@@ -511,7 +511,7 @@ class SteamEngine {
     return sep >= 0 ? raw.slice(sep + 2) : raw;
   }
 
-  // Full game library (for Saat Yükseltici's game picker) via the Steam Web API, authenticated
+  // Full game library (for the Hour Booster game picker) via the Steam Web API, authenticated
   // with the JWT embedded in the steamLoginSecure cookie from webLogOn (same token shape ASF uses).
   async getOwnedGames() {
     if (!this.cookies) throw new Error('web oturumu yok');
@@ -521,9 +521,9 @@ class SteamEngine {
     const r = await this._iste(url, {}, 'Oyun listesi');
     const j = await r.json();
     const games = (j.response && j.response.games) || [];
-    // Steam, profil gizliligi "Oyun ayrintilari: Gizli" ise BOS bir yanit dondurur; eskiden
-    // bu sessizce "0 oyun" olarak gorunuyor, kullanici kutuphanesinin neden bos oldugunu
-    // anlayamiyordu. Ayirt edip acik bir mesaj veriyoruz.
+    // When the privacy setting is "Game details: Private" Steam returns an EMPTY reply; this used to
+    // silently show up as "0 games" and the user could not tell why their library was empty.
+    // We tell it apart and give a clear message.
     if (!games.length) {
       const say = (j.response && typeof j.response.game_count === 'number') ? j.response.game_count : null;
       if (say === null || say === 0) {
@@ -574,8 +574,8 @@ class SteamEngine {
         dedupKey: key(a),                          // same classid+instanceid = visually identical item (duplicate)
         name: d.name,
         marketHashName: d.market_hash_name || null, // needed for priceoverview; null if not marketable
-        // 96x96 küçük kalıyordu (yüksek DPI ekranda bulanık, detay panelinde 150px kutuda eziliyor).
-        // Steam ekonomi CDN'i istenen boyutu üretir - 330x192 kart oranına uygun ve net.
+        // 96x96 was too small (blurry on a high DPI screen, squashed in a 150px box in the detail panel).
+        // Steam's economy CDN produces the requested size - 330x192 fits the card ratio and is sharp.
         iconUrl: d.icon_url ? `https://community.cloudflare.steamstatic.com/economy/image/${d.icon_url}/330x192` : null,
         tradable: !!d.tradable,
         marketable: !!d.marketable,
@@ -592,9 +592,9 @@ class SteamEngine {
   // clears after ~30s. main.js batches 20-at-a-time with a cooldown and caches to disk.
   // Returns null on 429 so the caller can retry that item later.
   async getPrice(marketHashName) {
-    // Fiyatlar HER ZAMAN hesabın cüzdan kurunda çekilir; arayüz de aynı kurla gösterir.
-    // Kur bilinmiyorsa TAHMİN YAPILMAZ - yanlış kurda çekilen tutarı doğru kurun
-    // simgesiyle göstermek, sayıları sessizce 40 kat şişirmek demekti.
+    // Prices are ALWAYS fetched in the account's wallet currency; the interface shows them in the same currency.
+    // If the currency is unknown NO GUESS IS MADE - showing an amount fetched in the wrong currency with the right
+    // currency's symbol meant silently inflating the numbers 40 times.
     const code = this.currencyCode();
     const cur = code && SteamEngine.CURRENCY[code];
     if (!cur) return { noCurrency: true };
@@ -614,11 +614,11 @@ class SteamEngine {
     };
   }
 
-  // GERÇEKLEŞMİŞ SATIŞ GEÇMİŞİ. Bir eşyanın "gerçek değeri" buradan çıkar: satıştaki
-  // ilanlar bağlayıcı değildir (tek kişi 999.999'a listeleyebilir, kimse almaz), oysa
-  // pricehistory Steam'in kaydettiği GERÇEK satışlardır - her kayıt o saat dilimindeki
-  // medyan satış fiyatı ve adedi. Tutarlar hesabın cüzdan kurundadır (uç nokta kur
-  // parametresi almaz, oturuma göre döner).
+  // REALISED SALE HISTORY. An item's "real value" comes from here: listings on sale
+  // are not binding (one person can list at 999,999 and nobody buys), whereas
+  // pricehistory holds the REAL sales Steam recorded - each record is the median sale price
+  // and quantity in that time slot. Amounts are in the account's wallet currency (the endpoint takes no currency
+  // parameter, it replies according to the session).
   async getPriceHistory(marketHashName) {
     if (!this.cookies) throw new Error('web oturumu yok');
     const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
@@ -628,7 +628,7 @@ class SteamEngine {
     const j = await r.json().catch(() => null);
     if (!j || !j.success || !Array.isArray(j.prices) || !j.prices.length) return null;
 
-    // Steam tarihi "Jul 30 2026 01: +0" biçiminde veriyor - sondaki saat ekini atıp ayrıştırıyoruz.
+    // Steam gives the date as "Jul 30 2026 01: +0" - we drop the trailing hour suffix and parse it.
     const parseTs = (s) => {
       const m = String(s).match(/^(\w{3})\s+(\d{1,2})\s+(\d{4})\s+(\d{1,2})/);
       if (!m) return NaN;
@@ -639,8 +639,8 @@ class SteamEngine {
     })).filter((p) => Number.isFinite(p.price) && p.price > 0);
     if (!points.length) return null;
 
-    // Adetle AĞIRLIKLI medyan: 100 adet 0,30'dan satılıp 1 adet 50'den satıldıysa
-    // gerçek piyasa 0,30'dur. Düz ortalama tek bir uç satıştan sapar, medyan sapmaz.
+    // Quantity-WEIGHTED median: if 100 units sold at 0.30 and 1 unit at 50,
+    // the real market is 0.30. A plain average swings with a single outlier sale, the median does not.
     const weightedMedian = (list) => {
       const arr = list.filter((p) => p.qty > 0).sort((a, b) => a.price - b.price);
       if (!arr.length) return null;
@@ -666,7 +666,7 @@ class SteamEngine {
     };
     const last = points[points.length - 1];
     const allVol = points.reduce((s, p) => s + p.qty, 0);
-    // 30 gün yoksa 90, o da yoksa tüm zamanlar - az işlem gören eşyalarda da bir değer çıksın
+    // if there is no 30 days use 90, if not that then all time - so even items that trade rarely get a value
     const stats = windowStats(30) || windowStats(90) || {
       days: 0, volume: allVol, median: weightedMedian(points),
       avg: allVol ? points.reduce((s, p) => s + p.price * p.qty, 0) / allVol : null,
@@ -677,26 +677,26 @@ class SteamEngine {
     return {
       last: last.price, lastDate: last.ts || null, lastQty: last.qty,
       totalVolume: allVol,
-      stats,                                   // gerçek satışlardan çıkan değer
+      stats,                                   // the value derived from the real sales
       recent: points.slice(-12).map((p) => ({ price: p.price, qty: p.qty, ts: p.ts })),
-      series: points.slice(-180).map((p) => [p.ts, p.price, p.qty]),   // küçük grafik için
+      series: points.slice(-180).map((p) => [p.ts, p.price, p.qty]),   // for the small chart
     };
   }
 
-  // ================== SİPARİŞ DEFTERİ ==================
-  // Steam pazar listeleme sayfasını 2026'da yeni bir SSR arayüzüne taşıdı. Eski yol
-  // (`Market_LoadOrderSpread(item_nameid)` + `itemordershistogram` uç noktası) ARTIK YOK:
-  // sayfada o script bloğu bulunmuyor ve `/render/?format=json` HTML döndürüyor. Bunun
-  // yerine yeni sayfa, sipariş defterini doğrudan HTML'e basıyor:
+  // ================== ORDER BOOK ==================
+  // In 2026 Steam moved the market listing page to a new SSR interface. The old way
+  // (`Market_LoadOrderSpread(item_nameid)` + the `itemordershistogram` endpoint) IS GONE:
+  // that script block is not on the page and `/render/?format=json` returns HTML. Instead,
+  // the new page prints the order book straight into the HTML:
   //
-  //   "4 for sale starting at $22.57"      + <table> Price/Quantity satırları
-  //   "6 requests to buy at $0.04 or lower" + <table> Price/Quantity satırları
+  //   "4 for sale starting at $22.57"      + <table> Price/Quantity rows
+  //   "6 requests to buy at $0.04 or lower" + <table> Price/Quantity rows
   //
-  // Miktarlar kümülatif DEĞİL, fiyat başına gerçek adet. CSS sınıf adları karıştırılmış
-  // (APEAY0rnAbo- gibi) ve her dağıtımda değişir, bu yüzden sınıfa göre değil YAPIYA göre
-  // ayrıştırıyoruz: tabloları bul, her tabloyu kendinden önce gelen özet cümlesine göre
-  // "satış" ya da "alım" diye sınıflandır. Sayfa giriş gerektirmiyor ama çerez varsa
-  // tutarlar hesabın kendi kurunda gelir.
+  // Quantities are NOT cumulative, they are the real count per price. The CSS class names are scrambled
+  // (like APEAY0rnAbo-) and change on every deploy, so we parse by STRUCTURE, not by class:
+  // find the tables and classify each table as "sell" or "buy" by the summary sentence before it.
+  // The page does not need a login but if a cookie is present
+  // the amounts come in the account's own currency.
   async getItemOrders(marketHashName) {
     const code = this.currencyCode();
     if (!code) return { noCurrency: true };
@@ -704,8 +704,8 @@ class SteamEngine {
     const r = await fetch(url, {
       headers: {
         Cookie: this.cerezBasligi(),
-        // Özet cümlelerini İngilizce yakalayabilmek için dil sabitleniyor; tarayıcı benzeri
-        // bir User-Agent olmadan Steam sayfayı farklı biçimde döndürebiliyor.
+        // The language is pinned so that the summary sentences can be caught in English; without a browser-like
+        // User-Agent Steam can return the page in a different form.
         'Accept-Language': 'en-US,en;q=0.9',
         'User-Agent': SteamEngine.UA,
       },
@@ -717,10 +717,10 @@ class SteamEngine {
     const strip = (x) => String(x).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
     const tables = [...html.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/g)];
     if (!tables.length) {
-      // Tablo yoksa üç olasılık var; hangisi olduğunu söyleyebiliyoruz:
-      //   - sayfa başlığı genel "Market Item" ise böyle bir pazar öğesi yok (ad değişmiş olabilir)
-      //   - "no listings" yazıyorsa öğe var ama satışta hiç ilan yok
-      //   - başka bir şeyse sayfa yapısı beklenenden farklı (Steam yine değiştirmiş olabilir)
+      // If there is no table there are three possibilities, and we can tell which one it is:
+      //   - if the page title is the generic "Market Item" there is no such market item (the name may have changed)
+      //   - if it says "no listings" the item exists but nothing is on sale
+      //   - anything else means the page structure differs from what was expected (Steam may have changed it again)
       const duz = strip(html);
       const baslik = (html.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || '';
       if (/^\s*Market Item\b/i.test(baslik)) {
@@ -756,9 +756,9 @@ class SteamEngine {
     }
     if (!sell.length && !buy.length) return { error: 'sipariş defteri satırları okunamadı' };
 
-    // KUR DOĞRULAMASI. Sayfa oturuma göre kur seçiyor; beklediğimizden farklı bir kurda
-    // geldiyse sayıyı yanlış simgeyle göstermektense açıkça belirtiyoruz (daha önce tam
-    // olarak bu tür bir uyumsuzluk tutarları 40 kat şişirmişti).
+    // CURRENCY CHECK. The page picks the currency by session; if it came in a currency different from
+    // what we expected we say so openly instead of showing the number with the wrong symbol (a mismatch of exactly
+    // this kind once inflated the amounts 40 times).
     const beklenen = SteamEngine.SYMBOL[code];
     if (ornekRaw && beklenen && !String(ornekRaw).includes(beklenen)) {
       return { error: ceviri.tf('pazar sayfası # dışında bir kurda geldi', code) + ' (' + ornekRaw + ')' };
@@ -794,8 +794,8 @@ class SteamEngine {
       body,
     });
     const j = await r.json().catch(() => null);
-    // Hata ayrintisi korunur: ana surec Steam'in mesajina ve HTTP durumuna bakip "limit"
-    // (dur), "atla" (bu oge olmaz, digerine gec) ya da genel hata diye ayirir.
+    // The error detail is kept: the main process looks at Steam's message and the HTTP status and sorts it as "limit"
+    // (stop), "atla" (this item cannot be listed, move on to the next) or a general error.
     if (!j) {
       const e = new Error(ceviri.tf('Pazar yanıtı okunamadı (HTTP #)', r.status));
       e.httpDurum = r.status;
@@ -812,9 +812,9 @@ class SteamEngine {
 
   // Low-level: encode `msgType`→buffer, send EMsg, decode the job-response buffer with `respType`.
   // We do the protobuf encode/decode ourselves because steam-user doesn't map these EMsgs.
-  // Protokol istegi. Steam bazen tek bir istegi hic cevaplamiyor; eskiden bu dogrudan
-  // "Steam stat yanıtı zaman aşımı" olarak yuzeye cikip basarim sayfasini bos birakiyordu.
-  // Artik gecici sayilip bir kez daha deneniyor ve mesaj ne yapilmasi gerektigini soyluyor.
+  // Protocol request. Steam sometimes does not answer a single request at all; this used to surface directly as
+  // "Steam stat yanıtı zaman aşımı" and leave the achievements page empty.
+  // Now it counts as transient and is tried once more, and the message says what to do.
   _sendRecvTek(emsg, msgType, obj, respType, timeoutMs) {
     return new Promise((resolve, reject) => {
       const t = setTimeout(() => reject(Object.assign(new Error('zaman aşımı'), { zamanAsimi: true })), timeoutMs);
@@ -905,12 +905,12 @@ class SteamEngine {
           name: loc(disp.name) || b.name || '?',
           desc: loc(disp.desc) || '',
           icon: disp.icon || null, iconGray: disp.icon_gray || null,
-          // Steam sema alanlari:
-          //   permission bit 0 (1) = gizli basarim (acilana kadar aciklamasi saklanir)
-          //   permission bit 1 (2) = KORUMALI - yalnizca oyun sunucusu yazabilir.
-          // Korumali olanlari istemciden yazmak her zaman EResult 8 (InvalidParam) doner.
-          // Eskiden bu alan tamamen yok sayiliyordu (`? false : false` olu koduydu), bu yuzden
-          // kullanici sebebini anlamadan hata aliyordu.
+          // Steam schema fields:
+          //   permission bit 0 (1) = hidden achievement (its description is hidden until unlocked)
+          //   permission bit 1 (2) = PROTECTED - only the game server can write it.
+          // Writing protected ones from the client always returns EResult 8 (InvalidParam).
+          // This field used to be ignored completely (it was dead code, `? false : false`), so the
+          // user got an error without understanding why.
           hidden: (+(b.permission || 0) & 1) === 1,
           korumali: (+(b.permission || 0) & 2) === 2,
         });
@@ -930,8 +930,8 @@ class SteamEngine {
       const j = await r.json().catch(() => null);
       const list = (j && j.achievementpercentages && j.achievementpercentages.achievements) || [];
       const map = {};
-      // DİKKAT: Steam `percent` alanını STRING döndürüyor (ör. "74.1"). Sayıya çevirmezsek
-      // aşağıdaki `typeof pct === 'number'` kontrolü hep false olur ve nadirlik null kalır.
+      // NOTE: Steam returns the `percent` field as a STRING (e.g. "74.1"). If we do not convert it to a number
+      // the `typeof pct === 'number'` check below is always false and the rarity stays null.
       list.forEach((a) => {
         const n = parseFloat(a.percent);
         if (!isNaN(n)) map[a.name] = n;
@@ -961,8 +961,8 @@ class SteamEngine {
   // Rarity % and unlock timestamps are best-effort extras from the Web API; null when unavailable.
   async getAchievements(appid, force) {
     if (force) this.invalidateStats(appid);
-    // Aynı önbellek setAchievements ile paylaşılır: yazdığımız değerler burada da görünür,
-    // yani sayfaya geri dönünce açtığımız başarımın tiki kaybolmaz.
+    // The same cache is shared with setAchievements: the values we wrote show up here too,
+    // so when you come back to the page the tick of the achievement we unlocked is not lost.
     const raw = await this._statsCached(appid);
     if (!raw || !raw.defs.length) return null;
     const iconUrl = (f) => (f ? `https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/${appid}/${f}` : null);
@@ -972,18 +972,18 @@ class SteamEngine {
     ]);
     const achievements = raw.defs.map((d) => {
       const val = raw.statValues.get(d.statId >>> 0) || 0;
-      // korumali bayragi arayuze tasinir (asagidaki nesneye ekleniyor)
+      // the korumali flag is carried to the interface (it is added to the object below)
       const achieved = !!((val >> d.bit) & 1);
       const pct = rarityMap[d.apiName];
       return {
         apiName: d.apiName, name: d.name, desc: d.desc, achieved,
         icon: iconUrl(achieved ? d.icon : (d.iconGray || d.icon)),
         unlockTime: unlockMap[d.apiName] || null,
-        // Bazı oyunlarda (ör. CS2) Steam bu uç noktadan yalnızca birkaç başarım döndürür;
-        // eşleşmeyenlerde nadirlik bilinmiyor olarak kalır - uydurma değer üretilmez.
+        // In some games (e.g. CS2) Steam returns only a few achievements from this endpoint;
+        // for the ones that do not match the rarity stays unknown - no made-up value is produced.
         rarityPct: Number.isFinite(pct) ? pct : null,
-        // G4: yalnizca oyun sunucusunun yazabildigi basarim. Arayuz bunu isaretler ve
-        // toplu islemde secilemez yapar; gondermek her zaman EResult 8 donerdi.
+        // G4: an achievement that only the game server can write. The interface marks it and
+        // makes it unselectable in bulk operations; sending it would always return EResult 8.
         korumali: !!d.korumali,
         gizli: !!d.hidden,
       };
@@ -993,9 +993,9 @@ class SteamEngine {
 
   // Unlock/lock achievements headless (ASF-style: CMsgClientStoreUserStats2). `changes` is
   // [{apiName, unlock:true|false}]. Modifies the account permanently (reversible by re-locking).
-  // Şema+değerler önbelleği: her tek başarım işleminde ClientGetUserStats'i baştan çağırmak
-  // her tıkta saniyelerce bekletiyordu. Şema değişmez; stat değerlerini yazdıktan sonra
-  // önbellekte yerel olarak güncelliyoruz, böylece arka arkaya işlemler anında oluyor.
+  // Schema + values cache: calling ClientGetUserStats from scratch on every single achievement operation
+  // made every click wait for seconds. The schema does not change; after writing stat values
+  // we update them locally in the cache, so back to back operations are instant.
   async _statsCached(appid) {
     this._statsCache = this._statsCache || new Map();
     const hit = this._statsCache.get(appid);
@@ -1008,15 +1008,15 @@ class SteamEngine {
     if (this._statsCache) { if (appid == null) this._statsCache.clear(); else this._statsCache.delete(appid); }
   }
 
-  // G5: Steam bazi oyunlarda istatistik yazmayi ancak o oyun "oynaniyor" gorunurken
-  // kabul ediyor. Yazma suresince oyunu acar, isi bitince onceki duruma geri doner.
-  // Kart/saat isi calisiyorsa o listeye EKLENIR, uzerine yazilmaz.
+  // G5: for some games Steam only accepts writing statistics while that game looks "being played".
+  // It opens the game for the duration of the write and returns to the previous state when done.
+  // If a card/hour job is running it is ADDED to that list, not written over it.
   async _oyunuAcikTut(appid, isFn) {
     const oncekiler = (this._playing || []).slice();
     const zatenAcik = oncekiler.includes(+appid);
     if (!zatenAcik) {
       try { this.user.gamesPlayed(oncekiler.concat([+appid])); } catch (_) {}
-      // Steam'in "oynuyor" durumunu islemesi icin kisa bir an gerekiyor
+      // Steam needs a short moment to process the "playing" state
       await new Promise((r) => setTimeout(r, 1200));
     }
     try {
@@ -1036,8 +1036,8 @@ class SteamEngine {
     const raw = await this._statsCached(appid);
     if (!raw) throw new Error(ceviri.t('Bu oyunun başarım şeması yok'));
     const byName = new Map(raw.defs.map((d) => [d.apiName, d]));
-    // G4: korumali basarimlari gondermeden once ayikla - Steam bunlari zaten reddediyor,
-    // gondermek sadece hata sayacini sisiriyor ve donguyu bosuna mesgul ediyor.
+    // G4: filter out protected achievements before sending - Steam rejects them anyway,
+    // sending them only inflates the error counter and keeps the loop busy for nothing.
     const korumaliOlanlar = changes.filter((c) => {
       const d = byName.get(c.apiName);
       return d && d.korumali;
@@ -1064,24 +1064,24 @@ class SteamEngine {
       }, Schema.CMsgClientStoreUserStatsResponse);
     const eresult = resp && typeof resp.eresult !== 'undefined' ? resp.eresult : 2;
     if (eresult !== 1) {
-      this.invalidateStats(appid);   // crc bayatlamış olabilir, sonraki denemede taze çek
+      this.invalidateStats(appid);   // the crc may have gone stale, fetch fresh on the next attempt
       throw new Error(ceviri.tf('Steam kaydı reddetti (EResult #)', eresult));
     }
-    // Yazdığımız değerleri önbellekte de güncelle ki sıradaki işlem doğru tabandan hesaplasın
+    // Update the values we wrote in the cache too so the next operation computes from the right base
     dirty.forEach((val, statId) => raw.statValues.set(statId >>> 0, val));
     return { ok: true, changed: changes.length };
   }
 
-  // Ayarlar > Gizlilik'teki "Çevrimdışı görün" anahtarı bağlantı sırasında zaten uygulanır
-  // (bkz logOn); bu, oturum AÇIKKEN canlı değiştirmek için (settings:set anında çağırır).
+  // The "Çevrimdışı görün" switch under Settings > Privacy is already applied during the connection
+  // (see logOn); this is for changing it live while the session is OPEN (settings:set calls it instantly).
   setOfflineMode(offline) {
     this._offline = !!offline;
     this._applyPersona();
   }
 
-  // "Oyun adını gizle": Steam, oynanan oyunu çevrimiçiyken herkese gösterir; gizlemenin tek
-  // gerçek yolu görünmez duruma geçmek. Bu yüzden bu anahtar SADECE oyun oynarken görünmez
-  // yapar (çevrimdışı modun aksine, boştayken çevrimiçi kalırsın). Kart düşüşü etkilenmez.
+  // "Oyun adını gizle": Steam shows the game being played to everyone while you are online; the only
+  // real way to hide it is to go invisible. So this switch makes you invisible ONLY while a game is
+  // being played (unlike offline mode, you stay online when idle). Card drops are not affected.
   applyPrivacy(offline, hideGameName) {
     this._offline = !!offline;
     this._hideGameName = !!hideGameName;
@@ -1092,22 +1092,22 @@ class SteamEngine {
     try { this.user.setPersona(hidden ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online); } catch (_) {}
   }
 
-  // ---- OYNANAN OYUNLAR ----
-  // Aynı hesapta birden fazla iş aynı anda oyun açabiliyor: kart düşürme, saat yükseltme,
-  // Gerçekçi Mod. Eskiden her iş motorun TEK listesini kendi listesiyle değiştiriyordu: saat
-  // yükseltme sürerken kart düşürmenin sıradaki oyuna geçmesi yükseltilen oyunların hepsini
-  // kapatıyordu, tersi de. Artık her iş kendi listesini adıyla ("sahip") tutar; Steam'e hepsinin
-  // birleşimi gider, en fazla 32 oyun (Steam üstünü saymıyor). Sıra: SAHIP_SIRASI.
+  // ---- GAMES BEING PLAYED ----
+  // More than one job on the same account can open games at the same time: card farming, hour boosting,
+  // Realistic Mode. Each job used to replace the engine's SINGLE list with its own: while hour boosting
+  // was running, card farming moving to the next game closed all the boosted games,
+  // and the other way round. Now each job keeps its own list by name ("sahip"); the union of all of them
+  // goes to Steam, at most 32 games (Steam does not count beyond that). Order: SAHIP_SIRASI.
   play(appids, sahip) {
     this._sahipler.set(sahip || 'genel', (appids || []).slice());
     this._oyunlariGonder();
   }
-  // sahip verilirse yalnızca o işin oyunları kapanır; verilmezse hepsi (çıkış, bağlantı kesme).
+  // If sahip is given only that job's games are closed; if not, all of them (exit, disconnect).
   stop(sahip) {
     if (sahip) this._sahipler.delete(sahip); else this._sahipler.clear();
     this._oyunlariGonder();
   }
-  // Bir işin oyunlarından 32 sınırına sığıp gerçekten açık olanlar.
+  // Of a job's games, the ones that fit the 32 limit and are really open.
   calanlar(sahip) {
     const acik = new Set(this._playing);
     return (this._sahipler.get(sahip) || []).filter((id) => acik.has(id));
@@ -1128,21 +1128,21 @@ class SteamEngine {
   }
   get playing() { return this._playing; }
 
-  // ================== SOHBET ==================
-  // Steam sohbeti istemci gerektirmiyor: node-steam-user'in chat bileseni arkadas
-  // listesini, gecmisi ve gonderimi protokol uzerinden veriyor. Gelen mesaj zaten
-  // 'friendMessage' olayiyla yakalaniyordu (bkz. yukarisi), eksik olan sadece arayuzdu.
+  // ================== CHAT ==================
+  // Steam chat does not need the client: node-steam-user's chat component gives the friend
+  // list, the history and sending over the protocol. Incoming messages were already caught
+  // by the 'friendMessage' event (see above), only the interface was missing.
   //
-  // DIKKAT: burada Steam'in GRUP sohbetleri yok, yalnizca birebir arkadas mesajlari.
-  // Grup sohbeti ayri bir kavram (chatroom groups) ve ayri bir ekran ister.
+  // NOTE: there are no Steam GROUP chats here, only one-to-one friend messages.
+  // Group chat is a separate concept (chatroom groups) and needs a screen of its own.
 
-  // Arkadas listesi. myFriends steamID -> iliski turu veriyor; 3 = karsilikli arkadas.
-  // Isim ve avatar getPersonas'tan gelir, tek istekte hepsi birden.
+  // Friend list. myFriends gives steamID -> relationship type; 3 = mutual friends.
+  // Name and avatar come from getPersonas, all in a single request.
   async getFriends() {
     const iliskiler = this.user.myFriends || {};
     const idler = Object.keys(iliskiler).filter((id) => iliskiler[id] === 3);
     if (!idler.length) return [];
-    // getPersonas cok sayida id ile yavasliyor; 100'luk gruplara boluyoruz.
+    // getPersonas gets slow with many ids; we split them into groups of 100.
     const kisiler = {};
     for (let i = 0; i < idler.length; i += 100) {
       const grup = idler.slice(i, i + 100);
@@ -1159,7 +1159,7 @@ class SteamEngine {
         steamid: id,
         persona: k.player_name || ceviri.tf('Kullanıcı #', id.slice(-4)),
         avatar: k.avatar_url_medium || k.avatar_url_icon || null,
-        // 0 = cevrimdisi, 1 = cevrimici, digerleri mesgul/uzakta vb.
+        // 0 = offline, 1 = online, others busy/away etc.
         durum: typeof k.persona_state === 'number' ? k.persona_state : 0,
         oyun: k.game_name || null,
       };
@@ -1169,7 +1169,7 @@ class SteamEngine {
     });
   }
 
-  // Son konusmalar: kiminle yazismisiz, en son ne zaman, kac okunmamis.
+  // Recent conversations: who we wrote with, when last, how many unread.
   async getConversations() {
     const r = await this.user.chat.getActiveFriendMessageSessions({}).catch(() => null);
     if (!r || !Array.isArray(r.sessions)) return [];
@@ -1180,7 +1180,7 @@ class SteamEngine {
     })).filter((s) => s.steamid);
   }
 
-  // Bir kisiyle olan yazisma. Steam en yeniden eskiye veriyor, arayuz icin ters cevriliyor.
+  // A conversation with one person. Steam gives newest to oldest, it is reversed for the interface.
   async getChatHistory(steamid, adet) {
     const r = await this.user.chat.getFriendMessageHistory(steamid, {
       maxCount: Math.max(1, Math.min(200, +adet || 50)),
@@ -1204,18 +1204,18 @@ class SteamEngine {
     return { ts: Date.now() };
   }
 
-  // Okundu isaretle - Steam'de de okunmus gorunsun, telefonda tekrar bildirim cikmasin.
+  // Mark as read - so it also shows as read on Steam and does not notify again on the phone.
   async markChatRead(steamid) {
     try { await this.user.chat.ackFriendMessage(steamid, new Date()); } catch (_) { /* onemsiz */ }
     return true;
   }
 
-  // "Yazıyor..." bildirimi. Karsi taraf gorsun diye; basarisiz olursa onemli degil.
+  // "Typing..." notification. So the other side sees it; if it fails it does not matter.
   sendTyping(steamid) {
     try { this.user.chat.sendFriendTyping(steamid); } catch (_) {}
   }
 
-  // Kasitli cikis: yeniden baglanma denemesi YAPILMAZ (G3 dongusuyle carpismasin diye).
+  // Deliberate exit: NO reconnect attempt is made (so it does not collide with the G3 loop).
   logOff() {
     this._kapatildi = true;
     this.bagli = false;
@@ -1224,31 +1224,31 @@ class SteamEngine {
   }
 }
 
-// Steam'in kendi ECurrencyCode enum'u (steam-user içinde geliyor) - kod<->isim çevirisi
-// buradan yapılıyor, elle liste tutmuyoruz.
-// Steam'in yeni SSR pazar sayfasi tarayici benzeri bir User-Agent bekliyor.
+// Steam's own ECurrencyCode enum (it comes inside steam-user) - code<->name conversion
+// is done from there, we keep no hand-written list.
+// Steam's new SSR market page expects a browser-like User-Agent.
 SteamEngine.UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
-// Yeniden denenmeyen kopmalar (EResult): InvalidPassword 5, AccessDenied 15, Revoked 26,
-// Expired 27 - giriş anahtarı geçersiz; LogonSessionReplaced 34 - aynı hesap başka bir
-// oturumla değiştirildi. LoggedInElsewhere (6) BURADA DEĞİL: kullanıcı başka yerde oyun
-// açınca gelir. Oyunlar 'force' olmadan bildirildiği için yeniden bağlanmak o oyunu kapatmaz;
-// Steam o sırada rölantiyi saymaz, oyun kapanınca nabız oyunları yeniden bildirir.
+// Drops that are not retried (EResult): InvalidPassword 5, AccessDenied 15, Revoked 26,
+// Expired 27 - the logon token is invalid; LogonSessionReplaced 34 - the same account was replaced by
+// another session. LoggedInElsewhere (6) is NOT HERE: it arrives when the user opens a game elsewhere.
+// Since the games are reported without 'force', reconnecting does not close that game;
+// Steam does not count idling at that time, and when the game closes the heartbeat reports the games again.
 SteamEngine.KALICI_KOPMA = new Set([5, 15, 26, 27, 34]);
-// 32 sınırı dolarsa önce hangi işin oyunları açık kalır: Gerçekçi Mod tek oyun açar ve
-// başarımlar o oyun açıkken yazılır; kart düşürme kart kazandırır; saat yükseltme en son.
+// Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
+// achievements are written while that game is open; card farming earns cards; hour boosting comes last.
 SteamEngine.SAHIP_SIRASI = ['gercekci', 'kart', 'saat', 'sirali', 'genel'];
 SteamEngine.CURRENCY = SteamUser.ECurrencyCode;
-// Steam fiyat metinlerini sayıya çevirir. Biçim para birimine göre değişiyor:
-//   "$1,084.65"  (virgül binlik, nokta ondalık)
-//   "1.084,65 TL" / "1.084,65€"  (nokta binlik, virgül ondalık)
-//   "1 084,65 pуб."  (boşluk binlik)
-//   "¥1,084"  (ondalık yok)
-// ESKİ ayrıştırıcı virgül-binlik biçimini çözemiyordu: "$1,084.65" -> 1.084 (1000 kat hata).
-// Kural: sondaki ayraç 1-2 basamak takip ediyorsa ONDALIKTIR, diğer tüm ayraçlar binliktir.
+// Converts Steam price texts to numbers. The format varies by currency:
+//   "$1,084.65"  (comma thousands, dot decimal)
+//   "1.084,65 TL" / "1.084,65€"  (dot thousands, comma decimal)
+//   "1 084,65 pуб."  (space thousands)
+//   "¥1,084"  (no decimals)
+// The OLD parser could not read the comma-thousands format: "$1,084.65" -> 1.084 (a 1000x error).
+// Rule: if the last separator is followed by 1-2 digits it is DECIMAL, all other separators are thousands.
 SteamEngine.parseMoney = (s) => {
   if (s == null) return null;
-  // Sondaki ayraçları at: "1 084,65 pуб." temizlenince "1084,65." kalıyor ve o son nokta
-  // ondalık sanılıp sayıyı bozuyordu.
+  // Drop the trailing separators: after cleaning "1 084,65 pуб." what is left is "1084,65." and that last dot
+  // was taken as a decimal and broke the number.
   const t = String(s).replace(/[^0-9.,]/g, '').replace(/[.,]+$/, '');
   if (!t) return null;
   const decPos = Math.max(t.lastIndexOf('.'), t.lastIndexOf(','));
@@ -1266,8 +1266,8 @@ SteamEngine.currencyName = (code) => {
   const hit = Object.keys(e).find((k) => e[k] === code && /^[A-Z]{3}$/.test(k));
   return hit || null;
 };
-// Desteklenen gösterim para birimleri (sembol + yerel biçim). Steam bunların hepsinde fiyat
-// verebiliyor; listede olmayan bir hesap kuruyla karşılaşırsak sembol yerine kod gösterilir.
+// Supported display currencies (symbol + local format). Steam can quote prices in all of these;
+// if we meet an account currency that is not in the list the code is shown instead of the symbol.
 SteamEngine.SYMBOL = {
   USD: '$', EUR: '€', GBP: '£', TRY: '₺', RUB: '₽', BRL: 'R$', JPY: '¥', CNY: '¥',
   CAD: 'CA$', AUD: 'A$', INR: '₹', UAH: '₴', PLN: 'zł', KZT: '₸', ARS: 'AR$', MXN: 'MX$',

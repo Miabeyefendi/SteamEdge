@@ -1,22 +1,22 @@
-// Steam pazar ucreti - Steam'in KENDI betigiyle hesaplanir.
+// Steam market fee - calculated with Steam's OWN script.
 //
-// Neden kendi formulumuz yok: satis sayfasinda kullanici ALICININ odeyecegi fiyati girer,
-// Steam'e ise SATICIYA kalacak tutar gonderilir. Aradaki ucreti Steam kendi betiginde
-// (economy_common.js) hesapliyor: yuzdeler, taban ucret, para birimine gore en kucuk adim ve
-// pazar alt siniri hesabin cuzdan bilgisinden (g_rgWalletInfo) geliyor. Eskiden burada sabit
-// %13 dusuluyordu; 1+1 sentlik taban ucret yuzunden ucuz kartlarda ilan, secilen fiyattan
-// %10-67 sapiyordu. Kural Aralik 2025'te degisti; elle yazilmis her formul yine eskir.
+// Why we have no formula of our own: on the sale page the user enters the price the BUYER pays,
+// while what gets sent to Steam is the amount the SELLER keeps. Steam computes the fee in between in its own
+// script (economy_common.js): the percentages, the base fee, the smallest step per currency and the
+// market floor come from the account's wallet info (g_rgWalletInfo). A fixed 13% used to be deducted
+// here; because of the 1+1 cent base fee, on cheap cards the listing deviated
+// 10-67% from the chosen price. The rule changed in December 2025; every hand-written formula goes stale again.
 //
-// Nasil: betik Steam'in kendi sunucusundan indirilir ve gorunmez, KUM HAVUZLU bir pencerede
-// calistirilir. Pencerenin Node erisimi, onyuklemesi, cerezi yoktur; yeni pencere acamaz,
-// baska adrese gidemez. Yani betik, kullanicinin tarayicisinda Steam'i actiginda calistigi
-// kosullardan daha kisitli bir ortamda calisiyor. Betik yalnizca Steam'in CDN'inden alinir.
+// How: the script is downloaded from Steam's own server and run in a hidden, SANDBOXED window.
+// The window has no Node access, no preload and no cookies; it cannot open new windows and
+// cannot navigate to another address. So the script runs in a more restricted environment than the one it runs in
+// when you open Steam in your browser. The script is only fetched from Steam's CDN.
 const { BrowserWindow, session } = require('electron');
 const https = require('https');
 
 const BETIK_URL = 'https://community.akamai.steamstatic.com/public/javascript/economy_common.js';
 const IZINLI_HOST = /^community\.(akamai|cloudflare|fastly)\.steamstatic\.com$/;
-const KAPATMA_MS = 5 * 60 * 1000;   // bir satis oturumu bittikten sonra pencere kapanir
+const KAPATMA_MS = 5 * 60 * 1000;   // the window closes after a sale session ends
 
 let pencere = null;
 let hazirlik = null;
@@ -51,8 +51,8 @@ function hazirla() {
   if (hazirlik && pencere && !pencere.isDestroyed()) return hazirlik;
   hazirlik = (async () => {
     const metin = await betikIndir(BETIK_URL);
-    // Bicim kontrolu: Steam dosyayi degistirip islevleri kaldirirsa sessizce yanlis hesap
-    // yapmak yerine satis durur ve sebebi soylenir.
+    // Format check: if Steam changes the file and removes the functions, the sale stops and says why
+    // instead of silently computing wrongly.
     if (!/function\s+GetItemPriceFromTotal\s*\(/.test(metin) || !/function\s+GetTotalWithFees\s*\(/.test(metin)) {
       throw new Error('Steam ücret betiği beklenen biçimde değil');
     }
@@ -77,9 +77,9 @@ function hazirla() {
   return hazirlik;
 }
 
-// cuzdan: g_rgWalletInfo'nun ucret alanlari. toplamlar: alicinin odeyecegi tutarlar (kurus).
-// Donus: [{ toplam, satici, alici }] - satici: Steam'e gonderilecek tutar, alici: o tutarla
-// verilen ilanin pazarda gorunecek fiyati (Steam'in kendi yuvarlamasiyla).
+// cuzdan: the fee fields of g_rgWalletInfo. toplamlar: the amounts the buyer pays (cents).
+// Returns: [{ toplam, satici, alici }] - satici: the amount to send to Steam, alici: the price at which a listing
+// made with that amount will appear on the market (with Steam's own rounding).
 async function hesapla(cuzdan, toplamlar) {
   await hazirla();
   if (kapatZamani) clearTimeout(kapatZamani);

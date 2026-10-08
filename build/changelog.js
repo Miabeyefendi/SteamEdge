@@ -1,15 +1,15 @@
-/* Kokteki CHANGELOG.md'yi build/changelog/<surum>.md dosyalarindan derler.
+/* /* Builds the root CHANGELOG.md from the build/changelog/<version>.md files.
  *
- * Neden betik oldu: bu adim elle yapiliyordu ve 1.1.5 ile 1.1.6 turlarinda unutuldu.
- * Kok changelog iki surum geride kaldi, kimse fark etmedi. Artik `npm run changelog`
- * eksik olani bulup ekliyor, zaten yazili olana dokunmuyor.
+ *  * Why it became a script: this step was done by hand and was forgotten in rounds 1.1.5 and 1.1.6.
+ *  * The root changelog stayed two versions behind and nobody noticed. Now `npm run changelog`
+ *  * finds what is missing and adds it, and leaves what is already written alone.
  *
- * Bicim: her giris "## [surum](releases/tag/surum)" basligi, altinda surum notunun
- * govdesi. Govdeden atilanlar: "# SteamEdge x.y.z" basligi, kapanistaki
- * "**As always:**" satiri ve icerigi bosalmis son "###" basligi.
+ *  * Format: each entry is a "## [version](releases/tag/version)" heading with the body of the release note
+ *  * under it. Dropped from the body: the "# SteamEdge x.y.z" heading, the closing
+ *  * "**As always:**" line and a last "###" heading whose content was emptied.
  *
- * Calistirma:  npm run changelog
- *              npm run changelog -- --kontrol   (yazmaz, eksik varsa 1 doner)
+ *  * Run:  npm run changelog
+ *  *       npm run changelog -- --kontrol   (does not write, returns 1 if something is missing)
  */
 const fs = require('fs');
 const path = require('path');
@@ -20,7 +20,7 @@ const DIZIN = path.join(__dirname, 'changelog');
 const URL = 'https://github.com/Miabeyefendi/SteamEdge/releases/tag/';
 const KONTROL = process.argv.includes('--kontrol');
 
-// "1.10.2" > "1.9.0" olmali; metin siralamasi bunu yanlis yapiyor.
+// "1.10.2" must be greater than "1.9.0"; text ordering gets this wrong.
 const sayisal = (v) => v.split('.').map(Number);
 function karsilastir(a, b) {
   const x = sayisal(a), y = sayisal(b);
@@ -30,10 +30,10 @@ function karsilastir(a, b) {
 
 function govde(surum) {
   let s = fs.readFileSync(path.join(DIZIN, surum + '.md'), 'utf8');
-  s = s.replace(/^#\s+SteamEdge[^\n]*\n/, '');            // baslik satiri
-  s = s.replace(/\n\*\*As always:\*\*[^\n]*\n?/, '\n');   // kapanis satiri
+  s = s.replace(/^#\s+SteamEdge[^\n]*\n/, '');            // heading line
+  s = s.replace(/\n\*\*As always:\*\*[^\n]*\n?/, '\n');   // closing line
   s = s.trim();
-  s = s.replace(/\n+###[^\n]*$/, '');                     // icerigi bosalmis son baslik
+  s = s.replace(/\n+###[^\n]*$/, '');                     // last heading whose content was emptied
   return s.trim();
 }
 
@@ -54,8 +54,8 @@ if (KONTROL) {
   process.exit(1);
 }
 
-// Yeni girisler, halihazirda yazili en yeni girisin ustune eklenir. Hic giris yoksa
-// dosyanin sonuna. Basliktaki giris metni korunur.
+// New entries are added above the newest entry already written. If there is no entry at all, to the end
+// of the file. The entry text in the heading is kept.
 const ilkBaslik = mevcut.search(/^## \[/m);
 const yer = ilkBaslik < 0 ? mevcut.length : ilkBaslik;
 const blok = eksik.map((v) => '## [' + v + '](' + URL + v + ')\n\n' + govde(v)).join('\n\n');

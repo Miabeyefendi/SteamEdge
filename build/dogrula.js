@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * SteamEdge dogrulama takimi.  Kullanim: npm run dogrula
+ *  * SteamEdge verification suite.  Usage: npm run dogrula
  *
- * Derleme oncesi calisan, bagimsiz kontroller. Test cercevesi yok: her kontrol
- * kaynagi okuyup bir sey ISPATLAR ya da hangi satirda kirildigini soyler.
+ *  * Independent checks that run before the build. No test framework: each check reads the
+ *  * source and PROVES something or says on which line it broke.
  *
- *   1. Sozdizimi        - her .js dosyasi ayristirilabiliyor mu
- *   2. Kayip id         - JS'in aradigi id HTML'de var mi
- *   3. Tekrarlanan id   - ayni id iki kez tanimlanmis mi
- *   4. Etiket dengesi   - sayfa parcalarinda acilmamis/kapanmamis <div> var mi
- *   5. IPC eslesmesi    - preload'un cagirdigi kanal main.js'te tanimli mi
- *   6. Uzun cizgi       - em/en dash hicbir yerde bulunmamali
- *   7. Yapimci izi      - yapimci disinda bir arac/kisi adi kaynaga sizmis mi
+ *  *   1. Syntax           - can every .js file be parsed
+ *  *   2. Missing id       - is the id the JS looks for present in the HTML
+ *  *   3. Duplicate id     - is the same id defined twice
+ *  *   4. Tag balance      - is there an unopened/unclosed <div> in the page fragments
+ *  *   5. IPC match        - is the channel preload calls defined in main.js
+ *  *   6. Long dash        - an em/en dash must not be found anywhere
+ *  *   7. Author trace     - has a tool/person name other than the author leaked into the source
  */
 const fs = require('fs');
 const path = require('path');
@@ -37,13 +37,13 @@ function dosyalar(dizin, uzanti, cikti = []) {
   return cikti;
 }
 const gorece = (p) => path.relative(KOK, p).replace(/\\/g, '/');
-// Bu dosyanin kendisi taranmaz: aradigi desenleri kendi icinde tasiyor, her calisirken
-// kendini yakalardi.
+// This file itself is not scanned: it carries the patterns it looks for, it would
+// catch itself on every run.
 const kendisi = (p) => gorece(p) === 'build/dogrula.js';
 const oku = (p) => fs.readFileSync(p, 'utf8');
 const satirNo = (metin, konum) => metin.slice(0, konum).split('\n').length;
 
-// ---- 1. Sozdizimi ----
+// ---- 1. Syntax ----
 bolum('1. Sozdizimi');
 const jsDosyalar = dosyalar(KOK, '.js');
 jsDosyalar.forEach((f) => {
@@ -52,13 +52,13 @@ jsDosyalar.forEach((f) => {
 });
 console.log('  ' + jsDosyalar.length + ' dosya kontrol edildi');
 
-// ---- 2 + 3. id kontrolleri ----
+// ---- 2 + 3. id checks ----
 bolum('2. Kayip id');
 const htmlDosyalar = dosyalar(KOK, '.html');
 const tumIdler = new Set();
-// Tekrar kontrolu BELGE bazinda: giris ekrani ile ana pencere ayri belgeler, ikisinde de
-// pencere dugmesi id'leri (min/max/close) bulunmasi dogru. Cakisma ancak ayni belgede sorun.
-// Ana pencere sayfa parcalarini main.html'e enjekte ettigi icin onlar tek belge sayilir.
+// The duplicate check is per DOCUMENT: the login screen and the main window are separate documents, and it is correct for both to have
+// the window button ids (min/max/close). A clash is only a problem in the same document.
+// Since the main window injects the page fragments into main.html they count as a single document.
 const belgeIdleri = new Map();
 const belgeAdi = (p) => (gorece(p).startsWith('src/main/') ? 'ana pencere' : gorece(p));
 htmlDosyalar.forEach((f) => {
@@ -71,7 +71,7 @@ htmlDosyalar.forEach((f) => {
     sayac.set(eslesme[1], (sayac.get(eslesme[1]) || 0) + 1);
   }
 });
-// JS'in kendi urettigi id'ler de sayilir: innerHTML icinde id="X" ya da el.id = 'X'
+// Ids the JS produces itself are counted too: id="X" inside innerHTML or el.id = 'X'
 const arayuzJs = dosyalar(path.join(KOK, 'src', 'main', 'js'), '.js');
 arayuzJs.forEach((f) => {
   const m = oku(f);
@@ -96,12 +96,12 @@ belgeIdleri.forEach((sayac, belge) => {
 });
 if (!tekrar) console.log('  tekrar yok');
 
-// ---- 4. Etiket dengesi ----
+// ---- 4. Tag balance ----
 bolum('4. Etiket dengesi (div)');
 htmlDosyalar.forEach((f) => {
-  // Yorumlar sayilmaz. Sayaci yorum korlugu bir kez yanlis alarm verdi: yerlesim
-  // hatasini anlatan bir yorumun icinde "<div>" gectigi icin dosya dengesiz gorundu.
-  // Yorum icine alinmis bir blok da ayni sekilde yanlis alarm uretirdi.
+  // Comments are not counted. The counter once gave a false alarm because of comment blindness: a comment describing a layout
+  // bug contained "<div>" so the file looked unbalanced.
+  // A block wrapped in a comment would produce a false alarm the same way.
   const m = oku(f).replace(/<!--[\s\S]*?-->/g, '');
   const ac = (m.match(/<div\b/g) || []).length;
   const kapa = (m.match(/<\/div>/g) || []).length;
@@ -109,17 +109,17 @@ htmlDosyalar.forEach((f) => {
 });
 console.log('  ' + htmlDosyalar.length + ' sayfa kontrol edildi');
 
-// ---- 5. IPC eslesmesi ----
+// ---- 5. IPC match ----
 bolum('5. IPC eslesmesi');
 const preload = oku(path.join(KOK, 'preload.js'));
 const anaSurec = oku(path.join(KOK, 'main.js'));
 const tanimli = new Set();
 for (const e of anaSurec.matchAll(/ipcMain\.(?:handle|on)\(\s*'([^']+)'/g)) tanimli.add(e[1]);
-// Ana surecten arayuze giden olaylar (ipcRenderer.on) main.js'te sendRaw/send ile atilir.
+// Events that go from the main process to the interface (ipcRenderer.on) are sent from main.js with sendRaw/send.
 const gonderilen = new Set();
 for (const e of anaSurec.matchAll(/send(?:Raw)?\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
-// Hesaba ozel isler olaylarini hesapYayini(...)('kanal', ...) ya da yay('kanal', ...) ile atar;
-// FarmController kendi 'farm:tick' olayini emit ile yollar. Onlar da gonderilmis sayilir.
+// Per-account jobs send their events with hesapYayini(...)('channel', ...) or yay('channel', ...);
+// FarmController sends its own 'farm:tick' event with emit. Those count as sent too.
 for (const e of anaSurec.matchAll(/(?:hesapYayini\([^)]*\)|yay)\(\s*'([^']+)'/g)) gonderilen.add(e[1]);
 for (const e of anaSurec.matchAll(/IS_KANALLARI\s*=\s*\[([^\]]*)\]/g)) {
   for (const k of e[1].matchAll(/'([^']+)'/g)) gonderilen.add(k[1]);
@@ -136,11 +136,11 @@ for (const e of preload.matchAll(/ipcRenderer\.on\(\s*'([^']+)'/g)) {
 }
 console.log('  ' + cagri + ' kanal, main.js tarafinda ' + tanimli.size + ' tanim');
 
-// ---- 6. Uzun cizgi ----
+// ---- 6. Long dash ----
 bolum('6. Uzun cizgi (em/en dash)');
 let cizgi = 0;
-// Sozlukler (.json) ve belgeler (.md) de taranir: Rusca sozlukte yedi uzun cizgi bu yuzden
-// fark edilmeden kalmisti.
+// Dictionaries (.json) and documents (.md) are scanned too: seven long dashes stayed unnoticed in the Russian dictionary
+// because of this.
 dosyalar(KOK, '.js').concat(dosyalar(KOK, '.html'), dosyalar(KOK, '.css'), dosyalar(KOK, '.json'), dosyalar(KOK, '.md')).forEach((f) => {
   if (kendisi(f)) return;
   const m = oku(f);
@@ -148,7 +148,7 @@ dosyalar(KOK, '.js').concat(dosyalar(KOK, '.html'), dosyalar(KOK, '.css'), dosya
 });
 if (!cizgi) console.log('  temiz');
 
-// ---- 7. Yapimci izi ----
+// ---- 7. Author trace ----
 bolum('7. Yapimci izi');
 const YASAK = /claude|anthropic|copilot|chatgpt|openai|gemini|cursor\.so|scratchpad/i;
 let iz = 0;
@@ -159,17 +159,17 @@ dosyalar(KOK, '.js').concat(dosyalar(KOK, '.html'), dosyalar(KOK, '.css'), dosya
     if (YASAK.test(satir)) { iz++; hata(gorece(f) + ':' + (i + 1) + ' ' + satir.trim().slice(0, 100)); }
   });
 });
-// Yerel yol sizintisi: dagitilan kaynakta gelistirme makinesinin surucu yolu bulunmamali.
+// Local path leak: the distributed source must not contain the development machine's drive path.
 dosyalar(path.join(KOK, 'src'), '.js').forEach((f) => {
   const m = oku(f);
   for (const e of m.matchAll(/[A-Z]:\\(?:Coding|Users)\\/g)) { iz++; hata(gorece(f) + ':' + satirNo(m, e.index) + ' yerel yol'); }
 });
 if (!iz) console.log('  temiz');
 
-// ---- 8. Olu ayar anahtari ----
-// Varsayilan ayarlarda duran ama hicbir yerde okunmayan anahtar. 1.1.2'de "ignoreUpdates"
-// boyle bulundu: arayuzde bir dugmesi vardi, motorda karsiligi yoktu, kullanici acip
-// kapatiyor ve hicbir sey olmuyordu. Elle fark edilmesi zor, taramasi kolay.
+// ---- 8. Dead setting key ----
+// A key that sits in the default settings but is read nowhere. "ignoreUpdates" was found this way
+// in 1.1.2: it had a button in the interface and no counterpart in the engine, the user turned it on and
+// off and nothing happened. Hard to notice by hand, easy to scan for.
 bolum('8. Olu ayar anahtari');
 {
   const ana = oku(path.join(KOK, 'main.js'));
@@ -179,7 +179,7 @@ bolum('8. Olu ayar anahtari');
     console.log('  varsayilan ayar blogu bulunamadi, atlandi');
   } else {
     const anahtarlar = [...blok[1].matchAll(/^\s{2}([A-Za-z_$][\w$]*)\s*:/gm)].map((m) => m[1]);
-    // Tum kaynakta anahtarin gectigi yerler (varsayilan blogu haric)
+    // Everywhere in the whole source where the key appears (except the defaults block)
     const govde = dosyalar(KOK, '.js')
       .concat(dosyalar(KOK, '.html'))
       .filter((f) => !kendisi(f) && !gorece(f).startsWith('package-lock'))
@@ -198,9 +198,9 @@ bolum('8. Olu ayar anahtari');
   }
 }
 
-// ---- 9. Karsiliksiz IPC kanali ----
-// preload.js bir kanal aciyor ama main.js karsilamiyorsa cagri sessizce reddedilir ve
-// arayuz "alinamadi" der. Tersi de olur: main'de handler durur, kimse cagirmaz.
+// ---- 9. Unanswered IPC channel ----
+// If preload.js opens a channel but main.js does not answer it, the call is silently rejected and the
+// interface says "could not be fetched". The reverse happens too: a handler sits in main and nobody calls it.
 bolum('9. Karsiliksiz IPC kanali');
 {
   const on = oku(path.join(KOK, 'preload.js'));
@@ -214,7 +214,7 @@ bolum('9. Karsiliksiz IPC kanali');
   const eksikHandler = [...cagrilan].filter((k) => !karsilanan.has(k));
   eksikHandler.forEach((k) => hata('preload cagiriyor, main karsilamiyor: ' + k));
 
-  // Dinlenen olaylar icin: main tarafinda hic yollanmiyorsa olu dinleyici
+  // For listened events: a dead listener if main never sends it
   const olmayanOlay = [...dinlenen].filter((k) => !yollanan.has(k) && !ana.includes("'" + k + "'"));
   olmayanOlay.forEach((k) => uyari('preload dinliyor, main hic yollamiyor: ' + k));
 
@@ -223,7 +223,7 @@ bolum('9. Karsiliksiz IPC kanali');
   }
 }
 
-// ---- ozet ----
+// ---- summary ----
 console.log('\n================================');
 console.log('HATA  : ' + hataSayisi);
 console.log('UYARI : ' + uyariSayisi);

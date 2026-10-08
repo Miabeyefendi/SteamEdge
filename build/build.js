@@ -1,29 +1,29 @@
 #!/usr/bin/env node
 /**
- * SteamEdge paketleyici.
+ *  * SteamEdge packager.
  *
- * Ne yapar:
- *   1. @electron/packager ile calistirilabilir bir dagitim uretir (exe + Electron runtime).
- *   2. Uygulama kodunu app.asar icine koyar - Release klasorunde acik kaynak dosya kalmaz.
- *   3. Ciktiyi "SteamEdge-v<surum>-win-x64" klasorune tasir, yaninda bos settings/ + cache/ acar.
- *   4. Kullanici icin README.txt ve o surume ait CHANGELOG.md birakir.
+ *  * What it does:
+ *  *   1. Produces a runnable distribution (exe + Electron runtime) with @electron/packager.
+ *  *   2. Puts the application code into app.asar - no open source files are left in the release folder.
+ *  *   3. Moves the output to the "SteamEdge-v<version>-win-x64" folder and creates empty settings/ + cache/ next to it.
+ *  *   4. Leaves a README.txt for the user and the CHANGELOG.md for that version.
  *
- * Neden electron-builder degil: kurulum (installer) uretmiyoruz. Kullanici .zip'i acip
- * dogrudan calistiracak; tasinabilir bir klasor dagitimi bu is icin daha uygun ve
- * paketleyici cok daha az bagimlilik cekiyor.
+ *  * Why not electron-builder: we do not produce an installer. The user extracts the archive and
+ *  * runs it directly; a portable folder distribution fits this better and
+ *  * the packager pulls in far fewer dependencies.
  *
- * Kullanim:  npm run build
+ *  * Usage:  npm run build
  */
 const fs = require('fs');
 const path = require('path');
-// @electron/packager 20 adlandirilmis disa aktarim kullaniyor (varsayilan degil).
+// @electron/packager 20 uses named exports (not a default).
 const { packager } = require('@electron/packager');
 
 const KOK = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(KOK, 'package.json'), 'utf8'));
-const CIKTI_KOK = path.join(KOK, 'releases');                    // standart agac: releases/
-// Klasor adi dogrudan arsiv adi olacak sekilde: SteamEdge-v1.0.7-win-x64
-// Boylece sag tik > arsivle dendiginde dosya adini elle duzeltmeye gerek kalmiyor.
+const CIKTI_KOK = path.join(KOK, 'releases');                    // standard tree: releases/
+// The folder name is the archive name as it is: SteamEdge-v1.0.7-win-x64
+// So when you right click > archive there is no need to fix the file name by hand.
 const PAKET_ADI = 'SteamEdge-v' + pkg.version + '-win-x64';
 const HEDEF = path.join(CIKTI_KOK, PAKET_ADI);
 const GECICI = path.join(KOK, 'build', '.out');
@@ -33,8 +33,8 @@ const arg = (ad, varsayilan) => {
   return b ? b.split('=')[1] : varsayilan;
 };
 
-// Pakete GIRMEYECEKLER. node_modules'un tamami gerekli degil; sadece calisma zamani
-// bagimliliklari asar'a girer, gelistirme araclari disarida kalir.
+// What does NOT go into the package. Not all of node_modules is needed; only the runtime
+// dependencies go into the asar, development tools stay out.
 const IGNORE = [
   /^\/build($|\/)/,
   /^\/\.git($|\/)/,
@@ -46,11 +46,11 @@ const IGNORE = [
   /^\/node_modules\/@electron\/packager($|\/)/,
   /^\/node_modules\/@electron\/get($|\/)/,
   /^\/node_modules\/@electron\/asar($|\/)/,
-  // Depo dosyalari: uygulamanin calismasi icin gerekmez, exe'ye girmesin.
+  // Repository files: not needed for the app to run, keep them out of the exe.
   /^\/docs($|\/)/,
   /^\/\.github($|\/)/,
-  // Standart agac klasorleri. archive/ tur yedeklerini tutuyor, iclerinde
-  // derlenmis eski surumler var; dislanmazsa asar gigabaytlara ciker.
+  // Standard tree folders. archive/ holds the round backups, which contain
+  // built old versions; if it were not excluded the asar would grow to gigabytes.
   /^\/archive($|\/)/,
   /^\/releases($|\/)/,
   /^\/design($|\/)/,
@@ -69,13 +69,13 @@ async function main() {
   console.log('  kaynak   : ' + KOK);
   console.log('  hedef    : ' + HEDEF);
 
-  // Sozlukler paketlemeden once dogrulanir: eksikse derlemeye devam etmenin anlami yok.
+  // The dictionaries are verified before packaging: there is no point continuing the build if one is missing.
   sozlukKontrol();
 
-  // Onceki cikti kalintilarini temizle
+  // Clean up leftovers of the previous output
   fs.rmSync(GECICI, { recursive: true, force: true });
 
-  // Windows exe ikonu .ico ister (build/make-icon.js uretiyor); yoksa png'ye duser.
+  // The Windows exe icon needs .ico (build/make-icon.js produces it); if missing it falls back to png.
   const ico = path.join(KOK, 'src', 'assets', 'icon.ico');
   const ikon = fs.existsSync(ico) ? ico : path.join(KOK, 'src', 'assets', 'icon.png');
   const yollar = await packager({
@@ -83,9 +83,9 @@ async function main() {
     out: GECICI,
     platform,
     arch,
-    asar: true,                       // kaynak kod app.asar icine girer
+    asar: true,                       // the source code goes into app.asar
     overwrite: true,
-    prune: true,                      // devDependencies pakete girmez
+    prune: true,                      // devDependencies do not go into the package
     ignore: IGNORE,
     name: pkg.productName,
     appVersion: pkg.version,
@@ -102,7 +102,7 @@ async function main() {
   const uretilen = yollar[0];
   console.log('  paketlendi: ' + uretilen);
 
-  // Hedefi bosalt ve ciktiyi tasi
+  // Empty the target and move the output
   fs.rmSync(HEDEF, { recursive: true, force: true });
   fs.mkdirSync(HEDEF, { recursive: true });
   for (const ad of fs.readdirSync(uretilen)) {
@@ -110,8 +110,8 @@ async function main() {
   }
   fs.rmSync(GECICI, { recursive: true, force: true });
 
-  // Kullanici verisi klasorleri: uygulama ilk aciliste zaten olusturuyor, ama .zip'i acan
-  // kisi yapinin ne oldugunu hemen gorsun diye bos olarak birakiyoruz.
+  // User data folders: the app creates them on first launch anyway, but we leave them empty so that
+  // whoever extracts the archive sees the structure right away.
   for (const d of ['settings', 'cache']) {
     fs.mkdirSync(path.join(HEDEF, d), { recursive: true });
   }
@@ -127,16 +127,16 @@ async function main() {
   console.log('  exe    : ' + pkg.productName + '.exe');
 }
 
-// Electron 55 dil dosyasi birakiyor (locales/*.pak, ~44 MB). Bunlar Chromium'un KENDI
-// arayuz metinleri: sag tik menusu, dosya secme penceresi, form hata baloncuklari. Bizim
-// sozlugumuzle (src/main/js/i18n.js) ilgisi yok. Uygulama bes dil sunuyor, dolayisiyla
-// geri kalan elli dosya indirilip diskte duran olu agirlik.
+// Electron leaves locale files (locales/*.pak, ~44 MB). These are Chromium's OWN interface
+// texts: the right-click menu, the file picker, form error bubbles. They have nothing to do with our
+// dictionary (src/main/js/i18n.js). The app offers five languages, so the
+// remaining fifty files are dead weight that gets downloaded and sits on disk.
 //
-// en-US LISTEDEN CIKARILAMAZ: Chromium istenen dili bulamazsa ona duser, yoksa acilista
-// "Unable to load locale pak" ile olur.
+// en-US CANNOT BE REMOVED from the list: Chromium falls back to it when it cannot find the requested language, otherwise it dies at startup
+// with "Unable to load locale pak".
 const TUTULAN_DILLER = [
-  'en-US',    // yedek - her zaman kalir
-  'tr',       // arayuz dilleri (i18n.js ile ayni kume)
+  'en-US',    // fallback - always stays
+  'tr',       // interface languages (the same set as i18n.js)
   'de',
   'es',
   'zh-TW',
@@ -156,7 +156,7 @@ function localeKirp(hedef) {
     silinen++;
   }
   const kalan = fs.readdirSync(dizin);
-  // Yedek dil gitmisse paket calismaz. Sessizce sevk etmektense derlemeyi durdur.
+  // If the fallback language is gone the package does not work. Stop the build instead of silently shipping it.
   if (!kalan.includes('en-US.pak')) {
     throw new Error('locales/en-US.pak silinmis - paket acilmaz, kirpma listesi bozuk');
   }
@@ -174,10 +174,10 @@ function klasorBoyutu(d) {
   return t;
 }
 
-// Sozlukler 1.1.8'den beri src/main/js/lang/<kod>.json icinde ve asar'a IGNORE
-// listesinden gectikleri icin sessizce giriyorlar. Sessiz giren sey sessizce de
-// dusebilir: dosya pakete girmezse uygulama hata vermez, arayuz Turkce acilir ve
-// kimse fark etmez. Bu yuzden derleme once kaynakta hepsinin durdugunu dogruluyor.
+// Since 1.1.8 the dictionaries are in src/main/js/lang/<code>.json and since they pass through the IGNORE
+// list they get in silently. What gets in silently can also silently drop out:
+// if a file does not enter the package the app gives no error, the interface opens in Turkish and
+// nobody notices. So the build first verifies that all of them are present in the source.
 function sozlukKontrol() {
   const dizin = path.join(KOK, 'src', 'main', 'js', 'lang');
   const bekleyen = ['en', 'de', 'es', 'zh', 'ru'];
@@ -193,10 +193,10 @@ function sozlukKontrol() {
   console.log('  sozluk   : ' + bekleyen.length + ' dil, ' + toplam + ' giris');
 }
 
-// Release klasorune kullanici notu (kod bilmeyen kisi icin, tek sayfa).
-// O surume ait degisiklik notunu klasore koyar.
-// Kaynak: build/changelog/<surum>.md . Dosya yoksa uyarir ama derlemeyi durdurmaz -
-// surum notu yazmayi unutmak derlemeyi engellememeli, sadece gorunur olmali.
+// User note in the release folder (for someone who does not know code, a single page).
+// Puts the change note of that version into the folder.
+// Source: build/changelog/<version>.md . If the file is missing it warns but does not stop the build -
+// forgetting to write the release note should not block the build, it should just be visible.
 function changelogYaz(hedef) {
   const kaynak = path.join(__dirname, 'changelog', pkg.version + '.md');
   if (!fs.existsSync(kaynak)) {

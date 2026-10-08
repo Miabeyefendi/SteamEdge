@@ -1,13 +1,13 @@
-// ================= GUNCELLEME KONTROLU =================
-// Sadece BAKAR, indirmez. GitHub'in yayin listesini okur, kurulu surumle karsilastirir
-// ve sonucu doner. Indirme karari kullanicinin: arayuz yalnizca yayin sayfasina baglanti
-// gosterir. Sessizce dosya indirip calistiran bir yol bilerek yoktur - kullanicinin
-// bilgisayarina ne indigini kullanici gormeli.
+// ================= UPDATE CHECK =================
+// Only LOOKS, never downloads. Reads GitHub's release list, compares it with the installed version
+// and returns the result. The decision to download is the user's: the interface only links to
+// the release page. A path that silently downloads and runs files is deliberately absent - the user
+// must see what lands on their computer.
 //
-// Neden /releases/latest degil de /releases?per_page=... :
-// GitHub'in "latest" ucu on-yayin (prerelease) ve taslaklari atlar, ama ayni zamanda
-// hicbir yayin isaretlenmemisse 404 doner. Listeyi cekip taslak/on-yayin olmayanlarin
-// en yenisini kendimiz secmek hem daha ongorulebilir hem de tek istek.
+// Why /releases?per_page=... and not /releases/latest:
+// GitHub's "latest" endpoint skips prereleases and drafts, but it also returns 404
+// if no release is marked. Fetching the list and picking the newest non-draft, non-prerelease
+// ourselves is both more predictable and a single request.
 
 const https = require('https');
 
@@ -16,8 +16,8 @@ const LISTE_URL = 'https://api.github.com/repos/' + DEPO + '/releases?per_page=1
 const YAYIN_SAYFASI = 'https://github.com/' + DEPO + '/releases/latest';
 const ZAMAN_ASIMI_MS = 12000;
 
-// "1.0.10" > "1.0.9" olmali: parcalari SAYI olarak karsilastir, metin olarak degil.
-// Donus: a>b ise 1, a<b ise -1, esitse 0. Tanimsiz/bozuk parca 0 sayilir.
+// "1.0.10" must be greater than "1.0.9": compare the parts as NUMBERS, not as text.
+// Returns: 1 if a>b, -1 if a<b, 0 if equal. An undefined/broken part counts as 0.
 function surumKarsilastir(a, b) {
   const ayir = (s) => String(s || '').trim().replace(/^v/i, '').split(/[.\-+]/).map((p) => parseInt(p, 10) || 0);
   const x = ayir(a);
@@ -32,8 +32,8 @@ function surumKarsilastir(a, b) {
   return 0;
 }
 
-// Ag hatasini kullanicinin anlayacagi tek cumleye cevirir. Ham ENOTFOUND/ETIMEDOUT
-// metinleri arayuzde hicbir sey ifade etmiyor.
+// Turns a network error into one sentence the user can understand. Raw ENOTFOUND/ETIMEDOUT
+// texts mean nothing in the interface.
 function hataMetni(e) {
   const kod = (e && (e.code || e.errno)) || '';
   if (kod === 'ENOTFOUND' || kod === 'EAI_AGAIN') return 'İnternet bağlantısı yok gibi görünüyor.';
@@ -47,13 +47,13 @@ function istek(url) {
   return new Promise((cozum, hata) => {
     const r = https.get(url, {
       headers: {
-        // GitHub API'si User-Agent olmadan 403 doner.
+        // GitHub's API returns 403 without a User-Agent.
         'User-Agent': 'SteamEdge',
         Accept: 'application/vnd.github+json',
       },
     }, (yanit) => {
-      // Kimliksiz istekte saatte 60 hak var. Asilirsa 403 gelir; bunu "hata" degil
-      // "simdi bakilamadi" diye anlatmak lazim, yoksa kullanici bozuk sandi.
+      // Unauthenticated requests get 60 per hour. Past that a 403 comes; it has to be described not as an "error"
+      // but as "could not check right now", otherwise the user thought it was broken.
       if (yanit.statusCode === 403 || yanit.statusCode === 429) {
         yanit.resume();
         return hata(Object.assign(new Error('GitHub istek sınırı aşıldı, biraz sonra tekrar dene.'), { code: 'LIMIT' }));
@@ -77,14 +77,14 @@ function istek(url) {
   });
 }
 
-// kuruluSurum: package.json'daki surum (app.getVersion()).
-// Donus her zaman ayni bicimde: { ok, kurulu, son, guncelMi, url, yayinAdi, yayinTs, hata }
+// kuruluSurum: the version in package.json (app.getVersion()).
+// The return always has the same shape: { ok, kurulu, son, guncelMi, url, yayinAdi, yayinTs, hata }
 async function kontrolEt(kuruluSurum) {
   const temel = { kurulu: kuruluSurum, son: null, guncelMi: null, url: YAYIN_SAYFASI, yayinAdi: null, yayinTs: null };
   try {
     const liste = await istek(LISTE_URL);
     if (!Array.isArray(liste)) return { ok: false, ...temel, hata: 'GitHub beklenmeyen bir yanıt döndürdü.' };
-    // Taslak ve on-yayinlari atla: kullaniciya bitmemis surum onerilmez.
+    // Skip drafts and prereleases: an unfinished version is not offered to the user.
     const yayinlar = liste.filter((y) => y && !y.draft && !y.prerelease && y.tag_name);
     if (!yayinlar.length) return { ok: false, ...temel, hata: 'Yayımlanmış sürüm bulunamadı.' };
     let enYeni = yayinlar[0];

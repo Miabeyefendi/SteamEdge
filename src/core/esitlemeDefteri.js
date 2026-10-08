@@ -1,13 +1,13 @@
-// Saat esitleme defteri.
+// Hour sync ledger.
 //
-// Hedefe kalan sureyi oyun bazinda tutar. Paralel ve sirali stratejilerin ikisi de bunu
-// kullanir; arayuzdeki oyun bazli ilerleme cubugu da buradan beslenir.
+// Keeps the time remaining to the target per game. Both the parallel and the sequential strategies use it;
+// the per-game progress bar in the interface is fed from here too.
 //
-// Ayri dosyada durmasinin sebebi test: esitleme saatlerce surer ve dogrulugu ancak saati
-// taklit ederek olculebilir. Buradaki islevler durumu disaridan alir ve "simdi"yi parametre
-// olarak kabul eder, yani gercek zamani beklemeden 47 saatlik bir oturum sinanabilir.
+// It lives in its own file for testing: syncing takes hours and its accuracy can only be measured by
+// faking the clock. The functions here take the state from outside and accept "now" as a parameter,
+// so a 47 hour session can be tested without waiting for real time.
 
-// geride: [{ appid, name, playtimeMin }] - hedefin altinda kalan oyunlar
+// geride: [{ appid, name, playtimeMin }] - games that are below the target
 function defterKur(geride, targetMin) {
   const oyunlar = new Map();
   (geride || []).forEach((g) => oyunlar.set(g.appid, {
@@ -21,8 +21,8 @@ function defterKur(geride, targetMin) {
   return oyunlar;
 }
 
-// Son islemden bu yana gecen sureyi ACIK olan oyunlara isler - Steam de boyle sayar,
-// kapali duran oyun sure kazanmaz. Hedefe ulasanlari isaretler ve dondurur.
+// Adds the time elapsed since the last update to the games that are OPEN - Steam counts it the same way,
+// a game that is not running earns no time. Marks the ones that reached the target and returns them.
 function defteriIsle(durum, simdi) {
   if (!durum || !durum.oyunlar) return [];
   const t = simdi == null ? Date.now() : simdi;
@@ -41,8 +41,8 @@ function defteriIsle(durum, simdi) {
   return bitenler;
 }
 
-// Siradaki aktif kume: en cok suresi kalan oyunlar once (LPT). Darbogaz olan oyun erken
-// baslar, boylece toplam sure en aza yaklasir.
+// The next active set: games with the most time left go first (LPT). The bottleneck game starts
+// early, so the total time comes as close to the minimum as it can.
 function siradakiAktifKume(durum) {
   if (!durum || !durum.oyunlar) return [];
   const kalanlar = [...durum.oyunlar.values()].filter((o) => !o.bitti);
@@ -50,8 +50,8 @@ function siradakiAktifKume(durum) {
   return kalanlar.slice(0, Math.max(1, durum.limit || 32)).map((o) => o.appid);
 }
 
-// Arayuze giden liste. Defter yalnizca bir oyun hedefe ulasinca (ya da adim degisince)
-// islenir; aradaki sure burada CANLI eklenir, yoksa ekran iki olay arasinda hic ilerlemez.
+// The list sent to the interface. The ledger is only updated when a game reaches the target (or the step changes);
+// the time in between is added LIVE here, otherwise the screen would not move at all between two events.
 function arayuzListesi(durum, simdi) {
   if (!durum || !durum.oyunlar) return [];
   const t = simdi == null ? Date.now() : simdi;
@@ -71,8 +71,8 @@ function arayuzListesi(durum, simdi) {
   });
 }
 
-// Kalan is bitene kadar gecmesi gereken sure. Aktif kume limitle sinirli oldugu icin
-// bu, "en cok kalani olan oyunun kalani" degil, kuyruk simulasyonunun toplamidir.
+// The time that has to pass until the remaining work is done. Because the active set is capped by the limit,
+// this is the total of the queue simulation, not "the remaining time of the game with the most left".
 function kalanToplamMs(durum) {
   if (!durum || !durum.oyunlar) return 0;
   const kalan = new Map();
