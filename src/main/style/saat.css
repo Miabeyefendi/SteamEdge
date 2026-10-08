@@ -1,5 +1,5 @@
   /* ---- Hour Booster ---- */
-  #tab-saat .stat{position:relative;overflow:hidden}
+  #tab-hours .stat{position:relative;overflow:hidden}
   .ic{position:absolute;right:12px;top:12px;width:34px;height:34px;opacity:.16;pointer-events:none}
   .hourscols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:18px;align-items:stretch}
   /* Target time presets + simultaneous count (technical structure of active-boost, IMU theme) */

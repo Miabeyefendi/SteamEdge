@@ -15,12 +15,12 @@
       'Hata':      { color: GC.bad, bd: GC.bad },
       'Mesaj':     { color: GC.blue || '#24AEB3', bd: GC.blue || '#24AEB3' },
     };
-    const DEFAULT_STATUS_BY_KIND = { hata:'Hata', warning:'Uyarı' };
+    const DEFAULT_STATUS_BY_KIND = { error:'Hata', warning:'Uyarı' };
 
     // {kind, title, text, status, ts} - real application events.
     // PERSISTENT: kept in the account store, the history is not lost when the app closes and reopens.
     let activityFeed = [];
-    const ACTIVITY_KEY = 'aktiviteAkisi';
+    const ACTIVITY_KEY = 'activityFeed';
     let activityWriteTime = null;
 
     async function loadActivity(){
@@ -39,7 +39,7 @@
     }
     function pushFeed(kind, title, text, status){
       const st = status || DEFAULT_STATUS_BY_KIND[kind] || 'Başarılı';
-      activityFeed.unshift({ kind: kind||'saat', title, text, status: st, ts: Date.now() });
+      activityFeed.unshift({ kind: kind||'hours', title, text, status: st, ts: Date.now() });
       if (activityFeed.length > 30) activityFeed.length = 30;
       renderFeed();
       saveActivity();
@@ -191,13 +191,13 @@
             // If Kart Düşür is open on screen redraw it with the fresh list (if hidden leave it alone:
             // the hidden tab's list is deliberately not kept in memory).
             try {
-              if (typeof renderKart === 'function' && designed.kart && !designed.kart.classList.contains('hidden')) renderKart();
+              if (typeof renderKart === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderKart();
             } catch (_) {}
           } else if (con && con.error){
-            pushFeed('hata', 'Bağlantı', con.error, 'Hata');
+            pushFeed('error', 'Bağlantı', con.error, 'Hata');
           }
         } catch (e) {
-          pushFeed('hata', 'Bağlantı', (e && e.message) || 'Steam bağlantısı kurulamadı.', 'Hata');
+          pushFeed('error', 'Bağlantı', (e && e.message) || 'Steam bağlantısı kurulamadı.', 'Hata');
         }
       }
       renderGenelStats();
@@ -216,7 +216,7 @@
       if (!d || !Array.isArray(d.games)) return;
       dropGames = d.games; kartLoaded = true;
       farmDroppedCount = d.sessionDropped || 0;
-      if (typeof renderKart === 'function' && designed.kart && !designed.kart.classList.contains('hidden')) renderKart();
+      if (typeof renderKart === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderKart();
       renderGenelStats(); renderGenelActive();
     });
 
@@ -244,7 +244,7 @@
       }
       if (!o.activeIds) return;
       if (o.typeName === 'cardDropped'){
-        pushFeed('kart', tf('# kart düştü', o.itemCount), o.displayName, 'Başarılı');
+        pushFeed('card', tf('# kart düştü', o.itemCount), o.displayName, 'Başarılı');
         if (typeof pushDrop === 'function') pushDrop(o.appid, o.displayName, o.itemCount);
         // "Pazarda Otomatik Satış": list that game's new cards
         if (appSettings && appSettings.farmAutoSell && typeof autoSellDropped === 'function') autoSellDropped(o.displayName);
@@ -359,14 +359,14 @@
         const cur = dropGames.find(g=>g.appid===heroId);
         const nextDrop = lastTick.durationMs ? fmtSessionDur(Math.max(0, lastTick.durationMs - (lastTick.elapsedMs||0))) : '-';
         tasks.push({
-          tab:'kart', appid:heroId, heading:(cur?cur.name:'Kart Düşürme'),
+          tab:'card', appid:heroId, heading:(cur?cur.name:'Kart Düşürme'),
           badges:[modeLabels[selectedMode]||selectedMode, tf('# oyun eşzamanlı', activeIds.length)],
           columns:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(lastTick.sessionStart||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
           percentValue: lastTick.durationMs ? (lastTick.elapsedMs/lastTick.durationMs*100) : 100,
           started: lastTick.sessionStart || null,
-          colorValue:'#24AEB3', durdur: stopCard,
+          colorValue:'#24AEB3', haltJob: stopCard,
         });
       }
       if (boostOn){
@@ -376,33 +376,33 @@
         const passed = Date.now()-(boostState.startedAt||Date.now());
         const left = boostState.durationMs ? fmtSessionDur(Math.max(0, boostState.durationMs-passed)) : '-';
         tasks.push({
-          tab:'saat', appid:bId, heading:(g?g.name:'Saat Yükseltici'),
+          tab:'hours', appid:bId, heading:(g?g.name:'Saat Yükseltici'),
           badges:['Saat Yükseltici', tf('# oyun eşzamanlı', ids.length)],
           columns:[['Aktif Oyun', ids.length, GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(passed))],
                     ['Kalan', monoTime(left)]],
           percentValue: boostState.durationMs ? (passed/boostState.durationMs*100) : 100,
           started: boostState.startedAt || null,
-          colorValue:'#5624B3', durdur: ()=>pressPageButton('btnBoostStop'),
+          colorValue:'#5624B3', haltJob: ()=>pressPageButton('btnBoostStop'),
         });
       }
       if (achOn){
         const perform = (typeof acRunDone !== 'undefined') ? acRunDone : 0;
         const top = (typeof acRunTotal !== 'undefined') ? acRunTotal : 0;
         tasks.push({
-          tab:'basarim', appid:(typeof acAppid !== 'undefined' ? acAppid : 0),
+          tab:'achievements', appid:(typeof acAppid !== 'undefined' ? acAppid : 0),
           heading:'Başarım İşlemi', subInfo:'toplu aç / kilitle',
           badges:['Başarımlar', (top ? (perform+' / '+top) : 'çalışıyor')],
           columns:[['İşlenen', perform+' / '+top, GC.ok]],
           percentValue: top ? (perform/top*100) : 0,
-          colorValue:'#5FB324', iconRef:'sayac', durdur: ()=>pressPageButton('acStop'),
+          colorValue:'#5FB324', iconRef:'counter', haltJob: ()=>pressPageButton('acStop'),
         });
       }
       if (grOn){
         const opened = grStatus.openedGames || 0, sumTotal = grStatus.totalSum || 0;
         const remainingTime = grStatus.finishTime ? Math.max(0, grStatus.finishTime - Date.now()) : 0;
         tasks.push({
-          tab:'gercekci', appid: grStatus.appid || 0,
+          tab:'realistic', appid: grStatus.appid || 0,
           heading: grStatus.gameTitle || 'Gerçekçi Mod',
           subInfo: 'başarımlar zamana yayılıyor',
           badges:['Gerçekçi Mod',
@@ -412,7 +412,7 @@
                     ['Sıradaki', grStatus.upNext ? shorten(grStatus.upNext, 16) : '-']],
           percentValue: sumTotal ? (opened/sumTotal*100) : 0,
           started: grStatus.startPoint || null,
-          colorValue:'#C2AAEE', durdur: ()=>pressPageButton('grStop'),
+          colorValue:'#C2AAEE', haltJob: ()=>pressPageButton('grStop'),
         });
       }
 
@@ -489,11 +489,11 @@
     // thickness.
     const DETAIL_ICON = {
       // arrow: next / being sent
-      sonraki: '<path d="M5 12h13M13 7l5 5-5 5"></path>',
+      next: '<path d="M5 12h13M13 7l5 5-5 5"></path>',
       // target: counter (unlocked, processed)
-      sayac: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle>',
+      counter: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle>',
       // hour: remaining time
-      sure: '<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4.5l3 1.8"></path>',
+      duration: '<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4.5l3 1.8"></path>',
     };
     function detailIcon(name, colorVal){
       const pathStr = DETAIL_ICON[name];
@@ -547,8 +547,8 @@
         if (hasInfo){
           const b = syncGameInfo.get(g.appid);
           if (b){
-            percent = b.bitti ? 100 : Math.max(0, Math.min(100, (1 - Math.max(0, b.remainingMs||0) / syncJobTotalMs) * 100));
-            rightSide = b.bitti ? 'bitti' : monoTime(fmtSessionDur(Math.max(0, b.remainingMs||0)));
+            percent = b.isFinished ? 100 : Math.max(0, Math.min(100, (1 - Math.max(0, b.remainingMs||0) / syncJobTotalMs) * 100));
+            rightSide = b.isFinished ? 'finished' : monoTime(fmtSessionDur(Math.max(0, b.remainingMs||0)));
           }
         }
         return detailRow('#'+(i+1), g.name, rightSide, percent, '#5624B3', on);
@@ -567,9 +567,9 @@
       const sessionPercent = (grStatus.startPoint && grStatus.finishTime)
         ? ((Date.now() - grStatus.startPoint) / Math.max(1, grStatus.finishTime - grStatus.startPoint) * 100)
         : null;
-      return detailRow('sonraki', 'Sıradaki', shorten(remainingName, 20) + '  ' + following, null, null, true)
-        + detailRow('sayac', 'Açılan başarım', opened + ' / ' + sumTotal, sumTotal ? (opened/sumTotal*100) : 0, '#C2AAEE', true)
-        + detailRow('sure', 'Oturumun sonuna', monoTime(fmtSessionDur(remainingTime)), sessionPercent, '#C2AAEE', true);
+      return detailRow('next', 'Sıradaki', shorten(remainingName, 20) + '  ' + following, null, null, true)
+        + detailRow('counter', 'Açılan başarım', opened + ' / ' + sumTotal, sumTotal ? (opened/sumTotal*100) : 0, '#C2AAEE', true)
+        + detailRow('duration', 'Oturumun sonuna', monoTime(fmtSessionDur(remainingTime)), sessionPercent, '#C2AAEE', true);
     }
 
     // Achievement job: the achievement being sent at that moment and the remaining estimate by the selected interval.
@@ -583,9 +583,9 @@
       if (typeof acBaseDelaySec === 'function' && top > perform){
         remainingTime = monoTime(fmtSessionDur((top - perform) * acBaseDelaySec() * 1000));
       }
-      return detailRow('sonraki', 'Gönderiliyor', shorten(not.replace(/^gönderiliyor:\s*/i, ''), 22), null, null, true)
-        + detailRow('sayac', 'İşlenen', perform + ' / ' + top, top ? (perform/top*100) : 0, GC.ok, true)
-        + detailRow('sure', 'Tahmini kalan', remainingTime, null, null, true);
+      return detailRow('next', 'Gönderiliyor', shorten(not.replace(/^gönderiliyor:\s*/i, ''), 22), null, null, true)
+        + detailRow('counter', 'İşlenen', perform + ' / ' + top, top ? (perform/top*100) : 0, GC.ok, true)
+        + detailRow('duration', 'Tahmini kalan', remainingTime, null, null, true);
     }
 
     // Draws the shown task's detail. If no job is running the card queue is shown:
@@ -595,10 +595,10 @@
       if (!qbox) return;
       let html;
       if (!taskItem) html = detailCard(null);
-      else if (taskItem.tab === 'kart') html = detailCard(currentId);
-      else if (taskItem.tab === 'saat') html = detailHours();
-      else if (taskItem.tab === 'gercekci') html = detailRealistic();
-      else if (taskItem.tab === 'basarim') html = detailAchievement();
+      else if (taskItem.tab === 'card') html = detailCard(currentId);
+      else if (taskItem.tab === 'hours') html = detailHours();
+      else if (taskItem.tab === 'realistic') html = detailRealistic();
+      else if (taskItem.tab === 'achievements') html = detailAchievement();
       else html = detailCard(null);
       qbox.innerHTML = html;
     }
@@ -608,8 +608,8 @@
     E.onHourFarmTick(()=>{ renderGenelActive(); renderGenelStats(); });
     // gercekci.js registers its own listener FIRST (file order), so by the time we get here
     // grStatus has been updated. Otherwise the panel would be one tick behind.
-    if (window.imu.gercekci && window.imu.gercekci.onTick){
-      window.imu.gercekci.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
+    if (window.imu.realistic && window.imu.realistic.onTick){
+      window.imu.realistic.onTick(()=>{ renderGenelActive(); renderGenelStats(); });
     }
 
     // Quick action toast - it should give feedback the moment it is clicked, not make you wait for the result.
@@ -643,17 +643,17 @@
         const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; hoursLoaded = true; }
       }
       renderGenelStats(); renderGenelActive();
-      if (con.ok){ pushFeed('kart', 'Oyun Listesi', 'Kütüphane ve kart listesi yenilendi.', 'Başarılı'); t.done('Oyun listesi yenilendi.'); }
-      else { pushFeed('hata', 'Oyun Listesi', tf('Bağlantı hatası: #', con.error), 'Hata'); t.fail(tf('Bağlantı hatası: #', con.error)); }
+      if (con.ok){ pushFeed('card', 'Oyun Listesi', 'Kütüphane ve kart listesi yenilendi.', 'Başarılı'); t.done('Oyun listesi yenilendi.'); }
+      else { pushFeed('error', 'Oyun Listesi', tf('Bağlantı hatası: #', con.error), 'Hata'); t.fail(tf('Bağlantı hatası: #', con.error)); }
     }
 
     const goTab = (tab) => document.querySelector('.nav a[data-tab='+tab+']').click();
 
     document.getElementById('gRefresh').onclick = refreshGamesQuick;
-    document.getElementById('gOpenQueue').onclick = ()=> goTab('kart');
-    document.getElementById('gNavHub').onclick = ()=> goTab('env');
-    document.getElementById('gNavBoost').onclick = ()=> goTab('saat');
-    document.getElementById('gNavAch').onclick = ()=> goTab('basarim');
+    document.getElementById('gOpenQueue').onclick = ()=> goTab('card');
+    document.getElementById('gNavHub').onclick = ()=> goTab('inventory');
+    document.getElementById('gNavBoost').onclick = ()=> goTab('hours');
+    document.getElementById('gNavAch').onclick = ()=> goTab('achievements');
 
     // Connects to Kart Düşür's real engine, with the mode and duration selected there.
     function startCard(){
@@ -662,13 +662,13 @@
       E.startFarm(selectedMode, games, durationSec*1000);
       if (typeof setKartPill === 'function') setKartPill(true, 'Çalışıyor');
       notify('farm', 'Kart Düşürme Başladı', tf('# oyun sırada.', games.length));
-      pushFeed('kart', 'Kart Düşürme', tf('# oyun ile başladı.', games.length), 'Çalışıyor');
+      pushFeed('card', 'Kart Düşürme', tf('# oyun ile başladı.', games.length), 'Çalışıyor');
     }
     function stopCard(){
       E.stopFarm();
       if (typeof setKartPill === 'function') setKartPill(false, 'Durduruldu');
       notify('farm', 'Kart Düşürme Durdu', '');
-      pushFeed('kart', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
+      pushFeed('card', 'Kart Düşürme', 'Durduruldu.', 'Durdu');
     }
 
     // The three buttons under the panel behave according to the task being shown at that moment. While a running
@@ -689,11 +689,11 @@
       passive(halt, !g);
       if (det) det.textContent = g ? ('Detay: ' + TASK_NAME[g.tab]) : 'Detay';
     }
-    const TASK_NAME = { kart:'Kart', saat:'Saat', gercekci:'Gerçekçi', basarim:'Başarım' };
+    const TASK_NAME = { card:'Kart', hours:'Saat', realistic:'Gerçekçi', achievements:'Başarım' };
 
     document.getElementById('gDetail').onclick = ()=>{
       const g = taskList[taskIndex];
-      goTab(g ? g.tab : 'kart');
+      goTab(g ? g.tab : 'card');
     };
     document.getElementById('gStart').onclick = ()=>{
       if (taskList[taskIndex]) return;    // the shown job is already running
@@ -702,7 +702,7 @@
     document.getElementById('gStop').onclick = ()=>{
       const g = taskList[taskIndex];
       if (!g) return;
-      if (typeof g.durdur === 'function') g.durdur();
+      if (typeof g.haltJob === 'function') g.haltJob();
     };
 
     // Quick action buttons. ALL of them inside try/catch: if an error is thrown we must close the toast and
@@ -719,11 +719,11 @@
         const t = toast(runningText);
         try {
           const outcome = await isFn();
-          if (outcome && outcome.hata) t.fail(outcome.hata);
-          else t.done((outcome && outcome.mesaj) || 'Tamamlandı.');
+          if (outcome && outcome.failure) t.fail(outcome.failure);
+          else t.done((outcome && outcome.messageText) || 'Tamamlandı.');
         } catch (e) {
           t.fail((e && e.message) || 'Bilinmeyen hata.');
-          pushFeed('hata', 'Hızlı İşlem', (e && e.message) || 'Bilinmeyen hata.', 'Hata');
+          pushFeed('error', 'Hızlı İşlem', (e && e.message) || 'Bilinmeyen hata.', 'Hata');
         } finally {
           occupied = false;
           b.style.opacity = '1'; b.style.cursor = 'pointer';
@@ -733,32 +733,32 @@
 
     quickAction('qaGames', 'Oyun listesi yenileniyor…', async ()=>{
       await refreshGamesQuick();
-      return { mesaj: 'Oyun listesi yenilendi.' };
+      return { messageText: 'Oyun listesi yenilendi.' };
     });
 
     quickAction('qaInv', 'Envanter yenileniyor…', async ()=>{
-      if (typeof loadEnv !== 'function') return { hata: 'Envanter sayfası hazır değil.' };
+      if (typeof loadEnv !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
       envLoaded = false;
       await loadEnv();
       // loadEnv silently returns on error; check whether data really arrived,
       // otherwise we said "yenilendi" and misled the user.
-      if (!invMerged || !invMerged.length) return { hata: 'Envanter alınamadı. Envanter sekmesindeki hatayı kontrol et.' };
+      if (!invMerged || !invMerged.length) return { failure: 'Envanter alınamadı. Envanter sekmesindeki hatayı kontrol et.' };
       renderGenelStats();
-      pushFeed('envanter', 'Envanter', 'Envanter Steam\'den yeniden çekildi.', 'Başarılı');
-      return { mesaj: tf('# çeşit öğe yüklendi.', invMerged.length) };
+      pushFeed('inventory', 'Envanter', 'Envanter Steam\'den yeniden çekildi.', 'Başarılı');
+      return { messageText: tf('# çeşit öğe yüklendi.', invMerged.length) };
     });
 
     // "Pazarı Yenile" - refreshes the market PRICES, not the inventory (skips the cache).
     quickAction('qaMarket', 'Pazar fiyatları yenileniyor…', async ()=>{
-      if (!invMerged || !invMerged.length) return { hata: 'Önce envanteri yükle.' };
-      if (typeof fetchPricesForView !== 'function') return { hata: 'Envanter sayfası hazır değil.' };
+      if (!invMerged || !invMerged.length) return { failure: 'Önce envanteri yükle.' };
+      if (typeof fetchPricesForView !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
       await window.imu.settings.clearPriceCache();
       if (typeof priceMap !== 'undefined') priceMap.clear();
       // An undefined requestPrices() used to be called here.
       await fetchPricesForView();
       renderGenelStats();
-      pushFeed('pazar', 'Pazar', 'Market fiyatları yeniden çekiliyor.', 'Çalışıyor');
-      return { mesaj: 'Fiyatlar çekiliyor, Envanter sekmesinden ilerlemeyi görebilirsin.' };
+      pushFeed('market', 'Pazar', 'Market fiyatları yeniden çekiliyor.', 'Çalışıyor');
+      return { messageText: 'Fiyatlar çekiliyor, Envanter sekmesinden ilerlemeyi görebilirsin.' };
     });
     document.getElementById('qaSettings').onclick = ()=> openAyarlar();
 

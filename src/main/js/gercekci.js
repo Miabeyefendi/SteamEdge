@@ -118,7 +118,7 @@
       if (!con.ok){ grEl('grSearch').placeholder = t('Bağlanılamadı:') + ' ' + t(con.error || ''); return; }
       const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'Kütüphane okunamadı.' }));
       if (!res.ok){ grEl('grSearch').placeholder = t('Kütüphane okunamadı.'); return; }
-      const bs = await window.imu.gercekci.noAchievementsList().catch(()=>null);
+      const bs = await window.imu.realistic.noAchievementsList().catch(()=>null);
       if (bs && bs.ok) grNoAchievements = new Set((bs.appids||[]).map(Number));
       grGames = (res.games || []).map(g=>({
         appid: g.appid, name: g.name, playtimeMin: g.playtimeForever || 0, hasStats: !!g.hasStats,
@@ -176,7 +176,7 @@
     // quota; cached for 5 minutes on the engine side.
     async function grValidate(game){
       if (!game) return true;
-      const p = await window.imu.gercekci.plan(game.appid, grDurationMs(), grOptions())
+      const p = await window.imu.realistic.plan(game.appid, grDurationMs(), grOptions())
         .catch(()=>null);
       if (!p || !p.noAchievements) return true;
       grNoAchievements.add(game.appid);
@@ -319,7 +319,7 @@
       grSet('grNextName', t('Başarım şeması okunuyor…'));
       // It is written to textContent: esc() here showed the name as "&amp;".
       grSet('grNextMeta', initial.name);
-      const p = await window.imu.gercekci.plan(initial.appid, grDurationMs(), grOptions())
+      const p = await window.imu.realistic.plan(initial.appid, grDurationMs(), grOptions())
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (request !== grPlanRequest) return;      // there is a newer request, drop this one
       // If reading the schema shows "this game has no achievements" the game is removed from the queue and never
@@ -598,7 +598,7 @@
 
     // ---- switches (toggle) ----
     function grPaintToggle(){
-      document.querySelectorAll('#tab-gercekci .gr-toggle').forEach(el=>{
+      document.querySelectorAll('#tab-realistic .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
         // grCatchUp is ON by default: if there is no backlog it changes nothing anyway.
         const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grAutoDuration');
@@ -608,7 +608,7 @@
         if (knob){ knob.style.background = on ? GRC.title : GRC.off; knob.style.marginLeft = on ? '16px' : '0px'; }
       });
     }
-    document.querySelectorAll('#tab-gercekci .gr-toggle').forEach(el=>{
+    document.querySelectorAll('#tab-realistic .gr-toggle').forEach(el=>{
       el.addEventListener('click', async ()=>{
         const k = el.getAttribute('data-grset');
         const newItem = !grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours');
@@ -786,7 +786,7 @@
         confirmText:'Başlat', cancelText:'Vazgeç',
       });
       if (!ok) return;
-      const r = await window.imu.gercekci.start(grQueue.map(g=>g.appid), durationMs, pick)
+      const r = await window.imu.realistic.start(grQueue.map(g=>g.appid), durationMs, pick)
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
         edgeConfirm({ tag:'Hata', danger:true, title:'Başlatılamadı',
@@ -795,13 +795,13 @@
       }
       grOpened = [];
       notify('boost', 'Gerçekçi Mod Başladı', (r.gameTitle||'') + ' · ' + tf('# başarım', r.totalSum));
-      pushFeed('saat', 'Gerçekçi Mod',
+      pushFeed('hours', 'Gerçekçi Mod',
                tf('# oyun', r.gameCount) + ' · ' + tf('# başarım # süreye yayıldı.', r.totalSum, grDurationLabel(durationMs)), 'Çalışıyor');
     };
     grEl('grStop').onclick = ()=>{
       if (!grStatus.calisiyor) return;
-      window.imu.gercekci.stop();
-      pushFeed('saat', 'Gerçekçi Mod', 'Durduruldu.', 'Durdu');
+      window.imu.realistic.stop();
+      pushFeed('hours', 'Gerçekçi Mod', 'Durduruldu.', 'Durdu');
     };
 
     // ---- state coming from the engine ----
@@ -811,17 +811,17 @@
       grSet('grClockM', two(Math.floor((remainingSec%3600)/60)));
       grSet('grClockS', two(remainingSec%60));
     }
-    if (window.imu.gercekci && window.imu.gercekci.onTick){
-      window.imu.gercekci.onTick((d)=>{
+    if (window.imu.realistic && window.imu.realistic.onTick){
+      window.imu.realistic.onTick((d)=>{
         grStatus = d || { calisiyor:false };
         if (grTimerUI){ clearInterval(grTimerUI); grTimerUI = null; }
 
         if (!d || !d.calisiyor){
           grPaintHours(0);
-          if (d && d.bitti){
+          if (d && d.isFinished){
             notify('boost', 'Gerçekçi Mod Bitti', tf('# / # başarım açıldı', d.openedGames, d.totalSum));
-            pushFeed(d.hata?'hata':'kart', 'Gerçekçi Mod',
-                     t(d.cause || 'Bitti') + ' · ' + tf('# / # başarım', d.openedGames, d.totalSum), d.hata?'Hata':'Başarılı');
+            pushFeed(d.failure?'error':'card', 'Gerçekçi Mod',
+                     t(d.cause || 'Bitti') + ' · ' + tf('# / # başarım', d.openedGames, d.totalSum), d.failure?'Hata':'Başarılı');
           }
           grPaintLibrary();
           grPaintList();
@@ -835,10 +835,10 @@
         grPaintList();
       });
     }
-    if (window.imu.gercekci && window.imu.gercekci.onOpened){
-      window.imu.gercekci.onOpened((a)=>{
+    if (window.imu.realistic && window.imu.realistic.onOpened){
+      window.imu.realistic.onOpened((a)=>{
         grOpened.push({ name:a.name, rarityPct:a.rarityPct, ts:Date.now() });
-        pushFeed('kart', 'Başarım açıldı', a.name + (a.gameTitle ? (' · ' + a.gameTitle) : ''), 'Başarılı');
+        pushFeed('card', 'Başarım açıldı', a.name + (a.gameTitle ? (' · ' + a.gameTitle) : ''), 'Başarılı');
         grPaintList();
       });
     }

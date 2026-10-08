@@ -177,7 +177,7 @@
     // for the same reason.
     // The reload used to drop you on the Overview: so the user does not get lost in the middle of Settings after changing the language,
     // the open section is carried to the next startup with sessionStorage.
-    const I18N_RETURN_KEY = 'se.dilDonusBolumu';
+    const I18N_RETURN_KEY = 'se.langReturnSection';
     function setUiLang(codeStr, reload) {
       const newItem = I18N_LANGS[codeStr] ? codeStr : 'tr';
       if (newItem === uiLang) return;

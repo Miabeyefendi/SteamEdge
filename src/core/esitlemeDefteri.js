@@ -16,7 +16,7 @@ function setupLedger(behind, targetMin) {
     startMin: g.playtimeMin || 0,
     remainingMs: Math.max(0, (targetMin - (g.playtimeMin || 0)) * 60000),
     passedMs: 0,
-    bitti: false,
+    isFinished: false,
   }));
   return gameList;
 }
@@ -31,12 +31,12 @@ function applyLedger(status, currentTime) {
   if (passed > 0) {
     (status.activeIds || []).forEach((id) => {
       const o = status.gameEntries.get(id);
-      if (o && !o.bitti) { o.remainingMs = Math.max(0, o.remainingMs - passed); o.passedMs += passed; }
+      if (o && !o.isFinished) { o.remainingMs = Math.max(0, o.remainingMs - passed); o.passedMs += passed; }
     });
   }
   const finished = [];
   status.gameEntries.forEach((o) => {
-    if (!o.bitti && o.remainingMs <= 0) { o.bitti = true; finished.push(o); }
+    if (!o.isFinished && o.remainingMs <= 0) { o.isFinished = true; finished.push(o); }
   });
   return finished;
 }
@@ -45,7 +45,7 @@ function applyLedger(status, currentTime) {
 // early, so the total time comes as close to the minimum as it can.
 function nextActiveSet(status) {
   if (!status || !status.gameEntries) return [];
-  const remainders = [...status.gameEntries.values()].filter((o) => !o.bitti);
+  const remainders = [...status.gameEntries.values()].filter((o) => !o.isFinished);
   remainders.sort((a, b) => b.remainingMs - a.remainingMs);
   return remainders.slice(0, Math.max(1, status.limit || 32)).map((o) => o.appid);
 }
@@ -58,7 +58,7 @@ function uiList(status, currentTime) {
   const activeSet = new Set(status.activeIds || []);
   const pending = Math.max(0, t - (status.lastAccount == null ? t : status.lastAccount));
   return [...status.gameEntries.values()].map((o) => {
-    const extra = (!o.bitti && activeSet.has(o.appid)) ? Math.min(pending, o.remainingMs) : 0;
+    const extra = (!o.isFinished && activeSet.has(o.appid)) ? Math.min(pending, o.remainingMs) : 0;
     return {
       appid: o.appid,
       name: o.name,
@@ -66,7 +66,7 @@ function uiList(status, currentTime) {
       suankiMin: o.startMin + Math.floor((o.passedMs + extra) / 60000),
       remainingMs: Math.max(0, o.remainingMs - extra),
       activeIds: activeSet.has(o.appid),
-      bitti: !!o.bitti,
+      isFinished: !!o.isFinished,
     };
   });
 }
@@ -76,7 +76,7 @@ function uiList(status, currentTime) {
 function remainingTotalMs(status) {
   if (!status || !status.gameEntries) return 0;
   const remaining = new Map();
-  status.gameEntries.forEach((o) => { if (!o.bitti && o.remainingMs > 0) remaining.set(o.appid, o.remainingMs); });
+  status.gameEntries.forEach((o) => { if (!o.isFinished && o.remainingMs > 0) remaining.set(o.appid, o.remainingMs); });
   const container = Math.max(1, Math.min(32, status.limit || 32));
   let sumTotal = 0, security = 0;
   while (remaining.size && security++ < 500) {

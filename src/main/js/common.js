@@ -3,7 +3,7 @@
     document.getElementById('max').onclick = () => api && api.win.maximize();
     document.getElementById('close').onclick = () => api && api.win.close();
 
-    const designed = { genel: document.getElementById('tab-genel'), kart: document.getElementById('tab-kart'), env: document.getElementById('tab-env'), saat: document.getElementById('tab-saat'), gercekci: document.getElementById('tab-gercekci'), basarim: document.getElementById('tab-basarim'), sohbet: document.getElementById('tab-sohbet'), ayarlar: document.getElementById('tab-ayarlar') };
+    const designed = { overview: document.getElementById('tab-overview'), card: document.getElementById('tab-card'), inventory: document.getElementById('tab-inventory'), hours: document.getElementById('tab-hours'), realistic: document.getElementById('tab-realistic'), achievements: document.getElementById('tab-achievements'), chat: document.getElementById('tab-chat'), settings: document.getElementById('tab-settings') };
     const empty = document.getElementById('tab-empty');
     const emptyName = document.getElementById('emptyName');
     // Opening a tab. The body used to be directly inside the nav link's click listener; since the Sohbet button in the top bar
@@ -11,12 +11,12 @@
     // so there is only one path left.
     async function openTab(tab, sourceConnection) {
       // If leaving the Ayarlar tab, the unsaved changes warning (ayarlar.js)
-      const leavingSettings = !designed.ayarlar.classList.contains('hidden');
+      const leavingSettings = !designed.settings.classList.contains('hidden');
       if (leavingSettings && typeof confirmLeaveSettings === 'function') {
         const ok = await confirmLeaveSettings();
         if (!ok) return;
       }
-      if (tab === 'cikis') { window.imu.logout(); return; }
+      if (tab === 'exit') { window.imu.logout(); return; }
       // Open windows that belong to another page close (see edgeConfirm > o.sayfa).
       document.querySelectorAll('.e-modal-back[data-sayfa]').forEach(m=>{
         if (m.getAttribute('data-sayfa') !== tab && typeof m._shutdownInner === 'function') m._shutdownInner(false);
@@ -33,14 +33,14 @@
         emptyName.textContent = sourceConnection ? sourceConnection.textContent.trim() : tab;
       }
       flushHeavyLists(tab);
-      if (tab === 'genel') loadGenel();
-      if (tab === 'kart') loadKart();
-      if (tab === 'saat') loadHours();
-      if (tab === 'env') loadEnv();
-      if (tab === 'gercekci') loadRealistic();
-      if (tab === 'basarim') loadAchievementsPage();
-      if (tab === 'sohbet') loadChat();
-      if (tab === 'ayarlar') loadSettingsPage();
+      if (tab === 'overview') loadGenel();
+      if (tab === 'card') loadKart();
+      if (tab === 'hours') loadHours();
+      if (tab === 'inventory') loadEnv();
+      if (tab === 'realistic') loadRealistic();
+      if (tab === 'achievements') loadAchievementsPage();
+      if (tab === 'chat') loadChat();
+      if (tab === 'settings') loadSettingsPage();
       redrawHeavyList(tab);
     }
     document.querySelectorAll('.nav a[data-tab]').forEach(a => {
@@ -57,10 +57,10 @@
     // sorting and filters stay on the JS side too, so nothing is lost on return.
     // Not a single extra request goes to Steam.
     const HEAVY_LISTS = {
-      kart:    { container: 'kartQueue',    draw: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
-      env:     { container: 'envRows',      draw: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
-      saat:    { container: 'hoursListBody', draw: () => (typeof renderHoursList === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) && renderHoursList() },
-      basarim: { container: 'acBody',       draw: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
+      card:    { container: 'cardQueue',    draw: () => (typeof renderKart === 'function' && typeof kartLoaded !== 'undefined' && kartLoaded) && renderKart() },
+      inventory:     { container: 'envRows',      draw: () => (typeof renderEnv === 'function' && typeof envLoaded !== 'undefined' && envLoaded) && renderEnv() },
+      hours:    { container: 'hoursListBody', draw: () => (typeof renderHoursList === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) && renderHoursList() },
+      achievements: { container: 'acBody',       draw: () => (typeof renderAchievements === 'function' && typeof acData !== 'undefined' && acData) && renderAchievements() },
     };
     const suspendedTabs = new Set();
 
@@ -400,8 +400,8 @@
       Object.keys(HEAVY_LISTS).forEach(t => {
         if (designed[t] && !designed[t].classList.contains('hidden')) redrawHeavyList(t);
       });
-      try { if (typeof renderActiveBox === 'function' && !designed.saat.classList.contains('hidden')) renderActiveBox(); } catch (_) {}
-      try { if (typeof renderGenelStats === 'function' && !designed.genel.classList.contains('hidden')) renderGenelStats(); } catch (_) {}
+      try { if (typeof renderActiveBox === 'function' && !designed.hours.classList.contains('hidden')) renderActiveBox(); } catch (_) {}
+      try { if (typeof renderGenelStats === 'function' && !designed.overview.classList.contains('hidden')) renderGenelStats(); } catch (_) {}
     });
 
     // "Oturum zaman aşımı" - report real user interaction to main (resets the counter)
@@ -522,7 +522,7 @@
     const SIDE_COLLAPSE_KEY = 'imu_side_collapsed';
     // The rail tab stays aligned with the active nav item: top = 17 + 44*index
     // (nav item 40px + 4px gap = 44px step). Since Ayarlar is not in the sidebar the index is 5.
-    const RAIL_ORDER = ['genel', 'kart', 'env', 'saat', 'gercekci', 'basarim', 'ayarlar'];
+    const RAIL_ORDER = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'settings'];
     function setRailTop(tab) {
       const btn = document.getElementById('sideCollapseBtn');
       const i = RAIL_ORDER.indexOf(tab);
@@ -558,7 +558,7 @@
     }
     document.getElementById('tbChat').onclick = () => {
       chPending = 0; chPaintBadge();
-      openTab('sohbet');
+      openTab('chat');
     };
 
     // ---- top bar: version badge and update warning ----
@@ -610,7 +610,7 @@
       // Current or could not check: only answer if the user asked by hand.
       if (!manuallyChecked || !d || typeof toast !== 'function') return;
       if (d.ok) toast('Güncelleme').done(tf('En güncel sürümü kullanıyorsun (v#).', d.installed));
-      else toast('Güncelleme').fail(t(d.hata || 'Sürüm bilgisi alınamadı.') + ' ' + t('Kurulu sürümün çalışmaya devam eder.'));
+      else toast('Güncelleme').fail(t(d.failure || 'Sürüm bilgisi alınamadı.') + ' ' + t('Kurulu sürümün çalışmaya devam eder.'));
     }
 
     if (window.imu && window.imu.updateInfo){
@@ -619,7 +619,7 @@
       const ub = document.getElementById('tbUpdate');
       if (ub) ub.onclick = async ()=>{
         ub.disabled = true;
-        const d = await window.imu.updateInfo.checkIt().catch(e=>({ ok:false, hata:(e&&e.message)||'Denetim başarısız.' }));
+        const d = await window.imu.updateInfo.checkIt().catch(e=>({ ok:false, failure:(e&&e.message)||'Denetim başarısız.' }));
         ub.disabled = false;
         updateStatus(d, true);
       };
@@ -814,14 +814,14 @@
     function connectionStrip(d){
       const status = d.condition;
       const message = connectionText(d);
-      let el = document.getElementById('baglantiSerit');
+      let el = document.getElementById('connectionStrip');
       if (status === 'connected'){
         if (el) el.remove();
         return;
       }
       if (!el){
         el = document.createElement('div');
-        el.id = 'baglantiSerit';
+        el.id = 'connectionStrip';
         el.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 20px;'
           + 'font-size:12px;font-weight:600;border-bottom:1px solid #B37E24;background:#1A1408;color:#B37E24';
         // The strip goes above the BODY ROW. It used to be added directly as a sibling of <main>;
@@ -853,11 +853,11 @@
         connectionStrip(d);
         if (d.condition === 'dropped'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
-          if (typeof pushFeed === 'function') pushFeed('hata', 'Steam Bağlantısı', connectionText(d), 'Hata');
+          if (typeof pushFeed === 'function') pushFeed('error', 'Steam Bağlantısı', connectionText(d), 'Hata');
           // If reconnecting is off "vazgeçildi" comes right after, and that gives the notification.
           if (d.limitValue !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
         } else if (d.condition === 'connected' && d.reconnected){
-          if (typeof pushFeed === 'function') pushFeed('kart', 'Steam Bağlantısı', connectionText(d), 'Başarılı');
+          if (typeof pushFeed === 'function') pushFeed('card', 'Steam Bağlantısı', connectionText(d), 'Başarılı');
         }
       });
     }
@@ -872,12 +872,12 @@
     // The fix: when the account changes empty the content of all tabs and put in a "loading" skeleton.
     function placeSkeleton(){
       const goals = [
-        ['kartRows', 'Oyun listesi yükleniyor...'],
+        ['cardRows', 'Oyun listesi yükleniyor...'],
         ['envRows', 'Envanter yükleniyor...'],
         ['hoursListBody', 'Kütüphane yükleniyor...'],
         ['activeBoostBox', 'Kuyruk yükleniyor...'],
         ['acBody', 'Başarımlar yükleniyor...'],
-        ['grListe', 'Yükleniyor...'],
+        ['grListBox', 'Yükleniyor...'],
         ['gFeed', 'Yükleniyor...'],
       ];
       goals.forEach(([id, text])=>{
@@ -907,14 +907,14 @@
     // Realistic Mode was not in the list either: while these were open Genel Bakış was loaded when the account changed,
     // and the visible page stayed in the skeleton.
     function reloadActiveTab(){
-      const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'genel';
-      if (tab === 'kart' && typeof loadKart === 'function') loadKart();
-      else if (tab === 'saat' && typeof loadHours === 'function') loadHours();
-      else if (tab === 'env' && typeof loadEnv === 'function') loadEnv();
-      else if (tab === 'basarim' && typeof loadAchievementsPage === 'function') loadAchievementsPage();
-      else if (tab === 'gercekci' && typeof loadRealistic === 'function') loadRealistic();
-      else if (tab === 'sohbet' && typeof loadChat === 'function') loadChat();
-      else if (tab === 'ayarlar' && typeof loadSettingsPage === 'function') loadSettingsPage();
+      const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'overview';
+      if (tab === 'card' && typeof loadKart === 'function') loadKart();
+      else if (tab === 'hours' && typeof loadHours === 'function') loadHours();
+      else if (tab === 'inventory' && typeof loadEnv === 'function') loadEnv();
+      else if (tab === 'achievements' && typeof loadAchievementsPage === 'function') loadAchievementsPage();
+      else if (tab === 'realistic' && typeof loadRealistic === 'function') loadRealistic();
+      else if (tab === 'chat' && typeof loadChat === 'function') loadChat();
+      else if (tab === 'settings' && typeof loadSettingsPage === 'function') loadSettingsPage();
       else if (typeof loadGenel === 'function') loadGenel();
     }
     async function switchAccount(steamID){
@@ -964,12 +964,12 @@
     // is sent in the main process (see main.js connectAccount > onChatMessage).
     if (window.imu.onChatMessage) window.imu.onChatMessage((m)=>{
       // If the chat screen is not open let the badge in the top bar show.
-      if (designed.sohbet && designed.sohbet.classList.contains('hidden')){
+      if (designed.chat && designed.chat.classList.contains('hidden')){
         chPending++; chPaintBadge();
       }
       const who = m.persona || m.from;
       if (typeof pushFeed === 'function'){
-        pushFeed('mesaj', t('Steam mesajı') + ' · ' + who,
+        pushFeed('message', t('Steam mesajı') + ' · ' + who,
                  m.message.slice(0,140) + (m.replied ? '  ·  ' + t('otomatik yanıtlandı') : ''), 'Mesaj');
       }
       if (typeof toast === 'function') toast(who).done(m.message.slice(0,120));
@@ -980,7 +980,7 @@
     window.imu.accounts.connectAll().then((res)=>{
       const failed = (res||[]).filter(r=>!r.ok);
       if (failed.length && typeof pushFeed === 'function'){
-        failed.forEach(f=>pushFeed('hata','Hesap bağlanamadı', f.accountName+' - '+(f.error||''), 'Hata'));
+        failed.forEach(f=>pushFeed('error','Hesap bağlanamadı', f.accountName+' - '+(f.error||''), 'Hata'));
       }
     }).catch(()=>{});
     document.getElementById('acctLogoutBtn').onclick = () => {

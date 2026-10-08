@@ -209,7 +209,7 @@
       function gamePercent(g, active){
         const details = syncGameInfo.get(g.appid);
         if (details && syncJobTotalMs > 0){
-          if (details.bitti) return 100;
+          if (details.isFinished) return 100;
           const remaining = Math.max(0, details.remainingMs || 0);
           return Math.max(0, Math.min(100, Math.round((1 - remaining / syncJobTotalMs) * 100)));
         }
@@ -269,7 +269,7 @@
     function subRow(g, on, i, elapsed){
       const details = syncGameInfo.get(g.appid);
       if (details){
-        if (details.bitti) return esc(tf('hedefe ulaştı · # ✓', fmtHours(details.suankiMin)));
+        if (details.isFinished) return esc(tf('hedefe ulaştı · # ✓', fmtHours(details.suankiMin)));
         const goal = syncTargetMin ? (' → ' + fmtHours(syncTargetMin)) : '';
         return esc(fmtHours(details.suankiMin) + goal + ' · ' + t(on ? 'çalışıyor' : 'sırada'));
       }
@@ -409,7 +409,7 @@
         if (typeof appSettings === 'object') appSettings = s;
         applyBoostSettings();
       }
-      document.querySelectorAll('#tab-saat .e-toggle[data-bset]').forEach(el=>{
+      document.querySelectorAll('#tab-hours .e-toggle[data-bset]').forEach(el=>{
         el.classList.toggle('on', !!boostFlags[el.getAttribute('data-bset')]);
       });
       paintHourGate();
@@ -429,7 +429,7 @@
       rowEl.style.pointerEvents = isOpen ? '' : 'none';
       rowEl.title = isOpen ? '' : 'Sıralı bekletme modu kapalıyken kuyruk yoktur.';
     }
-    document.querySelectorAll('#tab-saat .e-toggle[data-bset]').forEach(el=>{
+    document.querySelectorAll('#tab-hours .e-toggle[data-bset]').forEach(el=>{
       el.addEventListener('click', async ()=>{
         const key = el.getAttribute('data-bset');
         const val = !boostFlags[key];
@@ -514,7 +514,7 @@
         E.boostStart(games.map(g=>g.appid), hourDurSec*1000, games, allOfIt);
       }
       notify('boost', 'Saat Yükseltme Başladı', tf('# oyun', games.length));
-      pushFeed('saat', 'Saat Yükseltici', syncOn ? tf('# oyunla başladı (eşitleme açık).', games.length) : tf('# oyunla başladı.', games.length), 'Çalışıyor');
+      pushFeed('hours', 'Saat Yükseltici', syncOn ? tf('# oyunla başladı (eşitleme açık).', games.length) : tf('# oyunla başladı.', games.length), 'Çalışıyor');
     }
     // Writes minutes as "12 sa 30 dk", with the units of the interface language
     function fmtHours(min){
@@ -577,7 +577,7 @@
     document.getElementById('btnBoostStop').onclick = () => {
       E.boostStop(); E.boostStopSeq();
       notify('boost', 'Saat Yükseltme Durdu', '');
-      pushFeed('saat', 'Saat Yükseltici', 'Durduruldu.', 'Durdu');
+      pushFeed('hours', 'Saat Yükseltici', 'Durduruldu.', 'Durdu');
     };
 
     // "Oturumu otomatik yenile" is now in the main process and per account (main.js > boostTimeUp).

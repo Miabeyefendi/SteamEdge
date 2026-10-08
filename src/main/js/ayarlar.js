@@ -34,7 +34,7 @@
     function copy(o){ return JSON.parse(JSON.stringify(o == null ? null : o)); }
     function pageKeys(){
       const set = new Set();
-      document.querySelectorAll('#tab-ayarlar [data-set]').forEach(el=>set.add(el.getAttribute('data-set')));
+      document.querySelectorAll('#tab-settings [data-set]').forEach(el=>set.add(el.getAttribute('data-set')));
       return [...set];
     }
     // The value on the page: from the draft if there is one, otherwise from the saved setting.
@@ -61,7 +61,7 @@
       return v;
     }
     function settingRow(k){
-      const el = document.querySelector('#tab-ayarlar [data-set="'+k+'"]');
+      const el = document.querySelector('#tab-settings [data-set="'+k+'"]');
       return el ? el.closest('[data-setting-row]') : null;
     }
     // The page name of a changed setting (shown in the exit question instead of the key name)
@@ -153,9 +153,9 @@
 
     // Startup page (Ayarlar > Genel > "Açılış sayfası")
     function applyStartPage(){
-      const map = { overview:'genel', farm:'kart', hub:'env', boost:'saat', ach:'basarim' };
+      const map = { overview:'overview', farm:'card', hub:'inventory', boost:'hours', ach:'achievements' };
       const tab = map[appSettings.startPage];
-      if (!tab || tab === 'genel') return;
+      if (!tab || tab === 'overview') return;
       const a = document.querySelector('.nav a[data-tab='+tab+']');
       if (a) a.click();
     }
@@ -178,7 +178,7 @@
       if (kind==='error' && !appSettings.notifyError) return;
       if (kind==='ach'   && !appSettings.notifyAch)   return;
       // The price drop is tied to its own key; it does not go quiet when the error notification is turned off.
-      if (kind==='fiyat' && !appSettings.notifyPriceDrop) return;
+      if (kind==='price' && !appSettings.notifyPriceDrop) return;
       if (inQuietHours()) return;
       // Sent through the main process; Windows toasts were silently dropped from the renderer.
       window.imu.notify(t(title), t(body||'')).catch(()=>{});
@@ -190,28 +190,28 @@
     function showSetSection(pick){
       currentSetSec = pick;
       if (pick === 'advanced' && typeof readMemory === 'function') readMemory();
-      document.querySelectorAll('#tab-ayarlar .setpanel').forEach(p=>{
+      document.querySelectorAll('#tab-settings .setpanel').forEach(p=>{
         p.style.display = (p.getAttribute('data-sec')===pick) ? '' : 'none';
       });
-      document.querySelectorAll('#tab-ayarlar [data-secbtn]').forEach(b=>{
+      document.querySelectorAll('#tab-settings [data-secbtn]').forEach(b=>{
         const on = b.getAttribute('data-secbtn')===pick;
         b.style.background  = on ? SC.s3 : 'transparent';
         b.style.color       = on ? SC.title : SC.muted;
         b.style.borderColor = on ? SC.bdActive : 'transparent';
       });
     }
-    document.querySelectorAll('#tab-ayarlar [data-secbtn]').forEach(b=>{
+    document.querySelectorAll('#tab-settings [data-secbtn]').forEach(b=>{
       b.addEventListener('click', ()=>showSetSection(b.getAttribute('data-secbtn')));
     });
 
     // The gear icon in the top bar calls this (see common.js #tbSettings). If Settings is already
     // open only the section changes: the draft is kept, changes already made are not lost.
     function openAyarlar(pick){
-      const alreadyOpen = !designed.ayarlar.classList.contains('hidden');
+      const alreadyOpen = !designed.settings.classList.contains('hidden');
       if (!alreadyOpen){
         Object.values(designed).forEach(s=>s.classList.add('hidden'));
         document.getElementById('tab-empty').classList.add('hidden');
-        designed.ayarlar.classList.remove('hidden');
+        designed.settings.classList.remove('hidden');
         document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
       }
       loadSettingsPage();
@@ -224,10 +224,10 @@
       const sym  = (typeof curSym  === 'function') ? curSym()  : '';
       const code = (typeof curCode === 'function') ? (curCode() || '-') : '-';
       const sub  = (typeof curSubunit === 'function') ? curSubunit() : 'birim';
-      document.querySelectorAll('#tab-ayarlar [data-cursym]').forEach(e=>{ e.textContent = sym; });
-      document.querySelectorAll('#tab-ayarlar [data-curcode]').forEach(e=>{ e.textContent = code; });
+      document.querySelectorAll('#tab-settings [data-cursym]').forEach(e=>{ e.textContent = sym; });
+      document.querySelectorAll('#tab-settings [data-curcode]').forEach(e=>{ e.textContent = code; });
       // The unit of "Alt sıralama miktarı": in a USD account it must say "sent", not "kuruş"
-      document.querySelectorAll('#tab-ayarlar [data-cursub]').forEach(e=>{ e.textContent = sub; });
+      document.querySelectorAll('#tab-settings [data-cursub]').forEach(e=>{ e.textContent = sub; });
     }
 
     // The "Fiyat kaynağı" row. The currency choice was removed: amounts are ALWAYS shown in the Steam account's
@@ -257,7 +257,7 @@
       if (knob){ knob.style.background = on ? SC.title : SC.off; knob.style.marginLeft = on ? '16px' : '0px'; }
     }
     function paintControls(){
-      document.querySelectorAll('#tab-ayarlar [data-set]').forEach(el=>{
+      document.querySelectorAll('#tab-settings [data-set]').forEach(el=>{
         const key = el.getAttribute('data-set');
         const v = rawValue(key);
         if (el.tagName === 'DIV') { paintToggle(el, !!v); return; }
@@ -303,18 +303,18 @@
     }
 
     // ---- Hesap Statüsü: the connection state the engine last reported, not a guess ----
-    let activeConnection = { condition: 'yok' };
+    let activeConnection = { condition: 'none' };
     const CONNECTION_VIEW = {
       connected:      { textValue: 'Bağlı',                colorValue: '#5FB324' },
       connecting: { textValue: 'Yeniden bağlanıyor',   colorValue: '#B37E24' },
       dropped:      { textValue: 'Bağlantı koptu',       colorValue: '#B32453' },
       abandoned: { textValue: 'Bağlantı kurulamadı',  colorValue: '#B32453' },
-      yok:        { textValue: 'Bağlı değil',          colorValue: '#8B8F9E' },
+      none:        { textValue: 'Bağlı değil',          colorValue: '#8B8F9E' },
     };
     function writeConnectionState(){
       const el = document.getElementById('setAcctStatus');
       if (!el) return;
-      const g = CONNECTION_VIEW[activeConnection.condition] || CONNECTION_VIEW.yok;
+      const g = CONNECTION_VIEW[activeConnection.condition] || CONNECTION_VIEW.none;
       el.textContent = t(g.textValue);
       el.style.color = g.colorValue;
       el.title = (activeConnection.condition === 'connected' && activeConnection.ts)
@@ -322,7 +322,7 @@
     }
     async function readConnectionState(){
       const d = await window.imu.engine.connectionStatus().catch(()=>null);
-      activeConnection = d || { condition: 'yok' };
+      activeConnection = d || { condition: 'none' };
       writeConnectionState();
     }
     if (window.imu.engine && window.imu.engine.onStatus){
@@ -391,7 +391,7 @@
     async function readMemory(){
       if (document.hidden) return;
       if (typeof currentSetSec === 'string' && currentSetSec !== 'advanced') return;
-      if (designed.ayarlar.classList.contains('hidden')) return;
+      if (designed.settings.classList.contains('hidden')) return;
       const d = await window.imu.appMemory().catch(()=>null);
       writeMemory(d);
     }
@@ -461,7 +461,7 @@
     };
 
     // Hakkında > author and credits links - opened in the external browser
-    document.querySelectorAll('#tab-ayarlar [data-gh]').forEach(a=>{
+    document.querySelectorAll('#tab-settings [data-gh]').forEach(a=>{
       a.addEventListener('click', (e)=>{
         e.preventDefault();
         window.imu.openExternal('https://github.com/' + a.getAttribute('data-gh'));
@@ -478,7 +478,7 @@
       showChanges();
       paintSettingGates();
     }
-    document.querySelectorAll('#tab-ayarlar [data-set]').forEach(el=>{
+    document.querySelectorAll('#tab-settings [data-set]').forEach(el=>{
       const key = el.getAttribute('data-set');
       if (el.tagName === 'DIV'){
         el.addEventListener('click', ()=>{
@@ -534,18 +534,18 @@
       announceSaveResult(r, listing);
       return true;
     }
-    const JOB_NAME = { kart:'Kart düşürme', saat:'Saat yükseltme', sirali:'Sıralı saat yükseltme' };
+    const JOB_NAME = { card:'Kart düşürme', hours:'Saat yükseltme', sequential:'Sıralı saat yükseltme' };
     function announceSaveResult(r, listing){
       const rowsList = [];
-      const pausing = (r.appliedOne || []).filter(u => u.how === 'duraklatildi');
+      const pausing = (r.appliedOne || []).filter(u => u.how === 'paused');
       const multi = new Set((r.appliedOne || []).map(u => u.steamID)).size > 1;
       pausing.forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is) + (multi ? (' (' + u.accountRef + ')') : '') + ': '
         + tf('# sn duraklatıldı, yeni ayarla sürecek.', Math.round((r.pauseMs || 5000) / 1000))));
-      (r.appliedOne || []).filter(u => u.how === 'aninda').forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is)
+      (r.appliedOne || []).filter(u => u.how === 'instant').forEach(u => rowsList.push(t(JOB_NAME[u.is] || u.is)
         + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('yeni ayar hemen uygulandı.')));
-      (r.appliedOne || []).filter(u => u.how === 'bekletildi').forEach(u => rowsList.push(t('Kart düşürme')
+      (r.appliedOne || []).filter(u => u.how === 'delayed').forEach(u => rowsList.push(t('Kart düşürme')
         + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('saat yükseltme bitene kadar duraklatıldı.')));
-      (r.appliedOne || []).filter(u => u.how === 'surduruldu').forEach(u => rowsList.push(t('Kart düşürme')
+      (r.appliedOne || []).filter(u => u.how === 'resumed').forEach(u => rowsList.push(t('Kart düşürme')
         + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('kaldığı yerden sürüyor.')));
       if (listing.some(k => RESTART.includes(k))) rowsList.push(t('Grafik ayarları SteamEdge yeniden başlatılınca etkili olur.'));
       const title = tf('# ayar kaydedildi.', listing.length);

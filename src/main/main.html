@@ -104,32 +104,32 @@
       <aside class="e-aside" id="sideNav">
         <div>
           <nav class="nav e-nav" id="mainNav">
-            <a data-tab="genel" class="e-nav-item active">
+            <a data-tab="overview" class="e-nav-item active">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20H4z"></path><path d="M10 20v-6h4v6"></path></svg>
               <span class="e-lbl">Genel Bakış</span>
             </a>
-            <a data-tab="kart" class="e-nav-item">
+            <a data-tab="card" class="e-nav-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="12" height="14" rx="2"></rect><path d="M8 4h9a2 2 0 0 1 2 2v11"></path></svg>
               <span class="e-lbl">Kart Düşür</span>
             </a>
-            <a data-tab="env" class="e-nav-item">
+            <a data-tab="inventory" class="e-nav-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16v12H4z"></path><path d="M4 8l2-4h12l2 4"></path><path d="M10 12h4"></path></svg>
               <span class="e-lbl">Envanter &amp; Pazar</span>
             </a>
-            <a data-tab="saat" class="e-nav-item">
+            <a data-tab="hours" class="e-nav-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>
               <span class="e-lbl">Saat Yükseltici</span>
             </a>
-            <a data-tab="gercekci" class="e-nav-item">
+            <a data-tab="realistic" class="e-nav-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
               <span class="e-lbl">Gerçekçi Mod</span>
             </a>
-            <a data-tab="basarim" class="e-nav-item">
+            <a data-tab="achievements" class="e-nav-item">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4h8v5a4 4 0 0 1-8 0z"></path><path d="M12 13v4M9 20h6"></path><path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3"></path></svg>
               <span class="e-lbl">Başarımlar</span>
             </a>
             <div class="e-nav-sep"></div>
-            <a data-tab="cikis" class="e-nav-item e-logout">
+            <a data-tab="exit" class="e-nav-item e-logout">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 5H6v14h8"></path><path d="M17 8l3 4-3 4M11 12h9"></path></svg>
               <span class="e-lbl">Çıkış Yap</span>
             </a>
@@ -152,14 +152,14 @@
       </aside>
 
       <main class="e-main">
-        <section id="tab-genel"></section>
-        <section id="tab-kart" class="hidden"></section>
-        <section id="tab-env" class="hidden"></section>
-        <section id="tab-saat" class="hidden"></section>
-        <section id="tab-gercekci" class="hidden"></section>
-        <section id="tab-basarim" class="hidden"></section>
-        <section id="tab-sohbet" class="hidden"></section>
-        <section id="tab-ayarlar" class="hidden"></section>
+        <section id="tab-overview"></section>
+        <section id="tab-card" class="hidden"></section>
+        <section id="tab-inventory" class="hidden"></section>
+        <section id="tab-hours" class="hidden"></section>
+        <section id="tab-realistic" class="hidden"></section>
+        <section id="tab-achievements" class="hidden"></section>
+        <section id="tab-chat" class="hidden"></section>
+        <section id="tab-settings" class="hidden"></section>
         <section id="tab-empty" class="hidden">
           <div class="empty">
             <div id="emptyName" style="font-size:16px;font-weight:600;color:var(--e-muted)">Sekme</div>
@@ -173,14 +173,14 @@
   <script>
     // Sayfa parçaları burada, SAYFA JS'LERİ ÇALIŞMADAN ÖNCE senkron olarak enjekte edilir -
     // her sayfanın kendi script'i (js/*.js) ilgili id'lere anında getElementById ile bağlanıyor.
-    document.getElementById('tab-genel').innerHTML = window.imu.pages.load('genel');
-    document.getElementById('tab-kart').innerHTML = window.imu.pages.load('kart');
-    document.getElementById('tab-env').innerHTML = window.imu.pages.load('env');
-    document.getElementById('tab-saat').innerHTML = window.imu.pages.load('saat');
-    document.getElementById('tab-gercekci').innerHTML = window.imu.pages.load('gercekci');
-    document.getElementById('tab-basarim').innerHTML = window.imu.pages.load('basarim');
-    document.getElementById('tab-sohbet').innerHTML = window.imu.pages.load('sohbet');
-    document.getElementById('tab-ayarlar').innerHTML = window.imu.pages.load('ayarlar');
+    document.getElementById('tab-overview').innerHTML = window.imu.pages.load('genel');
+    document.getElementById('tab-card').innerHTML = window.imu.pages.load('kart');
+    document.getElementById('tab-inventory').innerHTML = window.imu.pages.load('env');
+    document.getElementById('tab-hours').innerHTML = window.imu.pages.load('saat');
+    document.getElementById('tab-realistic').innerHTML = window.imu.pages.load('gercekci');
+    document.getElementById('tab-achievements').innerHTML = window.imu.pages.load('basarim');
+    document.getElementById('tab-chat').innerHTML = window.imu.pages.load('sohbet');
+    document.getElementById('tab-settings').innerHTML = window.imu.pages.load('ayarlar');
   </script>
   <!-- Multilingual support: dictionary + translation on the DOM. BEFORE the other page JS files. -->
   <script src="js/tema.js"></script>

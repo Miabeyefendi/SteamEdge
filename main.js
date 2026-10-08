@@ -28,7 +28,7 @@ const ct = translation.t;
     const r = await fn(...a);
     if (r && typeof r === 'object' && !Array.isArray(r)) {
       if (typeof r.error === 'string') r.error = ct(r.error);
-      if (typeof r.hata === 'string') r.hata = ct(r.hata);
+      if (typeof r.failure === 'string') r.failure = ct(r.failure);
     }
     return r;
   });
@@ -215,7 +215,7 @@ function readJson(fileEntry) {
   };
   try { return { ok: true, dataBlock: attempt(fileEntry) }; }
   catch (e1) {
-    if (e1 && e1.code === 'ENOENT') return { ok: false, yok: true };
+    if (e1 && e1.code === 'ENOENT') return { ok: false, none: true };
     log('warn', path.basename(fileEntry) + ' could not be read (' + (e1 && e1.message) + '), trying the backup');
     try {
       const payloadData = attempt(fileEntry + '.bak');
@@ -755,7 +755,7 @@ ipcMain.handle('accounts:switch', async (_e, steamID) => {
   // The renderer should see the LIVE state of all the jobs of the account it switched to right away; the
   // previous account's running job must not hang on screen.
   sendJobStatus(steamID);
-  sendRaw('stats:degisti', statsView(steamID));
+  sendRaw('stats:changed', statsView(steamID));
   return { ok: true, persona: r.persona, steamID, softSwitch: true };
 });
 
@@ -851,7 +851,7 @@ function slotOf(steamID) {
       engine: null, farm: null, farmSaat: null, ready: false, accountName: null,
       lastOne: {},             // channel -> last state; resent to the interface when the account changes
       boost: null,         // simultaneous hour boosting and sync
-      gercekci: null,      // Realistic Mode
+      realistic: null,      // Realistic Mode
       izleyici: null,      // card drop watcher
       statHour: null,      // run time counter
       pendingFarm: null,  // card farming paused for the duration of hour boosting
@@ -866,10 +866,10 @@ function slotOf(steamID) {
 // while hour boosting was running on account A, when the time was up B's games
 // were closed and A stayed open forever. Statistics were also counted from the interface, only
 // for the account on screen. Now every job lives in its own account's slot.
-const JOB_CHANNELS = ['farm:tick', 'boost:tick', 'saatFarm:tick', 'boost:sync', 'gercekci:tick'];
+const JOB_CHANNELS = ['farm:tick', 'boost:tick', 'hoursFarm:tick', 'boost:sync', 'realistic:tick'];
 const EMPTY_STATE = {
-  'farm:tick': { running: false }, 'boost:tick': { running: false }, 'saatFarm:tick': { running: false },
-  'boost:sync': { running: false }, 'gercekci:tick': { calisiyor: false },
+  'farm:tick': { running: false }, 'boost:tick': { running: false }, 'hoursFarm:tick': { running: false },
+  'boost:sync': { running: false }, 'realistic:tick': { calisiyor: false },
 };
 function accountName(steamID) {
   const s = accounts.get(steamID);
@@ -879,7 +879,7 @@ function accountBoostRunning(s) {
   return !!(s && ((s.boost && s.boost.calisiyor) || (s.farmSaat && s.farmSaat.running)));
 }
 function accountRunning(s) {
-  return !!(s && ((s.farm && s.farm.running) || accountBoostRunning(s) || s.gercekci));
+  return !!(s && ((s.farm && s.farm.running) || accountBoostRunning(s) || s.realistic));
 }
 // A job event of an account. Only those of the account open on screen go to the interface; all are kept.
 function accountBroadcast(steamID) {
@@ -913,10 +913,10 @@ function sendJobStatus(steamID) {
 // shows the notification (quiet hours, sound and setting gates are there). The event of a background account is
 // also written to that account's own activity feed; when you switch to the account the history is not missing.
 function accountEvent(steamID, evt) {
-  sendRaw('hesap:olay', { steamID, accountRef: accountName(steamID), activeIds: steamID === activeSteamID, ...evt });
+  sendRaw('account:event', { steamID, accountRef: accountName(steamID), activeIds: steamID === activeSteamID, ...evt });
   if (steamID !== activeSteamID && evt.feedEntry) addFeed(steamID, evt.feedEntry);
 }
-const ACTIVITY_KEY = 'aktiviteAkisi';
+const ACTIVITY_KEY = 'activityFeed';
 function addFeed(steamID, record) {
   const v = accountData(steamID);
   const e = v.entries[ACTIVITY_KEY];
@@ -972,7 +972,7 @@ function addStat(steamID, patch) {
     st[k] += (+patch[k] || 0);
   });
   writeAccountDataDelayed(steamID);
-  if (steamID === activeSteamID) sendRaw('stats:degisti', statsView(steamID));
+  if (steamID === activeSteamID) sendRaw('stats:changed', statsView(steamID));
 }
 // Run time counter. Card farming time is `totalRuntimeMs`, hour boosting (simultaneous or
 // sequential) is `boostRuntimeMs`. Hour boosting time used to be written only when Stop was pressed BY
@@ -1029,20 +1029,20 @@ function farmBroadcast(steamID) {
     if (channelName !== 'farm:tick' || !payloadData || payloadData.running) return;
     const s = accounts.get(steamID);
     stopCardWatcher(s);
-    if (payloadData.cause === 'bitti' && payloadData.calisiyordu) {
+    if (payloadData.cause === 'finished' && payloadData.calisiyordu) {
       log('info', '[' + accountName(steamID) + '] card farming done: all cards collected');
       accountEvent(steamID, {
         typeName: 'cardsDone',
-        feedEntry: { kind: 'kart', title: 'Kart Düşürme', text: 'Tüm kartlar toplandı.', status: 'Başarılı' },
+        feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Tüm kartlar toplandı.', status: 'Başarılı' },
       });
       resumeFarm(steamID);
-    } else if ((payloadData.cause === 'sure' || payloadData.cause === 'oyunBitti') && payloadData.calisiyordu) {
+    } else if ((payloadData.cause === 'duration' || payloadData.cause === 'gameFinished') && payloadData.calisiyordu) {
       // "Oyun bitince sıradakine geç" is off: it says why it stopped, otherwise the user
       // thought the job had closed on its own.
       accountEvent(steamID, {
         typeName: 'cardStopped',
-        feedEntry: { kind: 'kart', title: 'Kart Düşürme', status: 'Durdu',
-          text: payloadData.cause === 'sure'
+        feedEntry: { kind: 'card', title: 'Kart Düşürme', status: 'Durdu',
+          text: payloadData.cause === 'duration'
             ? 'Oyunun süresi doldu; sıradakine geçme kapalı olduğu için durdu.'
             : 'Oyunun kartları bitti; sıradakine geçme kapalı olduğu için durdu.' },
       });
@@ -1052,9 +1052,9 @@ function farmBroadcast(steamID) {
 function startCardFarm(steamID, mode, games, durationMs, extra) {
   const s = slotOf(steamID);
   if (!s.engine || !s.ready) return false;
-  if (!s.farm) s.farm = new FarmController(s.engine, farmBroadcast(steamID), 'kart');
+  if (!s.farm) s.farm = new FarmController(s.engine, farmBroadcast(steamID), 'card');
   s.farm.engine = s.engine;
-  const proceed = !!(extra && extra.devam);
+  const proceed = !!(extra && extra.proceeding);
   log('info', `[${accountName(steamID)}] farm ${proceed ? 'resume' : 'start'}: mode=${mode} games=${(games || []).length} duration=${durationMs}ms`);
   s.farm.start(mode, games || [], durationMs, { ...cardFarmOptions(), ...(extra || {}) });
   if (!proceed && s.farm.running) addStat(steamID, { sessions: 1 });
@@ -1067,7 +1067,7 @@ function startCardWatcher(steamID, gameList) {
   const old = s.izleyici;
   stopCardWatcher(s);
   s.izleyici = {
-    timer: null, achievementTimer: null, occupiedFlag: false, achievementBusy: false, hata: 0,
+    timer: null, achievementTimer: null, occupiedFlag: false, achievementBusy: false, failure: 0,
     // When continuing (a settings change) the previous measurement is kept, otherwise the drop in between would be lost.
     leftover: old && old.leftover ? old.leftover : new Map((gameList || []).map((g) => [g.appid, g.remaining])),
     nameList: new Map((gameList || []).map((g) => [g.appid, g.name])),
@@ -1091,7 +1091,7 @@ async function watchCards(steamID) {
   trace.occupiedFlag = true;
   try {
     const { gameEntries: gameList, finishedOnes: finished } = await s.engine.getDropGames(true);
-    trace.hata = 0;
+    trace.failure = 0;
     // Playtime is not on the badge page; it is carried over from the last known list (fast mode needs it).
     const dk = new Map();
     const v = accountData(steamID);
@@ -1109,7 +1109,7 @@ async function watchCards(steamID) {
       const name = (newItem.get(appid) && newItem.get(appid).name) || trace.nameList.get(appid) || ('App ' + appid);
       accountEvent(steamID, {
         typeName: 'cardDropped', appid, displayName: name, itemCount: count,
-        feedEntry: { kind: 'kart', title: '# kart düştü'.replace('#', count), text: name, status: 'Başarılı' },
+        feedEntry: { kind: 'card', title: '# kart düştü'.replace('#', count), text: name, status: 'Başarılı' },
       });
     });
     current.forEach((g) => { trace.leftover.set(g.appid, g.remaining); trace.nameList.set(g.appid, g.name); });
@@ -1120,10 +1120,10 @@ async function watchCards(steamID) {
       addStat(steamID, { cardsDropped: droppedNow });
     }
     storeLists('drop', current, steamID);
-    if (steamID === activeSteamID) sendRaw('farm:liste', { steamID, games: current, sessionDropped: trace.sessionDropped, droppedItems: droppedNow });
+    if (steamID === activeSteamID) sendRaw('farm:list', { steamID, games: current, sessionDropped: trace.sessionDropped, droppedItems: droppedNow });
     s.farm.updateGames(current, finished);
   } catch (e) {
-    trace.hata++;
+    trace.failure++;
     log('warn', '[' + accountName(steamID) + '] badge watcher: ' + (e && e.message));
   } finally {
     trace.occupiedFlag = false;
@@ -1154,7 +1154,7 @@ async function openCardAchievements(steamID) {
     writeAccountDataDelayed(steamID);
     accountEvent(steamID, {
       typeName: 'achievementUnlocked', appid, displayName: picked.name,
-      feedEntry: { kind: 'kart', title: 'Başarım açıldı', text: picked.name, status: 'Başarılı' },
+      feedEntry: { kind: 'card', title: 'Başarım açıldı', text: picked.name, status: 'Başarılı' },
     });
   } catch (e) {
     log('warn', '[' + accountName(steamID) + '] could not unlock an achievement during farming: ' + (e && e.message));
@@ -1176,25 +1176,25 @@ function delayFarm(steamID, reasonWhy) {
   s.farm.stop('boost');
   log('info', '[' + accountName(steamID) + '] card farming paused: ' + reasonWhy);
   accountEvent(steamID, {
-    typeName: 'kartDuraklatildi',
-    feedEntry: { kind: 'kart', title: 'Kart Düşürme', text: 'Saat yükseltme sürerken duraklatıldı.', status: 'Uyarı' },
+    typeName: 'cardPaused',
+    feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Saat yükseltme sürerken duraklatıldı.', status: 'Uyarı' },
   });
   return true;
 }
 // zorla: resume even if hour boosting continues (the "pause" setting was turned off).
 function resumeFarm(steamID, forceIt) {
   const s = accounts.get(steamID);
-  if (!s || !s.pendingFarm || s.gercekci) return;
+  if (!s || !s.pendingFarm || s.realistic) return;
   if (!forceIt && accountBoostRunning(s)) return;
   if (!s.ready || !s.engine) return;
   const b = s.pendingFarm;
   s.pendingFarm = null;
   // Options come from the CURRENT settings (cardFarmOptions); the old options of the paused job
   // used to be restored, a setting that changed in between did not reach the resumed job.
-  startCardFarm(steamID, b.mode, b.games, b.durationMs, { devam: b.location });
+  startCardFarm(steamID, b.mode, b.games, b.durationMs, { proceeding: b.location });
   accountEvent(steamID, {
-    typeName: 'kartSurdu',
-    feedEntry: { kind: 'kart', title: 'Kart Düşürme', text: 'Kaldığı yerden sürüyor.', status: 'Çalışıyor' },
+    typeName: 'cardResumed',
+    feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Kaldığı yerden sürüyor.', status: 'Çalışıyor' },
   });
 }
 // Stops all jobs of an account (exit, deleting an account, disconnecting).
@@ -1202,12 +1202,12 @@ function stopAccountJobs(s, steamID) {
   if (!s) return;
   s.pendingFarm = null;
   cancelSettingWaits(s);
-  try { if (s.farm && s.farm.running) s.farm.stop('kullanici'); } catch (_) {}
-  try { if (s.farmSaat && s.farmSaat.running) s.farmSaat.stop('kullanici'); } catch (_) {}
+  try { if (s.farm && s.farm.running) s.farm.stop('user'); } catch (_) {}
+  try { if (s.farmSaat && s.farmSaat.running) s.farmSaat.stop('user'); } catch (_) {}
   stopCardWatcher(s);
   if (steamID) {
-    try { boostStopAccount(steamID, 'kullanici'); } catch (_) {}
-    try { if (s.gercekci) realisticFinish(steamID, 'kullanici durdurdu'); } catch (_) {}
+    try { boostStopAccount(steamID, 'user'); } catch (_) {}
+    try { if (s.realistic) realisticFinish(steamID, 'kullanici durdurdu'); } catch (_) {}
     try { statsHour(steamID); } catch (_) {}
   }
   if (s.statHour) { clearInterval(s.statHour); s.statHour = null; }
@@ -1243,17 +1243,17 @@ function bindConnectionState(eng, steamID) {
     log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message);
     const s2 = accounts.get(steamID);
     if (s2) s2.connectionStatus = { condition: status, ts: Date.now(), ...extra };
-    sendRaw('engine:durum', { steamID, condition: status, mesaj: message, activeIds: steamID === activeSteamID, limitValue: eng.reconnectLimit, ...extra });
+    sendRaw('engine:status', { steamID, condition: status, messageText: message, activeIds: steamID === activeSteamID, limitValue: eng.reconnectLimit, ...extra });
     if (status === 'abandoned') {
       accountEvent(steamID, {
         typeName: 'connectionAbandoned', permanent: !!extra.permanent, attemptCount: extra.attemptCount || 0, cause: extra.cause || '',
-        feedEntry: { kind: 'hata', title: 'Steam Bağlantısı', text: extra.permanent ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.', status: 'Hata' },
+        feedEntry: { kind: 'error', title: 'Steam Bağlantısı', text: extra.permanent ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.', status: 'Hata' },
       });
     }
   };
 }
 // The "Yeniden bağlan" button in the interface: restarts the attempts of an engine that gave up.
-ipcMain.handle('engine:yenidenBaglan', () => {
+ipcMain.handle('engine:reconnect', () => {
   const s = accounts.get(activeSteamID);
   if (!s || !s.engine) return { ok: false, error: 'Bağlı değil.' };
   if (s.ready) return { ok: true, alreadyConnected: true };
@@ -1261,9 +1261,9 @@ ipcMain.handle('engine:yenidenBaglan', () => {
   return { ok: true };
 });
 // The connection of the account on screen (Ayarlar > Hesap Statüsü). Not a guess, the last thing the engine reported.
-ipcMain.handle('engine:baglantiDurumu', () => {
+ipcMain.handle('engine:connectionStatus', () => {
   const s = activeSteamID ? accounts.get(activeSteamID) : null;
-  if (!s || !s.engine) return { condition: 'yok' };
+  if (!s || !s.engine) return { condition: 'none' };
   if (s.ready) return { condition: 'connected', ts: s.lastConnection || null };
   return s.connectionStatus || { condition: 'connecting' };
 });
@@ -1346,7 +1346,7 @@ function accountDataMigration() {
     v.achLog = appState.achLog.slice();
     moved.push(v.achLog.length + ' basarim kaydi');
   }
-  if (!v.stats && lifeStats) { v.stats = { ...lifeStats }; moved.push('istatistikler'); }
+  if (!v.stats && lifeStats) { v.stats = { ...lifeStats }; moved.push('stats'); }
   writeAccountData(activeSteamID);
   settings.accountDataMigrated = true; saveSettings();
   if (moved.length) log('info', 'account data moved (' + activeSteamID + '): ' + moved.join(', '));
@@ -1457,7 +1457,7 @@ function storeLists(field, payloadData, steamID) {
   v.lists = { ...(v.lists || {}), [field]: payloadData, [field + 'Ts']: Date.now() };
   writeAccountDataDelayed(id);
 }
-ipcMain.handle('engine:sonListeler', () => {
+ipcMain.handle('engine:lastLists', () => {
   const v = activeAccountData();
   return { ok: true, ...(v.lists || {}) };
 });
@@ -1547,8 +1547,8 @@ let marketCancel = false;
 
 function addToMarketQueue(h, priceNum, pastEntries) {
   const v = marketQueue.find((x) => x.h === h);
-  if (v) { v.fiyat = v.fiyat || priceNum; v.gecmis = v.gecmis || pastEntries; return; }
-  marketQueue.push({ h, fiyat: !!priceNum, gecmis: !!pastEntries });
+  if (v) { v.priceValue = v.priceValue || priceNum; v.pastRecords = v.pastRecords || pastEntries; return; }
+  marketQueue.push({ h, priceValue: !!priceNum, pastRecords: !!pastEntries });
 }
 function isInMarketQueue(h, field) {
   const v = marketQueue.find((x) => x.h === h);
@@ -1606,14 +1606,14 @@ async function runMarketQueue() {
       const h = is.h;
       let repeat = false;
 
-      if (is.fiyat && cachedPrice(h) === undefined) {
+      if (is.priceValue && cachedPrice(h) === undefined) {
         requestCounter++;
         const r = await fetchPrice(h);
         limitHit = limitHit || r.limit;
         repeat = r.repeatFlag;
       }
       // SAME ITEM, SAME ROUND: no waiting for the order to come round again for the average.
-      if (!repeat && is.gecmis && cachedHistory(h) === undefined) {
+      if (!repeat && is.pastRecords && cachedHistory(h) === undefined) {
         requestCounter++;
         const r = await fetchHistory(h);
         limitHit = limitHit || r.limit;
@@ -1643,7 +1643,7 @@ async function runMarketQueue() {
     savePriceCache();
     saveHistoryCache();
     sendRaw('price:progress', { remaining: 0, cooldown: false });
-    sendRaw('history:progress', { totalSum: sumTotal, doneOnes: doneItems, leftover: 0, bitti: true, abandon: marketCancel });
+    sendRaw('history:progress', { totalSum: sumTotal, doneOnes: doneItems, leftover: 0, isFinished: true, abandon: marketCancel });
     marketCancel = false;
   }
 }
@@ -1659,7 +1659,7 @@ ipcMain.handle('engine:historyFor', (_e, arg) => {
     if (!h) return;
     const c = cachedHistory(h);
     if (c !== undefined) out[h] = c;
-    else if (!isInMarketQueue(h, 'gecmis')) lacking.push(h);
+    else if (!isInMarketQueue(h, 'pastRecords')) lacking.push(h);
   });
   if (cacheOnly) return { ok: true, history: out, lacking: lacking.length, queueList: 0 };
   lacking.forEach((h) => addToMarketQueue(h, false, true));
@@ -1735,7 +1735,7 @@ ipcMain.handle('engine:pricesFor', (_e, arg) => {
     if (!h) return;
     const c = cachedPrice(h);
     if (c !== undefined) out[h] = c;
-    else if (!isInMarketQueue(h, 'fiyat')) missing.push(h);
+    else if (!isInMarketQueue(h, 'priceValue')) missing.push(h);
   });
   if (cacheOnly) return { ok: true, prices: out, queued: 0, lacking: missing.length };
   missing.forEach((h) => addToMarketQueue(h, true, atAverage && cachedHistory(h) === undefined));
@@ -1844,7 +1844,7 @@ ipcMain.handle('stats:reset', () => {
   if (s) { s.uninterruptedStart = accountRunning(s) ? Date.now() : null; s.uninterruptedEnd = null; }
   writeAccountData(activeSteamID);
   const view = statsView(activeSteamID);
-  sendRaw('stats:degisti', view);
+  sendRaw('stats:changed', view);
   return view;
 });
 
@@ -1950,7 +1950,7 @@ ipcMain.handle('engine:setAchievements', async (_e, { appid, changes }) => {
 // Steam's fee calculation (see src/services/steamFee.js). toplamlar: the amounts the buyer pays,
 // in cents. Returns: for each, the amount that will go to Steam and the real price at which the listing
 // will appear on the market.
-ipcMain.handle('engine:satisUcreti', async (_e, totals) => {
+ipcMain.handle('engine:saleFee', async (_e, totals) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   try {
     const wallet = await engine.walletInfo();
@@ -1972,10 +1972,10 @@ ipcMain.handle('engine:satisUcreti', async (_e, totals) => {
 function saleErrorType(e) {
   const m = String((e && (e.steamMessage || e.message)) || '');
   const http = e && e.httpStatus;
-  if (/already have a listing|no longer in your inventory|not allowed to be traded|specified item/i.test(m)) return 'atla';
+  if (/already have a listing|no longer in your inventory|not allowed to be traded|specified item/i.test(m)) return 'skip';
   if (http === 429 || http === 503 || http === 502
       || /too many|pending confirmation|previous action|wallet|maximum|exceed|rate limit|try again later/i.test(m)) return 'limit';
-  return 'genel';
+  return 'general';
 }
 ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.', typeName: 'limit' };
@@ -2126,30 +2126,30 @@ function scheduleSync(steamID) {
   const b = s && s.boost;
   const st = b && b.sync;
   if (!st || st.strategyName !== 'parallel') return;
-  if (!s.engine) { boostFinish(steamID, 'baglanti'); return; }
+  if (!s.engine) { boostFinish(steamID, 'connection'); return; }
   // If there is no connection wait; the engine reopens the games itself once it reconnects.
   if (!s.ready) { b.syncTimer = setTimeout(() => scheduleSync(steamID), 30000); return; }
   const newlyFinished = ledger.applyLedger(st, Date.now());
   newlyFinished.forEach((o) => log('info', '[' + accountName(steamID) + '] hour sync: ' + o.name + ' reached the target'));
 
-  const remainders = [...st.gameEntries.values()].filter((o) => !o.bitti);
+  const remainders = [...st.gameEntries.values()].filter((o) => !o.isFinished);
   if (!remainders.length) {
     log('info', '[' + accountName(steamID) + '] hour sync done: all games reached the target');
     syncEmit(steamID, false, { done: true });
     accountEvent(steamID, {
       typeName: 'syncFinished',
-      feedEntry: { kind: 'saat', title: 'Saat Eşitleme', text: 'Tüm oyunlar hedefe ulaştı.', status: 'Başarılı' },
+      feedEntry: { kind: 'hours', title: 'Saat Eşitleme', text: 'Tüm oyunlar hedefe ulaştı.', status: 'Başarılı' },
     });
-    boostFinish(steamID, 'esitleme');
+    boostFinish(steamID, 'sync');
     return;
   }
   st.activeIds = ledger.nextActiveSet(st);
-  s.engine.play(st.activeIds, 'saat');
+  s.engine.play(st.activeIds, 'hours');
 
   const shortest = Math.min(...st.activeIds.map((id) => st.gameEntries.get(id).remainingMs));
   syncEmit(steamID, true);
   accountBroadcast(steamID)('boost:tick', {
-    running: true, appids: st.activeIds, activeAppids: s.engine.calanlar('saat'),
+    running: true, appids: st.activeIds, activeAppids: s.engine.calanlar('hours'),
     startedAt: st.startPoint, durationMs: 0, sync: true,
   });
   b.syncTimer = setTimeout(() => scheduleSync(steamID), Math.max(1000, shortest));
@@ -2175,7 +2175,7 @@ function syncEmit(steamID, running, extra) {
   const broadcast = accountBroadcast(steamID);
   if (st && st.strategyName === 'parallel') {
     const gameList = ledger.uiList(st, Date.now());
-    const remainders = gameList.filter((o) => !o.bitti);
+    const remainders = gameList.filter((o) => !o.isFinished);
     broadcast('boost:sync', Object.assign({
       running,
       strategyName: 'parallel',
@@ -2235,13 +2235,13 @@ function runSyncStep(steamID) {
     syncEmit(steamID, false, { done: true });
     accountEvent(steamID, {
       typeName: 'syncFinished',
-      feedEntry: { kind: 'saat', title: 'Saat Eşitleme', text: 'Tüm oyunlar hedefe ulaştı.', status: 'Başarılı' },
+      feedEntry: { kind: 'hours', title: 'Saat Eşitleme', text: 'Tüm oyunlar hedefe ulaştı.', status: 'Başarılı' },
     });
     b.sync = null;
     if (b.syncHeartbeat) { clearInterval(b.syncHeartbeat); b.syncHeartbeat = null; }
-    s.engine.play(allIds, 'saat');
+    s.engine.play(allIds, 'hours');
     b.appids = allIds; b.startPoint = Date.now(); b.spanMs = nextDuration;
-    accountBroadcast(steamID)('boost:tick', { running: true, appids: allIds, activeAppids: s.engine.calanlar('saat'), startedAt: b.startPoint, durationMs: b.spanMs });
+    accountBroadcast(steamID)('boost:tick', { running: true, appids: allIds, activeAppids: s.engine.calanlar('hours'), startedAt: b.startPoint, durationMs: b.spanMs });
     if (nextDuration) b.timer = setTimeout(() => boostTimeUp(steamID), nextDuration);
     return;
   }
@@ -2250,10 +2250,10 @@ function runSyncStep(steamID) {
   st.stepEnd = st.startedAt + st.stepMs;
   st.activeIds = step.ids.slice();      // the ledger credits time to this set
   st.lastAccount = Date.now();
-  s.engine.play(step.ids, 'saat');
+  s.engine.play(step.ids, 'hours');
   log('info', `[${accountName(steamID)}] hour sync step ${st.i + 1}/${st.steps.length}: ${step.ids.length} games ${step.fromMin}min -> ${step.toMin}min`);
   syncEmit(steamID, true);
-  accountBroadcast(steamID)('boost:tick', { running: true, appids: step.ids, activeAppids: s.engine.calanlar('saat'), startedAt: st.startedAt, durationMs: st.stepMs, sync: true });
+  accountBroadcast(steamID)('boost:tick', { running: true, appids: step.ids, activeAppids: s.engine.calanlar('hours'), startedAt: st.startedAt, durationMs: st.stepMs, sync: true });
   b.syncTimer = setTimeout(() => advanceTier(steamID), st.stepMs);
 }
 
@@ -2330,15 +2330,15 @@ function boostStart(steamID, request) {
 
   // The "Süre dolunca otomatik durdur" setting was removed: if a duration is chosen it stops when the time is up,
   // if "Sınırsız" is chosen it runs until stopped. Two separate switches said the same thing.
-  const proceed = request.devam || null;
+  const proceed = request.proceeding || null;
   const start = proceed && proceed.startPoint ? proceed.startPoint : Date.now();
   const remainingMs = durationMs ? Math.max(1000, durationMs - (Date.now() - start)) : 0;
   const stagger = Math.max(0, +settings.boostStagger || 0) * 1000;
   b.appids = appids; b.startPoint = start; b.spanMs = durationMs;
 
-  const emit = () => accountBroadcast(steamID)('boost:tick', { running: true, appids, activeAppids: s.engine.calanlar('saat'), startedAt: start, durationMs });
+  const emit = () => accountBroadcast(steamID)('boost:tick', { running: true, appids, activeAppids: s.engine.calanlar('hours'), startedAt: start, durationMs });
   if (!stagger || appids.length <= 1 || proceed) {
-    s.engine.play(appids, 'saat');
+    s.engine.play(appids, 'hours');
     emit();
   } else {
     // "Oyun başlatma aralığı": added one after another at this interval, not all at once
@@ -2346,7 +2346,7 @@ function boostStart(steamID, request) {
     appids.forEach((id, i) => {
       b.stagger.push(setTimeout(() => {
         if (!b.calisiyor) return;
-        s.engine.play(appids.slice(0, i + 1), 'saat');
+        s.engine.play(appids.slice(0, i + 1), 'hours');
         emit();
       }, i * stagger));
     });
@@ -2363,22 +2363,22 @@ function boostTimeUp(steamID) {
   const b = s && s.boost;
   if (!b || !b.calisiyor) return;
   const request = b.request;
-  boostFinish(steamID, 'sure', true);
+  boostFinish(steamID, 'duration', true);
   if (settings.boostAutoRestart && request) {
     accountEvent(steamID, {
-      typeName: 'boostYenilendi',
-      feedEntry: { kind: 'saat', title: 'Saat Yükseltici', text: 'Süre doldu, oturum otomatik yenilendi.', status: 'Çalışıyor' },
+      typeName: 'boostRenewed',
+      feedEntry: { kind: 'hours', title: 'Saat Yükseltici', text: 'Süre doldu, oturum otomatik yenilendi.', status: 'Çalışıyor' },
     });
     setTimeout(() => {
       const x = accounts.get(steamID);
-      if (x && x.ready && !(x.boost && x.boost.calisiyor)) boostStart(steamID, { ...request, devam: null });
+      if (x && x.ready && !(x.boost && x.boost.calisiyor)) boostStart(steamID, { ...request, proceeding: null });
       else resumeFarm(steamID);
     }, 1500);
     return;
   }
   accountEvent(steamID, {
     typeName: 'boostFinished',
-    feedEntry: { kind: 'saat', title: 'Saat Yükseltici', text: 'Süre doldu.', status: 'Başarılı' },
+    feedEntry: { kind: 'hours', title: 'Saat Yükseltici', text: 'Süre doldu.', status: 'Başarılı' },
   });
   resumeFarm(steamID);
 }
@@ -2393,46 +2393,46 @@ function boostFinish(steamID, cause, deferContinue) {
   boostClear(s);
   b.calisiyor = false;
   if (wasRunning) {
-    try { if (s.engine) s.engine.stop('saat'); } catch (_) {}
+    try { if (s.engine) s.engine.stop('hours'); } catch (_) {}
   }
   const broadcast = accountBroadcast(steamID);
   broadcast('boost:sync', { running: false });
-  broadcast('boost:tick', { running: false, cause: cause || 'kullanici' });
+  broadcast('boost:tick', { running: false, cause: cause || 'user' });
   if (wasRunning && !deferContinue) resumeFarm(steamID);
 }
-function boostStopAccount(steamID, cause) { boostFinish(steamID, cause || 'kullanici'); }
+function boostStopAccount(steamID, cause) { boostFinish(steamID, cause || 'user'); }
 
 // Sequential idling (Saat Yükseltici, "eş zamanlı" off): one by one, `durationMs` each.
 // Uses FarmController's 'sequential' mode; a separate instance so it does not clash with card farming.
 function sequentialBroadcast(steamID) {
   const broadcast = accountBroadcast(steamID);
   return (channelName, payloadData) => {
-    broadcast('saatFarm:tick', payloadData);
+    broadcast('hoursFarm:tick', payloadData);
     if (!payloadData || payloadData.running || !payloadData.calisiyordu) return;
     const s = accounts.get(steamID);
     if (s && !s.farmSaat.running) {
-      if (payloadData.cause === 'bitti') {
+      if (payloadData.cause === 'finished') {
         accountEvent(steamID, {
           typeName: 'boostFinished',
-          feedEntry: { kind: 'saat', title: 'Saat Yükseltici', text: 'Sıralı kuyruk tamamlandı.', status: 'Başarılı' },
+          feedEntry: { kind: 'hours', title: 'Saat Yükseltici', text: 'Sıralı kuyruk tamamlandı.', status: 'Başarılı' },
         });
       }
-      if (payloadData.cause !== 'boost' && payloadData.cause !== 'ayar') resumeFarm(steamID);
+      if (payloadData.cause !== 'boost' && payloadData.cause !== 'setting') resumeFarm(steamID);
     }
   };
 }
 function startSequential(steamID, request) {
   const s = accounts.get(steamID);
   if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
-  if (s.boost && s.boost.calisiyor) boostFinish(steamID, 'sirali', true);
+  if (s.boost && s.boost.calisiyor) boostFinish(steamID, 'sequential', true);
   if (settings.pauseFarmOnBoost) delayFarm(steamID, 'sirali saat yukseltme');
-  if (!s.farmSaat) s.farmSaat = new FarmController(s.engine, sequentialBroadcast(steamID), 'sirali');
+  if (!s.farmSaat) s.farmSaat = new FarmController(s.engine, sequentialBroadcast(steamID), 'sequential');
   s.farmSaat.engine = s.engine;
   s.sequentialRequest = { games: request.games || [], durationMs: request.durationMs, loop: request.loop !== false };
   // "Oyun sırasını karıştır" only makes sense here: since games are opened one by one the order
   // shows on the profile. In simultaneous boosting all are open together and the order has no effect.
   s.farmSaat.start('sequential', s.sequentialRequest.games, s.sequentialRequest.durationMs, {
-    loop: s.sequentialRequest.loop, shuffle: !!settings.shuffleBoost, devam: request.devam || null,
+    loop: s.sequentialRequest.loop, shuffle: !!settings.shuffleBoost, proceeding: request.proceeding || null,
   });
   return { ok: true };
 }
@@ -2454,13 +2454,13 @@ function startSequential(steamID, request) {
 // achievements would be unlocked ON THE WRONG ACCOUNT.
 function realisticStatus(steamID) {
   const s = accounts.get(steamID);
-  return s ? s.gercekci : null;
+  return s ? s.realistic : null;
 }
 function realisticClear(steamID) {
   const s = accounts.get(steamID);
   if (!s) return;
-  if (s.gercekci && s.gercekci.timer) clearTimeout(s.gercekci.timer);
-  s.gercekci = null;
+  if (s.realistic && s.realistic.timer) clearTimeout(s.realistic.timer);
+  s.realistic = null;
 }
 
 // The proportional time (0..1) of the i-th unlock in the session according to the model.
@@ -2553,14 +2553,14 @@ function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
   const a = d ? d.activeIds : null;
-  accountBroadcast(steamID)('gercekci:tick', Object.assign({
+  accountBroadcast(steamID)('realistic:tick', Object.assign({
     calisiyor: !!d,
     appid: a ? a.appid : null,
     gameTitle: a ? a.gameTitle : null,
     // toplam/acilan describe the WHOLE session; the queue can hold more than one game.
     totalSum: d ? d.totalGoal : 0,
     openedGames: d ? d.totalUnlocked : 0,
-    hata: d ? d.totalErrors : 0,
+    failure: d ? d.totalErrors : 0,
     startPoint: d ? d.startPoint : 0,
     finishTime: d ? d.finishTime : 0,
     upNext: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].name : null,
@@ -2593,7 +2593,7 @@ function realisticNextDelay(d) {
 
 async function realisticStep(steamID) {
   const s = accounts.get(steamID);
-  const d = s && s.gercekci;
+  const d = s && s.realistic;
   if (!d) return;
   if (!s.engine) { realisticFinish(steamID, 'baglanti yok'); return; }
   // If the connection is down an achievement cannot be sent; it continues when the engine reconnects.
@@ -2618,7 +2618,7 @@ async function realisticStep(steamID) {
     await s.engine.setAchievements(a.appid, [{ apiName: goal.apiName, unlock: true }]);
     a.openedGames++; d.totalUnlocked++;
     log('info', '[' + accountName(steamID) + '] realistic mode: unlocked -> ' + goal.name + ' (%' + (goal.rarityPct != null ? goal.rarityPct.toFixed(1) : '?') + ')');
-    accountBroadcast(steamID)('gercekci:acildi', {
+    accountBroadcast(steamID)('realistic:opened', {
       appid: a.appid, gameTitle: a.gameTitle, apiName: goal.apiName,
       name: goal.name, rarityPct: goal.rarityPct,
     });
@@ -2627,13 +2627,13 @@ async function realisticStep(steamID) {
     if (v.achLog.length > 2000) v.achLog.length = 2000;
     writeAccountDataDelayed(steamID);
     if (steamID !== activeSteamID) {
-      addFeed(steamID, { kind: 'kart', title: 'Başarım açıldı', text: goal.name + ' · ' + a.gameTitle, status: 'Başarılı' });
+      addFeed(steamID, { kind: 'card', title: 'Başarım açıldı', text: goal.name + ' · ' + a.gameTitle, status: 'Başarılı' });
     }
   } catch (e) {
-    a.hata++; d.totalErrors++;
+    a.failure++; d.totalErrors++;
     log('warn', '[' + accountName(steamID) + '] realistic mode: could not unlock -> ' + goal.name + ': ' + (e && e.message));
   }
-  if (s.gercekci !== d) return;          // it was stopped in the meantime
+  if (s.realistic !== d) return;          // it was stopped in the meantime
   a.indexNum++;
 
   if (Date.now() >= d.finishTime && a.indexNum < a.queueList.length) {
@@ -2650,7 +2650,7 @@ async function realisticStep(steamID) {
 // Moves to the next game in the queue. Returns true if the move was made.
 function realisticNextGame(steamID) {
   const s = accounts.get(steamID);
-  const d = s && s.gercekci;
+  const d = s && s.realistic;
   if (!d) return false;
   if (!d.optionList.autoOrder) return false;             // "Sırayı otomatik başlat" is off
   while (d.gameIndex + 1 < d.gameEntries.length) {
@@ -2675,9 +2675,9 @@ function realisticNextGame(steamID) {
       queueList: placeRealisticTimes(ready.queueList, share, d.optionList.model,
                                          computeRealisticAccum(o.appid, ready, d.optionList),
                                          realisticTimeSetting(o.appid, d.optionList)),
-      indexNum: 0, openedGames: 0, hata: 0, startPoint: currentTime, finishTime: currentTime + share,
+      indexNum: 0, openedGames: 0, failure: 0, startPoint: currentTime, finishTime: currentTime + share,
     };
-    try { s.engine.play([o.appid], 'gercekci'); } catch (_) {}
+    try { s.engine.play([o.appid], 'realistic'); } catch (_) {}
     log('info', '[' + accountName(steamID) + '] realistic mode: next ' + o.name + ' (' + ready.queueList.length + ' achievements, '
       + (share / 60000).toFixed(0) + ' dk)');
     const delay = ready.queueList.length ? realisticNextDelay(d) : Math.max(0, d.activeIds.finishTime - Date.now());
@@ -2696,19 +2696,19 @@ const REALISTIC_REASON = {
 };
 function realisticFinish(steamID, cause) {
   const s = accounts.get(steamID);
-  const d = s && s.gercekci;
+  const d = s && s.realistic;
   if (!d) return;
   const remainingUnopened = /^sure doldu, (\d+)/.exec(cause || '');
   // The text is translated in the interface; its version that carries a number is a '#' pattern key in the dictionary.
   const reasonText = remainingUnopened ? 'Süre doldu, # başarım açılmadı'.replace('#', remainingUnopened[1]) : (REALISTIC_REASON[cause] || cause);
-  const summary = { openedGames: d.totalUnlocked, hata: d.totalErrors, totalSum: d.totalGoal, cause: reasonText };
-  try { if (s.engine) s.engine.stop('gercekci'); } catch (_) {}
+  const summary = { openedGames: d.totalUnlocked, failure: d.totalErrors, totalSum: d.totalGoal, cause: reasonText };
+  try { if (s.engine) s.engine.stop('realistic'); } catch (_) {}
   realisticClear(steamID);
   log('info', '[' + accountName(steamID) + '] realistic mode done: ' + cause + ' (' + summary.openedGames + '/' + summary.totalSum + ')');
-  accountBroadcast(steamID)('gercekci:tick', Object.assign({ calisiyor: false, bitti: true }, summary));
+  accountBroadcast(steamID)('realistic:tick', Object.assign({ calisiyor: false, isFinished: true }, summary));
   if (steamID !== activeSteamID) {
-    addFeed(steamID, { kind: summary.hata ? 'hata' : 'kart', title: 'Gerçekçi Mod',
-      text: reasonText + ' · ' + summary.openedGames + ' / ' + summary.totalSum, status: summary.hata ? 'Hata' : 'Başarılı' });
+    addFeed(steamID, { kind: summary.failure ? 'error' : 'card', title: 'Gerçekçi Mod',
+      text: reasonText + ' · ' + summary.openedGames + ' / ' + summary.totalSum, status: summary.failure ? 'Hata' : 'Başarılı' });
   }
   resumeFarm(steamID);
 }
@@ -2742,8 +2742,8 @@ function markNoAchievements(appid) {
 }
 loadNoAchievements();
 
-ipcMain.handle('gercekci:basarimsizlar', () => ({ ok: true, appids: [...noAchievementsSet] }));
-ipcMain.handle('gercekci:basarimsizTemizle', () => {
+ipcMain.handle('realistic:noAchievementsList', () => ({ ok: true, appids: [...noAchievementsSet] }));
+ipcMain.handle('realistic:noAchievementsClear', () => {
   const n = noAchievementsSet.size;
   noAchievementsSet = new Set();
   saveBasarimsiz();
@@ -2838,9 +2838,9 @@ function computeRealisticAccum(appid, h, pick) {
 
 // Preview: how many achievements, in what order, at which minute they will unlock.
 // If durationMs is not given the hours field is used (the old call form works too).
-ipcMain.handle('gercekci:plan', async (_e, arg) => {
+ipcMain.handle('realistic:plan', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  const { appid, saat: hour, spanMs: durationMs } = arg || {};
+  const { appid, hours: hour, spanMs: durationMs } = arg || {};
   const pick = realisticOptions(arg && arg.optionList);
   const duration = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
   try {
@@ -2870,14 +2870,14 @@ ipcMain.handle('gercekci:plan', async (_e, arg) => {
 });
 
 // Start. oyunlar: [appid, ...] - the queue. A single game goes through the same path.
-ipcMain.handle('gercekci:start', async (_e, arg) => {
+ipcMain.handle('realistic:start', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   const steamID = activeSteamID;
   const s = accounts.get(steamID);
   if (!s) return { ok: false, error: 'Bağlı değil.' };
-  if (s.gercekci) return { ok: false, error: 'Zaten çalışıyor.' };
+  if (s.realistic) return { ok: false, error: 'Zaten çalışıyor.' };
   const motor = s.engine;
-  const { appid, saat: hour, spanMs: durationMs } = arg || {};
+  const { appid, hours: hour, spanMs: durationMs } = arg || {};
   const pick = realisticOptions(arg && arg.optionList);
   const duration = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
   const listing = (Array.isArray(arg && arg.gameEntries) && arg.gameEntries.length)
@@ -2907,7 +2907,7 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
     const totalCount = willRun.reduce((t, o) => t + (prepared[o.appid].queueList.length || 1), 0);
 
     // If another start came in during preparation a second job is not opened.
-    if (s.gercekci) return { ok: false, error: 'Zaten çalışıyor.' };
+    if (s.realistic) return { ok: false, error: 'Zaten çalışıyor.' };
     // If it runs at the same time as card farming both write the same game list; so they do not clash.
     if (settings.pauseFarmOnBoost) delayFarm(steamID, 'gercekci mod');
 
@@ -2915,7 +2915,7 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
     const firstReady = prepared[firstGame.appid];
     const firstShare = Math.max(60000, Math.round(duration * ((firstReady.queueList.length || 1) / totalCount)));
     const currentTime = Date.now();
-    motor.play([firstGame.appid], 'gercekci');
+    motor.play([firstGame.appid], 'realistic');
     const d = {
       gameEntries: willRun,
       gameIndex: 0,
@@ -2934,11 +2934,11 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
         queueList: placeRealisticTimes(firstReady.queueList, firstShare, pick.model,
                                            computeRealisticAccum(firstGame.appid, firstReady, pick),
                                            realisticTimeSetting(firstGame.appid, pick)),
-        indexNum: 0, openedGames: 0, hata: 0,
+        indexNum: 0, openedGames: 0, failure: 0,
         startPoint: currentTime, finishTime: currentTime + firstShare,
       },
     };
-    s.gercekci = d;
+    s.realistic = d;
     log('info', '[' + accountName(steamID) + '] realistic mode started: ' + willRun.length + ' games, ' + totalTarget + ' achievements, '
       + (duration / 3600000).toFixed(2) + ' saat, model=' + pick.model);
     // The first unlock is not immediate - it is not realistic for an achievement to come the moment the game opens.
@@ -2952,7 +2952,7 @@ ipcMain.handle('gercekci:start', async (_e, arg) => {
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-ipcMain.on('gercekci:stop', () => { if (realisticStatus(activeSteamID)) realisticFinish(activeSteamID, 'kullanici durdurdu'); });
+ipcMain.on('realistic:stop', () => { if (realisticStatus(activeSteamID)) realisticFinish(activeSteamID, 'kullanici durdurdu'); });
 
 ipcMain.on('engine:boostStart', (_e, { appids, durationMs, games, allItems: allOfIt }) => {
   if (!activeSteamID) return;
@@ -2965,7 +2965,7 @@ ipcMain.on('engine:boostStop', () => {
   // When a setting is applied a paused job must not come back a few seconds later after the user stopped it
   const s = accounts.get(activeSteamID);
   if (s) cancelSettingWaits(s, 'boost');
-  boostFinish(activeSteamID, 'kullanici');
+  boostFinish(activeSteamID, 'user');
 });
 
 // Sync preview: shows how many steps and how long are needed before starting.
@@ -3030,7 +3030,7 @@ ipcMain.on('engine:boostStartSeq', (_e, { games, durationMs, loop }) => {
 });
 ipcMain.on('engine:boostStopSeq', () => {
   const s = accounts.get(activeSteamID);
-  if (s && s.farmSaat && s.farmSaat.running) s.farmSaat.stop('kullanici');
+  if (s && s.farmSaat && s.farmSaat.running) s.farmSaat.stop('user');
 });
 
 ipcMain.on('engine:startFarm', (_e, { mode, games, durationMs }) => {
@@ -3039,15 +3039,15 @@ ipcMain.on('engine:startFarm', (_e, { mode, games, durationMs }) => {
   // with a single card left and led to the "why is it not dropping" question.
   const s = slotOf(activeSteamID);
   s.pendingFarm = null;
-  cancelSettingWaits(s, 'kart');
+  cancelSettingWaits(s, 'card');
   startCardFarm(activeSteamID, mode, games || [], durationMs);
 });
 ipcMain.on('engine:stopFarm', () => {
   const s = accounts.get(activeSteamID);
   if (!s) return;
   s.pendingFarm = null;
-  cancelSettingWaits(s, 'kart');
-  if (s.farm && s.farm.running) s.farm.stop('kullanici');
+  cancelSettingWaits(s, 'card');
+  if (s.farm && s.farm.running) s.farm.stop('user');
 });
 ipcMain.handle('engine:playing', () => (engineReady && engine) ? engine.playing : []);
 
@@ -3195,18 +3195,18 @@ ipcMain.handle('settings:set', (_e, patch) => {
 });
 // The "Kaydet" button of the Settings page. The page keeps changes in a draft, only the changed keys
 // come here. The reply also says which jobs will be resumed with the new setting.
-ipcMain.handle('settings:kaydet', (_e, patch) => {
+ipcMain.handle('settings:save', (_e, patch) => {
   const r = applySettingPatch(patch);
   return { ...r, settings: accountSettingsAdded(publicSettings()), saveTime: settingSaveTime, pauseMs: SETTINGS_DEBOUNCE_MS };
 });
 // "Varsayılana Sıfırla" no longer writes anything: the defaults are loaded into the page's draft,
 // applied if the user presses Kaydet. It used to write instantly and it also pulled the language to Turkish.
-ipcMain.handle('settings:varsayilanlar', () => {
+ipcMain.handle('settings:defaults', () => {
   const v = { ...DEFAULT_SETTINGS };
   delete v.settingsVersion;
   return v;
 });
-ipcMain.handle('settings:bilgi', () => ({ saveTime: settingSaveTime }));
+ipcMain.handle('settings:info', () => ({ saveTime: settingSaveTime }));
 
 // ---- JOBS THAT RUN WHEN A SETTING CHANGES ----
 // These settings used to be read once when a job started: the user changed a setting and saved it,
@@ -3238,8 +3238,8 @@ function applyAndContinueCardFarm(steamID, changed) {
   // If "Oyun başına süre" changed the new time, if not the time selected on the Kart Düşür page.
   const dk = +settings.farmMaxMinutes;
   const duration = changed.has('farmMaxMinutes') && dk > 0 ? dk * 60000 : s.farm.durationMs;
-  s.farm.stop('ayar');
-  setupSettingWait(s, 'kart', () => {
+  s.farm.stop('setting');
+  setupSettingWait(s, 'card', () => {
     const x = accounts.get(steamID);
     if (!x || (x.farm && x.farm.running)) return;          // it was started by hand in the meantime
     if (!x.ready || !x.engine) {
@@ -3247,7 +3247,7 @@ function applyAndContinueCardFarm(steamID, changed) {
       x.pendingFarm = { mode, games, durationMs: duration, location: position };
       return;
     }
-    startCardFarm(steamID, mode, games, duration, { devam: position });
+    startCardFarm(steamID, mode, games, duration, { proceeding: position });
   });
   return true;
 }
@@ -3260,8 +3260,8 @@ function applyAndContinueBoost(steamID) {
   const newItem = allOfIt.slice(0, limit);
   const newIds = newItem.map((g) => g.appid);
   if (newIds.join(',') === (b.appids || []).join(',')) return false;
-  const request = { ...b.request, appids: newIds, games: newItem, devam: { startPoint: b.startPoint } };
-  boostFinish(steamID, 'ayar', true);
+  const request = { ...b.request, appids: newIds, games: newItem, proceeding: { startPoint: b.startPoint } };
+  boostFinish(steamID, 'setting', true);
   setupSettingWait(s, 'boost', () => {
     const x = accounts.get(steamID);
     if (!x || (x.boost && x.boost.calisiyor)) return;
@@ -3278,7 +3278,7 @@ function applySettingsToJobs(changed) {
     if (!s) return;
     const accountRef = accountName(steamID);
     if (s.farm && s.farm.running && CARD_JOB_SETTINGS.some((k) => d.has(k))) {
-      if (applyAndContinueCardFarm(steamID, d)) summary.push({ steamID, accountRef: accountRef, is: 'kart', how: 'duraklatildi' });
+      if (applyAndContinueCardFarm(steamID, d)) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'paused' });
     }
     const b = s.boost;
     if (b && b.calisiyor && d.has('boostMaxGames')) {
@@ -3286,23 +3286,23 @@ function applySettingsToJobs(changed) {
         b.sync.limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
         if (b.syncTimer) { clearTimeout(b.syncTimer); b.syncTimer = null; }
         scheduleSync(steamID);
-        summary.push({ steamID, accountRef: accountRef, is: 'saat', how: 'aninda' });
+        summary.push({ steamID, accountRef: accountRef, is: 'hours', how: 'instant' });
       } else if (applyAndContinueBoost(steamID)) {
-        summary.push({ steamID, accountRef: accountRef, is: 'saat', how: 'duraklatildi' });
+        summary.push({ steamID, accountRef: accountRef, is: 'hours', how: 'paused' });
       }
     }
     // In sequential idling shuffling takes effect on the next round; no need to pause.
     if (s.farmSaat && s.farmSaat.running && d.has('shuffleBoost')) {
       s.farmSaat.shuffle = !!settings.shuffleBoost;
       s.farmSaat.opts = { ...(s.farmSaat.opts || {}), shuffle: s.farmSaat.shuffle };
-      summary.push({ steamID, accountRef: accountRef, is: 'sirali', how: 'aninda' });
+      summary.push({ steamID, accountRef: accountRef, is: 'sequential', how: 'instant' });
     }
     if (d.has('pauseFarmOnBoost')) {
-      if (settings.pauseFarmOnBoost && (accountBoostRunning(s) || s.gercekci) && s.farm && s.farm.running) {
-        if (delayFarm(steamID, 'ayar: saat yukseltirken duraklat')) summary.push({ steamID, accountRef: accountRef, is: 'kart', how: 'bekletildi' });
-      } else if (!settings.pauseFarmOnBoost && s.pendingFarm && !s.gercekci) {
+      if (settings.pauseFarmOnBoost && (accountBoostRunning(s) || s.realistic) && s.farm && s.farm.running) {
+        if (delayFarm(steamID, 'ayar: saat yukseltirken duraklat')) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'delayed' });
+      } else if (!settings.pauseFarmOnBoost && s.pendingFarm && !s.realistic) {
         resumeFarm(steamID, true);
-        summary.push({ steamID, accountRef: accountRef, is: 'kart', how: 'surduruldu' });
+        summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'resumed' });
       }
     }
   });
@@ -3416,7 +3416,7 @@ ipcMain.handle('settings:import', async () => {
       writeAccountData(activeSteamID);
       accountCount = 1;
     }
-    if (activeSteamID) sendRaw('stats:degisti', statsView(activeSteamID));
+    if (activeSteamID) sendRaw('stats:changed', statsView(activeSteamID));
     log('info', 'settings imported (' + applied + ' keys, ' + accountCount + ' accounts): ' + file);
     return { ok: true, applied, accountCount: accountCount, settings: accountSettingsAdded(publicSettings()), file };
   } catch (e) {
@@ -3465,14 +3465,14 @@ let updateRunning = false;
 
 async function checkForUpdate(manual) {
   // Two checks must not run at the same time: the user can press the button while the startup check is running.
-  if (updateRunning) return lastUpdateStatus || { ok: false, hata: 'Kontrol zaten sürüyor.' };
+  if (updateRunning) return lastUpdateStatus || { ok: false, failure: 'Kontrol zaten sürüyor.' };
   updateRunning = true;
   try {
     const outcome = await update.checkNow(app.getVersion());
     lastUpdateStatus = { ...outcome, ts: Date.now(), byHand: !!manual };
     log(outcome.ok ? 'info' : 'warn', 'update check: '
-      + (outcome.ok ? (outcome.isUpToDate ? 'guncel (' + outcome.installed + ')' : 'yeni surum ' + outcome.lastOne) : outcome.hata));
-    sendRaw('guncelleme:durum', lastUpdateStatus);
+      + (outcome.ok ? (outcome.isUpToDate ? 'guncel (' + outcome.installed + ')' : 'yeni surum ' + outcome.lastOne) : outcome.failure));
+    sendRaw('update:status', lastUpdateStatus);
     return lastUpdateStatus;
   } finally {
     updateRunning = false;
@@ -3484,13 +3484,13 @@ function startupUpdateCheck() {
   setTimeout(() => { checkForUpdate(false).catch(() => {}); }, 15000);
 }
 
-ipcMain.handle('guncelleme:kontrol', () => checkForUpdate(true));
-ipcMain.handle('guncelleme:sonDurum', () => lastUpdateStatus);
+ipcMain.handle('update:check', () => checkForUpdate(true));
+ipcMain.handle('update:lastStatus', () => lastUpdateStatus);
 // The app's real memory use, process by process. So that the answer to "how much RAM does it eat" is not a guess
 // Ayarlar > Gelişmiş shows this live. Electron runs multi process: five separate SteamEdge
 // rows show up in Task Manager, the user had to add them up one by one.
 // tek tek toplamasi gerekiyordu.
-ipcMain.handle('app:bellek', () => {
+ipcMain.handle('app:memory', () => {
   const measurements = app.getAppMetrics();
   const processes = measurements.map((p) => ({
     typeName: p.type,
@@ -3504,7 +3504,7 @@ ipcMain.handle('app:bellek', () => {
 });
 // Empty the image and network cache. NO loss of settings, session or data - only things that can be
 // downloaded again go. The most direct way to win memory back in long sessions.
-ipcMain.handle('app:bellekTemizle', async () => {
+ipcMain.handle('app:memoryClear', async () => {
   const earlier = app.getAppMetrics().reduce((t, p) => t + ((p.memory && p.memory.workingSetSize) || 0), 0);
   try {
     await session.defaultSession.clearCache();
@@ -3516,7 +3516,7 @@ ipcMain.handle('app:bellekTemizle', async () => {
   return { ok: true, gainKb: Math.max(0, earlier - later) };
 });
 
-ipcMain.handle('app:bilgi', () => ({
+ipcMain.handle('app:info', () => ({
   versionStr: app.getVersion(),
   electron: process.versions.electron,
   node: process.versions.node,

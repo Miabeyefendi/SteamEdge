@@ -154,7 +154,7 @@
 .e-toggle.on .e-knob{margin-left:16px;background:var(--e-title)}
 
 /* ---- Card Farming / Hour Booster: the JS and the old kart.css/saat.css classes (.mode-c, .kq-row, .pbar, .tbadge, .bcard etc.) did NOT CHANGE - since they use var(--xxx), redefining those here to the SteamEdge palette paints them automatically (the same technique used in overview/achievements/inventory/settings - see redesign.css). */
-#tab-kart, #tab-saat{
+#tab-card, #tab-hours{
   --bg:#030305; --panel:#0D1118; --card:#0D1118; --card2:#151C28;
   --line:#1D2432; --line-2:#2B3345;
   --blue:#5624B3; --primary:#5624B3; --green:#5FB324; --success:#5FB324;
@@ -341,23 +341,23 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 
 /* Realistic Mode's right panel is narrow (352 px column). Because the labels in the switch rows are flex items, the default min-width:auto keeps them from going below the content width, they overflow the row and the panel shifted left and right. */
 /* Switch rows: label + toggle. Because the label is a flex item, the default min-width:auto keeps it from going below the content width and it overflowed the row in the narrow 352 px panel. :has targets exactly these rows, it does not depend on an id. */
-#tab-gercekci div:has(> .gr-toggle) > span,
-#tab-gercekci div:has(> .gr-toggle) > div,
-#tab-gercekci div:has(> .gr-toggle) > div > span{min-width:0;overflow-wrap:break-word}
+#tab-realistic div:has(> .gr-toggle) > span,
+#tab-realistic div:has(> .gr-toggle) > div,
+#tab-realistic div:has(> .gr-toggle) > div > span{min-width:0;overflow-wrap:break-word}
 /* The tooltip box is 264 px and centred with left:50%. In the narrow 352 px panel it overflowed on the right and produced a horizontal scrollbar in the body row (overflow-x:auto); being hidden does not matter, absolutely positioned items count toward scrollWidth. In narrow panels it is pushed to the right, so the 264 px opens toward the left and stays inside the panel. */
 /* The tooltip bubble is 264 pixels and absolutely positioned. When centred (left:50%) in a narrow column more than 130 pixels spill to the right; since an absolutely positioned box is COUNTED in the scrollWidth of its scrollable ancestor, a horizontal scrollbar appeared in the panel. In all narrow panels the bubble is pushed to the right, i.e. it opens toward the left: 264 pixels fit into the 290 pixel column and no overflow remains. */
-#tab-gercekci [data-tip]::after,
-#tab-saat [data-tip]::after,
+#tab-realistic [data-tip]::after,
+#tab-hours [data-tip]::after,
 #acSortDir[data-tip]::after{left:auto;right:0;transform:none}
 
 /* In a box given overflow-y:auto, overflow-x becomes `auto` by itself (visible turns into auto when the other axis is scrollable). So every panel that wants vertical scrolling unintentionally gains horizontal scrolling too. These columns have a fixed width; there is no horizontal scrolling in the design, it is clipped. `clip` was chosen because, unlike `hidden`, it does not create a new scroll context. */
-#tab-gercekci .gr-yan{overflow-x:clip}
+#tab-realistic .gr-yan{overflow-x:clip}
 
 /* The default min-width of a flex child is `auto`: it takes as much room as its content and refuses to shrink. Labels with a tooltip `?` next to them therefore overflowed their container (167 pixels in a 161 pixel row). With min-width:0 the label wraps to a second line and nothing is clipped. */
-#tab-gercekci .gr-yan span{min-width:0}
+#tab-realistic .gr-yan span{min-width:0}
 
 /* The tooltip `?` uses `margin:-6px;padding:6px` to enlarge the click area: 14 pixels visible, 26 pixels touchable. Despite the negative margin, the padding box overflows 6 pixels to the right and makes the row look wider than its container. In this column the surplus on the right is removed - the `?` is already at the end of the row, nobody clicks to its right. !important is required because it is an inline style. */
-#tab-gercekci .gr-yan [data-tip]{margin-right:0 !important;padding-right:0 !important}
+#tab-realistic .gr-yan [data-tip]{margin-right:0 !important;padding-right:0 !important}
 
 /* LIGHT MODE - while the window is not focused. Infinite animations (status dots, spinner) force compositing on every frame even when unfocused; on the same desktop as a full-screen game this disturbs the game's presentation path and drops the frame rate. Pausing cuts the frame entirely. Transitions are turned off too: nobody is looking while unfocused. */
 .e-idle *,

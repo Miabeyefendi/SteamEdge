@@ -1099,7 +1099,7 @@ class SteamEngine {
   // and the other way round. Now each job keeps its own list by name ("sahip"); the union of all of them
   // goes to Steam, at most 32 games (Steam does not count beyond that). Order: SAHIP_SIRASI.
   play(appids, ownerId) {
-    this._owners.set(ownerId || 'genel', (appids || []).slice());
+    this._owners.set(ownerId || 'general', (appids || []).slice());
     this._sendGames();
   }
   // If sahip is given only that job's games are closed; if not, all of them (exit, disconnect).
@@ -1236,7 +1236,7 @@ SteamEngine.UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 SteamEngine.PERMANENT_DISCONNECT = new Set([5, 15, 26, 27, 34]);
 // Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
-SteamEngine.OWNER_ORDER = ['gercekci', 'kart', 'saat', 'sirali', 'genel'];
+SteamEngine.OWNER_ORDER = ['realistic', 'card', 'hours', 'sequential', 'general'];
 SteamEngine.CURRENCY = SteamUser.ECurrencyCode;
 // Converts Steam price texts to numbers. The format varies by currency:
 //   "$1,084.65"  (comma thousands, dot decimal)

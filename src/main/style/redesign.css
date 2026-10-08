@@ -3,13 +3,13 @@
    REDESIGN.CSS - page-scoped palette layer.
    The page CSS files (overview/achievements/inventory/settings) take their colours from shared variables
    such as var(--blue) / var(--card) / var(--line); these are defined on :root in common.css.
-   Here the same variables are redefined on the pages' root elements (#tab-genel etc.).
+   Here the same variables are redefined on the pages' root elements (#tab-overview etc.).
    Thanks to CSS custom property inheritance, every var(--xxx) in that subtree is automatically painted
    with the SteamEdge palette, with no change to JS or HTML.
-   For Card Farming and Hour Booster the same technique is applied in edge.css (scoped to #tab-kart, #tab-saat).
+   For Card Farming and Hour Booster the same technique is applied in edge.css (scoped to #tab-card, #tab-hours).
    ================================================================
 */
-#tab-genel, #tab-basarim, #tab-env, #tab-ayarlar {
+#tab-overview, #tab-achievements, #tab-inventory, #tab-settings {
   --bg:#030305; --panel:#0D1118; --card:#0D1118; --card2:#151C28;
   --line:#1D2432; --line-2:#2B3345; --sheen:rgba(255,255,255,.04);
   --blue:#5624B3; --primary:#5624B3; --green:#5FB324; --success:#5FB324;
@@ -21,10 +21,10 @@
 }
 
 /* ---- shared: Geist font (new pages) ---- */
-#tab-genel, #tab-basarim, #tab-env, #tab-ayarlar {
+#tab-overview, #tab-achievements, #tab-inventory, #tab-settings {
   font-family:"Geist",ui-sans-serif,system-ui,sans-serif;
 }
-#tab-genel .lbl, #tab-basarim .lbl { font-family:inherit; }
+#tab-overview .lbl, #tab-achievements .lbl { font-family:inherit; }
 
 /* ---- Electron titlebar (not in the template, added for the frameless window) ---- */
 .imu-titlebar{-webkit-app-region:drag}
@@ -60,4 +60,4 @@
 .acct-list::-webkit-scrollbar-thumb, .notif-list::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.14);border-radius:8px}
 
 /* ---- the old JS-generated classes of the achievements/inventory/settings pages already use var(), so they are painted automatically. Only a few hardcoded hex values inside JS (rarity colours, .spin colour) are from the old palette - small visual touches: ---- */
-#tab-basarim .spin{color:#5FB324}
+#tab-achievements .spin{color:#5FB324}

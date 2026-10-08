@@ -83,10 +83,10 @@ async function check(installedVersion) {
   const basis = { installed: installedVersion, lastOne: null, isUpToDate: null, url: RELEASES_PAGE, releaseName: null, releaseTs: null };
   try {
     const listing = await request(LIST_URL);
-    if (!Array.isArray(listing)) return { ok: false, ...basis, hata: 'GitHub beklenmeyen bir yanıt döndürdü.' };
+    if (!Array.isArray(listing)) return { ok: false, ...basis, failure: 'GitHub beklenmeyen bir yanıt döndürdü.' };
     // Skip drafts and prereleases: an unfinished version is not offered to the user.
     const broadcasts = listing.filter((y) => y && !y.draft && !y.prerelease && y.tag_name);
-    if (!broadcasts.length) return { ok: false, ...basis, hata: 'Yayımlanmış sürüm bulunamadı.' };
+    if (!broadcasts.length) return { ok: false, ...basis, failure: 'Yayımlanmış sürüm bulunamadı.' };
     let newest = broadcasts[0];
     broadcasts.forEach((y) => { if (compareVersion(y.tag_name, newest.tag_name) > 0) newest = y; });
     const latest = String(newest.tag_name).replace(/^v/i, '');
@@ -100,7 +100,7 @@ async function check(installedVersion) {
       releaseTs: newest.published_at ? Date.parse(newest.published_at) : null,
     };
   } catch (e) {
-    return { ok: false, ...basis, hata: errorText(e) };
+    return { ok: false, ...basis, failure: errorText(e) };
   }
 }
 

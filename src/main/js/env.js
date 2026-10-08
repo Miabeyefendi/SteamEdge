@@ -162,7 +162,7 @@
       E.onHistoryProgress((d)=>{
         if (!d) return;
         avgDone = d.doneOnes || 0; avgTotal = d.totalSum || avgTotal;
-        if (d.bitti){
+        if (d.isFinished){
           avgFetching = false;
           renderEnv(); paintAvgBtn();
           if (typeof toast === 'function'){
@@ -222,7 +222,7 @@
       if (!appSettings || !appSettings.autoRefreshPrices) return;
       const mins = Math.max(1, +appSettings.priceRefreshMin || 15);
       priceRefreshTimer = setInterval(()=>{
-        const visible = document.getElementById('tab-env') && !document.getElementById('tab-env').classList.contains('hidden');
+        const visible = document.getElementById('tab-inventory') && !document.getElementById('tab-inventory').classList.contains('hidden');
         if (visible && invMerged && !priceFetching) fetchPricesForView();
       }, mins * 60 * 1000);
     }
@@ -299,7 +299,7 @@
       if (priceAsked) return;
       // The question is asked only while Envanter is on screen. If the user moved to another tab while the cache was being read
       // the window used to open on top of that tab; it is asked the next time they enter.
-      const envVisible = () => designed.env && !designed.env.classList.contains('hidden');
+      const envVisible = () => designed.inventory && !designed.inventory.classList.contains('hidden');
       if (!envVisible()) return;
       const everything = hashesForView();
       const lacking = everything.filter(h => !priceMap.has(h));
@@ -324,7 +324,7 @@
         warn: 'Steam pazar isteklerini sınırlıyor. Çok sayıda öğede bu işlem uzun sürer; önce filtre uygulayıp yalnızca ilgilendiğin öğeleri çekmek daha hızlıdır.',
         confirmText: 'Evet, Getir',
         cancelText: 'Hayır, Sonra',
-        pageName: 'env',
+        pageName: 'inventory',
       });
       if (ok) fetchPricesForView();
       else if (typeof toast === 'function') toast('Fiyat').done('Filtreni kur, sonra alttaki "Fiyatları Getir" düğmesine bas.');
@@ -919,7 +919,7 @@
       }).catch(()=>{});
       const priced = fresh.filter(i=>medVal(i) != null);
       if (!priced.length) return;
-      pushFeed('pazar', 'Otomatik satış', tf('# yeni kart ortalama fiyattan satışa sunuluyor.', priced.length), 'Çalışıyor');
+      pushFeed('market', 'Otomatik satış', tf('# yeni kart ortalama fiyattan satışa sunuluyor.', priced.length), 'Çalışıyor');
       await sellFlow(priced, 'median');
     }
 
@@ -983,8 +983,8 @@
       const name = it ? it.name : hashName;
       const title = tf('Fiyat düştü · #', fmtPercent(Math.round(d * 100)));
       const bodyEl = name + ' · ' + fmtLira(price.medianValue) + ' → ' + fmtLira(price.lowestValue);
-      notify('fiyat', title, bodyEl);
-      pushFeed('hata', title, bodyEl, 'Hata');
+      notify('price', title, bodyEl);
+      pushFeed('error', title, bodyEl, 'Hata');
     }
 
     // ---- sale job ----
@@ -1008,21 +1008,21 @@
     });
 
     function drawSaleStatus(){
-      let el = document.getElementById('satisGorev');
+      let el = document.getElementById('saleTask');
       const g = saleTask;
       if (!g){ if (el) el.remove(); return; }
       if (!el){
         el = document.createElement('div');
-        el.id = 'satisGorev';
+        el.id = 'saleTask';
         el.style.cssText = 'position:absolute;right:26px;bottom:88px;z-index:20;display:flex;align-items:center;gap:12px;'
           + 'padding:12px 14px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;box-shadow:0 8px 28px rgba(0,0,0,.45);max-width:560px';
-        const container = document.getElementById('tab-env');
+        const container = document.getElementById('tab-inventory');
         if (container){ if (getComputedStyle(container).position === 'static') container.style.position = 'relative'; container.appendChild(el); }
         el.addEventListener('click', (e)=>{
           const b = e.target.closest('[data-sg]'); if (!b || !saleTask) return;
           const a = b.getAttribute('data-sg');
-          if (a === 'durdur'){ saleTask.abandon = true; drawSaleStatus(); }
-          else if (a === 'devam'){ saleTask.continueNow = true; }
+          if (a === 'stop'){ saleTask.abandon = true; drawSaleStatus(); }
+          else if (a === 'resume'){ saleTask.continueNow = true; }
         });
       }
       const remaining = g.plan.length - g.i;
@@ -1030,10 +1030,10 @@
       if (g.waiting){
         const sn = Math.max(0, Math.round((g.waiting - Date.now()) / 1000));
         text = tf('Parti tamamlandı · sonraki parti # sonra', fmtDuration(sn)) + ' · ' + tf('# öğe bekliyor', remaining);
-        buttons = '<button data-sg="devam" class="h-brand" style="'+SG_BTN+'">'+esc(t('Şimdi Devam Et'))+'</button>';
+        buttons = '<button data-sg="resume" class="h-brand" style="'+SG_BTN+'">'+esc(t('Şimdi Devam Et'))+'</button>';
       } else if (g.isAsking){
         text = tf('Parti tamamlandı · # öğe bekliyor', remaining);
-        buttons = '<button data-sg="devam" class="h-brand" style="'+SG_BTN+'">'+esc(t('Sonraki Partiyi Listele'))+'</button>';
+        buttons = '<button data-sg="resume" class="h-brand" style="'+SG_BTN+'">'+esc(t('Sonraki Partiyi Listele'))+'</button>';
       } else {
         text = tf('Satışa sunuluyor · # / #', g.i, g.plan.length);
       }
@@ -1041,7 +1041,7 @@
       el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
         + '<span style="font-size:12px;color:#DCE2FA;line-height:1.5">' + esc(text) + '</span>'
         + buttons
-        + '<button data-sg="durdur" class="h-stop" style="'+SG_BTN.replace('#5624B3','#B32453').replace('#C2AAEE','#B32453')+'">'+esc(t('Durdur'))+'</button>';
+        + '<button data-sg="stop" class="h-stop" style="'+SG_BTN.replace('#5624B3','#B32453').replace('#C2AAEE','#B32453')+'">'+esc(t('Durdur'))+'</button>';
     }
     const SG_BTN = 'height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;flex-shrink:0;white-space:nowrap';
     function fmtDuration(sn){ const d = Math.floor(sn/60), s = sn%60; return d ? (d+':'+String(s).padStart(2,'0')) : (s+' sn'); }
@@ -1104,7 +1104,7 @@
       let perBatch = g.i;
       while (g.i < g.plan.length && !g.abandon){
         const p = g.plan[g.i];
-        const r = await E.sellItem(p.assetId, p.seller, 1).catch(e=>({ ok:false, error:(e && e.message), typeName:'genel' }));
+        const r = await E.sellItem(p.assetId, p.seller, 1).catch(e=>({ ok:false, error:(e && e.message), typeName:'general' }));
         g.i++;
         if (r && r.ok){
           g.successful++; g.consecutive = 0;
@@ -1113,8 +1113,8 @@
           if (s.needs_mobile_confirmation || s.requires_confirmation) g.mobileConfirm++;
           if (s.needs_email_confirmation){ g.emailConfirm++; g.emailAddr = s.email_domain || g.emailAddr; }
         } else {
-          const category = (r && r.typeName) || 'genel';
-          if (category === 'atla'){ g.skipped++; g.failures.push(p.name + ': ' + (r.error || '')); }
+          const category = (r && r.typeName) || 'general';
+          if (category === 'skip'){ g.skipped++; g.failures.push(p.name + ': ' + (r.error || '')); }
           else {
             g.consecutive++;
             g.failures.push(p.name + ': ' + ((r && r.error) || ''));
@@ -1160,7 +1160,7 @@
       if (remaining) rowsList.push(tf('# öğe listelenmedi.', remaining));
       if (g.failures.length) rowsList.push('\n' + t('Steam yanıtları:') + '\n' + g.failures.slice(0, 5).map(x=>'  · ' + x).join('\n'));
       const title = g.successful ? tf('# öğe satışa sunuldu', g.successful) : t('Hiçbir öğe satışa sunulamadı');
-      pushFeed(g.limit ? 'hata' : 'pazar', 'Satış', title + (g.mobileConfirm ? (' · ' + tf('# Steam Guard onayı bekliyor', g.mobileConfirm)) : ''), g.limit ? 'Uyarı' : 'Başarılı');
+      pushFeed(g.limit ? 'error' : 'market', 'Satış', title + (g.mobileConfirm ? (' · ' + tf('# Steam Guard onayı bekliyor', g.mobileConfirm)) : ''), g.limit ? 'Uyarı' : 'Başarılı');
       edgeConfirm({
         tag: g.limit ? 'Steam Sınırı' : 'Satış', danger: !!g.limit,
         title: title,

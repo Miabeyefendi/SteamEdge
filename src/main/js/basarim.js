@@ -520,7 +520,7 @@
       acBusy.add(apiName);
       renderAchievements();
 
-      const res = await E.setAchievements(acAppid, [{ apiName, unlock }]).catch(e=>({ ok:false, error:(e&&e.message)||'hata' }));
+      const res = await E.setAchievements(acAppid, [{ apiName, unlock }]).catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
       acBusy.delete(apiName);
       if (!res.ok){
         ach.achieved = prevAchieved; ach.unlockTime = prevTime;   // undo
@@ -535,7 +535,7 @@
       window.imu.state.achLog({ appid: acAppid, game: acData.gameName, apiName, name: ach.name, unlock }).catch(()=>{});
       acData.unlocked = acData.achievements.filter(a=>a.achieved).length;
       notify('ach', unlock?'Başarım Açıldı':'Başarım Kilitlendi', ach.name);
-      pushFeed('kart', unlock?'Başarım açıldı':'Başarım kilitlendi', acData.gameName+' · '+ach.name, 'Başarılı');
+      pushFeed('card', unlock?'Başarım açıldı':'Başarım kilitlendi', acData.gameName+' · '+ach.name, 'Başarılı');
       renderAchievements();
       return true;
     }
@@ -601,7 +601,7 @@
           const a = targets[i];
           paintRunBox(i, targets.length, t('gönderiliyor:') + ' ' + a.name);
           const r = await E.setAchievements(acAppid, [{ apiName:a.apiName, unlock }])
-                           .catch(e=>({ ok:false, error:(e&&e.message)||'hata' }));
+                           .catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
           acBusy.delete(a.apiName);
           if (r.ok){
             ok++; repeatedError = 0;
@@ -611,7 +611,7 @@
           } else {
             fail++; repeatedError++;
             a.lastError = r.error || t('Steam isteği reddetti.');
-            failures.push({ displayName: a.name, hata: a.lastError });
+            failures.push({ displayName: a.name, failure: a.lastError });
           }
           acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
           paintRunBox(i+1, targets.length, fail ? tf('# başarılı, # hata', ok, fail) : null);
@@ -623,7 +623,7 @@
           // it looked like an infinite loop from outside.
           if (repeatedError >= 3){
             targets.slice(i+1).forEach(x=>acBusy.delete(x.apiName));
-            acStopReason = 'ustuste';
+            acStopReason = 'consecutive';
             break;
           }
           if (i === targets.length - 1) break;
@@ -667,14 +667,14 @@
 
       // Say the result CLEARLY - silently saying "done" was misleading
       if (fail){
-        const initial = failures.slice(0,4).map(b=>'  · '+b.displayName+': '+b.hata).join('\n');
+        const initial = failures.slice(0,4).map(b=>'  · '+b.displayName+': '+b.failure).join('\n');
         const remaining = Math.max(0, failures.length-4);
         edgeConfirm({
           tag:'Sonuç', danger:true,
           title: tf('# başarılı, # başarısız', ok, fail),
-          body: (acStopReason === 'ustuste'
+          body: (acStopReason === 'consecutive'
                   ? (t('Üst üste 3 hata alındı, işlem durduruldu.') + '\n\n')
-                  : (acStopReason === 'kullanici' ? (t('İşlemi sen durdurdun.') + '\n\n') : ''))
+                  : (acStopReason === 'user' ? (t('İşlemi sen durdurdun.') + '\n\n') : ''))
                 + (verifyNote ? verifyNote+'\n\n' : '')
                 + (initial ? (t('Hatalar:') + '\n' + initial + (remaining ? ('\n  · ' + tf('ve # tane daha', remaining)) : '')) : ''),
           warn: 'Bazı başarımlar oyun içi ilerlemeye bağlıdır ve doğrudan açılamaz; Steam bunları reddeder.',
@@ -684,7 +684,7 @@
       acStopReason = null;
       const summary = fail ? tf('# başarılı, # hata', ok, fail) : tf('# başarım', ok);
       notify('ach', unlock?'Başarımlar Açıldı':'Başarımlar Kilitlendi', summary);
-      pushFeed(fail?'hata':'kart', unlock?'Toplu başarım açma':'Toplu başarım kilitleme',
+      pushFeed(fail?'error':'card', unlock?'Toplu başarım açma':'Toplu başarım kilitleme',
                acData.gameName + ' · ' + summary, fail?'Hata':'Başarılı');
     }
 
@@ -754,7 +754,7 @@
       b.onclick = ()=>{
         if (!acRunning) return;
         acStopRequested = true;
-        acStopReason = 'kullanici';
+        acStopReason = 'user';
         if (acWaitCancel) acWaitCancel();
         paintRunBox(0, 0, t('durduruluyor...'));
       };

@@ -1,6 +1,6 @@
 // Renames the Turkish keys of files written by older versions to the current English names.
 // Applied to every JSON file read from disk, so old settings, stats and cache files keep working.
-// Only keys are renamed; values are never touched.
+// Keys are renamed everywhere; the only values changed are the "kind" of activity feed entries.
 'use strict';
 
 const OLD_TO_NEW = {
@@ -269,7 +269,19 @@ const OLD_TO_NEW = {
   grTelafiPay: 'grCatchUpShare',
   grUltraCarpan: 'grUltraMultiplier',
   kopya: 'copy',
+  fiyat: 'priceValue',
+  gecmis: 'pastRecords',
+  hata: 'failure',
+  bitti: 'isFinished',
+  devam: 'proceeding',
+  durdur: 'haltJob',
+  mesaj: 'messageText',
+  aktiviteAkisi: 'activityFeed',
+  'kart.queue': 'cards.queue',
 };
+
+// Activity feed entries ({ kind, title, text, status, ts }) used Turkish kind names.
+const KIND_TO_NEW = { kart: 'card', saat: 'hours', hata: 'error', mesaj: 'message', envanter: 'inventory', pazar: 'market' };
 
 // Walks objects and arrays and renames keys that appear in OLD_TO_NEW. Returns the same value type.
 function migrateKeys(v) {
@@ -280,6 +292,7 @@ function migrateKeys(v) {
       const nk = Object.prototype.hasOwnProperty.call(OLD_TO_NEW, k) ? OLD_TO_NEW[k] : k;
       out[nk] = migrateKeys(v[k]);
     }
+    if (typeof out.kind === 'string' && 'title' in out && Object.prototype.hasOwnProperty.call(KIND_TO_NEW, out.kind)) out.kind = KIND_TO_NEW[out.kind];
     return out;
   }
   return v;

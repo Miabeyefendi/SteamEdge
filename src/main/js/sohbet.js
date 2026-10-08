@@ -49,14 +49,14 @@
 
     async function chFetchFriends(){
       const listing = chEl('chList');
-      const r = await window.imu.sohbet.friends().catch(e=>({ ok:false, error:(e&&e.message) }));
+      const r = await window.imu.chat.friends().catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
         listing.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc((r&&r.error)||'Arkadaş listesi alınamadı.')+'</div>';
         return;
       }
       chFriends = r.friends || [];
       // Unread counts come from the recent conversations; the friend list does not have this information.
-      const k = await window.imu.sohbet.conversations().catch(()=>null);
+      const k = await window.imu.chat.conversations().catch(()=>null);
       if (k && k.ok){
         chUnread = new Map((k.conversationList||[]).map(x=>[x.steamid, x.unreadCount||0]));
       }
@@ -118,7 +118,7 @@
 
       const request = ++chRequest;
       chEl('chMessages').innerHTML = '<div style="color:#8B8F9E;font-size:12px">Yazışma yükleniyor...</div>';
-      const r = await window.imu.sohbet.history(steamid, 50).catch(e=>({ ok:false, error:(e&&e.message) }));
+      const r = await window.imu.chat.history(steamid, 50).catch(e=>({ ok:false, error:(e&&e.message) }));
       if (request !== chRequest) return;                 // the user moved to another person
       if (!r || !r.ok){
         chEl('chMessages').innerHTML = '<div style="color:#B32453;font-size:12px">'+esc((r&&r.error)||'Yazışma alınamadı.')+'</div>';
@@ -126,7 +126,7 @@
       }
       chMessages.set(steamid, r.messageList || []);
       chPaintMessages();
-      window.imu.sohbet.read(steamid).catch(()=>{});   // so it also counts as read on Steam
+      window.imu.chat.read(steamid).catch(()=>{});   // so it also counts as read on Steam
     }
 
     function chPaintMessages(){
@@ -159,7 +159,7 @@
       listing.push(temporary);
       chMessages.set(chSelected, listing);
       chPaintMessages();
-      const r = await window.imu.sohbet.send(chSelected, text).catch(e=>({ ok:false, error:(e&&e.message) }));
+      const r = await window.imu.chat.send(chSelected, text).catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
         const i = listing.indexOf(temporary);
         if (i >= 0) listing.splice(i, 1);
@@ -178,7 +178,7 @@
       // "Typing..." notification: not sent more than once a second.
       if (chSelected && Date.now() - chTypingLast > 4000){
         chTypingLast = Date.now();
-        window.imu.sohbet.typing(chSelected);
+        window.imu.chat.typing(chSelected);
       }
     });
     // The box grows as you type, stops at 120 px (together with the CSS max-height).
@@ -199,7 +199,7 @@
         chMessages.set(m.from, listing);
         if (m.from === chSelected){
           chPaintMessages();
-          window.imu.sohbet.read(m.from).catch(()=>{});
+          window.imu.chat.read(m.from).catch(()=>{});
         } else {
           chUnread.set(m.from, (chUnread.get(m.from) || 0) + 1);
           if (chLoaded) chPaintList();

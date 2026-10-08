@@ -25,7 +25,7 @@ class FarmController {
   constructor(engine, emit, ownerId) {
     this.engine = engine;
     this.emit = emit;
-    this.ownerId = ownerId || 'kart';
+    this.ownerId = ownerId || 'card';
     this.timer = null;
     this.timer2 = null;
     this.running = false;
@@ -73,11 +73,11 @@ class FarmController {
     if (this.shuffle) list = FarmController.shuffle(list);
     this.games = list;
     this.running = true;
-    const proceed = opts && opts.devam;
+    const proceed = opts && opts.proceeding;
     this.index = proceed && +proceed.index >= 0 ? Math.min(+proceed.index, Math.max(0, list.length - 1)) : 0;
     this.sessionStart = (proceed && proceed.sessionStart) || Date.now();
 
-    if (!this.games.length) { this.stop('bitti'); return; }
+    if (!this.games.length) { this.stop('finished'); return; }
     if (mode === 'fast') this._runFast();
     else this._runRoundRobin(proceed && +proceed.passedMs > 0 ? +proceed.passedMs : 0);
   }
@@ -117,7 +117,7 @@ class FarmController {
     this.currentActiveAppid = null;
     this.phaseName = null;
     if (this.engine) this.engine.stop(this.ownerId);
-    this.emit('farm:tick', { running: false, cause: cause || 'kullanici', calisiyordu: wasRunning });
+    this.emit('farm:tick', { running: false, cause: cause || 'user', calisiyordu: wasRunning });
   }
 
   // The current list from the badge watcher. `bitenler`: games for which Steam CONFIRMS no cards are left
@@ -141,7 +141,7 @@ class FarmController {
     if (!removed.length) return { leftover: this.games.length, removedOne: removed };
     this.games = newItem;
 
-    if (!this.games.length) { this.stop('bitti'); return { leftover: 0, removedOne: removed }; }
+    if (!this.games.length) { this.stop('finished'); return { leftover: 0, removedOne: removed }; }
 
     if (this.mode === 'fast') {
       this._refreshPool();
@@ -154,7 +154,7 @@ class FarmController {
     this.index = Math.max(0, oldIndex - previouslyRemoved);
     if (activeOutput) {
       if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-      if (!this.autoNext) { this.stop('oyunBitti'); return { leftover: this.games.length, removedOne: removed }; }
+      if (!this.autoNext) { this.stop('gameFinished'); return { leftover: this.games.length, removedOne: removed }; }
       if (this.index >= this.games.length) this.index = this.loop ? 0 : this.games.length;
       this._runRoundRobin(0);
     }
@@ -164,7 +164,7 @@ class FarmController {
   _runRoundRobin(passedMs) {
     if (!this.running || this.games.length === 0) return;
     if (this.index >= this.games.length) {
-      if (!this.loop) { this.stop('bitti'); return; }
+      if (!this.loop) { this.stop('finished'); return; }
       this.index = 0;
       if (this.shuffle) this.games = FarmController.shuffle(this.games);
     }
@@ -176,7 +176,7 @@ class FarmController {
     const remainingMs = Math.max(1000, this.durationMs - (passedMs || 0));
     this.timer = setTimeout(() => {
       if (!this.running) return;
-      if (!this.autoNext) { this.stop('sure'); return; }   // automatic move is off → stop
+      if (!this.autoNext) { this.stop('duration'); return; }   // automatic move is off → stop
       this.index++;
       this._runRoundRobin(0);
     }, remainingMs);
@@ -233,7 +233,7 @@ class FarmController {
     if (!this.running) return;
     if (this.phaseName !== 'rotate') return;           // warm-up reads the list in its own loop
     this.fastPool = this.games.slice(0, this.maxGames);
-    if (!this.fastPool.length) { this.stop('bitti'); return; }
+    if (!this.fastPool.length) { this.stop('finished'); return; }
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     this._fastRotate();
   }
@@ -259,7 +259,7 @@ class FarmController {
   _fastRotate() {
     if (!this.running) return;
     const pool = this.fastPool.length ? this.fastPool : this.games;
-    if (!pool.length) { this.stop('bitti'); return; }
+    if (!pool.length) { this.stop('finished'); return; }
     const all = pool.map((g) => g.appid);
     const g = pool[this.index % pool.length];
     this.index++;
