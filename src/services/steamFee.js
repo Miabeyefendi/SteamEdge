@@ -88,7 +88,7 @@ async function compute(wallet, totals) {
   const scriptText = '(function(){var W=' + JSON.stringify(wallet || {}) + ';var L=' + JSON.stringify(listing) + ';'
     + 'var pp=parseFloat(W.wallet_publisher_fee_percent_default!=null?W.wallet_publisher_fee_percent_default:0.10);'
     + 'var sp=parseFloat(W.wallet_fee_percent!=null?W.wallet_fee_percent:0.05);'
-    + 'return L.map(function(t){var s=GetItemPriceFromTotal(t,W);return {toplam:t,satici:s,alici:GetTotalWithFees(s,pp,sp,W)};});})()';
+    + 'return L.map(function(t){var s=GetItemPriceFromTotal(t,W);return {totalSum:t,seller:s,buyer:GetTotalWithFees(s,pp,sp,W)};});})()';
   const outcome = await windowObj.webContents.executeJavaScript(scriptText, true);
   if (!Array.isArray(outcome)) throw new Error('Steam ücret hesabı sonuç vermedi');
   return outcome.map((x) => ({ totalSum: +x.totalSum || 0, seller: +x.seller || 0, buyer: +x.buyer || 0 }));
