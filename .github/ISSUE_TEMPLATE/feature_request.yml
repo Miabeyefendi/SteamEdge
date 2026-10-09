@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Ideas are welcome. Please check the [docs](../../docs/en/INSTRUCTIONS.md) first, since
+        Ideas are welcome. Please check the [tutorial](https://github.com/Miabeyefendi/SteamEdge/blob/main/docs/guides/TUTORIAL.md) first, since
         a fair number of requests turn out to be settings that already exist.
 
   - type: dropdown

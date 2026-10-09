@@ -21,7 +21,7 @@
 </a>
 <a href="./TUTORIAL_ES.md">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/btn-tutorial-dark.svg">
     <img src="../../assets/btn-tutorial.svg" height="52" alt="Leer la guía">
   </picture>
 </a>
@@ -41,7 +41,7 @@
 - **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera. Los precios de venta usan el cálculo de comisión propio de Steam, y la venta en lote se detiene y avisa al llegar al límite de Steam por cuenta, o divide la venta en lotes.
 - **Chat** - Lista de amigos, conversaciones y envío, por el mismo protocolo de red. Los no leídos se ven en la pestaña, así no se escapa nada mientras corre una cola.
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso. Las estadísticas se guardan por cuenta.
-- **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso.
+- **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso. Las instalaciones nuevas empiezan en inglés.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
 
@@ -121,7 +121,7 @@ Una vez dentro, el Resumen muestra qué está en marcha y qué está disponible.
 
 ## ⚙️ Configuración
 
-Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos por cuenta en `settings/accounts/<steamID>.json`. Todo se edita desde la página de Ajustes de la aplicación; no hay motivo para tocar los archivos a mano. Los cambios solo se aplican al pulsar Guardar, y las tareas en marcha los recogen en pocos segundos.
+Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos por cuenta en `settings/accounts/<steamID>.json`. Casi todo se edita desde la página de Ajustes de la aplicación y desde las páginas de cada función; no hay motivo para tocar los archivos a mano. Los cambios de la página de Ajustes solo se aplican al pulsar Guardar, y las tareas en marcha los recogen en pocos segundos.
 
 > **No compartas nunca la carpeta `settings/`.** Contiene tu token de sesión de Steam, suficiente para usar tu cuenta.
 
@@ -134,11 +134,11 @@ Los ajustes viven en `settings/settings.json` junto al ejecutable, y los datos p
 | `bulkSellLimit` | `50` | La venta en lote se divide en lotes de este número de objetos; `0` publica hasta que Steam lo detenga |
 | `priceDropThreshold` | `10` | Porcentaje por debajo de la media de 24 horas de Steam que cuenta como bajada de precio |
 | `reconnectPolicy` | `unlimited` | Reconexión tras perder la conexión: `unlimited` (sin límite), `10`, `3` o `off` (desactivado) |
-| `sessionTimeout` | `never` | Desconecta tras estos minutos sin actividad; las tareas en marcha no cuentan como inactividad |
+| `sessionTimeout` | `never` | Cierra todas las sesiones tras estos minutos sin actividad; las tareas en marcha no cuentan como inactividad |
 | `theme` | `dark` | Tema de color: `dark`, `midnight`, `white` |
 | `language` | `en` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
-Todas las claves están documentadas en la [referencia de configuración](./TUTORIAL_ES.md#️-referencia-de-configuración).
+La [referencia de configuración](./TUTORIAL_ES.md#️-referencia-de-configuración) cubre las claves que conviene conocer; el resto son los demás controles de la página Ajustes.
 
 ---
 
@@ -160,6 +160,8 @@ Todas las claves están documentadas en la [referencia de configuración](./TUTO
 - [x] Todos los textos generados en ejecución traducidos, con formas de plural en todos los idiomas (1.3.0)
 - [x] Temas: Oscuro, Púrpura medianoche, Blanco (1.3.0)
 - [x] Electron 41 (1.3.2)
+- [x] Inglés por defecto y el resto del texto de la interfaz traducido (1.3.3)
+- [x] Todo el código en inglés: identificadores, comentarios, ids de elementos, canales IPC, claves de ajustes y nombres de archivo (1.4.0)
 - [ ] Las páginas restantes rehechas según el diseño, una por versión
 
 Nada de esto es una promesa. Es un proyecto personal y la lista se mueve cuando cambian mis prioridades.
@@ -214,13 +216,13 @@ trabajo bajo la AGPL-3.0.
 <div align="center">
 <a href="https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-report-bug-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/btn-report-bug-dark.svg">
     <img src="../../assets/btn-report-bug.svg" height="52" alt="Informar de un error">
   </picture>
 </a>
 <a href="https://github.com/Miabeyefendi/SteamEdge/stargazers">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-star-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/btn-star-dark.svg">
     <img src="../../assets/btn-star.svg" height="52" alt="Marcar el repositorio con una estrella">
   </picture>
 </a>

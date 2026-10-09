@@ -7,10 +7,19 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.0)
 
-## [1.3.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.3)
+Code cleanup release: the whole source code is now in English. No feature changes, and the interface language is unchanged.
 
-New installs start in English, and about forty pieces of text that stayed Turkish in English, German, Spanish, Chinese and Russian are translated.
+### Changed
+
+- **Source code in English.** Identifiers, comments, log messages, element ids, IPC channel names, setting keys, file names and the build scripts are all English now, so contributors who do not read Turkish can follow the code. The interface text still starts from Turkish and keeps its five translations.
+- **npm scripts renamed.** `npm run dogrula` is now `npm run verify`, and `npm run dil` is now `npm run lang`. Their output is in English too.
+- **Stored files are migrated.** Settings, statistics, saved state and cache files written by older versions have their keys (and a few values) renamed the first time they are read. There is nothing to do on your side. Going back to 1.3.x afterwards is not supported, because older versions do not know the new keys; copy your `settings/` folder first if you want a way back.
+
+## [1.3.3](https://github.com/Miabeyefendi/SteamEdge/compare/1.3.2...1.4.0)
+
+Never published as a release of its own: these changes ship as part of 1.4.0. New installs start in English, and about forty pieces of text that stayed Turkish in English, German, Spanish, Chinese and Russian are translated.
 
 ### Changed
 
@@ -26,16 +35,6 @@ New installs start in English, and about forty pieces of text that stayed Turkis
 - **Connection strip.** A connection drop found by the heartbeat check showed its reason in Turkish.
 - **Data recovery dialog.** The names of recovered files ("Saved accounts", "Saved state") stayed Turkish.
 - **Language audit.** `npm run dil` now also checks the scripts inside the HTML pages, where the sign-in screen's text lives. Most of the sign-in text above was missed because of this.
-
-## [1.4.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.0)
-
-Code cleanup release: the whole source code is now in English. No feature changes, and the interface language is unchanged.
-
-### Changed
-
-- **Source code in English.** Identifiers, comments, log messages, element ids, IPC channel names, setting keys, file names and the build scripts are all English now, so contributors who do not read Turkish can follow the code. The interface text still starts from Turkish and keeps its five translations.
-- **npm scripts renamed.** `npm run dogrula` is now `npm run verify`, and `npm run dil` is now `npm run lang`. Their output is in English too.
-- **Stored files are migrated.** Settings, statistics, saved state and cache files written by older versions have their keys (and a few values) renamed the first time they are read. There is nothing to do on your side. Going back to 1.3.x afterwards is not supported, because older versions do not know the new keys; copy your `settings/` folder first if you want a way back.
 
 ## [1.3.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.3.2)
 

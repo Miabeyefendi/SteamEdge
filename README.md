@@ -41,7 +41,7 @@
 - **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches.
 - **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
-- **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian.
+- **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
 
@@ -128,7 +128,7 @@ Once you are in, the Overview shows what is running and what is available. Open 
 
 ## ⚙️ Configuration
 
-Settings live in `settings/settings.json` next to the executable, and per-account data in `settings/accounts/<steamID>.json`. All of it is editable from the in-app Settings page; there is no reason to touch the files by hand. Changes are applied only when you press Save, and running jobs pick them up within a few seconds.
+Settings live in `settings/settings.json` next to the executable, and per-account data in `settings/accounts/<steamID>.json`. Nearly all of it is editable from the in-app Settings page and the pages of the features themselves; there is no reason to touch the files by hand. Changes on the Settings page are applied only when you press Save, and running jobs pick them up within a few seconds.
 
 > **Never share the `settings/` folder.** It holds your Steam session token, which is enough to use your account.
 
@@ -141,11 +141,11 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `bulkSellLimit` | `50` | Bulk sales are split into batches of this many items; `0` lists until Steam stops it |
 | `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that marks a price drop |
 | `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3` or `off` |
-| `sessionTimeout` | `never` | Disconnect after this many idle minutes; running jobs do not count as idle |
+| `sessionTimeout` | `never` | Close all sessions after this many idle minutes; running jobs do not count as idle |
 | `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
-Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference).
+The [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference) covers the keys worth knowing about; the rest are the other controls on the Settings page.
 
 ---
 
@@ -167,6 +167,8 @@ Every key is documented in the [configuration reference](./docs/guides/TUTORIAL.
 - [x] Every runtime string translated, with plural forms in all languages (1.3.0)
 - [x] Themes: Dark, Midnight Purple, White (1.3.0)
 - [x] Electron 41 (1.3.2)
+- [x] English by default, with the remaining interface text translated (1.3.3)
+- [x] The whole code base in English: identifiers, comments, ids, IPC channels, setting keys and file names (1.4.0)
 - [ ] The remaining pages rebuilt to the design spec, one release at a time
 
 Nothing here is a promise. This is a personal project and the list moves when my priorities move.

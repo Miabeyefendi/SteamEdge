@@ -206,7 +206,7 @@ function writeJson(fileEntry, payloadData, formatted) {
   }
 }
 
-// Returns: { ok:true, veri } | { ok:true, veri, yedekten:true } | { ok:false, yok:true } | { ok:false, bozuk:true }
+// Returns: { ok:true, dataBlock } | { ok:true, dataBlock, fromBackup:true } | { ok:false, none:true } | { ok:false, corrupt:true }
 function readJson(fileEntry) {
   const attempt = (p) => {
     const rawText = fs.readFileSync(p, 'utf8');
@@ -493,10 +493,10 @@ function saveSettings() { return writeJson(SETTINGS_FILE, settings, true); }
 function updateSleepBlocker() {
   let runningItem = false;
   accounts.forEach((s) => { if (accountRunning(s)) runningItem = true; });
-  const iste = !!settings.preventSleep && runningItem;
+  const keepAwake = !!settings.preventSleep && runningItem;
   try {
-    if (iste && psbId === null) psbId = powerSaveBlocker.start('prevent-app-suspension');
-    else if (!iste && psbId !== null) { powerSaveBlocker.stop(psbId); psbId = null; }
+    if (keepAwake && psbId === null) psbId = powerSaveBlocker.start('prevent-app-suspension');
+    else if (!keepAwake && psbId !== null) { powerSaveBlocker.stop(psbId); psbId = null; }
   } catch (_) {}
 }
 // "Bağlantı koparsa yeniden bağlan". null = unlimited, 0 = off, n = at most n attempts.
@@ -2257,7 +2257,7 @@ function runSyncStep(steamID) {
   b.syncTimer = setTimeout(() => advanceTier(steamID), st.stepMs);
 }
 
-// Starts simultaneous hour boosting. istek: { appids, durationMs, games, devam }
+// Starts simultaneous hour boosting. request: { appids, durationMs, games, proceeding }
 // devam: { baslangic } - when a setting changes the job is resumed with the same start and total duration.
 function boostStart(steamID, request) {
   const s = accounts.get(steamID);
@@ -2516,7 +2516,7 @@ function realisticRarityWeight(pct, ultraMultiplier) {
 
 // Writes the unlock times into the queue (ms relative to the start of the session).
 //   birikim > 0 : the first that many achievements are squeezed into the start of the session
-//   ayar        : { hizCarpani, ultraMultiplier, telafiPayi, bitmis, finishedRatio }
+//   ayar        : { speedMultiplier, ultraMultiplier, compensationShare, finishedFlag, finishedRatio }
 function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
   const n = queue.length;
   if (!n) return queue;
@@ -2638,7 +2638,7 @@ async function realisticStep(steamID) {
 
   if (Date.now() >= d.finishTime && a.indexNum < a.queueList.length) {
     // The time is up but achievements are left - we do not force the rest, we tell the user.
-    realisticFinish(steamID, 'sure doldu, ' + (a.queueList.length - a.indexNum) + ' basarim acilmadi');
+    realisticFinish(steamID, 'time up, ' + (a.queueList.length - a.indexNum) + ' not unlocked');
     return;
   }
   const delay = realisticNextDelay(d);
@@ -2698,7 +2698,7 @@ function realisticFinish(steamID, cause) {
   const s = accounts.get(steamID);
   const d = s && s.realistic;
   if (!d) return;
-  const remainingUnopened = /^sure doldu, (\d+)/.exec(cause || '');
+  const remainingUnopened = /^time up, (\d+) not unlocked/.exec(cause || '');
   // The text is translated in the interface; its version that carries a number is a '#' pattern key in the dictionary.
   const reasonText = remainingUnopened ? 'Süre doldu, # başarım açılmadı'.replace('#', remainingUnopened[1]) : (REALISTIC_REASON[cause] || cause);
   const summary = { openedGames: d.totalUnlocked, failure: d.totalErrors, totalSum: d.totalGoal, cause: reasonText };
@@ -2722,7 +2722,12 @@ function realisticFinish(steamID, cause) {
 // Only the schema request tells the truth, and that takes seconds. So a result learned once
 // is written to disk and that game never shows up in this page's list again.
 // BY APPID and independent of the account: achievements are a property of the game, not of the account.
-const NO_ACHIEVEMENTS_FILE = path.join(CACHE_DIR, 'basarimsiz.json');
+const NO_ACHIEVEMENTS_FILE = path.join(CACHE_DIR, 'no-achievements.json');
+// Renamed from the Turkish file name used up to 1.3.x; move it once so the learned list is kept.
+try {
+  const oldFile = path.join(CACHE_DIR, 'basarimsiz.json');
+  if (fs.existsSync(oldFile) && !fs.existsSync(NO_ACHIEVEMENTS_FILE)) fs.renameSync(oldFile, NO_ACHIEVEMENTS_FILE);
+} catch (_) {}
 let noAchievementsSet = new Set();
 function loadNoAchievements() {
   const r = readJson(NO_ACHIEVEMENTS_FILE);
@@ -2909,7 +2914,7 @@ ipcMain.handle('realistic:start', async (_e, arg) => {
     // If another start came in during preparation a second job is not opened.
     if (s.realistic) return { ok: false, error: 'Zaten çalışıyor.' };
     // If it runs at the same time as card farming both write the same game list; so they do not clash.
-    if (settings.pauseFarmOnBoost) delayFarm(steamID, 'gercekci mod');
+    if (settings.pauseFarmOnBoost) delayFarm(steamID, 'realistic mode');
 
     const firstGame = willRun[0];
     const firstReady = prepared[firstGame.appid];
@@ -3350,7 +3355,7 @@ ipcMain.handle('settings:export', async () => {
   const stamp = new Date().toISOString().slice(0, 10);
   const r = await dialog.showSaveDialog(win, {
     title: ct('SteamEdge ayarlarını dışa aktar'),
-    defaultPath: path.join(app.getPath('documents'), 'steamedge-ayarlar-' + stamp + '.json'),
+    defaultPath: path.join(app.getPath('documents'), 'steamedge-settings-' + stamp + '.json'),
     filters: [{ name: 'JSON', extensions: ['json'] }],
   });
   if (r.canceled || !r.filePath) return { ok: false, canceled: true };
