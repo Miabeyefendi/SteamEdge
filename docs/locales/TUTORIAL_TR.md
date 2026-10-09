@@ -40,7 +40,7 @@ Buradan iki sonuç çıkıyor ve uygulamanın davranışının çoğunu bu ikisi
 
 ### Dosya düzeni
 
-Her şey exe'nin yanında durur. Kayıt defterine, `AppData` içine ya da `Program Files` altına hiçbir şey yazılmaz.
+Her şey exe'nin yanında durur. Kayıt defterine ya da `Program Files` altına hiçbir şey yazılmaz; `AppData` yalnızca exe'nin yanındaki klasöre yazılamadığında yedek olarak kullanılır.
 
 ```
 SteamEdge/
@@ -49,13 +49,13 @@ SteamEdge/
     settings.json              genel ayarlar
     accounts.json              kayıtlı hesaplar
     session.json               aktif oturum anahtarı
-    stats.json                 kalıcı istatistikler
-    state.json                 hatırlanan kuyruklar ve başarım günlüğü
-    accounts/<steamID>.json    hesaba özel: kuyruklar, presetler, istatistikler
+    accounts/<steamID>.json    hesaba özel: istatistikler, kuyruklar, presetler, başarım günlüğü
+    stats.json, state.json     yalnızca eski sürümlerden: bir kez okunur, bir daha yazılmaz
+    *.bak, *.bozuk             otomatik yedek kopya ve kenara alınmış bozuk dosya
   cache/
     prices.json                pazar fiyatları, 24 saat ömürlü
     history.json               gerçekleşen satış ortalamaları, 72 saat ömürlü
-    basarimsiz.json            başarımı olmadığı anlaşılan oyunlar
+    no-achievements.json            başarımı olmadığı anlaşılan oyunlar
     chromium/                  görsel ve sayfa önbelleği
     steamedge.log              hata bildirimine eklenecek kayıt
 ```
@@ -83,7 +83,9 @@ Oturum ayağa kalkınca sol altta `SİSTEM: HAZIR`, bir iş çalışırken `SİS
 
 ### Güncelleme
 
-Uygulama yayımlanmış sürüm numarasına bakar ve daha yenisi çıktığında haber verir. Bilerek hiçbir şey indirmez, kurmaz. Güncellemek için SteamEdge'i kapat, yeni arşivi **boş ve yeni bir klasöre** çıkar ve eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır; uygulama yaygın durumu yakalar ve açılışta söyler.
+Uygulama yayımlanmış sürüm numarasına açılıştan birkaç saniye sonra ve üst çubuktaki güncelleme düğmesine her bastığında bakar, daha yenisi çıktığında haber verir. Bilerek hiçbir şey indirmez, kurmaz. Güncellemek için SteamEdge'i kapat, yeni arşivi **boş ve yeni bir klasöre** çıkar ve eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır; uygulama yaygın durumu yakalar ve açılışta söyler.
+
+Eski bir sürümün yazdığı dosyalar ilk okunduğunda dönüştürülür, yani `settings/` klasörünü kopyalamak yeter. Dönüşüm tek yönlüdür: 1.4.0 bir `settings/` klasörünü açtıktan sonra 1.3.x onu artık kullanamaz; geri dönmek isteyebilirsen bir kopyasını sakla.
 
 ### Kaldırma
 
@@ -97,19 +99,19 @@ Klasörü sil. İşlemin tamamı bu.
 
 Açılış sayfası. **Aktif Görev** paneli gerçekten ne çalışıyorsa onu gösterir; aynı anda birden çok iş varsa aralarında oklarla gezilir. Başlat, Durdur ve Detay sabit bir sayfaya değil, o an baktığın işe göre çalışır.
 
-Üstünde altı kutu: kalan toplam kart, kütüphane, bu oturum, envanter değeri, saat yükseltici ve başarımlar. Soldaki **Son aktiviteler** olanları durum ve saatle listeler; Aktif Görev panelinin altındaki **Hızlı işlemler** oyun listesini, envanteri ya da pazarı yeniler ve Ayarlar'ı açar. Bir kutu, sayfası henüz yüklenmediyse tire gösterir; bu, hesabın hakkında değil neyin çekildiği hakkında bir bilgidir.
+Üstünde altı kutu: kalan toplam kart, kütüphane, bu oturum, envanter değeri, saat yükseltici ve başarımlar. Soldaki **Son aktiviteler** olanları durum ve saatle listeler (son 30 kayıt, oturumlar arasında saklanır); Aktif Görev panelinin altındaki **Hızlı işlemler** oyun listesini, envanteri ya da pazarı yeniler ve Ayarlar'ı açar. Bir kutu, sayfası henüz yüklenmediyse tire gösterir; bu, hesabın hakkında değil neyin çekildiği hakkında bir bilgidir.
 
 ### Kart Düşür
 
-Rozet sayfalarından okunan, kartı kalmış oyunların kuyruğu; 1-2 ya da 3+ kart kalanlara göre süzülebilir. Oklarla ya da **En öne al** ile sırala, ✕ ile çıkar. Sağda: düşürme modu, hazır sürelerle oturum zamanlayıcısı, **Otomasyon** (düşen kartı pazarda otomatik sat, arka planda topla, kart düşünce bildir, saat artarken başarım tetikle) ve **Son düşüşler**. Başlat'a bas.
+Rozet sayfalarından okunan, kartı kalmış oyunların kuyruğu; 1-2 ya da 3+ kart kalanlara göre süzülebilir. Oklarla ya da **En Öne Al** ile sırala (mod Öncelik'e geçer), ✕ ile çıkar; sıra ve çıkarılanlar hatırlanır. Sağda: düşürme modu, oyun başına süre zamanlayıcısı (her oyun, sıradakine geçmeden önce ne kadar çalışır; hazır sürelerle, Hızlı mod kendi ritmini kullanır ve zamanlayıcıyı soluklaştırır), **Otomasyon** (düşen kartı pazarda otomatik sat, arka planda topla, kart düşünce bildir, saat artarken başarım tetikle) ve **Son düşüşler**. Başlat'a bas.
 
 ### Envanter & Pazar
 
-Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir** ve **Ortalamaları getir** pazar verisini öğe öğe, iki değer birlikte çeker. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim).
+Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; **Ortalamaları getir** yalnızca eksik ortalamaları doldurur, önce tahmini süreyi söyler ve iptal edilebilir. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim).
 
 ### Saat Yükseltici
 
-Solda aranabilir tüm kütüphane, ortada aktif kuyruk. Sağda: **Saat eşitleme** (hedef ve yöntem), eşzamanlı limit (2, 8, 16, 32 ya da özel), hazır süreler, davranış anahtarları ve çevrimdışı görünme. Süre seçilirse oturum süre dolunca durur; ∞ sen durdurana kadar sürer. Seçim hazır ayar olarak kaydedilebilir.
+Solda aranabilir tüm kütüphane (aynı anda en fazla 300 satır çizilir, daraltmak için ara), ortada aktif kuyruk. Sağda: **Saat eşitleme** (hedef ve yöntem), eşzamanlı limit (2, 8, 16, 32 ya da özel), hazır süreler (6, 12, 18, 24 saat, ∞ ya da özel), davranış anahtarları ve çevrimdışı görünme. Süre seçilirse oturum süre dolunca durur; ∞ sen durdurana kadar sürer. Seçim hazır ayar olarak kaydedilebilir.
 
 ### Gerçekçi Mod
 
@@ -123,13 +125,13 @@ Her oyun için protokolden okunan gerçek kilitli ve açık durum; üstte toplam
 
 Uygulamaya söylenebilecek her şey, gruplanmış hâlde: Genel, Kart Düşürme, Pazar, Envanter, Saat Yükseltici, Başarımlar, Bildirimler, Gizlilik & Güvenlik, İstatistikler, Gelişmiş & Veri ve Hakkında. Sağ sütun hesabı (seviye, bağlantı durumu, kopyalanabilir Steam kimlikleri) ve yapılandırmayı (son kayıt, kaydedilmemiş değişiklikler) gösterir.
 
-Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra çalışan kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
+Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra, değişen ayarlardan etkilenen bir kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder; çalışan bir işe dokunmayan ayarlar hemen uygulanır. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
 
 Tema (Koyu, Gece Moru, Beyaz) Genel bölümündedir, giriş ekranına da uygulanır.
 
 ### Sohbet
 
-Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkadaşlar, çevrimiçi olanlar üstte; sağda yazışma. Enter gönderir, Shift+Enter alt satıra geçer. Okunmamış sayısı hem arkadaş satırında hem üst çubuktaki düğmede görünür.
+Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkadaşlar, çevrimiçi olanlar üstte; sağda yazışma (bir yazışma açılınca son 50 mesaj yüklenir). Enter gönderir, Shift+Enter alt satıra geçer. Okunmamış sayısı hem arkadaş satırında hem üst çubuktaki düğmede görünür.
 
 ---
 
@@ -137,9 +139,11 @@ Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkada�
 
 ### Kart düşürme
 
-Steam, bir oyunun toplam süresi **iki saati** geçmeden kart düşürmez. Bir mod dışında hepsi bunu yok sayıp oyunları çalıştırır; **Hızlı mod** bunu bilir ve yalnızca eşiği geçmiş oyunları döndürür, böylece henüz kart düşüremeyecek oyunlara zaman harcanmaz.
+Steam, bir oyunun toplam süresi **iki saati** geçmeden kart düşürmez. Bir mod dışında hepsi bunu yok sayıp oyunları çalıştırır; **Hızlı mod** bunu bilir ve eşiğin altındaki oyunları, döndürmeye başlamadan önce eşiğin üstüne çıkarır.
 
-Kuyruktaki her oyunun kartı bittiğinde ya da **Oyun bitince sıradakine geç** kapalıyken mevcut oyun bittiğinde, kart düşürme son oyunu yeniden başlatmak yerine durur ve sebebini söyler. Kart düşürme ve saat yükseltici birlikte çalışabilir: her biri kendi oyun kümesini tutar, Steam ikisini birden 32 sınırına kadar görür.
+Hızlı mod dışındaki her modda aynı anda bir oyun, ayarladığın **Oyun başına süre** kadar çalışır (Ayarlar > Kart Düşürme, varsayılan 5 dakika; Kart Düşür sayfasındaki zamanlayıcı buradan başlar ve her çalıştırmada değiştirilebilir), sonra sıradaki oyun devralır. Kartı biten oyun kuyruktan düşer ve sıradaki hemen başlar. Kuyruktaki her oyunun kartı bittiğinde ya da **Oyun bitince sıradakine geç** kapalıyken mevcut oyunun süresi dolduğunda veya kartı bittiğinde, kart düşürme son oyunu yeniden başlatmak yerine durur ve sebebini söyler. Kart düşürme ve saat yükseltici birlikte çalışabilir: her biri kendi oyun kümesini tutar, Steam ikisini birden 32 sınırına kadar görür.
+
+**Hızlı mod** iki aşamada çalışır. Önce ısınma: eşiğin (`fastMinPlaytimeMin`, 120 dakika) altındaki oyunlar, **Aynı anda maksimum oyun** kadarlık gruplar hâlinde birlikte açılır ve tüm grup eşiği geçene kadar açık kalır, çünkü Steam süreyi açık olan her oyuna aynı anda işler. Sonra kartı kalan her oyun aynı sınıra kadar birlikte açık kalır ve uygulama öne çıkan oyunu, her seferinde rastgele bir aralıkla, 90 ile 120 saniyede bir değiştirir.
 
 Modlar:
 
@@ -149,13 +153,13 @@ Modlar:
 | Çok Kart | En çok kartı kalan oyunlar önce |
 | Az Kart | Bitmeye en yakın oyunlar önce |
 | Öncelik | Senin belirlediğin sıra |
-| Hızlı | Yalnızca iki saati geçmiş oyunlar, kısa aralıklarla döndürülür |
+| Hızlı | İki saatin altındaki oyunlar için ısınma, sonra hepsi birlikte açık ve dönen bir öne çıkan oyun |
 
-Kartlar bir programa göre gelmez ve Steam "kart düştü" diye bir olay yollamaz. Uygulama kalan kart toplamını düzenli ölçer ve uydurma bir sayaç yerine dürüst farkı bildirir.
+Kartlar bir programa göre gelmez ve Steam "kart düştü" diye bir olay yollamaz. Uygulama her hesabın rozet sayfalarını üç dakikada bir yeniden okur ve kalan kart toplamındaki dürüst farkı bildirir, uydurma bir sayaç göstermez.
 
 ### Saat yükseltici
 
-Aynı anda 32 oyuna kadar çalıştırır. Steam süreyi açık olan her oyuna ayrı ayrı işler, yani 32 oyun bir saat açık kalırsa 32 saat oynanma süresi olur.
+Aynı anda 32 oyuna kadar çalıştırır. Steam süreyi açık olan her oyuna ayrı ayrı işler, yani 32 oyun bir saat açık kalırsa 32 saat oynanma süresi olur. **Sıralı bekletme modu** (sayfadaki bir anahtar) bunun yerine kuyruğu her seferinde bir oyunla döndürür; ayarlanan süre her oyun için geçerlidir, bu yüzden orada ∞ seçilemez ve saat eşitleme kullanılmaz.
 
 **Saat eşitlemesi** seçimi aynı toplama çeker. İki yöntem var:
 
@@ -175,19 +179,23 @@ Başarımlar herkese açık profilin kazınmasıyla değil, protokol üzerinden 
 
 Bazı oyunlar başarım yazarken oyunun açık olmasını ister. Uygulama yazma sırasında oyunu açar, sonra öncesinde ne çalışıyorsa ona döner.
 
+**Toplu aç ve kilitle** seçili başarımlara, hiçbiri seçili değilse o an süzgecin gösterdiği her şeye uygulanır. Başarımlar hep tek tek, **Açılış aralığı** (Ayarlar > Başarımlar) kadar bekleyerek gönderilir, asla tek seferde değil. **Güvenli mod** açıkken her bekleme rastgele en fazla %40 sapar, **Açılışları zamana yay** ile aralığın %40 ila %160'ı arasında olur; Güvenli mod kapalıyken aralık aynen uygulanır. Onay penceresi aralığı ve tahmini toplam süreyi gösterir, toplu işlem üst üste üç hatada durur ve bittiğinde uygulama oyunu Steam'den yeniden okuyup Steam'in gerçekte kaydetmediği işaretleri düzeltir. Tekli açma, "Bir daha sorma"yı işaretlemediysen önce sorar (Ayarlar'daki **Tekli işlemde onay iste** tekrar açar); toplu işlem her zaman sorar. Nadirlik, Steam'in genel açılma yüzdesine göre beş basamaklıdır: %1 altı Efsanevi, %5 altı Ultra nadir, %10 altı Nadir, %25 altı Sıra dışı, kalanı Yaygın.
+
 ### Gerçekçi Mod
 
 Tek oyunu açık tutar ve başarımlarını oturum boyunca, en yaygından en nadire doğru açar. Amaç bıraktığı iz: bir dakikada yüzlerce başarımın açılması hem profilde hem üçüncü parti sitelerde hemen göze çarpar.
 
 **%100 bitiş süresi** bütün sayfanın üzerine kurulduğu sayıdır: bu oyunu bütün başarımlarıyla bitirmek kaç saat sürer. Girersen o oyun için hatırlanır. Boş bırakırsan oyun türünden tahmin edilir, ama o tahmin senin oynadığın süreye dayanır ve çok oynadığın oyunlarda şişer.
 
-**Hedef sayı** iki parçadan çıkar: bu kadar oynanmışken açılmış olması gereken sayı eksi gerçekten açılmış olan, artı bu oturumun kendi payı. Panel hesabı yazar, denetleyebilirsin.
+**Hedef sayı** iki parçadan çıkar: bu kadar oynanmışken açılmış olması gereken sayı eksi gerçekten açılmış olan, artı bu oturumun kendi payı. Panel hesabı yazar, denetleyebilirsin. **Süreyi ayarlara göre belirle** açıkken ve süreyi elle yazmadıysan oturum uzunluğu da hesaplanır: geride kalan başarımlar için gerçek bir oyuncunun harcayacağı süre, 15 dakika ile 12 saat arasında tutulur.
 
 **Dağıtım modeli** aralıkların biçimini belirler. Doğrusal eşit dağıtır, üstel gerçek bir oyuncunun ilk saatleri gibi öne yükler, Pareto çoğunu ilk beşte bire koyar.
 
 **Ritim** nadirliğe göre ağırlıklandırılır. Yalnızca %5 altındaki başarımlar belirgin biçimde uzun bekler, üstündeki her şey eşit ve hızlı akar. Bitiş süresini geçmiş bir oyunda çizelgenin tamamı sıkışır, çünkü taklit edilecek bir öğrenme eğrisi kalmamıştır.
 
-**Başarımı olmayan oyunlar** anlaşıldığı anda kuyruktan düşer, `cache/basarimsiz.json` dosyasına yazılır ve bu sayfada bir daha önerilmez. Steam'in yayımladığı kütüphane bayrağı güvenilir değil; yalnızca şema isteği güvenilir.
+**Başarımı olmayan oyunlar** anlaşıldığı anda kuyruktan düşer, `cache/no-achievements.json` dosyasına yazılır ve bu sayfada bir daha önerilmez. Steam'in yayımladığı kütüphane bayrağı güvenilir değil; yalnızca şema isteği güvenilir.
+
+**Rastgele aralık** açıkken açılış aralıkları iki yöne en fazla %40 sapar ve asla üç saniyeden kısa olmaz. Kuyrukta birden fazla oyun varsa kalan süre başarım sayısına göre paylaştırılır ve **Sırayı otomatik başlat** açıkken kuyruk kendiliğinden ilerler. Süre dolduğunda başarım kalmışsa çalışma durur ve kalanları zorlamak yerine kaç tanesinin açılmadığını söyler; onun için duraklatılmış bir kart düşürme sonra sürer.
 
 ### Envanter ve pazar
 
@@ -195,9 +203,9 @@ Eşya değeri, en düşük aktif ilan değil, **gerçekleşen satışların mikt
 
 Fiyatlar hesabının **cüzdan kurunda** gelir ve aynen o kurda gösterilir. Çeviri bilerek yok: çevirmek bir kur uydurmak demek olurdu.
 
-Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk sıradaki öğeye geçer. İkisi Steam'in tek pazar bütçesini paylaşır ve limit öğe sayısıyla değil istek sayısıyla ölçülür. İstekler arasındaki süre Ayarlar > Gelişmiş & Veri altında; Steam'in toleransı hesaba göre değişir.
+Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk sıradaki öğeye geçer. İkisi Steam'in tek pazar bütçesini paylaşır ve limit öğe sayısıyla değil istek sayısıyla ölçülür; uygulama 18 istek gönderir, sonra Steam'in yaklaşık 32 saniyelik soğuma süresini bekler. İstekler arasındaki süre Ayarlar > Gelişmiş & Veri altında; Steam'in toleransı hesaba göre değişir.
 
-**Satış.** Alıcının ödeyeceği fiyatı sen seçersin; eline geçecek tutarı Steam'in kendi ücret betiği hesaplar (Steam'den indirilir, kum havuzlu bir pencerede çalışır), yani ikisi Steam sitesinin göstereceğiyle aynıdır. Toplu satış Steam bir ilanı reddettiği anda durur ve pencere Steam'in sebebini yazar: yeni hesaplar 10-15 ilanda durdurulabilir, eskileri 80 ve üzerini listeler. **Parti büyüklüğü** ve **Partiler arası bekleme** (Ayarlar > Pazar) büyük satışı böler; bekleme yoksa her partiden sonra sorulur. Mobil doğrulayıcı açıksa her ilan yine Steam uygulamasında onaylanmalıdır.
+**Satış.** Alıcının ödeyeceği fiyatı sen seçersin; eline geçecek tutarı Steam'in kendi ücret betiği hesaplar (Steam'den indirilir, kum havuzlu bir pencerede çalışır), yani ikisi Steam sitesinin göstereceğiyle aynıdır. Toplu satış, Steam bir sınır bildirdiğinde ya da üst üste iki ilanı reddettiğinde durur ve pencere Steam'in sebebini yazar: yeni hesaplar 10-15 ilanda durdurulabilir, eskileri 80 ve üzerini listeler. Steam'in şu an listelenemeyeceğini söylediği öğeler (örneğin zaten bekleyen bir ilanı olanlar) çalışmayı durdurmaz; atlanır ve sayılır. **Parti büyüklüğü** ve **Partiler arası bekleme** (Ayarlar > Pazar) büyük satışı böler; bekleme yoksa her partiden sonra sorulur. Mobil doğrulayıcı açıksa her ilan yine Steam uygulamasında onaylanmalıdır.
 
 **Fiyat düşüşü uyarısı.** Bir öğenin en ucuz ilanı Steam'in 24 saatlik ortalamasının **Fiyat düşüşü eşiği** (varsayılan %10) kadar altına inince listede kırmızı ▼ ile işaretlenir, satış onayı kırmızı uyarı verir ve uyarı açıksa günde en fazla bir kez bildirim gelir.
 
@@ -219,7 +227,7 @@ Bağlantı koptuğunda SteamEdge kendiliğinden yeniden bağlanır, çalışan i
 
 ## ⚙️ Yapılandırma başvurusu
 
-Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayarlar sayfasından düzenlenebilir.
+Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların çoğu Ayarlar sayfasındaki denetimlerdir; işe özel olanlar (saat yükseltici süresi ve eşitleme yöntemi, Gerçekçi Mod değerleri) kendi özelliğinin sayfasındadır. * ile işaretli anahtarların hiçbir denetimi yoktur; yalnızca uygulama kapalıyken dosya düzenlenerek değiştirilir. Tablolar bilinmeye değer anahtarları listeler; kalanı o sayfalardaki diğer denetimlerdir ve dosya Kaydet'e her bastığında yeniden yazılır.
 
 ### Genel
 
@@ -228,7 +236,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
 | `theme` | `dark` | Renk teması: `dark`, `midnight` (Gece Moru), `white` |
-| `preventSleep` | `true` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
+| `preventSleep` | `false` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
 
 ### Kart düşürme
 
@@ -236,15 +244,15 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 |---|---|---|
 | `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
 | `cardMaxGames` | `32` | Aynı anda açık oyun |
-| `fastMinPlaytimeMin` | `120` | Hızlı mod bu sürenin altındaki oyunları atlar |
-| `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır, sonra kaldığı yerden sürdürür |
+| `farmMaxMinutes` | `5` | Her oyunun sıradakine geçmeden önce çalıştığı dakika. Hızlı mod kendi ritmini kullanır |
+| `fastMinPlaytimeMin`* | `120` | Hızlı mod bu sürenin altındaki oyunları önce bunun üstüne çıkarır, sonra hepsini döndürür |
 
 ### Pazar
 
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
-| `priceRefreshHours` | `24` | Çekilmiş bir fiyat kaç saat taze sayılır |
-| `historyRefreshHours` | `72` | Satış ortalaması kaç saat taze sayılır |
+| `priceRefreshHours`* | `24` | Çekilmiş bir fiyat kaç saat taze sayılır |
+| `historyRefreshHours`* | `72` | Satış ortalaması kaç saat taze sayılır |
 | `fetchAvgWithPrice` | `true` | Ortalamayı fiyatla aynı turda çek. Kapalıyken öğe başına tek istek gider, ortalamalar yalnızca Ortalama düğmesiyle gelir |
 | `bookDepth` | `5` | Detay panelindeki sipariş defteri satırı |
 | `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür. `0` Steam durdurana kadar listeler |
@@ -261,7 +269,8 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 | `boostSyncMode` | `highest` | Hedef: seçililerin en yükseği, elle girilen saat ya da kütüphanenin en yükseği |
 | `boostSyncStrategy` | `parallel` | `parallel` hepsi birden, `staged` sıralı |
 | `boostAutoRestart` | `false` | Süre dolunca kuyruğu yeniden başlat |
-| `rememberBoostList` | `false` | Seçimi oturumlar arasında koru |
+| `rememberBoostList` | `true` | Seçimi oturumlar arasında koru |
+| `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır, sonra kaldığı yerden sürdürür |
 
 ### Gerçekçi Mod
 
@@ -292,13 +301,13 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdakilerin hepsi Ayar
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
 | `reconnectPolicy` | `unlimited` | Bağlantı koparsa yeniden bağlanma: `unlimited`, `10`, `3`, `off` |
-| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser. Çalışan işler boşta sayılmaz; sayacı yalnızca senin etkileşimin sıfırlar |
+| `sessionTimeout` | `never` | Bu kadar dakika (30, 120 ya da 480) işlem yapılmazsa tüm oturumları kapatır. Çalışan işler boşta sayılmaz; sayacı yalnızca senin etkileşimin sıfırlar. Süre dolunca tüm hesaplar kopar, etkin oturum unutulur ve giriş ekranı açılır |
 | `apiRequestDelayMs` | `350` | Pazar istekleri arasındaki en kısa süre. Düşük değer hızlıdır ama Steam'in hız sınırına (HTTP 429) yaklaştırır |
 | `logLevel` | `error` | `cache/steamedge.log` içine ne yazılacağı: `off`, `error`, `warn`, `info`, `debug` |
 
 ### Ayarlar nerede durur
 
-Genel ayarlar `settings/settings.json` içinde. Tek bir hesaba ait olan her şey (saat yükseltici seçimi, Gerçekçi Mod kuyruğu ve presetleri, başarım günlüğü, istatistikler) `settings/accounts/<steamID>.json` içinde. Önbellekler ayrı, `cache/` altında; yapılandırmayı kaybetmeden istediğin zaman silinebilir.
+Genel ayarlar `settings/settings.json` içinde. Tek bir hesaba ait olan her şey (saat yükseltici seçimi, Gerçekçi Mod kuyruğu ve presetleri, başarım günlüğü, istatistikler) `settings/accounts/<steamID>.json` içinde. Önbellekler ayrı, `cache/` altında; yapılandırmayı kaybetmeden istediğin zaman silinebilir. Her JSON dosyası önce geçici bir dosyaya yazılır ve tek hamlede yerine konur; önceki sağlam kopya yanında `.bak` olarak kalır. Bir dosya okunamazsa `.bak` kullanılır; o da bozuksa dosyaya dokunulmaz, bir kopyası `.bozuk` olarak kenara alınır, uygulama açılışta söyler ve etkilenen veri varsayılanla başlar. `stats.json` ve `state.json` yalnızca eski sürümlerden kalan klasörlerde bulunur; içerikleri ilk seferde hesap dosyasına taşınır ve bir daha yazılmazlar.
 
 ---
 
@@ -318,7 +327,7 @@ Steam bir hesabın kaç ilan açabileceğini sınırlar; sınır hesabın yaşı
 
 ### "40 kart kaldı" yazıyor ama birkaç tane düştü
 
-Kartlar ancak oyunun toplam süresi iki saati geçince düşer ve her oyunun düşecek kart sayısı sınırlıdır. Hepsi iki saatin altındaki oyunlarla geçen uzun bir oturum hiçbir şey üretmez; yalnızca eşiği geçmiş oyunları seçen Hızlı modu kullan.
+Kartlar ancak oyunun toplam süresi iki saati geçince düşer ve her oyunun düşecek kart sayısı sınırlıdır. Diğer modlarda, hepsi iki saatin altındaki oyunlarla geçen uzun bir oturum eşik geçilene kadar hiçbir şey üretmez; Hızlı mod önce bu oyunları birlikte eşiğin üstüne çıkarır.
 
 ### Fiyatlar tire gösteriyor ya da çok yavaş doluyor
 
@@ -332,9 +341,13 @@ Ya korumalıdır, yani onu oyun sunucusu yazar ve hiçbir istemci yazamaz, ya da
 
 Bitiş süresi fazla yüksek. Boş bırakılınca oynadığın süreden tahmin edilir, dolayısıyla uzun süre oynadığın bir oyun devasa uzunlukta bir oyun gibi okunur. Ana paneldeki kutuya gerçek %100 bitiş süresini gir.
 
+### SteamEdge bir dosyanın okunamadığını söylüyor
+
+Bir ayar ya da veri dosyası bozulursa SteamEdge otomatik `.bak` kopyasını geri yükler. O da bozuksa dosya olduğu gibi bırakılır, yanına `.bozuk` uzantılı bir kopyası alınır, etkilenen veri varsayılanla başlar ve uygulama açılışta söyler. Hiçbir şeyin üzerine yazılmaz, dosyayı elle geri koyabilirsin.
+
 ### Hata bildirimi için kayıt toplama
 
-Kayıt exe'nin yanındaki `cache/steamedge.log` dosyasıdır, Ayarlar'dan da açılır. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyayı ekle.
+Kayıt exe'nin yanındaki `cache/steamedge.log` dosyasıdır, Ayarlar'dan da açılır. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyayı ekle. Kayıt dosyası sınırlıdır: 2 MB'ı geçince `steamedge.log.1` adıyla kenara alınır ve yeni bir dosya başlar, böylece bir önceki parça hep durur.
 
 ---
 

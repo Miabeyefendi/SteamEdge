@@ -40,7 +40,7 @@ Daraus folgen zwei Dinge, und sie erklären das meiste am Verhalten der Anwendun
 
 ### Dateiaufbau
 
-Alles liegt neben der ausführbaren Datei. Nichts wird in die Registrierung, nach `AppData` oder nach `Program Files` geschrieben.
+Alles liegt neben der ausführbaren Datei. Nichts wird in die Registrierung oder nach `Program Files` geschrieben; `AppData` dient nur als Ausweichort, wenn der Ordner neben der ausführbaren Datei nicht beschreibbar ist.
 
 ```
 SteamEdge/
@@ -49,13 +49,13 @@ SteamEdge/
     settings.json              allgemeine Einstellungen
     accounts.json              gespeicherte Konten
     session.json               aktives Sitzungstoken
-    stats.json                 Gesamtstatistik
-    state.json                 gemerkte Warteschlangen und Errungenschaftsprotokoll
-    accounts/<steamID>.json    pro Konto: Warteschlangen, Voreinstellungen, Statistik
+    accounts/<steamID>.json    pro Konto: Statistik, Warteschlangen, Voreinstellungen, Errungenschaftsprotokoll
+    stats.json, state.json     nur von älteren Versionen: einmal gelesen, nie wieder geschrieben
+    *.bak, *.bozuk             automatische Sicherungskopie und beiseitegelegte defekte Datei
   cache/
     prices.json                Marktpreise, 24 Stunden gültig
     history.json               erzielte Verkaufsdurchschnitte, 72 Stunden gültig
-    basarimsiz.json            Spiele ohne Errungenschaften
+    no-achievements.json            Spiele ohne Errungenschaften
     chromium/                  Bild- und Seitencache
     steamedge.log              das Protokoll für einen Fehlerbericht
 ```
@@ -83,7 +83,9 @@ Unten links steht `SYSTEM: BEREIT`, sobald eine Sitzung steht, und `SYSTEM: LÄU
 
 ### Aktualisieren
 
-Die App prüft die veröffentlichte Versionsnummer und meldet, wenn es eine neuere gibt. Sie lädt bewusst nichts herunter und installiert nichts. Zum Aktualisieren SteamEdge schließen, das neue Archiv in einen **leeren, neuen Ordner** entpacken und den Ordner `settings/` aus dem alten hineinkopieren. Wer über den alten Ordner entpackt, während die App läuft, mischt Dateien zweier Versionen; den häufigsten Fall erkennt die App und meldet ihn beim Start.
+Die App prüft die veröffentlichte Versionsnummer einige Sekunden nach dem Start und jedes Mal, wenn du in der oberen Leiste auf die Aktualisieren-Schaltfläche drückst, und meldet, wenn es eine neuere gibt. Sie lädt bewusst nichts herunter und installiert nichts. Zum Aktualisieren SteamEdge schließen, das neue Archiv in einen **leeren, neuen Ordner** entpacken und den Ordner `settings/` aus dem alten hineinkopieren. Wer über den alten Ordner entpackt, während die App läuft, mischt Dateien zweier Versionen; den häufigsten Fall erkennt die App und meldet ihn beim Start.
+
+Dateien, die eine ältere Version geschrieben hat, werden beim ersten Lesen umgewandelt; es genügt also, `settings/` zu kopieren. Die Umwandlung gilt nur in eine Richtung: Hat 1.4.0 einen `settings/`-Ordner einmal geöffnet, kann 1.3.x ihn nicht mehr verwenden. Bewahre eine Kopie auf, falls du zurückwechseln möchtest.
 
 ### Deinstallieren
 
@@ -97,19 +99,19 @@ Ordner löschen. Das ist der ganze Vorgang.
 
 Die Startseite. Die Kachel **Aktive Aufgabe** zeigt, was tatsächlich läuft, eine Aufgabe nach der anderen, mit Pfeilen zum Blättern, wenn mehrere gleichzeitig laufen. Start, Stopp und Details wirken auf die Aufgabe, die du gerade siehst, nicht auf eine feste Seite.
 
-Darüber sechs Kacheln: verbleibende Karten, Bibliothek, diese Sitzung, Inventarwert, Stunden-Booster und Errungenschaften. **Letzte Aktivität** links listet, was passiert ist, mit Status und Uhrzeit; **Schnellaktionen** unter dem Aktive-Aufgabe-Bereich aktualisieren Spieleliste, Inventar oder Markt und öffnen die Einstellungen. Eine Kachel zeigt einen Strich, solange ihre Seite nicht geladen ist; das sagt etwas darüber, was abgerufen wurde, nicht über dein Konto.
+Darüber sechs Kacheln: verbleibende Karten, Bibliothek, diese Sitzung, Inventarwert, Stunden-Booster und Errungenschaften. **Letzte Aktivität** links listet, was passiert ist, mit Status und Uhrzeit (die letzten 30 Einträge, über Sitzungen hinweg gespeichert); **Schnellaktionen** unter dem Aktive-Aufgabe-Bereich aktualisieren Spieleliste, Inventar oder Markt und öffnen die Einstellungen. Eine Kachel zeigt einen Strich, solange ihre Seite nicht geladen ist; das sagt etwas darüber, was abgerufen wurde, nicht über dein Konto.
 
-### Kartenfarming
+### Karten farmen
 
-Die Warteschlange der Spiele mit verbleibenden Karten, aus deinen Abzeichenseiten gelesen, filterbar nach 1-2 oder 3+ Karten. Mit den Pfeilen oder **Nach vorn** umsortieren, mit ✕ entfernen. Rechts: Farm-Modus, Sitzungs-Timer mit Schnellwahl, **Automatisierung** (erhaltene Karten automatisch anbieten, im Hintergrund farmen, bei Kartendrop benachrichtigen, Errungenschaften beim Stundensammeln freischalten) und **Letzte Drops**. Starten drücken.
+Die Warteschlange der Spiele mit verbleibenden Karten, aus deinen Abzeichenseiten gelesen, filterbar nach 1-2 oder 3+ Karten. Mit den Pfeilen oder **Ganz nach oben** umsortieren (der Modus wechselt dabei zu Priorität), mit ✕ entfernen; Reihenfolge und Entfernungen werden gemerkt. Rechts: Farm-Modus, Timer pro Spiel (wie lange jedes Spiel läuft, bevor das nächste übernimmt, mit Schnellwahl; der schnelle Modus hat seinen eigenen Rhythmus und blendet den Timer aus), **Automatisierung** (erhaltene Karten automatisch anbieten, im Hintergrund farmen, bei Kartendrop benachrichtigen, Errungenschaften beim Stundensammeln freischalten) und **Letzte Drops**. Starten drücken.
 
 ### Inventar & Markt
 
-Dein Steam-Inventar, Duplikate als eine Zeile, filterbar nach Spiel, Name, Typ, Status und Preis, wahlweise nach Spiel gruppiert. **Preise abrufen** und **Durchschnitte holen** laden die Marktdaten Objekt für Objekt, beide Werte zusammen. Der Detailbereich zeigt aktuelle Angebote, den Preis für einen Sofortverkauf und abgeschlossene Verkäufe. Die Leiste unten summiert Auswahl, Brutto und was du erhältst, und bietet die Verkaufsmodi (vom Durchschnitt, unterbieten, günstigstes Angebot, sofort verkaufen, eigener Preis) vor **Verkaufen**.
+Dein Steam-Inventar, Duplikate als eine Zeile, filterbar nach Spiel, Name, Typ, Status und Preis, wahlweise nach Spiel gruppiert. **Preise abrufen** lädt die Marktpreise dessen, was der aktuelle Filter zeigt, standardmäßig zusammen mit dem Verkaufsdurchschnitt jedes Gegenstands; **Durchschnitte holen** füllt nur fehlende Durchschnitte nach, nennt vorher die geschätzte Dauer und lässt sich abbrechen. Der Detailbereich zeigt aktuelle Angebote, den Preis für einen Sofortverkauf und abgeschlossene Verkäufe. Die Leiste unten summiert Auswahl, Brutto und was du erhältst, und bietet die Verkaufsmodi (vom Durchschnitt, unterbieten, günstigstes Angebot, sofort verkaufen, eigener Preis) vor **Verkaufen**.
 
 ### Stunden-Booster
 
-Links die ganze Bibliothek, durchsuchbar; in der Mitte die aktive Warteschlange. Rechts: **Stundenabgleich** (Ziel und Verfahren), das Gleichzeitig-Limit (2, 8, 16, 32 oder eigen), die Dauer mit Schnellwahl, Verhaltensschalter und Offline erscheinen. Eine gewählte Dauer beendet die Sitzung, wenn sie abläuft; ∞ läuft, bis du stoppst. Eine Auswahl lässt sich als Vorlage speichern.
+Links die ganze Bibliothek, durchsuchbar (es werden höchstens 300 Zeilen gleichzeitig gezeichnet, zum Eingrenzen also suchen); in der Mitte die aktive Warteschlange. Rechts: **Stundenabgleich** (Ziel und Verfahren), das Gleichzeitig-Limit (2, 8, 16, 32 oder eigen), die Dauer mit Schnellwahl (6, 12, 18, 24 Stunden, ∞ oder eigen), Verhaltensschalter und Offline erscheinen. Eine gewählte Dauer beendet die Sitzung, wenn sie abläuft; ∞ läuft, bis du stoppst. Eine Auswahl lässt sich als Vorlage speichern.
 
 ### Realistischer Modus
 
@@ -123,13 +125,13 @@ Pro Spiel der echte gesperrte und freigeschaltete Zustand aus dem Protokoll, obe
 
 Alles, was man der App sagen kann, gruppiert: Allgemein, Karten farmen, Markt, Inventar, Stunden-Booster, Errungenschaften, Benachrichtigungen, Datenschutz & Sicherheit, Statistiken, Erweitert & Daten und Über. Die rechte Spalte zeigt das Konto (Level, Verbindungsstatus, kopierbare Steam-IDs) und die Konfiguration (letzte Speicherung, ungespeicherte Änderungen).
 
-Änderungen bleiben auf der Seite, bis du **Speichern** drückst. Vorher wird nichts geschrieben, und wer die Seite mit ungespeicherten Änderungen verlässt, wird gefragt. Nach dem Speichern pausieren laufendes Kartenfarmen oder Stunden-Boosten etwa fünf Sekunden und machen mit denselben Spielen und den neuen Werten weiter. **Zurücksetzen** lädt die Standardwerte in die Seite und wartet ebenfalls auf Speichern; die App-Sprache bleibt.
+Änderungen bleiben auf der Seite, bis du **Speichern** drückst. Vorher wird nichts geschrieben, und wer die Seite mit ungespeicherten Änderungen verlässt, wird gefragt. Nach dem Speichern pausiert ein laufendes Kartenfarmen oder Stunden-Boosten, das von den geänderten Einstellungen betroffen ist, etwa fünf Sekunden und macht mit denselben Spielen und den neuen Werten weiter; Einstellungen, die einen laufenden Auftrag nicht berühren, gelten sofort. **Zurücksetzen** lädt die Standardwerte in die Seite und wartet ebenfalls auf Speichern; die App-Sprache bleibt.
 
 Das Farbschema (Dunkel, Mitternachtslila, Weiß) steht unter Allgemein und gilt auch für den Anmeldebildschirm.
 
 ### Chat
 
-Wird über die Chat-Schaltflaeche oben rechts geoeffnet, nicht ueber die Seitenleiste. Links die Freunde, die Online-Kontakte zuerst, rechts die Unterhaltung. Enter sendet, Shift+Enter beginnt eine neue Zeile. Ungelesene Nachrichten erscheinen in der Freundeszeile und auf der Schaltflaeche in der oberen Leiste.
+Wird über die Chat-Schaltfläche oben rechts geöffnet, nicht über die Seitenleiste. Links die Freunde, die Online-Kontakte zuerst, rechts die Unterhaltung (beim Öffnen werden die letzten 50 Nachrichten geladen). Enter sendet, Shift+Enter beginnt eine neue Zeile. Ungelesene Nachrichten erscheinen in der Freundeszeile und auf der Schaltfläche in der oberen Leiste.
 
 ---
 
@@ -137,9 +139,11 @@ Wird über die Chat-Schaltflaeche oben rechts geoeffnet, nicht ueber die Seitenl
 
 ### Kartenfarming
 
-Steam lässt keine Karten fallen, bevor ein Spiel **zwei Stunden** Gesamtspielzeit überschritten hat. Alle Modi bis auf einen ignorieren das und lassen die Spiele einfach laufen; der **schnelle Modus** weiß es und rotiert nur Spiele, die die Schwelle bereits überschritten haben, damit keine Zeit an Spielen verloren geht, die noch gar nichts fallen lassen können.
+Steam lässt keine Karten fallen, bevor ein Spiel **zwei Stunden** Gesamtspielzeit überschritten hat. Alle Modi bis auf einen ignorieren das und lassen die Spiele einfach laufen; der **schnelle Modus** weiß es und hebt Spiele unter der Schwelle erst darüber, bevor er zu rotieren beginnt.
 
-Haben alle Spiele der Warteschlange keine Karten mehr, oder ist **Nach einem Spiel zum nächsten wechseln** aus und das aktuelle Spiel fertig, stoppt das Farmen und sagt warum, statt das letzte Spiel neu zu starten. Kartenfarming und Stunden-Booster können gleichzeitig laufen: Jeder hält seine eigenen Spiele, Steam sieht beide bis zu seinem Limit von 32.
+In allen Modi außer Schnell läuft immer ein Spiel für die eingestellte **Zeit pro Spiel** (Einstellungen > Karten farmen, Standard 5 Minuten; der Timer auf der Seite Karten farmen startet damit und lässt sich pro Lauf ändern), dann übernimmt das nächste. Ein Spiel ohne verbleibende Karten fällt aus der Warteschlange, das nächste startet sofort. Haben alle Spiele der Warteschlange keine Karten mehr, oder ist **Nach einem Spiel zum nächsten wechseln** aus und die Zeit des aktuellen Spiels ist um oder seine Karten sind alle, stoppt das Farmen und sagt warum, statt das letzte Spiel neu zu starten. Kartenfarming und Stunden-Booster können gleichzeitig laufen: Jeder hält seine eigenen Spiele, Steam sieht beide bis zu seinem Limit von 32.
+
+Der **schnelle Modus** arbeitet in zwei Phasen. Zuerst das Aufwärmen: Spiele unter der Schwelle (`fastMinPlaytimeMin`, 120 Minuten) werden in Gruppen von bis zu **Max. Spiele gleichzeitig** zusammen geöffnet und bleiben offen, bis die ganze Gruppe die Schwelle überschritten hat, weil Steam die Zeit jedem offenen Spiel gleichzeitig anrechnet. Dann bleibt jedes Spiel, das noch Karten hat, bis zum selben Limit gemeinsam offen, und die App wechselt das hervorgehobene Spiel alle 90 bis 120 Sekunden, jedes Mal mit zufälligem Abstand.
 
 Die Modi:
 
@@ -149,13 +153,13 @@ Die Modi:
 | Meiste Karten | Spiele mit den meisten verbleibenden Karten zuerst |
 | Wenigste Karten | Spiele, die am nächsten am Abschluss sind, zuerst |
 | Priorität | Deine eigene Reihenfolge |
-| Schnell | Nur Spiele über zwei Stunden, in kurzen Abständen rotiert |
+| Schnell | Aufwärmen für Spiele unter zwei Stunden, dann alle gemeinsam offen mit wechselndem Hauptspiel |
 
-Karten kommen nicht nach Plan, und Steam sendet kein Ereignis "eine Karte ist gefallen". Die Anwendung misst regelmäßig die Summe der verbleibenden Karten und meldet die ehrliche Differenz statt eines erfundenen Zählers.
+Karten kommen nicht nach Plan, und Steam sendet kein Ereignis "eine Karte ist gefallen". Die App liest die Abzeichenseiten jedes Kontos alle drei Minuten neu und meldet die ehrliche Differenz der verbleibenden Karten statt eines erfundenen Zählers.
 
 ### Stunden-Booster
 
-Lässt bis zu 32 Spiele gleichzeitig laufen. Steam rechnet die Zeit jedem offenen Spiel einzeln an, 32 Spiele eine Stunde offen sind also 32 Stunden Spielzeit.
+Lässt bis zu 32 Spiele gleichzeitig laufen. Steam rechnet die Zeit jedem offenen Spiel einzeln an, 32 Spiele eine Stunde offen sind also 32 Stunden Spielzeit. Der **Sequenzielle Idle-Modus** (ein Schalter auf der Seite) lässt die Warteschlange stattdessen Spiel für Spiel durchlaufen, wobei die eingestellte Dauer für jedes Spiel gilt; deshalb ist dort ∞ nicht wählbar und der Stundenabgleich wird nicht verwendet.
 
 **Stundenabgleich** zieht eine Auswahl auf dieselbe Gesamtzeit. Zwei Verfahren:
 
@@ -175,19 +179,23 @@ Zwei Kategorien lassen sich nicht anfassen, und die Anwendung erkennt beide am S
 
 Manche Spiele nehmen Schreibvorgänge für Errungenschaften nur an, während das Spiel offen ist. Die Anwendung öffnet das Spiel für den Schreibvorgang und stellt danach wieder her, was vorher lief.
 
+**Massenfreischaltung und -sperre** wirken auf die gewählten Errungenschaften, oder auf alles, was der aktuelle Filter zeigt, wenn nichts gewählt ist. Sie werden immer einzeln im **Freischaltintervall** (Einstellungen > Errungenschaften) gesendet, nie als ein Schub. Bei aktivem **Sicherer Modus** schwankt jede Wartezeit zufällig um bis zu 40 % in beide Richtungen, mit **Freischaltungen zeitlich verteilen** zwischen 40 % und 160 % des Intervalls; bei ausgeschaltetem sicheren Modus gilt das Intervall exakt. Die Bestätigung zeigt Intervall und geschätzte Gesamtdauer, ein Massenlauf stoppt nach drei Fehlern in Folge, und am Ende liest die App das Spiel neu von Steam und korrigiert jede Markierung, die Steam nicht wirklich gespeichert hat. Eine einzelne Freischaltung fragt zuerst, außer du hast Nicht mehr fragen angehakt (**Bei Einzeländerungen bestätigen** in den Einstellungen schaltet es wieder ein); Massenläufe fragen immer. Die Seltenheit folgt Steams globalem Freischaltanteil in fünf Stufen: unter 1 % Legendär, unter 5 % Ultra selten, unter 10 % Selten, unter 25 % Ungewöhnlich, der Rest Häufig.
+
 ### Realistischer Modus
 
 Hält ein Spiel offen und schaltet seine Errungenschaften über die Sitzung verteilt frei, vom häufigsten zum seltensten. Es geht um die Spur, die das hinterlässt: Hunderte Errungenschaften innerhalb einer Minute fallen im Profil und auf Drittanbieterseiten sofort auf.
 
 **100%-Abschlusszeit** ist die Zahl, auf der die ganze Seite aufbaut: wie viele Stunden es dauert, dieses Spiel mit allen Errungenschaften abzuschließen. Trägst du sie ein, wird sie für dieses Spiel gemerkt. Lässt du sie leer, wird sie aus dem Spieltyp geschätzt, aber diese Schätzung ist deine eigene Spielzeit mal einem Faktor und fällt daher bei viel gespielten Spielen zu hoch aus.
 
-**Zielanzahl** ergibt sich aus zwei Teilen: was bei deiner Spielzeit bereits freigeschaltet sein sollte, minus dem, was es tatsächlich ist, plus dem Anteil dieser Sitzung. Das Feld schreibt die Rechnung aus, damit du sie prüfen kannst.
+**Zielanzahl** ergibt sich aus zwei Teilen: was bei deiner Spielzeit bereits freigeschaltet sein sollte, minus dem, was es tatsächlich ist, plus dem Anteil dieser Sitzung. Das Feld schreibt die Rechnung aus, damit du sie prüfen kannst. Ist **Dauer aus den Einstellungen bestimmen** an und hast du die Dauer nicht von Hand eingetragen, wird auch die Sitzungslänge berechnet: die Zeit, die ein echter Spieler für die zurückliegenden Errungenschaften bräuchte, begrenzt auf 15 Minuten bis 12 Stunden.
 
 **Verteilungsmodell** formt die Abstände. Linear ist gleichmäßig, exponentiell lädt vorne auf, wie die ersten Stunden eines echten Spielers aussehen, Pareto legt die meisten in das erste Fünftel.
 
 **Das Tempo** ist nach Seltenheit gewichtet. Nur Errungenschaften unter 5% warten merklich länger, alles darüber behält einen gleichmäßigen, zügigen Rhythmus. Ein Spiel, das über seine Abschlusszeit hinaus gespielt wurde, staucht den ganzen Plan, denn es gibt keine Lernkurve mehr nachzuahmen.
 
-**Spiele ohne Errungenschaften** fallen aus der Warteschlange, sobald das feststeht, werden nach `cache/basarimsiz.json` geschrieben und auf dieser Seite nie wieder angeboten. Das Bibliotheks-Flag, das Steam veröffentlicht, ist nicht verlässlich; nur die Schema-Anfrage ist es.
+**Spiele ohne Errungenschaften** fallen aus der Warteschlange, sobald das feststeht, werden nach `cache/no-achievements.json` geschrieben und auf dieser Seite nie wieder angeboten. Das Bibliotheks-Flag, das Steam veröffentlicht, ist nicht verlässlich; nur die Schema-Anfrage ist es.
+
+Mit **Zufällige Abstände** schwanken die Abstände um bis zu 40 % in beide Richtungen und sind nie kürzer als drei Sekunden. Stehen mehrere Spiele in der Warteschlange, wird die Restzeit nach Anzahl der Errungenschaften aufgeteilt, und die Warteschlange rückt von selbst vor, wenn **Warteschlange automatisch starten** an ist. Läuft die Zeit ab, obwohl noch Errungenschaften übrig sind, endet der Lauf und nennt, wie viele nicht freigeschaltet wurden, statt sie zu erzwingen; ein dafür pausiertes Kartenfarmen wird danach fortgesetzt.
 
 ### Inventar und Markt
 
@@ -195,9 +203,9 @@ Der Gegenstandswert ist der **mengengewichtete Median der erzielten Verkäufe**,
 
 Preise kommen in der **Währung deines Guthabens** an und werden genau so angezeigt. Es wird bewusst nicht umgerechnet: Umrechnen hieße, einen Wechselkurs zu erfinden.
 
-Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann geht die Warteschlange zum nächsten. Beide teilen sich Steams einziges Marktbudget, und das Limit wird in Anfragen gezählt, nicht in Gegenständen. Der Abstand zwischen Anfragen steht unter Einstellungen > Erweitert & Daten; Steams Toleranz unterscheidet sich je Konto.
+Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann geht die Warteschlange zum nächsten. Beide teilen sich Steams einziges Marktbudget, und das Limit wird in Anfragen gezählt, nicht in Gegenständen; die App sendet 18 Anfragen und wartet dann Steams Abkühlzeit von etwa 32 Sekunden ab. Der Abstand zwischen Anfragen steht unter Einstellungen > Erweitert & Daten; Steams Toleranz unterscheidet sich je Konto.
 
-**Verkaufen.** Du wählst den Preis, den der Käufer zahlt; was du erhältst, berechnet Steams eigenes Gebührenskript (von Steam geladen, in einem abgeschotteten Fenster ausgeführt), daher stimmen beide mit der Steam-Website überein. Massenverkäufe stoppen, sobald Steam ein Angebot ablehnt, und der Dialog nennt Steams Grund: Neue Konten können nach 10-15 Angeboten gestoppt werden, ältere stellen 80 oder mehr ein. **Stapelgröße** und **Wartezeit zwischen Stapeln** (Einstellungen > Markt) teilen große Verkäufe; ohne Wartezeit wirst du nach jedem Stapel gefragt. Mit aktivem mobilen Authentifikator muss jedes Angebot weiterhin in der Steam-App bestätigt werden.
+**Verkaufen.** Du wählst den Preis, den der Käufer zahlt; was du erhältst, berechnet Steams eigenes Gebührenskript (von Steam geladen, in einem abgeschotteten Fenster ausgeführt), daher stimmen beide mit der Steam-Website überein. Ein Massenverkauf stoppt, wenn Steam ein Limit meldet oder zwei Angebote in Folge ablehnt, und der Dialog nennt Steams Grund: Neue Konten können nach 10-15 Angeboten gestoppt werden, ältere stellen 80 oder mehr ein. Gegenstände, die Steam gerade nicht einstellen lässt (zum Beispiel solche mit bereits wartendem Angebot), stoppen den Lauf nicht; sie werden übersprungen und gezählt. **Stapelgröße** und **Wartezeit zwischen Stapeln** (Einstellungen > Markt) teilen große Verkäufe; ohne Wartezeit wirst du nach jedem Stapel gefragt. Mit aktivem mobilen Authentifikator muss jedes Angebot weiterhin in der Steam-App bestätigt werden.
 
 **Preissturz-Warnung.** Liegt das günstigste Angebot eines Objekts mindestens um die **Preissturz-Schwelle** (Standard 10 %) unter Steams 24-Stunden-Durchschnitt, wird es mit einem roten ▼ markiert, die Verkaufsbestätigung warnt rot, und mit aktiver Warnung kommt höchstens einmal täglich pro Objekt eine Benachrichtigung.
 
@@ -219,7 +227,7 @@ Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufga
 
 ## ⚙️ Einstellungsreferenz
 
-Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über die Einstellungsseite bearbeitbar.
+Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden Schlüssel sind Bedienelemente der Einstellungsseite; die aufgabenspezifischen (Dauer und Abgleichverfahren des Stunden-Boosters, Werte des realistischen Modus) liegen auf der Seite ihrer Funktion. Mit * markierte Schlüssel haben gar kein Bedienelement und werden nur geändert, indem man die Datei bei geschlossener App bearbeitet. Die Tabellen führen die wissenswerten Schlüssel auf; der Rest sind die übrigen Bedienelemente dieser Seiten, und die Datei wird bei jedem Klick auf Speichern neu geschrieben.
 
 ### Allgemein
 
@@ -228,7 +236,7 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 | `language` | `en` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Mit Windows starten |
 | `theme` | `dark` | Farbschema: `dark`, `midnight` (Mitternachtslila), `white` |
-| `preventSleep` | `true` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |
+| `preventSleep` | `false` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |
 
 ### Kartenfarming
 
@@ -236,15 +244,15 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 |---|---|---|
 | `autoNextGame` | `true` | Zum nächsten Spiel wechseln, wenn eines fertig ist. Aus: Das Farmen stoppt nach dem aktuellen Spiel |
 | `cardMaxGames` | `32` | Gleichzeitig offene Spiele |
-| `fastMinPlaytimeMin` | `120` | Der schnelle Modus überspringt Spiele darunter |
-| `pauseFarmOnBoost` | `false` | Pausiert das Farmen, solange Stunden-Booster oder Realistischer Modus laufen, und setzt es danach fort |
+| `farmMaxMinutes` | `5` | Minuten, die jedes Spiel läuft, bevor das nächste übernimmt. Der schnelle Modus hat seinen eigenen Rhythmus |
+| `fastMinPlaytimeMin`* | `120` | Der schnelle Modus hebt Spiele unter dieser Spielzeit zuerst darüber, dann rotiert er alle |
 
 ### Markt
 
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
-| `priceRefreshHours` | `24` | Wie lange ein abgerufener Preis frisch bleibt |
-| `historyRefreshHours` | `72` | Wie lange ein Verkaufsdurchschnitt frisch bleibt |
+| `priceRefreshHours`* | `24` | Wie lange ein abgerufener Preis frisch bleibt |
+| `historyRefreshHours`* | `72` | Wie lange ein Verkaufsdurchschnitt frisch bleibt |
 | `fetchAvgWithPrice` | `true` | Durchschnitt im selben Durchgang wie den Preis holen. Aus bedeutet eine Anfrage pro Gegenstand und Durchschnitte nur über die Schaltfläche |
 | `bookDepth` | `5` | Orderbuch-Zeilen in der Detailansicht |
 | `bulkSellLimit` | `50` | Massenverkäufe werden in Stapel dieser Größe geteilt. `0` stellt ein, bis Steam stoppt |
@@ -261,7 +269,8 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 | `boostSyncMode` | `highest` | Ziel: höchstes ausgewähltes, manuelle Stunden oder höchstes der Bibliothek |
 | `boostSyncStrategy` | `parallel` | `parallel` heißt alle zugleich, `staged` nacheinander |
 | `boostAutoRestart` | `false` | Warteschlange nach Sitzungsende erneut starten |
-| `rememberBoostList` | `false` | Auswahl zwischen Sitzungen behalten |
+| `rememberBoostList` | `true` | Auswahl zwischen Sitzungen behalten |
+| `pauseFarmOnBoost` | `false` | Pausiert das Farmen, solange Stunden-Booster oder Realistischer Modus laufen, und setzt es danach fort |
 
 ### Realistischer Modus
 
@@ -292,13 +301,13 @@ Die Einstellungen liegen in `settings/settings.json`. Alles Folgende ist über d
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
 | `reconnectPolicy` | `unlimited` | Neu verbinden nach Abbruch: `unlimited` (unbegrenzt), `10`, `3`, `off` (aus) |
-| `sessionTimeout` | `never` | Trennt nach so vielen Minuten ohne Eingabe. Laufende Aufgaben zählen nicht als Leerlauf |
+| `sessionTimeout` | `never` | Schließt alle Sitzungen nach so vielen Minuten ohne Eingabe (30, 120 oder 480). Laufende Aufgaben zählen nicht als Leerlauf; nur deine eigene Eingabe setzt den Timer zurück. Läuft er ab, trennen alle Konten, die aktive Sitzung wird vergessen und der Anmeldebildschirm öffnet sich |
 | `apiRequestDelayMs` | `350` | Kürzester Abstand zwischen Marktanfragen. Niedriger ist schneller, aber näher an Steams Ratenlimit (HTTP 429) |
 | `logLevel` | `error` | Was in `cache/steamedge.log` landet: `off`, `error`, `warn`, `info`, `debug` |
 
 ### Wo die Einstellungen liegen
 
-Allgemeines in `settings/settings.json`. Alles, was zu einem Konto gehört, also die Auswahl des Stunden-Boosters, Warteschlange und Voreinstellungen des realistischen Modus, das Errungenschaftsprotokoll und die Statistik, liegt in `settings/accounts/<steamID>.json`. Zwischenspeicher sind davon getrennt unter `cache/` und können jederzeit gelöscht werden, ohne dass Einstellungen verloren gehen.
+Allgemeines in `settings/settings.json`. Alles, was zu einem Konto gehört, also die Auswahl des Stunden-Boosters, Warteschlange und Voreinstellungen des realistischen Modus, das Errungenschaftsprotokoll und die Statistik, liegt in `settings/accounts/<steamID>.json`. Zwischenspeicher sind davon getrennt unter `cache/` und können jederzeit gelöscht werden, ohne dass Einstellungen verloren gehen. Jede JSON-Datei wird zuerst in eine temporäre Datei geschrieben und dann in einem Schritt ausgetauscht, die vorherige intakte Kopie bleibt daneben als `.bak`. Lässt sich eine Datei nicht lesen, wird die `.bak` benutzt; ist auch sie defekt, bleibt die Datei unangetastet, eine Kopie wird als `.bozuk` beiseitegelegt, die App meldet es beim Start und die betroffenen Daten beginnen mit den Standardwerten. `stats.json` und `state.json` gibt es nur in Ordnern älterer Versionen; ihr Inhalt wandert beim ersten Mal in die Kontodatei, danach werden sie nie wieder geschrieben.
 
 ---
 
@@ -318,7 +327,7 @@ Steam begrenzt, wie viele Angebote ein Konto erstellen darf; das Limit hängt vo
 
 ### "40 Karten übrig", aber nur eine Handvoll ist gefallen
 
-Karten fallen erst, wenn ein Spiel zwei Stunden Gesamtspielzeit überschreitet, und jedes Spiel hat nur eine begrenzte Anzahl. Eine lange Sitzung mit Spielen, die alle unter zwei Stunden liegen, bringt gar nichts; nimm den schnellen Modus, der nur Spiele über der Schwelle wählt.
+Karten fallen erst, wenn ein Spiel zwei Stunden Gesamtspielzeit überschreitet, und jedes Spiel hat nur eine begrenzte Anzahl. Eine lange Sitzung in den anderen Modi mit Spielen, die alle unter zwei Stunden liegen, bringt bis zum Überschreiten der Schwelle gar nichts; der schnelle Modus hebt diese Spiele zuerst gemeinsam darüber.
 
 ### Preise zeigen einen Strich oder füllen sich sehr langsam
 
@@ -332,9 +341,13 @@ Entweder ist er geschützt, das heißt der Spielserver schreibt ihn und kein Cli
 
 Die Abschlusszeit ist zu hoch. Leer gelassen wird sie aus deiner Spielzeit geschätzt, ein lange gespieltes Spiel liest sich also als enorm langes Spiel. Trag die echte 100%-Abschlusszeit in das Feld im Hauptbereich ein.
 
+### SteamEdge meldet, dass eine Datei nicht gelesen werden konnte
+
+Ist eine Einstellungs- oder Datendatei beschädigt, stellt SteamEdge die automatische `.bak`-Kopie wieder her. Ist auch sie beschädigt, bleibt die Datei, wie sie ist, eine Kopie wird daneben mit der Endung `.bozuk` beiseitegelegt, die betroffenen Daten beginnen mit den Standardwerten und die App meldet es beim Start. Nichts wird überschrieben, du kannst die Datei also von Hand zurücklegen.
+
 ### Ein Protokoll für einen Fehlerbericht sammeln
 
-Das Protokoll ist `cache/steamedge.log` neben der ausführbaren Datei, oder aus den Einstellungen zu öffnen. Es hält Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Es enthält **weder** dein Passwort **noch** dein Sitzungstoken, ist also sicher anzuhängen; sieh es trotzdem durch, bevor du es veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Datei an.
+Das Protokoll ist `cache/steamedge.log` neben der ausführbaren Datei, oder aus den Einstellungen zu öffnen. Es hält Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Es enthält **weder** dein Passwort **noch** dein Sitzungstoken, ist also sicher anzuhängen; sieh es trotzdem durch, bevor du es veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Datei an. Das Protokoll ist begrenzt: ab 2 MB wird es als `steamedge.log.1` beiseitegelegt und eine neue Datei beginnt, sodass immer ein älterer Teil erhalten bleibt.
 
 ---
 

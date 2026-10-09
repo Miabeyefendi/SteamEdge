@@ -17,7 +17,7 @@
 // A GAME THAT RAN OUT OF CARDS. The controller used to take the queue once and never
 // update it: a game with no cards left kept entering the loop, and in fast mode the job effectively
 // stopped once the games in the first pool were done while the interface still said "running". Now
-// the main process badge watcher hands over the current list through `oyunlariGuncelle`; a finished
+// the main process badge watcher hands over the current list through `updateGames`; a finished
 // game is removed, the pool is refilled, and when no game is left the job stops by itself.
 class FarmController {
   // sahip: the name of this job's game list in the engine ('kart' | 'sirali'). So that when another job on the same
@@ -50,8 +50,8 @@ class FarmController {
   // opts.maxGames → the maximum number of games run at once in 'fast' mode (cardMaxGames).
   // opts.fastMinPlaytimeMin → the playtime threshold where card drops start (minutes, default 120).
   // opts.fastRotateMinSec / MaxSec → the interval at which the featured game changes in 'fast' mode (seconds).
-  // opts.karistir → in sequential mode the game order is shuffled every round (Hour Booster).
-  // opts.devam → { index, passedMs }: to resume where it was after a settings change.
+  // opts.shuffle → in sequential mode the game order is shuffled every round (Hour Booster).
+  // opts.proceeding → { index, passedMs }: to resume where it was after a settings change.
   start(mode, games, durationMs, opts) {
     this._cleanup();
     this.running = false;
@@ -108,7 +108,7 @@ class FarmController {
     if (this._napFn) { const r = this._napFn; this._napFn = null; r(); }
   }
 
-  // sebep: 'kullanici' | 'bitti' | 'sure' | 'oyunBitti' | 'boost' | 'ayar' - the interface and the
+  // cause: 'user' | 'finished' | 'duration' | 'gameFinished' | 'boost' | 'setting' - the interface and the
   // statistics read this. 'sure' and 'oyunBitti': a game finished while moving on is off.
   stop(cause) {
     const wasRunning = this.running;

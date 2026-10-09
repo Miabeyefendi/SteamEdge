@@ -21,7 +21,7 @@
 </a>
 <a href="./TUTORIAL_TR.md">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-tutorial-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/btn-tutorial-dark.svg">
     <img src="../../assets/btn-tutorial.svg" height="52" alt="Rehberi oku">
   </picture>
 </a>
@@ -41,7 +41,7 @@
 - **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda. Satış fiyatı Steam'in kendi ücret hesabıyla belirlenir; toplu satış Steam'in hesap başına sınırına gelince durup söyler ya da satışı partilere böler.
 - **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır. İstatistikler hesap başına tutulur.
-- **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça.
+- **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
 
@@ -121,7 +121,7 @@ Girdikten sonra Genel Bakış neyin çalıştığını ve neyin hazır olduğunu
 
 ## ⚙️ Yapılandırma
 
-Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel veriler ise `settings/accounts/<steamID>.json` içinde durur. Hepsi uygulamadaki Ayarlar sayfasından düzenlenebilir; dosyalara elle dokunmak için bir sebep yok. Değişiklikler yalnızca Kaydet'e basınca uygulanır, çalışan işler birkaç saniye içinde yeni değerlerle devam eder.
+Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel veriler ise `settings/accounts/<steamID>.json` içinde durur. Neredeyse hepsi uygulamadaki Ayarlar sayfasından ve özelliklerin kendi sayfalarından düzenlenebilir; dosyalara elle dokunmak için bir sebep yok. Ayarlar sayfasındaki değişiklikler yalnızca Kaydet'e basınca uygulanır, çalışan işler birkaç saniye içinde yeni değerlerle devam eder.
 
 > **`settings/` klasörünü kimseyle paylaşma.** İçinde Steam oturum anahtarın var ve o anahtar hesabını kullanmaya yeter.
 
@@ -134,11 +134,11 @@ Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel ve
 | `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür; `0` Steam durdurana kadar listeler |
 | `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
 | `reconnectPolicy` | `unlimited` | Bağlantı koparsa yeniden bağlanma: `unlimited`, `10`, `3` ya da `off` |
-| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa bağlantıyı keser; çalışan işler boşta sayılmaz |
+| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa tüm oturumları kapatır; çalışan işler boşta sayılmaz |
 | `theme` | `dark` | Renk teması: `dark`, `midnight`, `white` |
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
-Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapılandırma-başvurusu) yazılı.
+[Yapılandırma başvurusu](./TUTORIAL_TR.md#️-yapılandırma-başvurusu) bilinmeye değer anahtarları kapsar; geri kalanı Ayarlar sayfasındaki diğer denetimlerdir.
 
 ---
 
@@ -160,6 +160,8 @@ Anahtarların tamamı [yapılandırma başvurusunda](./TUTORIAL_TR.md#️-yapıl
 - [x] Çalışma anında yazılan tüm metinler çevrildi, her dilde çoğul biçimlerle (1.3.0)
 - [x] Temalar: Koyu, Gece Moru, Beyaz (1.3.0)
 - [x] Electron 41 (1.3.2)
+- [x] Varsayılan dil İngilizce, kalan arayüz metinleri çevrildi (1.3.3)
+- [x] Tüm kod tabanı İngilizce: tanımlayıcılar, yorumlar, eleman id'leri, IPC kanalları, ayar anahtarları ve dosya adları (1.4.0)
 - [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa
 
 Buradakilerin hiçbiri söz değil. Bu kişisel bir proje ve öncelikler değişince liste de değişir.
@@ -214,13 +216,13 @@ Katkılar hoş karşılanır. Önce [CONTRIBUTING.md](../../CONTRIBUTING.md) ve
 <div align="center">
 <a href="https://github.com/Miabeyefendi/SteamEdge/issues/new?template=bug_report.yml">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-report-bug-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/btn-report-bug-dark.svg">
     <img src="../../assets/btn-report-bug.svg" height="52" alt="Hata bildir">
   </picture>
 </a>
 <a href="https://github.com/Miabeyefendi/SteamEdge/stargazers">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/btn-star-dark.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="../../assets/btn-star-dark.svg">
     <img src="../../assets/btn-star.svg" height="52" alt="Depoyu yıldızla">
   </picture>
 </a>

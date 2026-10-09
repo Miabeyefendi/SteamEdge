@@ -34,10 +34,11 @@ cards still dropped" is worth more than "looks fine".
 
 ## Checklist
 
-- [ ] Code follows the style of the surrounding file (2-space indent, Turkish identifiers where the file already uses them)
+- [ ] Code follows the style of the surrounding file (2-space indent) and is written in English (identifiers, comments, log messages); only user-facing text is Turkish
 - [ ] No em dashes anywhere in code, comments, or UI strings
 - [ ] New UI strings are added to all five dictionaries in `src/main/js/lang/` (`en`, `de`, `es`, `zh`, `ru`)
 - [ ] Visual changes checked in all three themes (Dark, Midnight Purple, White)
+- [ ] A renamed stored key has its old name added to `src/core/keyMigration.js`
 - [ ] No secrets, tokens, `settings/` files, or personal Steam data included
 - [ ] No new runtime dependency added without saying why below
 

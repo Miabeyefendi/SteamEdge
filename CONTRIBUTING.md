@@ -92,6 +92,16 @@ enterprise-grade architecture.
 - **Match the project style.** Follow the existing `.editorconfig` and
   `.gitattributes` rules for indentation, line endings, and whitespace. If your
   editor supports EditorConfig, this is automatic.
+- **Code in English.** Identifiers, comments, log messages, element ids, IPC
+  channel names, setting keys and file names are English. Text the user sees is
+  the exception: its source language is Turkish, and the Turkish text itself is
+  the key in the five dictionaries under `src/main/js/lang/` (`en`, `de`, `es`,
+  `zh`, `ru`). A new piece of interface text needs an entry in all five.
+- **Run the checks.** `npm run verify` (static checks) and `npm run lang`
+  (dictionary audit) must both pass before you open a PR.
+- **Renaming stored data.** If you rename a key that is written to a file under
+  `settings/` or `cache/`, add the old name to `src/core/keyMigration.js` so
+  files from older versions keep working.
 
 ### 6. Pull Request process
 
@@ -105,7 +115,8 @@ When your code is ready:
    - Bad: "changed some stuff in the files"
    - Good: `fix: resolve timeout in the API connection`
 3. **Open the PR.** Write a clean description of what you changed and why. Link
-   the related Issue if there is one.
+   the related Issue if there is one. Changes reach `main` only through a pull
+   request, and the CodeQL check has to pass before it can be merged.
 4. **Review.** I'll review your code line by line the next time I'm free (and not
    gaming or busy). If something needs changes, I'll leave feedback. Please be
    patient - there is no SLA here.
@@ -202,6 +213,16 @@ Burası Google veya Microsoft değil. 50 katmanlı, aşırı mühendislik
 - **Proje stiline uy.** Girinti, satır sonu ve boşluk için mevcut `.editorconfig`
   ve `.gitattributes` kurallarını izle. Editörün EditorConfig destekliyorsa bu
   otomatiktir.
+- **Kod İngilizce.** Tanımlayıcılar, yorumlar, log mesajları, eleman id'leri, IPC
+  kanal adları, ayar anahtarları ve dosya adları İngilizcedir. Kullanıcının
+  gördüğü metin istisnadır: kaynak dili Türkçedir ve Türkçe metnin kendisi,
+  `src/main/js/lang/` altındaki beş sözlükte (`en`, `de`, `es`, `zh`, `ru`)
+  anahtardır. Yeni bir arayüz metni beşinde de bir karşılık ister.
+- **Kontrolleri çalıştır.** PR açmadan önce `npm run verify` (statik kontroller)
+  ve `npm run lang` (sözlük denetimi) ikisi de geçmeli.
+- **Saklanan veriyi yeniden adlandırma.** `settings/` ya da `cache/` altındaki bir
+  dosyaya yazılan bir anahtarın adını değiştirirsen, eski sürümlerin dosyaları
+  çalışmaya devam etsin diye eski adı `src/core/keyMigration.js` içine ekle.
 
 ### 6. Pull Request süreci
 
@@ -215,7 +236,8 @@ Kodun hazır olduğunda:
    - Kötü: "dosyalarda bişeyleri değiştirdim"
    - İyi: `fix: api bağlantısındaki zaman aşımı sorunu çözüldü`
 3. **PR aç.** Ne değiştirdiğini ve neden değiştirdiğini anlatan temiz bir açıklama
-   yaz. Varsa ilgili Issue'yu bağla.
+   yaz. Varsa ilgili Issue'yu bağla. Değişiklikler `main` dalına yalnızca pull
+   request ile girer ve birleştirmeden önce CodeQL kontrolünün geçmesi gerekir.
 4. **İnceleme.** Müsait olduğum (oyun oynamadığım veya meşgul olmadığım) ilk
    fırsatta kodunu satır satır incelerim. Düzeltilmesi gereken yerler varsa geri
    bildirim bırakırım. Lütfen sabret - burada bir SLA yok.

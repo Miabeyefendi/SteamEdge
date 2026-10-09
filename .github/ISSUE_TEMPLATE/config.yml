@@ -1,10 +1,10 @@
 blank_issues_enabled: false
 contact_links:
   - name: Setup, tutorial and settings reference
-    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/TUTORIAL.md
+    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/docs/guides/TUTORIAL.md
     about: Installing, logging in, farming, and what every setting does. Available in 6 languages.
   - name: FAQ
-    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/TUTORIAL.md#-faq
+    url: https://github.com/Miabeyefendi/SteamEdge/blob/main/docs/guides/TUTORIAL.md#-faq
     about: Bans, VAC, rate limits, prices, cards not dropping. Please read before opening an issue.
   - name: Questions and ideas
     url: https://github.com/Miabeyefendi/SteamEdge/discussions
