@@ -36,7 +36,7 @@ Die Anwendung spricht Steams eigenes Netzwerkprotokoll, dasselbe, das auch der C
 Daraus folgen zwei Dinge, und sie erklären das meiste am Verhalten der Anwendung:
 
 - **Steam ist die einzige Quelle der Wahrheit.** Nichts wird geschätzt oder erfunden. Lässt sich eine Zahl nicht abrufen, zeigt das Feld einen Strich statt einer Vermutung.
-- **Steams Grenzen sind die Grenzen der Anwendung.** Marktanfragen sind pro Konto auf etwa 20 pro 30 Sekunden begrenzt, und jeder Teil der Anwendung, der den Markt berührt, teilt sich dieses eine Budget. Karten fallen erst, wenn ein Spiel zwei Stunden Gesamtspielzeit überschreitet. Das sind gemessene Tatsachen, keine Einstellungen. Für das Einstellen von Angeboten gilt ein eigenes, kontoabhängiges Limit, das Steam nicht veröffentlicht.
+- **Steams Grenzen sind die Grenzen der Anwendung.** Marktanfragen sind pro Konto auf etwa 20 pro 30 Sekunden begrenzt, und jeder Teil der Anwendung, der den Markt berührt, teilt sich dieses eine Budget. Bei Konten mit eingeschränkten Kartendrops fallen Karten erst, wenn ein Spiel eine bestimmte Spielzeit überschreitet, meist zwei Stunden. Die Grenzen selbst sind Steams; einstellbar ist nur die Schwelle, die die App annimmt. Für das Einstellen von Angeboten gilt ein eigenes, kontoabhängiges Limit, das Steam nicht veröffentlicht.
 
 ### Dateiaufbau
 
@@ -139,7 +139,7 @@ Wird über die Chat-Schaltfläche oben rechts geöffnet, nicht über die Seitenl
 
 ### Kartenfarming
 
-Steam lässt keine Karten fallen, bevor ein Spiel **zwei Stunden** Gesamtspielzeit überschritten hat. Alle Modi bis auf einen ignorieren das und lassen die Spiele einfach laufen; der **schnelle Modus** weiß es und hebt Spiele unter der Schwelle erst darüber, bevor er zu rotieren beginnt.
+Bei Konten mit eingeschränkten Kartendrops lässt Steam keine Karten fallen, bevor ein Spiel eine bestimmte Gesamtspielzeit überschritten hat, meist **zwei Stunden** (Einstellungen > Karten farmen > **Schwelle für Kartendrops**). Bei manchen älteren Konten soll diese Einschränkung fehlen, dann können Karten in den ersten Minuten kommen; setze die Schwelle dort auf 0. Das ist keine feste Regel für alle, teste es mit deinem Konto. Alle Modi bis auf einen ignorieren das und lassen die Spiele einfach laufen; der **schnelle Modus** weiß es und hebt Spiele unter der Schwelle erst darüber, bevor er zu rotieren beginnt.
 
 In allen Modi außer Schnell läuft immer ein Spiel für die eingestellte **Zeit pro Spiel** (Einstellungen > Karten farmen, Standard 5 Minuten; der Timer auf der Seite Karten farmen startet damit und lässt sich pro Lauf ändern), dann übernimmt das nächste. Ein Spiel ohne verbleibende Karten fällt aus der Warteschlange, das nächste startet sofort. Haben alle Spiele der Warteschlange keine Karten mehr, oder ist **Nach einem Spiel zum nächsten wechseln** aus und die Zeit des aktuellen Spiels ist um oder seine Karten sind alle, stoppt das Farmen und sagt warum, statt das letzte Spiel neu zu starten. Kartenfarming und Stunden-Booster können gleichzeitig laufen: Jeder hält seine eigenen Spiele, Steam sieht beide bis zu seinem Limit von 32.
 
@@ -152,8 +152,10 @@ Die Modi:
 | Nacheinander | Ein Spiel nach dem anderen, in Listenreihenfolge |
 | Meiste Karten | Spiele mit den meisten verbleibenden Karten zuerst |
 | Wenigste Karten | Spiele, die am nächsten am Abschluss sind, zuerst |
+| Am wenigsten gespielte zuerst | Einzeln, das Spiel mit der geringsten Spielzeit zuerst |
+| Am meisten gespielte zuerst | Einzeln, das Spiel mit der größten Spielzeit zuerst |
 | Priorität | Deine eigene Reihenfolge |
-| Schnell | Aufwärmen für Spiele unter zwei Stunden, dann alle gemeinsam offen mit wechselndem Hauptspiel |
+| Schnell | Aufwärmen für Spiele unter der Schwelle, dann alle gemeinsam offen mit wechselndem Hauptspiel |
 
 Karten kommen nicht nach Plan, und Steam sendet kein Ereignis "eine Karte ist gefallen". Die App liest die Abzeichenseiten jedes Kontos alle drei Minuten neu und meldet die ehrliche Differenz der verbleibenden Karten statt eines erfundenen Zählers.
 
@@ -243,9 +245,11 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
 | `autoNextGame` | `true` | Zum nächsten Spiel wechseln, wenn eines fertig ist. Aus: Das Farmen stoppt nach dem aktuellen Spiel |
+| `farmSkipUnplayed` | `false` | Lässt Spiele ohne gespeicherte Spielzeit aus der Warteschlange |
+| `farmFinishedAction` | `none` | `none` oder `exit`: schließt die App 20 Sekunden nach dem Sammeln aller Karten, wenn kein anderer Auftrag läuft |
 | `cardMaxGames` | `32` | Gleichzeitig offene Spiele |
 | `farmMaxMinutes` | `5` | Minuten, die jedes Spiel läuft, bevor das nächste übernimmt. Der schnelle Modus hat seinen eigenen Rhythmus |
-| `fastMinPlaytimeMin`* | `120` | Der schnelle Modus hebt Spiele unter dieser Spielzeit zuerst darüber, dann rotiert er alle |
+| `fastMinPlaytimeMin` | `120` | Schwelle für Kartendrops in Minuten. Der schnelle Modus hebt Spiele darunter zuerst darüber, dann rotiert er alle. `0` überspringt das Aufwärmen |
 
 ### Markt
 
@@ -327,7 +331,7 @@ Steam begrenzt, wie viele Angebote ein Konto erstellen darf; das Limit hängt vo
 
 ### "40 Karten übrig", aber nur eine Handvoll ist gefallen
 
-Karten fallen erst, wenn ein Spiel zwei Stunden Gesamtspielzeit überschreitet, und jedes Spiel hat nur eine begrenzte Anzahl. Eine lange Sitzung in den anderen Modi mit Spielen, die alle unter zwei Stunden liegen, bringt bis zum Überschreiten der Schwelle gar nichts; der schnelle Modus hebt diese Spiele zuerst gemeinsam darüber.
+Bei Konten mit eingeschränkten Kartendrops fallen Karten erst, wenn ein Spiel die Schwelle für Kartendrops überschreitet (meist zwei Stunden Gesamtspielzeit), und jedes Spiel hat nur eine begrenzte Anzahl. Eine lange Sitzung in den anderen Modi mit Spielen, die alle unter zwei Stunden liegen, bringt bis zum Überschreiten der Schwelle gar nichts; der schnelle Modus hebt diese Spiele zuerst gemeinsam darüber.
 
 ### Preise zeigen einen Strich oder füllen sich sehr langsam
 

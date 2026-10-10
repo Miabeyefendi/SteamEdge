@@ -244,6 +244,8 @@ const DEFAULT_SETTINGS = {
   language: 'en',
   // Card farming
   cardPriorityMode: 'sequential',
+  farmSkipUnplayed: false,    // leave games with no recorded playtime out of the queue
+  farmFinishedAction: 'none', // none | exit: what to do when every card has been collected
   cardMaxGames: 32,         // games open at once in fast mode (Steam's known upper limit is 32)
   notifyCardDrop: false,    // desktop notification as cards drop (Kart Düşür > Otomasyon)
   // Kart Düşür > Otomasyon. All three really work; two affect the account permanently so
@@ -1022,6 +1024,23 @@ function cardFarmOptions() {
     fastRotateMaxSec: settings.fastRotateMaxSec,
   };
 }
+// The "When all cards are collected" action set to "Close the app". The check is repeated after a grace period so a job that was
+// paused for another one (resumeFarm) or a second account that is still working keeps the app open.
+let exitTimer = null;
+function scheduleExitWhenIdle() {
+  if (exitTimer) return;
+  log('info', 'all cards collected: closing the app in 20 s if nothing else is running');
+  exitTimer = setTimeout(() => {
+    exitTimer = null;
+    if (settings.farmFinishedAction !== 'exit') return;
+    let busy = false;
+    accounts.forEach((s) => { if (accountRunning(s) || (s && s.pendingFarm)) busy = true; });
+    if (busy) { log('info', 'close cancelled: a job is still running'); return; }
+    log('info', 'closing the app: every job is finished');
+    isQuitting = true;
+    app.quit();
+  }, 20000);
+}
 function farmBroadcast(steamID) {
   const broadcast = accountBroadcast(steamID);
   return (channelName, payloadData) => {
@@ -1036,6 +1055,7 @@ function farmBroadcast(steamID) {
         feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Tüm kartlar toplandı.', status: 'Başarılı' },
       });
       resumeFarm(steamID);
+      if (settings.farmFinishedAction === 'exit') scheduleExitWhenIdle();
     } else if ((payloadData.cause === 'duration' || payloadData.cause === 'gameFinished') && payloadData.wasRunning) {
       // "Oyun bitince sıradakine geç" is off: it says why it stopped, otherwise the user
       // thought the job had closed on its own.
