@@ -1225,6 +1225,7 @@ function stopAccountJobs(s, steamID) {
   try { if (s.farm && s.farm.running) s.farm.stop('user'); } catch (_) {}
   try { if (s.hoursFarm && s.hoursFarm.running) s.hoursFarm.stop('user'); } catch (_) {}
   stopCardWatcher(s);
+  stopKeyRun(s);
   if (steamID) {
     try { boostStopAccount(steamID, 'user'); } catch (_) {}
     try { if (s.realistic) realisticFinish(steamID, 'user stopped'); } catch (_) {}
@@ -1300,10 +1301,12 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin'];
 const DEFAULT_ACCOUNT_DATA = {
   boostGameIds: [], entries: {}, achLog: [], stats: null, profileInfo: null,
   grQueue: [], grPresets: [],
+  parentalPin: '',                 // Steam Family View PIN of this account (never exported)
+  keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
 };
 
 const accountDataAll = new Map();   // steamID -> data
@@ -1311,7 +1314,7 @@ const accountDataAll = new Map();   // steamID -> data
 function accountFile(steamID) { return path.join(ACCOUNT_DIR, String(steamID) + '.json'); }
 
 function accountData(steamID) {
-  if (!steamID) return { ...DEFAULT_ACCOUNT_DATA, entries: {}, achLog: [] };
+  if (!steamID) return { ...DEFAULT_ACCOUNT_DATA, entries: {}, achLog: [], keyQueue: [], keyResults: [] };
   if (accountDataAll.has(steamID)) return accountDataAll.get(steamID);
   const r = readJson(accountFile(steamID));
   const v = r.ok
@@ -1319,6 +1322,8 @@ function accountData(steamID) {
     : { ...DEFAULT_ACCOUNT_DATA, entries: {}, achLog: [] };
   if (r.ok && r.fromBackup) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: true });
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
+  // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
+  ['keyQueue', 'keyResults'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
   accountDataAll.set(steamID, v);
   return v;
 }
@@ -1415,6 +1420,7 @@ async function connectAccount(entry) {
     // The currency is read from the Steam market session; it cannot be chosen in the settings.
     const eng = new SteamEngine();
     eng.reconnectLimit = reconnectLimit();
+    eng.parentalPin = accountData(entry.steamID).parentalPin || '';
     // G3: carry drop/reconnect events to the interface
     bindConnectionState(eng, entry.steamID);
     applyChatSettings(eng);
@@ -1440,6 +1446,7 @@ async function connectAccount(entry) {
       const info = await eng.logOn(entry.refreshToken, settings.offlineMode);
       s.engine = eng; s.ready = true;
       log('info', `[${entry.accountName}] session opened`);
+      resumeKeyQueue(entry.steamID);
       syncActive();
       return { ok: true, persona: info.persona, steamID: info.steamID };
     } catch (e) {
@@ -1823,7 +1830,7 @@ const DEFAULT_STATS = {
   totalRuntimeMs: 0, cardsDropped: 0, cardsSold: 0, boostRuntimeMs: 0, sessions: 0, since: Date.now(),
   dailyCards: {},        // 'YYYY-MM-DD' -> cards dropped that day (Best day)
   saleAmount: 0,         // the total the seller keeps of the items put on sale (cents)
-  pricedForSale: 0,       // number of listings whose amount is known (Average sale = satisTutar / satisFiyatli)
+  pricedForSale: 0,       // number of listings whose amount is known (Average sale = saleAmount / pricedForSale)
   longestRunMs: 0,    // uninterrupted run (Uninterrupted run)
 };
 let lifeStats = { ...DEFAULT_STATS };
@@ -2011,6 +2018,199 @@ ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) =>
     return { ok: false, error: (e && e.message) || 'Listeleme reddedildi', typeName: saleErrorType(e), http: (e && e.httpStatus) || null };
   }
 });
+
+// ================== MY LISTINGS, BOOSTER PACKS ==================
+// Both go through the market gate so they never race the price queue.
+ipcMain.handle('market:myListings', async () => {
+  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  try { return { ok: true, data: await marketGate(() => engine.getMyListings()) }; }
+  catch (e) { return { ok: false, error: (e && e.message) || 'Pazar ilanları alınamadı.' }; }
+});
+ipcMain.handle('market:removeListing', async (_e, listingId) => {
+  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  try { await marketGate(() => engine.removeListing(listingId)); log('info', 'market listing removed: ' + listingId); return { ok: true }; }
+  catch (e) { return { ok: false, error: (e && e.message) || 'İlan iptal edilemedi.', rateLimited: !!(e && e.rateLimited) }; }
+});
+ipcMain.handle('engine:unpackBooster', async (_e, { assetId, appid }) => {
+  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  try { return await marketGate(() => engine.unpackBooster(assetId, appid)); }
+  catch (e) { return { ok: false, error: (e && e.message) || 'Booster paketi açılamadı' }; }
+});
+
+// ================== PRODUCT KEYS ==================
+// A per-account queue of product keys that is worked off in the background, one key at a time. Steam stops
+// accepting keys after roughly 50 tries an hour and answers "on cooldown"; the queue then waits an hour
+// and carries on, so a long list can simply be left alone. Results are kept in the account file.
+const KEY_GAP_MS = 1500;
+const KEY_COOLDOWN_MS = 60 * 60 * 1000;
+const KEY_RESULT_LIMIT = 1000;
+const KEY_PATTERN = /(?<![A-Za-z0-9-])[A-Z0-9]{4,6}(?:-[A-Z0-9]{4,6}){2,5}(?![A-Za-z0-9-])/g;
+// EPurchaseResult values Steam sends for a refused key (anything else is shown as "other" with the number)
+const KEY_REFUSALS = { 9: 'owned', 13: 'region', 14: 'invalid', 15: 'duplicate', 24: 'needsBase' };
+const KEY_ON_COOLDOWN = 53;
+
+function keyRun(steamID) {
+  const s = accounts.get(steamID);
+  if (!s) return null;
+  if (!s.keys) s.keys = { running: false, pausedUntil: 0, error: null, stop: false, cancelSleep: null };
+  return s.keys;
+}
+function stopKeyRun(s) {
+  if (!s || !s.keys) return;
+  s.keys.stop = true;
+  if (s.keys.cancelSleep) s.keys.cancelSleep();
+}
+function keyState(steamID) {
+  const d = accountData(steamID);
+  const k = keyRun(steamID) || {};
+  return {
+    queue: d.keyQueue.map((x) => ({ key: x.key, name: x.name || '' })),
+    results: d.keyResults.slice(0, 300),
+    resultCount: d.keyResults.length,
+    usedCount: d.keyResults.filter((x) => x.status === 'used').length,
+    running: !!k.running,
+    pausedUntil: k.pausedUntil || 0,
+    error: k.error || null,
+  };
+}
+function keyChanged(steamID) {
+  if (steamID === activeSteamID) sendRaw('keys:changed', keyState(steamID));
+  writeAccountDataDelayed(steamID);
+}
+// "NAME<TAB>KEY", "KEY" or several keys on one line. Keys are upper case: a name in normal spelling such as
+// "Half-Life-Alyx" is not taken for one. A line that holds nothing but a (lower case) key is accepted too.
+function parseKeyText(text) {
+  const found = [];
+  let invalid = 0;
+  String(text || '').split(/\r?\n/).forEach((line) => {
+    const t = line.trim();
+    if (!t) return;
+    const candidate = /^[A-Za-z0-9-]+$/.test(t) ? t.toUpperCase() : t;
+    const m = candidate.match(KEY_PATTERN) || [];
+    if (!m.length) { invalid++; return; }
+    if (m.length > 1) { m.forEach((k) => found.push({ key: k, name: '' })); return; }
+    const name = candidate.slice(0, candidate.lastIndexOf(m[0])).replace(/[\s:;,|-]+$/, '').trim().slice(0, 80);
+    found.push({ key: m[0], name });
+  });
+  return { found, invalid };
+}
+function addKeys(steamID, text) {
+  const d = accountData(steamID);
+  const parsed = parseKeyText(text);
+  const known = new Set(d.keyQueue.map((x) => x.key).concat(d.keyResults.map((x) => x.key)));
+  let added = 0, duplicates = 0;
+  parsed.found.forEach((x) => {
+    if (known.has(x.key)) { duplicates++; return; }
+    known.add(x.key);
+    d.keyQueue.push(x);
+    added++;
+  });
+  return { added, duplicates, invalid: parsed.invalid };
+}
+function sleepKeys(k, ms) {
+  return new Promise((resolve) => {
+    const t = setTimeout(() => { k.cancelSleep = null; resolve(); }, ms);
+    k.cancelSleep = () => { clearTimeout(t); k.cancelSleep = null; resolve(); };
+  });
+}
+async function processKeys(steamID) {
+  const s = accounts.get(steamID);
+  const k = keyRun(steamID);
+  if (!s || !k || k.running) return;
+  const d = accountData(steamID);
+  k.running = true; k.stop = false; k.error = null;
+  d.keyActive = true;
+  keyChanged(steamID);
+  let used = 0, refused = 0;
+  try {
+    while (!k.stop && accounts.get(steamID) === s && d.keyQueue.length) {
+      if (Date.now() < k.pausedUntil) { await sleepKeys(k, Math.min(30000, k.pausedUntil - Date.now())); keyChanged(steamID); continue; }
+      if (!s.engine || !s.ready) { k.error = 'Bağlı değil.'; keyChanged(steamID); await sleepKeys(k, 30000); continue; }
+      const item = d.keyQueue[0];
+      let r;
+      try { r = await s.engine.redeemKey(item.key); k.error = null; }
+      catch (e) {
+        // no answer from Steam: the key stays in the queue and is tried again shortly
+        k.error = (e && e.message) || 'Steam yanıt vermedi.';
+        log('warn', `[${accountName(steamID)}] key redeem: no answer (${k.error})`);
+        keyChanged(steamID);
+        await sleepKeys(k, 30000);
+        continue;
+      }
+      if (!r.ok && r.detail === KEY_ON_COOLDOWN) {
+        k.pausedUntil = Date.now() + KEY_COOLDOWN_MS;
+        log('info', `[${accountName(steamID)}] key redeem: Steam rate limit, waiting an hour`);
+        keyChanged(steamID);
+        continue;
+      }
+      d.keyQueue.shift();
+      const status = r.ok ? 'used' : (KEY_REFUSALS[r.detail] || 'other');
+      if (r.ok) used++; else refused++;
+      d.keyResults.unshift({ key: item.key, name: item.name || '', status, detail: r.detail, packages: Object.values(r.packages || {}).slice(0, 5), ts: Date.now() });
+      if (d.keyResults.length > KEY_RESULT_LIMIT) d.keyResults.length = KEY_RESULT_LIMIT;
+      log('info', `[${accountName(steamID)}] key redeem: ${status} (${r.detail})`);
+      keyChanged(steamID);
+      if (d.keyQueue.length && !k.stop) await sleepKeys(k, KEY_GAP_MS);
+    }
+  } finally {
+    k.running = false;
+    if (!d.keyQueue.length || k.stop) d.keyActive = false;
+    keyChanged(steamID);
+    writeAccountData(steamID);
+  }
+  if (!d.keyQueue.length && (used || refused)) {
+    accountEvent(steamID, { typeName: 'keysDone', feedEntry: { kind: 'inventory', title: 'Anahtarlar', text: 'Anahtar kuyruğu bitti. Sonuçlar Anahtarlar sayfasında.', status: used ? 'Başarılı' : 'Uyarı' } });
+  }
+}
+// The queue was running when the app closed or the connection was lost: carry on once the account is back.
+function resumeKeyQueue(steamID) {
+  const d = accountData(steamID);
+  if (d.keyActive && d.keyQueue.length) processKeys(steamID);
+}
+ipcMain.handle('keys:state', () => (activeSteamID ? keyState(activeSteamID) : { queue: [], results: [], resultCount: 0, usedCount: 0, running: false, pausedUntil: 0, error: null }));
+ipcMain.handle('keys:add', (_e, text) => {
+  if (!activeSteamID) return { ok: false, error: 'Oturum yok, tekrar giriş yap.' };
+  const r = addKeys(activeSteamID, text);
+  keyChanged(activeSteamID);
+  if (r.added) processKeys(activeSteamID);
+  return { ok: true, ...r };
+});
+ipcMain.handle('keys:start', (_e, skipWait) => {
+  if (!activeSteamID) return { ok: false };
+  const k = keyRun(activeSteamID);
+  if (k && skipWait) k.pausedUntil = 0;
+  processKeys(activeSteamID);
+  return { ok: true };
+});
+ipcMain.handle('keys:stop', () => {
+  if (!activeSteamID) return { ok: false };
+  const s = accounts.get(activeSteamID);
+  stopKeyRun(s);
+  accountData(activeSteamID).keyActive = false;
+  return { ok: true };
+});
+ipcMain.handle('keys:clear', (_e, what) => {
+  if (!activeSteamID) return { ok: false };
+  const d = accountData(activeSteamID);
+  if (what === 'queue') d.keyQueue = [];
+  else if (what === 'results') d.keyResults = [];
+  keyChanged(activeSteamID);
+  return { ok: true };
+});
+
+// ================== FAMILY VIEW PIN ==================
+// The PIN is unlocked on every new web session (see steamEngine webSession). When it is changed in Settings the
+// running session is unlocked again right away.
+function applyParentalPin(steamID) {
+  const s = accounts.get(steamID);
+  const pin = accountData(steamID).parentalPin || '';
+  if (!s || !s.engine) return;
+  s.engine.parentalPin = pin;
+  if (!pin || !s.engine.cookies) return;
+  s.engine.unlockParental(pin)
+    .then(() => { s.engine.parentalState = 'unlocked'; log('info', `[${accountName(steamID)}] Family View unlocked`); })
+    .catch((e) => { s.engine.parentalState = 'rejected'; log('warn', `[${accountName(steamID)}] Family View PIN: ${(e && e.message) || 'rejected'}`); });
+}
 
 // External links - only the expected domain names (so a random URL cannot be opened).
 ipcMain.on('open:external', (_e, url) => {
@@ -3183,14 +3383,17 @@ function applySettingPatch(patch) {
   const received = { ...(patch || {}) };
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
   let writtenToAccount = false;
+  let pinChanged = false;
   ACCOUNT_SETTING_KEYS.forEach((k) => {
     if (k in received) {
+      if (k === 'parentalPin') pinChanged = String(received[k] || '') !== String(activeAccountData().parentalPin || '');
       activeAccountData()[k] = received[k];
       delete received[k];
       writtenToAccount = true;
     }
   });
   if (writtenToAccount) writeAccountData(activeSteamID);
+  if (pinChanged) applyParentalPin(activeSteamID);
   const changed = Object.keys(received).filter((k) => JSON.stringify(settings[k]) !== JSON.stringify(received[k]));
   if (!changed.length) return { ok: true, changedOne: changed, appliedOne: [] };
   const old = settings;

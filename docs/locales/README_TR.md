@@ -38,7 +38,8 @@
 - **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar. İsteğe bağlı saat eşitlemesi seçili oyunları aynı toplam süreye çeker.
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
 - **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar. Profilde gerçekten oynanmış gibi bir iz bırakır.
-- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda. Satış fiyatı Steam'in kendi ücret hesabıyla belirlenir; toplu satış Steam'in hesap başına sınırına gelince durup söyler ya da satışı partilere böler.
+- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda. Satış fiyatı Steam'in kendi ücret hesabıyla belirlenir; toplu satış Steam'in hesap başına sınırına gelince durup söyler ya da satışı partilere böler. Aktif ilanlar geri alınabilir, booster paketleri aynı sayfadan açılır.
+- **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir. Steam'in saatlik sınırına gelince kuyruk bekler ve kendiliğinden sürer.
 - **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır. İstatistikler hesap başına tutulur.
 - **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.

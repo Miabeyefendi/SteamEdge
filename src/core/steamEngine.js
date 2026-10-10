@@ -36,7 +36,7 @@ class SteamEngine {
     // actually closed. Hours of silent loss.
     this.isConnected = false;
     this._refreshToken = null;
-    this._offlineSecenek = false;
+    this._offlineChoice = false;
     this._reconnectTimer = null;
     this._reconnectAttempt = 0;
     this._wasShutDown = false;       // do not reconnect if logOff() was called
@@ -236,7 +236,7 @@ class SteamEngine {
     }).then((r) => {
       // Logon succeeded: set up the permanent listeners (once).
       this._refreshToken = refreshToken;
-      this._offlineSecenek = !!offline;
+      this._offlineChoice = !!offline;
       this.isConnected = true;
       this._reconnectAttempt = 0;
       this.gaveUp = false; this.permanentDisconnect = false;
@@ -283,7 +283,7 @@ class SteamEngine {
       this.gaveUp = false; this.permanentDisconnect = false;
       try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
       try {
-        this.user.setPersona(this._offlineSecenek ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
+        this.user.setPersona(this._offlineChoice ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
       } catch (_) {}
       try { this.user.webLogOn(); } catch (_) {}
       // Reopen the games that were open before the drop - the real loss was here.
@@ -292,7 +292,15 @@ class SteamEngine {
       }
       this._reportStatus('connected', { reconnected: true, gameEntries: (this._playing || []).length });
     });
-    this.user.on('webSession', (_sid, cookies) => { this.cookies = cookies; });
+    this.user.on('webSession', (_sid, cookies) => {
+      this.cookies = cookies;
+      this.parentalState = null;
+      if (this.parentalPin) {
+        this.unlockParental(this.parentalPin)
+          .then(() => { this.parentalState = 'unlocked'; })
+          .catch(() => { this.parentalState = 'rejected'; });
+      }
+    });
   }
 
   _scheduleReconnect() {
@@ -579,8 +587,10 @@ class SteamEngine {
         iconUrl: d.icon_url ? `https://community.cloudflare.steamstatic.com/economy/image/${d.icon_url}/330x192` : null,
         tradable: !!d.tradable,
         marketable: !!d.marketable,
-        type: (classTag && TYPE_MAP[classTag.internal_name]) || 'other',
+        type: (classTag && TYPE_MAP[classTag.internal_name]) || (/booster pack/i.test(d.type || '') ? 'booster' : /gems?$/i.test(d.type || '') ? 'gems' : 'other'),
         gameName: gameTag ? gameTag.localized_tag_name : null,
+        // the game an item belongs to; booster packs need it to be opened
+        appid: +d.market_fee_app || ((/^app_(\d+)$/.exec((gameTag && gameTag.internal_name) || '') || [])[1] | 0),
         amount: parseInt(a.amount || '1', 10),
       });
     });
@@ -808,6 +818,139 @@ class SteamEngine {
       throw e;
     }
     return j; // { success, requires_confirmation, needs_mobile_confirmation, needs_email_confirmation, email_domain }
+  }
+
+  // ---- ACTIVE MARKET LISTINGS ----
+  // `norender=1` makes Steam answer with structured JSON instead of the HTML fragment. The shape is read
+  // defensively: `listings` can be an array or an object keyed by listing id, and the descriptions of the
+  // items live in `assets[appid][contextid][assetid]`.
+  async getMyListings() {
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
+    const asList = (x) => (Array.isArray(x) ? x : Object.values(x || {}));
+    const out = { listings: [], toConfirm: [], onHold: [], buyOrders: 0 };
+    const seen = new Set();
+    const PAGE = 100;
+    for (let start = 0, guard = 0; guard < 30; guard++, start += PAGE) {
+      const r = await this._requestItem(`https://steamcommunity.com/market/mylistings/?norender=1&count=${PAGE}&start=${start}`, {}, 'Pazar ilanları');
+      const j = await r.json().catch(() => null);
+      if (!j || !j.success) throw new Error(translation.t('Pazar yanıtı beklenen biçimde değil'));
+      const assets = j.assets || {};
+      const describe = (l) => {
+        const a = l.asset || {};
+        const d = (assets[a.appid] && assets[a.appid][a.contextid] && assets[a.appid][a.contextid][a.id]) || a;
+        const seller = +l.price || 0;
+        return {
+          listingId: String(l.listingid),
+          name: d.name || d.market_hash_name || ('#' + (a.id || l.listingid)),
+          marketHashName: d.market_hash_name || null,
+          iconUrl: d.icon_url ? `https://community.cloudflare.steamstatic.com/economy/image/${d.icon_url}/96fx96f` : null,
+          appid: +a.appid || 0,
+          assetId: a.id != null ? String(a.id) : null,
+          sellerCents: seller,
+          buyerCents: seller + (+l.fee || 0),
+          created: (+l.time_created || 0) * 1000,
+        };
+      };
+      const page = asList(j.listings);
+      page.forEach((l) => { if (l && l.listingid && !seen.has(String(l.listingid))) { seen.add(String(l.listingid)); out.listings.push(describe(l)); } });
+      if (start === 0) {
+        asList(j.listings_to_confirm).forEach((l) => { if (l && l.listingid) out.toConfirm.push(describe(l)); });
+        asList(j.listings_on_hold).forEach((l) => { if (l && l.listingid) out.onHold.push(describe(l)); });
+        out.buyOrders = asList(j.buy_orders).length;
+      }
+      const total = +j.total_count || 0;
+      if (page.length < PAGE || start + PAGE >= total) break;
+    }
+    return out;
+  }
+
+  // Takes one of our own listings off the market (the item returns to the inventory).
+  async removeListing(listingId) {
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
+    if (!/^\d+$/.test(String(listingId))) throw new Error(translation.t('Geçersiz ilan numarası'));
+    const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
+    if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
+    const r = await fetch(`https://steamcommunity.com/market/removelisting/${listingId}`, {
+      method: 'POST',
+      headers: {
+        Cookie: this.cookieHeader(),
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Referer: 'https://steamcommunity.com/market/',
+        Origin: 'https://steamcommunity.com',
+        'User-Agent': SteamEngine.UA,
+      },
+      body: new URLSearchParams({ sessionid: sidCookie.split('=')[1] }),
+    });
+    if (r.status === 429) { const e = new Error(translation.t('Steam istek sınırı aşıldı (429)')); e.rateLimited = true; throw e; }
+    if (!r.ok) throw new Error(translation.tf('Pazar yanıtı okunamadı (HTTP #)', r.status));
+    return { ok: true };
+  }
+
+  // ---- PRODUCT KEYS ----
+  // Returns { ok, detail, packages } for every answer Steam gives, including the refusals (they carry the
+  // reason in `detail`). Only a missing answer (timeout, no connection) is thrown so that the caller
+  // keeps the key in its queue instead of marking it as used up.
+  async redeemKey(key) {
+    if (!this.user || !this.isConnected) throw new Error(translation.t('Steam oturumu yok'));
+    try {
+      const r = await this.user.redeemKey(key);
+      return { ok: true, detail: r.purchaseResultDetails, packages: r.packageList || {} };
+    } catch (e) {
+      if (e && e.purchaseResultDetails !== undefined) {
+        return { ok: false, detail: e.purchaseResultDetails, packages: e.packageList || {} };
+      }
+      throw e;
+    }
+  }
+
+  // ---- BOOSTER PACKS ----
+  async unpackBooster(assetId, appid) {
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
+    const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
+    if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
+    const r = await fetch(`https://steamcommunity.com/profiles/${this.steamID}/ajaxunpackbooster/`, {
+      method: 'POST',
+      headers: {
+        Cookie: this.cookieHeader(),
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Referer: `https://steamcommunity.com/profiles/${this.steamID}/inventory`,
+        Origin: 'https://steamcommunity.com',
+        'User-Agent': SteamEngine.UA,
+      },
+      body: new URLSearchParams({ sessionid: sidCookie.split('=')[1], appid: String(+appid), communityitemid: String(assetId) }),
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j || +j.success !== 1) {
+      throw new Error(translation.t('Booster paketi açılamadı'));
+    }
+    const items = Array.isArray(j.rgItems) ? j.rgItems.map((x) => ({ name: x.name || '?', foil: !!x.foil })) : [];
+    return { ok: true, items };
+  }
+
+  // ---- STEAM FAMILY VIEW (parental PIN) ----
+  // With Family View on, the web endpoints answer with the "unlock" page until the PIN has been entered.
+  // The PIN is sent once per web session and Steam answers with a `steamparental` cookie that is added to ours.
+  async unlockParental(pin) {
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
+    const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
+    if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
+    const r = await fetch('https://steamcommunity.com/parental/ajaxunlock', {
+      method: 'POST',
+      headers: {
+        Cookie: this.cookieHeader(),
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Referer: 'https://steamcommunity.com/',
+        Origin: 'https://steamcommunity.com',
+        'User-Agent': SteamEngine.UA,
+      },
+      body: new URLSearchParams({ pin: String(pin), sessionid: sidCookie.split('=')[1] }),
+    });
+    const j = await r.json().catch(() => null);
+    if (!j || !j.success) throw new Error(translation.t("Aile Görünümü PIN'i reddedildi"));
+    const set = (r.headers.getSetCookie ? r.headers.getSetCookie() : [])
+      .map((c) => c.split(';')[0]).filter((c) => c.startsWith('steamparental='));
+    if (set.length) this.cookies = this.cookies.filter((c) => !c.startsWith('steamparental=')).concat(set);
+    return { ok: true };
   }
 
   // Low-level: encode `msgType`→buffer, send EMsg, decode the job-response buffer with `respType`.

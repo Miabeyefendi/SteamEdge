@@ -49,7 +49,7 @@ SteamEdge/
     settings.json              ajustes generales
     accounts.json              cuentas guardadas
     session.json               token de sesión activa
-    accounts/<steamID>.json    datos por cuenta: estadísticas, colas, presets, registro de logros
+    accounts/<steamID>.json    datos por cuenta: estadísticas, colas, cola de claves, presets, registro de logros
     stats.json, state.json     solo de versiones antiguas: se leen una vez y no se vuelven a escribir
     *.bak, *.bozuk             copia de seguridad automática y archivo dañado apartado
   cache/
@@ -107,7 +107,7 @@ La cola de juegos con cromos pendientes, leída de tus páginas de insignias, co
 
 ### Inventario y mercado
 
-Tu inventario de Steam, con los duplicados en una fila, filtrable por juego, nombre, tipo, estado y precio, y agrupable por juego. **Obtener precios** carga los precios de mercado de lo que muestra el filtro actual, por defecto junto con la media de ventas de cada artículo; **Obtener medias** rellena solo las medias que faltan, indica antes el tiempo estimado y se puede cancelar. El panel de detalle muestra los anuncios en venta, el precio de venta inmediata y las ventas realizadas. La barra inferior suma la selección, el bruto y lo que recibes, y ofrece los modos de venta (desde la media, rebajar, igualar el más bajo, vender al instante, precio propio) antes de **Vender**.
+Tu inventario de Steam, con los duplicados en una fila, filtrable por juego, nombre, tipo, estado y precio, y agrupable por juego. **Obtener precios** carga los precios de mercado de lo que muestra el filtro actual, por defecto junto con la media de ventas de cada artículo; **Obtener medias** rellena solo las medias que faltan, indica antes el tiempo estimado y se puede cancelar. El panel de detalle muestra los anuncios en venta, el precio de venta inmediata y las ventas realizadas. La barra inferior suma la selección, el bruto y lo que recibes, y ofrece los modos de venta (desde la media, rebajar, igualar el más bajo, vender al instante, precio propio) antes de **Vender**. **Mis anuncios** (arriba a la derecha) abre tus anuncios activos, y los sobres de refuerzo y las gemas tienen sus propios tipos en el filtro de tipo.
 
 ### Impulsor de horas
 
@@ -120,6 +120,10 @@ Un espacio de tres columnas bajo una franja con el juego, los logros desbloquead
 ### Logros
 
 Por juego, el estado real bloqueado y desbloqueado leído del protocolo, con totales arriba, filtros de estado y rareza, vista de cuadrícula o lista y un panel de detalle. Selecciona logros y desbloquéalos o vuelve a bloquearlos en lote; la barra inferior muestra la selección, el tiempo estimado y si el modo seguro espacia los desbloqueos. El progreso es en vivo y Detener actúa incluso a mitad de una espera.
+
+### Claves
+
+Pega claves de producto, una por línea o como "nombre del juego, Tab, clave", y pulsa **Añadir a la cola**. Las claves se canjean una a una en segundo plano, incluso con otra página abierta. La página muestra la cola, los contadores y la respuesta de cada clave: canjeada, ya en tu cuenta, bloqueada por región, no válida, ya utilizada, se requiere el juego base o el número de código que envió Steam. Cuando Steam indica que se probaron demasiadas claves (unas 50 por hora), la cola espera una hora por sí sola; **Probar ahora** se salta la espera. La cola y los resultados se guardan por cuenta y continúan tras reiniciar.
 
 ### Ajustes
 
@@ -211,6 +215,18 @@ El precio y la media de ventas se obtienen **por artículo, juntos**, y después
 
 **Alerta de bajada de precio.** Cuando el anuncio más barato de un objeto queda al menos el **Umbral de bajada de precio** (10 % por defecto) por debajo de la media de 24 horas de Steam, se marca con un ▼ rojo, la confirmación de venta avisa en rojo y, con la alerta activada, recibes una notificación como mucho una vez al día por objeto.
 
+**Mis anuncios.** El botón de la parte superior de la página lista tus anuncios activos del mercado, los pendientes de confirmación y los retenidos, con el precio que paga el comprador y lo que recibes. Selecciona anuncios activos y retíralos; los objetos vuelven a tu inventario y este se vuelve a leer. Los anuncios pendientes de confirmación se confirman o cancelan en la aplicación de Steam, y los retenidos vuelven solos cuando termina la retención.
+
+**Los sobres de refuerzo y las gemas** tienen tipos propios. Un sobre de refuerzo se puede abrir desde el panel de detalle; los cromos que salen se añaden al inventario. Abrir un sobre es permanente.
+
+### Claves de producto
+
+Las claves entran en una cola por cuenta que funciona en segundo plano. Se acepta una clave con la forma habitual de tres a seis grupos de cuatro a seis letras mayúsculas o cifras separados por guiones; la línea puede llevar un nombre de juego antes de la clave. Las claves que ya están en la cola o en los resultados se omiten. Tras cada respuesta hay una breve pausa, y cuando Steam indica que se probaron demasiadas claves, toda la cola espera una hora. Una clave que Steam rechaza no se reintenta; una clave cuya respuesta no llegó (sin conexión, tiempo agotado) se queda en la cola y se prueba de nuevo enseguida. Se guardan los 1000 resultados más recientes. Las claves ya poseídas no se reenvían a tus otras cuentas.
+
+### Vista familiar
+
+Si la cuenta de Steam usa la Vista familiar, Steam no sirve páginas web hasta que se introduce el PIN, y las páginas de inventario, mercado e insignias no cargan. Introduce el PIN en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y SteamEdge desbloquea con él cada nueva sesión web. El PIN se guarda como texto plano en el archivo de la cuenta bajo `settings/accounts/` y no entra en las copias exportadas.
+
 ### Chat
 
 Los mensajes de amigos van por el mismo protocolo de red que todo lo demas, sin cliente de Steam de por medio. Abrir una conversacion la marca como leida en Steam, y la persona a la que escribes ve el indicador de escritura.
@@ -297,6 +313,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 |---|---|---|
 | `offlineMode` | `false` | Aparecer desconectado mientras se ejecuta |
 | `hideGameName` | `false` | Compartir que estás en línea pero no a qué juegas |
+| `parentalPin` | vacío | PIN de la Vista familiar de Steam de la cuenta, para desbloquear las páginas web. Se guarda por cuenta y nunca se exporta |
 
 > Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 
@@ -348,6 +365,14 @@ El tiempo de completado es demasiado alto. Si se deja vacío se estima a partir 
 ### SteamEdge dice que no se pudo leer un archivo
 
 Si un archivo de ajustes o de datos se daña, SteamEdge restaura la copia automática `.bak`. Si esta también está dañada, el archivo se deja tal cual, se aparta una copia junto a él con la extensión `.bozuk`, los datos afectados empiezan con los valores predeterminados y la aplicación te lo indica al arrancar. No se sobrescribe nada, así que puedes devolver el archivo a mano.
+
+### Las páginas de inventario, mercado o insignias quedan vacías en una cuenta con Vista familiar
+
+Steam mantiene bloqueadas las páginas web hasta que se introduce el PIN de la Vista familiar. Escríbelo en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y vuelve a conectar.
+
+### Una clave vuelve como "Rechazada (código N)"
+
+Steam envió un motivo de rechazo que la aplicación no conoce por su nombre. Los motivos habituales (ya en tu cuenta, bloqueada por región, no válida, ya utilizada, se requiere el juego base) se muestran con su nombre. Prueba la clave en la web de Steam; una clave rechazada no se reintenta.
 
 ### Recoger un registro para informar de un fallo
 

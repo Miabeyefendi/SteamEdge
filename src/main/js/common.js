@@ -3,7 +3,7 @@
     document.getElementById('max').onclick = () => api && api.win.maximize();
     document.getElementById('close').onclick = () => api && api.win.close();
 
-    const designed = { overview: document.getElementById('tab-overview'), card: document.getElementById('tab-card'), inventory: document.getElementById('tab-inventory'), hours: document.getElementById('tab-hours'), realistic: document.getElementById('tab-realistic'), achievements: document.getElementById('tab-achievements'), chat: document.getElementById('tab-chat'), settings: document.getElementById('tab-settings') };
+    const designed = { overview: document.getElementById('tab-overview'), card: document.getElementById('tab-card'), inventory: document.getElementById('tab-inventory'), hours: document.getElementById('tab-hours'), realistic: document.getElementById('tab-realistic'), achievements: document.getElementById('tab-achievements'), keys: document.getElementById('tab-keys'), chat: document.getElementById('tab-chat'), settings: document.getElementById('tab-settings') };
     const empty = document.getElementById('tab-empty');
     const emptyName = document.getElementById('emptyName');
     // Opening a tab. The body used to be directly inside the nav link's click listener; since the Sohbet button in the top bar
@@ -39,6 +39,7 @@
       if (tab === 'inventory') loadInventory();
       if (tab === 'realistic') loadRealistic();
       if (tab === 'achievements') loadAchievementsPage();
+      if (tab === 'keys') loadKeys();
       if (tab === 'chat') loadChat();
       if (tab === 'settings') loadSettingsPage();
       redrawHeavyList(tab);
@@ -521,7 +522,7 @@
     const SIDE_COLLAPSE_KEY = 'imu_side_collapsed';
     // The rail tab stays aligned with the active nav item: top = 17 + 44*index
     // (nav item 40px + 4px gap = 44px step). Since Ayarlar is not in the sidebar the index is 5.
-    const RAIL_ORDER = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'settings'];
+    const RAIL_ORDER = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'keys', 'settings'];
     function setRailTop(tab) {
       const btn = document.getElementById('sideCollapseBtn');
       const i = RAIL_ORDER.indexOf(tab);
@@ -911,6 +912,7 @@
       else if (tab === 'hours' && typeof loadHours === 'function') loadHours();
       else if (tab === 'inventory' && typeof loadInventory === 'function') loadInventory();
       else if (tab === 'achievements' && typeof loadAchievementsPage === 'function') loadAchievementsPage();
+      else if (tab === 'keys' && typeof loadKeys === 'function') loadKeys();
       else if (tab === 'realistic' && typeof loadRealistic === 'function') loadRealistic();
       else if (tab === 'chat' && typeof loadChat === 'function') loadChat();
       else if (tab === 'settings' && typeof loadSettingsPage === 'function') loadSettingsPage();

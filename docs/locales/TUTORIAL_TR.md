@@ -49,7 +49,7 @@ SteamEdge/
     settings.json              genel ayarlar
     accounts.json              kayıtlı hesaplar
     session.json               aktif oturum anahtarı
-    accounts/<steamID>.json    hesaba özel: istatistikler, kuyruklar, presetler, başarım günlüğü
+    accounts/<steamID>.json    hesaba özel: istatistikler, kuyruklar, anahtar kuyruğu, presetler, başarım günlüğü
     stats.json, state.json     yalnızca eski sürümlerden: bir kez okunur, bir daha yazılmaz
     *.bak, *.bozuk             otomatik yedek kopya ve kenara alınmış bozuk dosya
   cache/
@@ -107,7 +107,7 @@ Rozet sayfalarından okunan, kartı kalmış oyunların kuyruğu; 1-2 ya da 3+ k
 
 ### Envanter & Pazar
 
-Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; **Ortalamaları getir** yalnızca eksik ortalamaları doldurur, önce tahmini süreyi söyler ve iptal edilebilir. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim).
+Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; **Ortalamaları getir** yalnızca eksik ortalamaları doldurur, önce tahmini süreyi söyler ve iptal edilebilir. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim). **İlanlarım** (sağ üstte) aktif ilanlarını açar; booster paketleri ve gemler tür süzgecinde kendi türleriyle durur.
 
 ### Saat Yükseltici
 
@@ -120,6 +120,10 @@ Oyunu, açılan sayıyı, ortalama aralığı ve genel ilerlemeyi gösteren bir 
 ### Başarımlar
 
 Her oyun için protokolden okunan gerçek kilitli ve açık durum; üstte toplamlar, durum ve nadirlik süzgeçleri, ızgara ya da liste görünümü ve detay paneli. Başarımları seçip toplu aç ya da yeniden kilitle; alttaki çubuk seçimi, tahmini süreyi ve güvenli modun açılışları aralıklandırıp aralıklandırmadığını gösterir. İlerleme canlıdır, Durdur beklemenin ortasında bile etki eder.
+
+### Anahtarlar
+
+Ürün anahtarlarını her satıra bir tane ya da "oyun adı, Tab, anahtar" biçiminde yapıştır ve **Kuyruğa Ekle**'ye bas. Anahtarlar, başka bir sayfa açıkken bile arka planda tek tek etkinleştirilir. Sayfa kuyruğu, sayaçları ve her anahtarın cevabını gösterir: etkinleştirildi, zaten sahip, bölge kilitli, geçersiz, daha önce kullanılmış, ana oyun gerekli ya da Steam'in gönderdiği kod numarası. Steam çok fazla anahtar denendiğini söylediğinde (saatte yaklaşık 50) kuyruk kendiliğinden bir saat bekler; **Şimdi Dene** beklemeyi atlar. Kuyruk ve sonuçlar hesap başına saklanır, yeniden başlatınca sürer.
 
 ### Ayarlar
 
@@ -211,6 +215,18 @@ Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk
 
 **Fiyat düşüşü uyarısı.** Bir öğenin en ucuz ilanı Steam'in 24 saatlik ortalamasının **Fiyat düşüşü eşiği** (varsayılan %10) kadar altına inince listede kırmızı ▼ ile işaretlenir, satış onayı kırmızı uyarı verir ve uyarı açıksa günde en fazla bir kez bildirim gelir.
 
+**İlanlarım.** Sayfanın üstündeki düğme aktif pazar ilanlarını, onay bekleyenleri ve bekletmedekileri, alıcının ödeyeceği ve senin eline geçecek tutarla listeler. Aktif ilanları seçip geri alabilirsin; eşyalar envanterine döner ve envanter yeniden okunur. Onay bekleyen ilanlar Steam uygulamasında onaylanır ya da iptal edilir, bekletmedekiler bekleme bitince kendiliğinden döner.
+
+**Booster paketleri ve gemler** kendi türlerine sahip. Booster paketi detay panelinden açılabilir; çıkan kartlar envantere eklenir. Paket açmak kalıcıdır.
+
+### Ürün anahtarları
+
+Anahtarlar hesaba özel, arka planda çalışan bir kuyruğa girer. Anahtar, tire ile ayrılmış üç ila altı grup, her grup dört ila altı büyük harf ya da rakamdan oluşan olağan biçimde kabul edilir; satırda anahtardan önce bir oyun adı da olabilir. Kuyrukta ya da sonuçlarda zaten bulunan anahtarlar atlanır. Her cevaptan sonra kısa bir ara verilir ve Steam çok fazla anahtar denendiğini bildirirse tüm kuyruk bir saat bekler. Steam'in reddettiği anahtar yeniden denenmez; cevabı hiç gelmeyen (bağlantı yok, zaman aşımı) anahtar kuyrukta kalır ve kısa süre sonra yeniden denenir. En yeni 1000 sonuç saklanır. Zaten sahip olunan anahtarlar diğer hesaplarına yönlendirilmez.
+
+### Aile Görünümü
+
+Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayfalarını vermez; envanter, pazar ve rozet sayfaları açılmaz. PIN'i Ayarlar > Gizlilik & Güvenlik > **Aile Görünümü PIN'i** altına gir; SteamEdge her yeni web oturumunu bununla açar. PIN, hesabın `settings/accounts/` altındaki dosyasında düz metin olarak durur ve dışa aktarılan yedeklere girmez.
+
 ### Sohbet
 
 Arkadaş mesajları buradaki her şeyle aynı ağ protokolü üzerinden gider, Steam istemcisi işin içinde değildir. Yazışmayı açmak Steam tarafında okundu olarak işaretler, yazdığın kişi de "yazıyor" bilgisini görür.
@@ -297,6 +313,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `offlineMode` | `false` | Çalışırken çevrimdışı görün |
 | `hideGameName` | `false` | Çevrimiçi olduğunu paylaş ama hangi oyunu değil |
+| `parentalPin` | boş | Web sayfalarının kilidini açmak için hesabın Steam Aile Görünümü PIN'i. Hesaba özel saklanır, dışa aktarılmaz |
 
 > Çevrimdışı görünmek arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
 
@@ -348,6 +365,14 @@ Bitiş süresi fazla yüksek. Boş bırakılınca oynadığın süreden tahmin e
 ### SteamEdge bir dosyanın okunamadığını söylüyor
 
 Bir ayar ya da veri dosyası bozulursa SteamEdge otomatik `.bak` kopyasını geri yükler. O da bozuksa dosya olduğu gibi bırakılır, yanına `.bozuk` uzantılı bir kopyası alınır, etkilenen veri varsayılanla başlar ve uygulama açılışta söyler. Hiçbir şeyin üzerine yazılmaz, dosyayı elle geri koyabilirsin.
+
+### Aile Görünümü olan hesapta envanter, pazar ya da rozet sayfaları boş kalıyor
+
+Steam, Aile Görünümü PIN'i girilene kadar web sayfalarını kilitli tutar. PIN'i Ayarlar > Gizlilik & Güvenlik > **Aile Görünümü PIN'i** altına yaz ve yeniden bağlan.
+
+### Bir anahtar "Reddedildi (kod N)" olarak dönüyor
+
+Steam, uygulamanın adıyla tanımadığı bir ret sebebi gönderdi. Yaygın sebepler (zaten sahip, bölge kilitli, geçersiz, daha önce kullanılmış, ana oyun gerekli) adlarıyla gösterilir. Anahtarı Steam sitesinde dene; reddedilen anahtar yeniden denenmez.
 
 ### Hata bildirimi için kayıt toplama
 
