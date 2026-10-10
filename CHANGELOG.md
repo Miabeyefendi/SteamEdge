@@ -22,7 +22,7 @@ Security and operations release: encrypted login tokens, a card farming schedule
 - Tutorial and README describe the three features; the file layout notes cover token protection.
 
 
-SHA-256 (`SteamEdge-v1.4.3-win-x64.rar`): `108d1e0b41245612d2fdbd12d156ca10dd95c5e585ffbc2315dd1bbe54708b55`
+SHA-256 (`SteamEdge-v1.4.3-win-x64.rar`): `4d661abc5f52a72c519c1fa022cdc36e619c709d17ddb62208d3312bafef4c11`
 
 ## [1.4.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.2)
 

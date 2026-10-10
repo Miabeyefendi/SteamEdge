@@ -225,7 +225,7 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 
 ### 家庭检视
 
-如果 Steam 账号使用了家庭检视，在输入 PIN 之前 Steam 不会提供网页，库存、市场和徽章页面都无法载入。请在 设置 > 隐私与安全 > **家庭检视 PIN** 中输入 PIN，SteamEdge 会用它解锁每一个新的网页会话。PIN 以纯文本保存在账号文件（位于 `settings/accounts/`）中，不会包含在导出的备份里。
+如果 Steam 账号使用了家庭检视，在输入 PIN 之前 Steam 不会提供网页，库存、市场和徽章页面都无法载入。请在 设置 > 隐私与安全 > **家庭检视 PIN** 中输入 PIN，SteamEdge 会用它解锁每一个新的网页会话。PIN 以纯文本保存在账号文件（位于 `settings/accounts/`）中，不会包含在导出的备份里。 开启**加密登入权杖**时会被加密。
 
 ### 集卡排程
 
@@ -237,7 +237,7 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 
 `settings/accounts.json` 与 `settings/session.json` 中保存的登录令牌默认为明文。开启**加密登入权杖**后（设置 > 隐私与安全），令牌会以 Windows DPAPI 加密保存，因此目录的副本在其他电脑或其他 Windows 用户下毫无用处。开启时两个文件会立即重写，并删除仍含明文的 `.bak` 副本；关闭时则重新写成明文。无论设置如何，加密的令牌都能读取，所以两个方向都不会丢失任何东西。
 
-代价是：若将目录移到其他电脑或 Windows 用户，或重新安装 Windows，这些账号需要重新登录。受保护的只有令牌；`settings/accounts/<steamID>.json` 中的家庭检视 PIN 与代理密码仍是明文。
+代价是：若将目录移到其他电脑或 Windows 用户，或重新安装 Windows，这些账号需要重新登录。`settings/accounts/<steamID>.json` 中的家庭检视 PIN 与代理地址（可能含密码）以同样方式加密。
 
 ### 代理
 
@@ -336,7 +336,7 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 | `hideGameName` | `false` | 显示你在线，但不显示在玩什么 |
 | `parentalPin` | 空 | 账号的 Steam 家庭检视 PIN，用于解锁网页。按账号保存，永不导出 |
 | `protectTokens` | `false` | 以 Windows DPAPI 加密保存登录令牌。仅限这位 Windows 用户与这台电脑，不会导出 |
-| `proxyUrl` | 空 | 账号的代理：`http://`、`https://` 或 `socks5://`，可加上 `用户名:密码@`。密码以明文存放在账号的文件中。按账号保存，不会导出 |
+| `proxyUrl` | 空 | 账号的代理：`http://`、`https://` 或 `socks5://`，可加上 `用户名:密码@`。密码存放在账号的文件中；开启**加密登入权杖**时会被加密。按账号保存，不会导出 |
 
 > 显示为离线会改变好友看到的内容，也可能改变 Steam 是否把你算作正在游戏，所以在依赖它跑长时段之前先测一下。
 

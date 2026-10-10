@@ -225,7 +225,7 @@ Anahtarlar hesaba özel, arka planda çalışan bir kuyruğa girer. Anahtar, tir
 
 ### Aile Görünümü
 
-Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayfalarını vermez; envanter, pazar ve rozet sayfaları açılmaz. PIN'i Ayarlar > Gizlilik & Güvenlik > **Aile Görünümü PIN'i** altına gir; SteamEdge her yeni web oturumunu bununla açar. PIN, hesabın `settings/accounts/` altındaki dosyasında düz metin olarak durur ve dışa aktarılan yedeklere girmez.
+Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayfalarını vermez; envanter, pazar ve rozet sayfaları açılmaz. PIN'i Ayarlar > Gizlilik & Güvenlik > **Aile Görünümü PIN'i** altına gir; SteamEdge her yeni web oturumunu bununla açar. PIN, hesabın `settings/accounts/` altındaki dosyasında düz metin olarak durur ve dışa aktarılan yedeklere girmez. **Giriş anahtarlarını şifrele** açıkken şifrelenir.
 
 ### Kart düşürme zamanlayıcısı
 
@@ -237,7 +237,7 @@ Elle başlattığın bir işi zamanlayıcı asla durdurmaz ve bir hesap aralık 
 
 `settings/accounts.json` ve `settings/session.json` içindeki kayıtlı giriş anahtarları varsayılan olarak düz metindir. **Giriş anahtarlarını şifrele** açıkken (Ayarlar > Gizlilik & Güvenlik) Windows DPAPI ile şifreli saklanır; klasörün kopyası başka bir bilgisayarda ya da başka bir Windows kullanıcısında işe yaramaz. Açınca iki dosya birden yeniden yazılır ve düz metni hâlâ tutan `.bak` kopyaları silinir; kapatınca yeniden düz metin yazılır. Şifreli anahtarlar ayar ne olursa olsun okunur, yani iki yönde de hiçbir şey kaybolmaz.
 
-Bedeli: klasörü başka bir bilgisayara ya da Windows kullanıcısına taşırsan ya da Windows'u yeniden kurarsan o hesaplarda yeniden giriş gerekir. Yalnızca anahtarlar kapsanır; `settings/accounts/<steamID>.json` içindeki Aile Görünümü PIN'i ve vekil parolası düz metin kalır.
+Bedeli: klasörü başka bir bilgisayara ya da Windows kullanıcısına taşırsan ya da Windows'u yeniden kurarsan o hesaplarda yeniden giriş gerekir. `settings/accounts/<steamID>.json` içindeki Aile Görünümü PIN'i ve vekil adresi (parola içerebilir) aynı şekilde şifrelenir.
 
 ### Vekil sunucu
 
@@ -336,7 +336,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `hideGameName` | `false` | Çevrimiçi olduğunu paylaş ama hangi oyunu değil |
 | `parentalPin` | boş | Web sayfalarının kilidini açmak için hesabın Steam Aile Görünümü PIN'i. Hesaba özel saklanır, dışa aktarılmaz |
 | `protectTokens` | `false` | Kayıtlı giriş anahtarlarını Windows DPAPI ile şifreli sakla. Bu Windows kullanıcısına ve bilgisayara özeldir, dışa aktarılmaz |
-| `proxyUrl` | boş | Hesabın vekili: `http://`, `https://` ya da `socks5://`, isteğe bağlı `kullanıcı:parola@` ile. Parola hesabın dosyasında düz metin saklanır. Hesap başına saklanır, dışa aktarılmaz |
+| `proxyUrl` | boş | Hesabın vekili: `http://`, `https://` ya da `socks5://`, isteğe bağlı `kullanıcı:parola@` ile. Parola hesabın dosyasında saklanır; **Giriş anahtarlarını şifrele** açıkken şifrelenir. Hesap başına saklanır, dışa aktarılmaz |
 
 > Çevrimdışı görünmek arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
 
