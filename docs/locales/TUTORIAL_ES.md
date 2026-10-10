@@ -225,7 +225,7 @@ Las claves entran en una cola por cuenta que funciona en segundo plano. Se acept
 
 ### Vista familiar
 
-Si la cuenta de Steam usa la Vista familiar, Steam no sirve páginas web hasta que se introduce el PIN, y las páginas de inventario, mercado e insignias no cargan. Introduce el PIN en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y SteamEdge desbloquea con él cada nueva sesión web. El PIN se guarda como texto plano en el archivo de la cuenta bajo `settings/accounts/` y no entra en las copias exportadas.
+Si la cuenta de Steam usa la Vista familiar, Steam no sirve páginas web hasta que se introduce el PIN, y las páginas de inventario, mercado e insignias no cargan. Introduce el PIN en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y SteamEdge desbloquea con él cada nueva sesión web. El PIN se guarda como texto plano en el archivo de la cuenta bajo `settings/accounts/` y no entra en las copias exportadas. Se cifra si **Cifrar los tokens de inicio de sesión** está activado.
 
 ### Programación de la recolección de cartas
 
@@ -237,7 +237,7 @@ La programación nunca detiene una tarea que iniciaste a mano, y una cuenta se i
 
 Los tokens de inicio de sesión guardados en `settings/accounts.json` y `settings/session.json` son texto plano por defecto. Con **Cifrar los tokens de inicio de sesión** activado (Ajustes > Privacidad y seguridad) se guardan cifrados con Windows DPAPI, de modo que una copia de la carpeta no sirve en otro equipo ni con otro usuario de Windows. Al activarlo se reescriben los dos archivos a la vez y se borran las copias `.bak` que aún tenían el texto plano; al desactivarlo se vuelve a escribir texto plano. Los tokens cifrados se leen sea cual sea el ajuste, así que no se pierde nada en ningún sentido.
 
-La contrapartida: si mueves la carpeta a otro equipo o usuario de Windows, o reinstalas Windows, esas cuentas necesitan iniciar sesión de nuevo. Solo se protegen los tokens; el PIN de Vista familiar y la contraseña del proxy en `settings/accounts/<steamID>.json` siguen en texto plano.
+La contrapartida: si mueves la carpeta a otro equipo o usuario de Windows, o reinstalas Windows, esas cuentas necesitan iniciar sesión de nuevo. El PIN de Vista familiar y la dirección del proxy (puede incluir una contraseña) en `settings/accounts/<steamID>.json` se cifran de la misma forma.
 
 ### Proxy
 
@@ -336,7 +336,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `hideGameName` | `false` | Compartir que estás en línea pero no a qué juegas |
 | `parentalPin` | vacío | PIN de la Vista familiar de Steam de la cuenta, para desbloquear las páginas web. Se guarda por cuenta y nunca se exporta |
 | `protectTokens` | `false` | Guardar los tokens de inicio de sesión cifrados con Windows DPAPI. Es propio de este usuario de Windows y equipo, no se exporta |
-| `proxyUrl` | vacío | Proxy de la cuenta: `http://`, `https://` o `socks5://`, con `usuario:contraseña@` opcional. La contraseña se guarda en texto plano en el archivo de la cuenta. Se guarda por cuenta, no se exporta |
+| `proxyUrl` | vacío | Proxy de la cuenta: `http://`, `https://` o `socks5://`, con `usuario:contraseña@` opcional. La contraseña se guarda en el archivo de la cuenta, cifrada si **Cifrar los tokens de inicio de sesión** está activado. Se guarda por cuenta, no se exporta |
 
 > Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 

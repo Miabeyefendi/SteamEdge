@@ -225,7 +225,7 @@ Schlüssel kommen in eine Warteschlange pro Konto, die im Hintergrund läuft. Ei
 
 ### Familienansicht
 
-Nutzt das Steam-Konto die Familienansicht, liefert Steam keine Webseiten, bis die PIN eingegeben wurde; Inventar-, Markt- und Abzeichenseiten laden dann nicht. Gib die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein, und SteamEdge entsperrt damit jede neue Websitzung. Die PIN liegt als Klartext in der Datei des Kontos unter `settings/accounts/` und gehört nicht zu exportierten Sicherungen.
+Nutzt das Steam-Konto die Familienansicht, liefert Steam keine Webseiten, bis die PIN eingegeben wurde; Inventar-, Markt- und Abzeichenseiten laden dann nicht. Gib die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein, und SteamEdge entsperrt damit jede neue Websitzung. Die PIN liegt als Klartext in der Datei des Kontos unter `settings/accounts/` und gehört nicht zu exportierten Sicherungen. Ist **Anmelde-Token verschlüsseln** an, wird sie verschlüsselt.
 
 ### Zeitplan für das Kartensammeln
 
@@ -237,7 +237,7 @@ Ein von Hand gestarteter Auftrag wird vom Zeitplan nie gestoppt, und ein Konto w
 
 Die gespeicherten Anmelde-Token in `settings/accounts.json` und `settings/session.json` sind standardmäßig Klartext. Ist **Anmelde-Token verschlüsseln** an (Einstellungen > Datenschutz & Sicherheit), werden sie mit Windows DPAPI verschlüsselt gespeichert; eine Kopie des Ordners ist auf einem anderen Computer oder unter einem anderen Windows-Benutzer wertlos. Beim Einschalten werden beide Dateien sofort neu geschrieben und die `.bak`-Kopien, die noch Klartext enthielten, gelöscht; beim Ausschalten wird wieder Klartext geschrieben. Verschlüsselte Token werden unabhängig von der Einstellung gelesen, es geht also in beide Richtungen nichts verloren.
 
-Der Haken: Verschiebst du den Ordner auf einen anderen Computer oder Windows-Benutzer oder installierst du Windows neu, müssen sich diese Konten neu anmelden. Geschützt sind nur die Token; die PIN der Familienansicht und das Proxy-Passwort in `settings/accounts/<steamID>.json` bleiben Klartext.
+Der Haken: Verschiebst du den Ordner auf einen anderen Computer oder Windows-Benutzer oder installierst du Windows neu, müssen sich diese Konten neu anmelden. Die PIN der Familienansicht und die Proxy-Adresse (sie kann ein Passwort enthalten) in `settings/accounts/<steamID>.json` werden auf die gleiche Weise verschlüsselt.
 
 ### Proxy
 
@@ -336,7 +336,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `hideGameName` | `false` | Zeigen, dass du online bist, aber nicht welches Spiel |
 | `parentalPin` | leer | PIN der Steam-Familienansicht des Kontos, zum Entsperren der Webseiten. Pro Konto gespeichert, nie exportiert |
 | `protectTokens` | `false` | Gespeicherte Anmelde-Token mit Windows DPAPI verschlüsselt ablegen. Gilt nur für diesen Windows-Benutzer und Computer, wird nicht exportiert |
-| `proxyUrl` | leer | Proxy des Kontos: `http://`, `https://` oder `socks5://`, optional mit `Benutzer:Passwort@`. Das Passwort liegt im Klartext in der Datei des Kontos. Pro Konto gespeichert, wird nicht exportiert |
+| `proxyUrl` | leer | Proxy des Kontos: `http://`, `https://` oder `socks5://`, optional mit `Benutzer:Passwort@`. Das Passwort liegt in der Datei des Kontos, verschlüsselt, wenn **Anmelde-Token verschlüsseln** an ist. Pro Konto gespeichert, wird nicht exportiert |
 
 > Offline zu erscheinen ändert, was Freunde sehen. Es kann auch ändern, ob Steam dich als spielend zählt; teste es, bevor du dich in einer langen Sitzung darauf verlässt.
 

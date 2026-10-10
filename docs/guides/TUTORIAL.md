@@ -225,7 +225,7 @@ Keys go into a per-account queue that runs in the background. A key is accepted 
 
 ### Family View
 
-If the Steam account uses Family View, Steam does not serve web pages until the PIN is entered, so the inventory, the market and the badge pages fail to load. Enter the PIN at Settings > Privacy & security > **Family View PIN** and SteamEdge unlocks every new web session with it. The PIN is kept as plain text in the account's file under `settings/accounts/` and is not part of exported backups.
+If the Steam account uses Family View, Steam does not serve web pages until the PIN is entered, so the inventory, the market and the badge pages fail to load. Enter the PIN at Settings > Privacy & security > **Family View PIN** and SteamEdge unlocks every new web session with it. The PIN is kept as plain text in the account's file under `settings/accounts/` and is not part of exported backups. It is sealed when **Encrypt login tokens** is on.
 
 ### Card farming schedule
 
@@ -237,7 +237,7 @@ A farm you started by hand is never stopped by the schedule, and an account is s
 
 The saved sign-in tokens in `settings/accounts.json` and `settings/session.json` are plain text by default. With **Encrypt login tokens** on (Settings > Privacy & security) they are stored encrypted with Windows DPAPI, so a copy of the folder is useless on another computer or under another Windows user. Switching it on rewrites both files at once and deletes the `.bak` copies that still held the plain text; switching it off writes plain text again. Encrypted tokens are read whatever the setting is, so nothing is lost either way.
 
-The catch: if you move the folder to another computer or Windows user, or reinstall Windows, those accounts need a fresh sign-in. Only the tokens are covered; the Family View PIN and the proxy password in `settings/accounts/<steamID>.json` stay plain text.
+The catch: if you move the folder to another computer or Windows user, or reinstall Windows, those accounts need a fresh sign-in. The Family View PIN and the proxy address (which can hold a password) in `settings/accounts/<steamID>.json` are sealed the same way.
 
 ### Proxy
 
@@ -336,7 +336,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `hideGameName` | `false` | Share that you are online but not which game |
 | `parentalPin` | empty | Steam Family View PIN of the account, used to unlock web pages. Stored per account, never exported |
 | `protectTokens` | `false` | Store the saved sign-in tokens encrypted with Windows DPAPI. Specific to this Windows user and computer, never exported |
-| `proxyUrl` | empty | Proxy of the account: `http://`, `https://` or `socks5://`, with an optional `user:password@`. The password is stored in plain text in the account's file. Stored per account, never exported |
+| `proxyUrl` | empty | Proxy of the account: `http://`, `https://` or `socks5://`, with an optional `user:password@`. The password is stored in the account's file, sealed when **Encrypt login tokens** is on. Stored per account, never exported |
 
 > Appearing offline changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
 

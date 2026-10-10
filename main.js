@@ -675,7 +675,12 @@ function rewriteTokenFiles() {
       const token = openToken(sess.refreshToken);
       if (token !== null) writeJson(sp, { ...sess, refreshToken: sealIfEnabled(token) }, true);
     }
+    // the Family View PIN and the proxy password live in the per-account files
+    try {
+      fs.readdirSync(ACCOUNT_DIR).filter((f) => /^\d+\.json$/.test(f)).forEach((f) => writeAccountData(f.slice(0, -5)));
+    } catch (_) { /* no account folder yet */ }
     if (settings.protectTokens) {
+      try { fs.readdirSync(ACCOUNT_DIR).filter((f) => /^\d+\.json\.(bak|tmp)$/.test(f)).forEach((f) => fs.unlinkSync(path.join(ACCOUNT_DIR, f))); } catch (_) {}
       ['accounts.json', 'session.json'].forEach((f) => ['.bak', '.tmp'].forEach((x) => { try { fs.unlinkSync(path.join(CONFIG_DIR, f + x)); } catch (_) {} }));
     }
   } catch (e) { log('warn', 'rewriting the token files failed: ' + (e && e.message)); }
@@ -1370,6 +1375,8 @@ const DEFAULT_ACCOUNT_DATA = {
 };
 
 const accountDataAll = new Map();   // steamID -> data
+// Account file fields that are sealed with the login tokens when "Encrypt login tokens" is on
+const SECRET_ACCOUNT_FIELDS = ['parentalPin', 'proxyUrl'];
 
 function accountFile(steamID) { return path.join(ACCOUNT_DIR, String(steamID) + '.json'); }
 
@@ -1380,6 +1387,11 @@ function accountData(steamID) {
   const v = r.ok
     ? { ...DEFAULT_ACCOUNT_DATA, ...r.dataBlock }
     : { ...DEFAULT_ACCOUNT_DATA, entries: {}, achLog: [] };
+  SECRET_ACCOUNT_FIELDS.forEach((k) => {
+    const plain = openToken(v[k]);
+    if (plain === null) { log('warn', 'account ' + steamID + ': ' + k + ' is sealed for another Windows user or computer and was dropped'); v[k] = ''; }
+    else v[k] = plain;
+  });
   if (r.ok && r.fromBackup) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: true });
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
   // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
@@ -1391,7 +1403,10 @@ function writeAccountData(steamID) {
   if (!steamID) return;
   const t = pendingWrite.get(steamID);
   if (t) { clearTimeout(t); pendingWrite.delete(steamID); }
-  writeJson(accountFile(steamID), accountData(steamID), false);
+  const data = accountData(steamID);
+  const out = { ...data };
+  SECRET_ACCOUNT_FIELDS.forEach((k) => { out[k] = sealIfEnabled(data[k]); });
+  writeJson(accountFile(steamID), out, false);
 }
 // SPEED: the account file is fully serialised on every write, forced to disk
 // and its backup is taken. With a 5000 entry achievement log this is ~25 ms per write and it locks the main process;
