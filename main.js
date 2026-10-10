@@ -722,6 +722,9 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: false },
   });
 
+  // The window only ever shows the app's own pages: no popups, no navigation away (a link in injected content could not open a web page here)
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file://')) e.preventDefault(); });
   win.loadFile(path.join(__dirname, ...(sess ? ['src', 'main', 'main.html'] : ['src', 'login', 'login.html'])));
   // After the window shows, wait one frame and then allow the engine to be set up (see windowOpened).
   win.once('ready-to-show', () => { win.center(); win.show(); setTimeout(() => resolveWindowOpened(), 50); });
