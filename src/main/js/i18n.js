@@ -4,7 +4,7 @@
     // after the page is drawn the text nodes and the placeholder/title/data-tip
     // attributes are passed through the dictionary. So the content JS produces is translated automatically too.
     //
-    // Text that carries a number is kept as a PATTERN: "3 oyunda kart var" -> "# oyunda kart var".
+    // Text that carries a number is kept as a PATTERN: "3 games with cards" -> "# games with cards".
     // The translation uses # too; when applied the numbers are put back in order.
     //
     // Dictionary key = the Turkish text itself. Text without a key is LEFT ALONE (game name,
@@ -55,7 +55,7 @@
     }
 
     // Puts the values into the placeholders. A plain '#' fills in order. A language whose sentence structure
-    // differs from Turkish swaps the order with #1, #2: "# içinde # başarım açılır." becomes
+    // differs from Turkish swaps the order with #1, #2: "#2 achievement unlocks within #1.|#2 achievements unlock within #1." becomes
     // "#2 achievements unlock within #1." in English. There used to be only the order and in such a
     // translation the duration and the number swapped places.
     function fillPlaceholder(text, degerler) {
@@ -88,7 +88,7 @@
       return begin + goal + latest;
     }
 
-    // For templates that carry numbers: tf('# oyun sırada.', 5). When page JS files joined the text with the number
+    // For templates that carry numbers: tf('# games queued.', 5). When page JS files joined the text with the number
     // the DOM observer could not match the pieces; the template stays in the dictionary with '#', gets translated,
     // then the values are put in order. The plural form follows the first numeric value.
     function tf(template, ...degerler) {
@@ -134,7 +134,7 @@
       return Number(n || 0).toLocaleString(localCode(), { minimumFractionDigits: b, maximumFractionDigits: b });
     }
     // Time unit in the interface language: durationUnit(3, 'sa') -> "3 sa" / "3 h". The key is a '#' pattern
-    // ("# sa"), the same text is recognised in the DOM translation too. Units: sa, dk, sn, gün, saat,
+    // ("# h"), the same text is recognised in the DOM translation too. Units (Turkish keys): sa = hours, dk = minutes, sn = seconds, gün = days, saat = hours,
     // dakika, saniye. The units used to stay Turkish in every language ("37 dk", "1 sa 14 dk").
     function durationUnit(n, unit){ return tf('# ' + unit, n); }
 

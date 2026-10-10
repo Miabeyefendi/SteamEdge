@@ -78,7 +78,7 @@ function request(url) {
 }
 
 // installedVersion: the version in package.json (app.getVersion()).
-// The return always has the same shape: { ok, kurulu, son, guncelMi, url, yayinAdi, yayinTs, hata }
+// The return always has the same shape: { ok, installed, lastOne, isUpToDate, url, releaseName, releaseTs, failure }
 async function check(installedVersion) {
   const basis = { installed: installedVersion, lastOne: null, isUpToDate: null, url: RELEASES_PAGE, releaseName: null, releaseTs: null };
   try {

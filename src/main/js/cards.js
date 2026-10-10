@@ -1,4 +1,4 @@
-    // ================= KART DÜŞÜR (CARD FARMING) =================
+    // ================= CARD FARMING =================
     // The fields on the page are filled with real engine data (dropGames / farm:tick).
     let dropGames = [], cardsLoaded = false;
     let selectedMode = 'sequential';
@@ -6,13 +6,13 @@
     let lastTick = { running: false, activeAppids: [] };
 
     // Queue controls (sortable column headers + the Hepsi/1-2/3+ filter +
-    // inline up/down/En Öne Al/remove buttons)
+    // inline up/down/Move to top/remove buttons)
     let queueSort = 'rank', queueSortDir = 'asc', qfilter = 'all';
-    let priorityOrder = [];          // array of appids - the source of the "Öncelikli" mode and of manual ordering
+    let priorityOrder = [];          // array of appids - the source of the "Priority" mode and of manual ordering
     const removedIds = new Set();    // removed from the queue (not sent to farm)
     const recentDrops = [];          // {appid,name,count,ts} - from overview.js's real drop measurement
 
-    const modeLabels = { sequential:'Sıralı', most:'Çok Kart', least:'Az Kart', priority:'Öncelik', fast:'Hızlı' };
+    const modeLabels = { sequential:'Sıralı', most:'Çok Kart', least:'Az Kart', priority:'Öncelik', leastPlayed:'En az oynanan önce', mostPlayed:'En çok oynanan önce', fast:'Hızlı' };
     // Every tooltip is ONE string: the DOM translation looks up the text as a whole, piecewise
     // concatenation matched no key in the dictionary.
     const modeHints = {
@@ -20,7 +20,9 @@
       most: 'En çok kartı kalan oyunları öne alır.',
       least: 'En az kartı kalan oyunları öne alır; rozetler daha çabuk tamamlanır.',
       priority: 'Öncelik listendeki oyunları önce çalıştırır.',
-      fast: 'Steam kart düşürmeye oyun 2 saati geçince başlar. Hızlı mod önce 2 saatin altındaki oyunları birlikte çalıştırıp bu eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir.'
+      leastPlayed: 'Oyunları oynanma süresi en az olandan başlayarak tek tek çalıştırır.',
+      mostPlayed: 'Oyunları oynanma süresi en çok olandan başlayarak tek tek çalıştırır.',
+      fast: 'Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.'
     };
     // listRow(on) / segSet(cur,key) selected-style helpers
     const ROW_ON  = { bg:'#151C28', fg:'#DCE2FA', bd:'#5624B3' };
@@ -29,7 +31,7 @@
     const SEG_OFF = { bg:'transparent', fg:'#8B8F9E', bd:'transparent' };
     function paint(el, s){ el.style.background = s.bg; el.style.color = s.fg; el.style.borderColor = s.bd; }
 
-    // Applies the Ayarlar > Kart Düşürme preferences to the page (default mode, duration, queue order).
+    // Applies the Settings > Card farming preferences to the page (default mode, duration, queue order).
     // It does not overwrite what the user changed by hand on the page; BUT a value changed with Kaydet in Ayarlar
     // (degisen) is always applied, because the user explicitly chose it a moment ago. The mode of a running
     // queue does not change (the order is set up in the engine); the main process applies a duration change to the running job
@@ -93,9 +95,12 @@
 
     // Games that will enter the queue: excluding the removed ones, ordered by the selected mode.
     function orderedForMode(){
-      const list = dropGames.filter(g=>!removedIds.has(g.appid));
+      const skipUnplayed = typeof appSettings === 'object' && !!(appSettings && appSettings.farmSkipUnplayed);
+      const list = dropGames.filter(g=>!removedIds.has(g.appid) && !(skipUnplayed && !(g.playtimeMin > 0)));
       if (selectedMode === 'most') return list.slice().sort((a,b)=>b.remaining-a.remaining);
       if (selectedMode === 'least') return list.slice().sort((a,b)=>a.remaining-b.remaining);
+      if (selectedMode === 'leastPlayed') return list.slice().sort((a,b)=>(a.playtimeMin||0)-(b.playtimeMin||0));
+      if (selectedMode === 'mostPlayed') return list.slice().sort((a,b)=>(b.playtimeMin||0)-(a.playtimeMin||0));
       if (selectedMode === 'priority'){
         return list.slice().sort((a,b)=>{
           const ia = priorityOrder.indexOf(a.appid), ib = priorityOrder.indexOf(b.appid);
@@ -150,8 +155,8 @@
         const on = activeIds.has(g.appid);
         const bd = on ? '#5624B3' : '#2B3345';
         const pct = (g.appid===currentId) ? turnPct : 0;
-        // Every game that is open is "Çalışıyor": in fast mode all the games in the pool are open,
-        // they all used to say "1. Sırada".
+        // Every game that is open is "Running": in fast mode all the games in the pool are open,
+        // they all used to say "1st in line".
         const state = on ? 'Çalışıyor' : 'Bekliyor';
         return '<div class="h-bd" data-row="'+g.appid+'" style="border:1px solid '+bd+';border-radius:12px;background:'+(on?'#0D1118':'#090C12')+';padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;opacity:'+(on?1:0.5)+'">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?'#B37E24':'#8B8F9E')+';border:1px solid '+bd+';border-radius:12px;padding:4px 0;width:34px;box-sizing:border-box;text-align:center;flex-shrink:0">#'+g.rank+'</span>'
@@ -178,15 +183,15 @@
       renderDrops();
     }
 
-    // Inline order/remove operations - manual ordering is written to the "Öncelikli" mode (priority
-    // = "Öncelik listendeki oyunları önce düşürür").
+    // Inline order/remove operations - manual ordering is written to the "Priority" mode (priority
+    // = "runs the games on the priority list first").
     document.getElementById('cardQueue').addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-act]'); if (!btn) return;
       const row = e.target.closest('[data-row]'); if (!row) return;
       const id = +row.getAttribute('data-row');
       const act = btn.getAttribute('data-act');
       if (act === 'remove'){ removedIds.add(id); saveCardState(); renderCards(); return; }
-      // the order change is made in the priority list and the mode automatically moves to "Öncelikli"
+      // the order change is made in the priority list and the mode automatically moves to "Priority"
       if (!priorityOrder.length) priorityOrder = orderedForMode().map(g=>g.appid);
       const i = priorityOrder.indexOf(id);
       if (i < 0) return;
@@ -276,7 +281,7 @@
       });
     });
 
-    // ---- Son Düşüşler (real measurement - overview.js's card counter feeds it) ----
+    // ---- Recent drops (real measurement - overview.js's card counter feeds it) ----
     function pushDrop(appid, name, count){
       recentDrops.unshift({ appid, name, count, ts: Date.now() });
       if (recentDrops.length > 12) recentDrops.length = 12;
@@ -318,10 +323,11 @@
       setCardPill(true);
       let sub = tf('# oyun sırada.', games.length);
       if (selectedMode === 'fast'){
-        const cold = games.filter(g=>(g.playtimeMin||0) < 120);
+        const threshold = (typeof appSettings === 'object' && appSettings && appSettings.fastMinPlaytimeMin != null) ? +appSettings.fastMinPlaytimeMin : 120;
+        const cold = games.filter(g=>(g.playtimeMin||0) < threshold);
         sub = cold.length
-          ? tf('# oyun 2 saatin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.', cold.length)
-          : tf('# oyunun hepsi 2 saati geçmiş; kart düşmeye hemen başlıyor.', games.length);
+          ? tf('# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.', cold.length)
+          : tf('# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.', games.length);
       }
       notify('farm', 'Kart Düşürme Başladı', sub);
       pushFeed('card', 'Kart Düşürme', sub, 'Çalışıyor');

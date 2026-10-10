@@ -40,12 +40,12 @@ class SteamEngine {
     this._reconnectTimer = null;
     this._reconnectAttempt = 0;
     this._wasShutDown = false;       // do not reconnect if logOff() was called
-    // Settings > "Bağlantı koparsa yeniden bağlan" (set by main): null = unlimited, 0 = off,
-    // n = at most n attempts. When the limit is reached 'vazgecildi' is reported and the loop stops.
+    // Settings > "Reconnect if the connection drops" (set by main): null = unlimited, 0 = off,
+    // n = at most n attempts. When the limit is reached 'abandoned' is reported and the loop stops.
     this.reconnectLimit = null;
     this.gaveUp = false;
     this.permanentDisconnect = false;      // a drop where trying again is pointless (below)
-    this.onStatus = null;           // (durum) => void   durum: 'bagli'|'koptu'|'baglaniyor'|'vazgecildi'
+    this.onStatus = null;           // (status) => void   status: 'connected'|'dropped'|'connecting'|'abandoned'
     this._pulseTimer = null;
   }
   // Only puts in a guess while the wallet currency is still unknown; once the wallet event arrives
@@ -191,7 +191,7 @@ class SteamEngine {
       this.user.once('loggedOn', () => {
         this.steamID = this.user.steamID.getSteamID64();
         // Steam only shows "in game" on the profile / to friends once persona state is Online
-        // (Invisible if the "Çevrimdışı görün" setting is on - friends cannot see the farming).
+        // (Invisible if the "Appear offline" setting is on - friends cannot see the farming).
         // Without this, gamesPlayed() registers at the protocol level but nothing is visible.
         this.user.setPersona(offline ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
         this.user.webLogOn();
@@ -317,8 +317,8 @@ class SteamEngine {
     }, wait);
   }
 
-  // Restarts a loop that gave up: the user said "Yeniden bağlan" or the attempt limit was raised
-  // in the settings. elle: also tries after a permanent drop (the user may have closed the other session).
+  // Restarts a loop that gave up: the user said "Reconnect" or the attempt limit was raised
+  // in the settings. manual: also tries after a permanent drop (the user may have closed the other session).
   tryReconnect(manual) {
     if (this._wasShutDown || this.isConnected) return;
     if (this.permanentDisconnect && !manual) return;
@@ -482,7 +482,7 @@ class SteamEngine {
   // Custom profile address (steamcommunity.com/id/<name>). The protocol does not give this;
   // it is in the profile's XML output as <customURL>. The user never changes it,
   // so it is fetched once per session and kept. If it fails it returns null and the
-  // interface shows "tanimli degil" - nothing breaks.
+  // interface shows its "not defined" text - nothing breaks.
   async getVanityURL() {
     if (this._vanity !== undefined) return this._vanity;
     this._vanity = null;
@@ -495,7 +495,7 @@ class SteamEngine {
       const xml = await r.text();
       const m = xml.match(/<customURL>(?:<!\[CDATA\[)?([^\]<]*)/i);
       if (m && m[1] && m[1].trim()) this._vanity = m[1].trim();
-    } catch (_) { /* profil gizli veya ag yok - ozel adres gosterilmez, sorun degil */ }
+    } catch (_) { /* private profile or no network - the custom address is not shown, no problem */ }
     return this._vanity;
   }
 
@@ -813,7 +813,7 @@ class SteamEngine {
   // Low-level: encode `msgType`→buffer, send EMsg, decode the job-response buffer with `respType`.
   // We do the protobuf encode/decode ourselves because steam-user doesn't map these EMsgs.
   // Protocol request. Steam sometimes does not answer a single request at all; this used to surface directly as
-  // "Steam stat yanıtı zaman aşımı" and leave the achievements page empty.
+  // "Steam stats reply timed out" and leave the achievements page empty.
   // Now it counts as transient and is tried once more, and the message says what to do.
   _sendRecvSingle(emsg, msgType, obj, respType, timeoutMs) {
     return new Promise((resolve, reject) => {
@@ -1072,14 +1072,14 @@ class SteamEngine {
     return { ok: true, changed: changes.length };
   }
 
-  // The "Çevrimdışı görün" switch under Settings > Privacy is already applied during the connection
+  // The "Appear offline" switch under Settings > Privacy is already applied during the connection
   // (see logOn); this is for changing it live while the session is OPEN (settings:set calls it instantly).
   setOfflineMode(offline) {
     this._offline = !!offline;
     this._applyPersona();
   }
 
-  // "Oyun adını gizle": Steam shows the game being played to everyone while you are online; the only
+  // "Hide the game name": Steam shows the game being played to everyone while you are online; the only
   // real way to hide it is to go invisible. So this switch makes you invisible ONLY while a game is
   // being played (unlike offline mode, you stay online when idle). Card drops are not affected.
   applyPrivacy(offline, hideGameName) {

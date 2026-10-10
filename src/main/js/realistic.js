@@ -1,4 +1,4 @@
-    // ================= GERÇEKÇİ MOD (REALISTIC MODE) =================
+    // ================= REALISTIC MODE =================
     // The page was taken from the template as is; the job here is to connect this design to real data.
     // Games are put in a queue, over the chosen time the achievements are unlocked FROM COMMON TO RARE.
     // The engine side is in main.js > the "GERCEKCI MOD" section.
@@ -74,7 +74,7 @@
       if (dk < 90) return durationUnit(dk, 'dk');
       return durationUnit(localDecimal(dk / 60, 1), 'sa');
     }
-    // ms since the start of the session -> "+1 sa 12 dk" format (the time in the Açılma Sırası table)
+    // ms since the start of the session -> "+1 sa 12 dk" format (the time in the Unlock order table)
     function grTimeLabel(ms){
       const sn = Math.round((ms || 0) / 1000);
       const hoursVal = Math.floor(sn / 3600), dk = Math.floor((sn % 3600) / 60);
@@ -136,7 +136,7 @@
     // ---- library search ----
     function grSearchable(){
       // Those in the ledger are ALWAYS filtered out: it was learned by trying that they have no achievements.
-      // The "Başarımsız oyunları göster" switch only loosens Steam's unreliable hasStats
+      // The "Show games without achievements" switch only loosens Steam's unreliable hasStats
       // flag, it does not bring back what was proven.
       const tidy = grGames.filter(g=>!grNoAchievements.has(g.appid));
       return grVal('grShowNoAch', false) ? tidy : tidy.filter(g=>g.hasStats);
@@ -438,8 +438,8 @@
       el.innerHTML = html;
     }
 
-    // The plan summary is written from a single template. It used to be four pieces: "2 sa" + " süresinde " + "12" +
-    // " başarım açılacaktır"; every language was condemned to Turkish syntax,
+    // The plan summary is written from a single template. It used to be four pieces: "2 h" + " within " + "12" +
+    // " achievements will unlock"; every language was condemned to Turkish syntax,
     // the English came out "2 h over 12 achievements will unlock".
     function grWritePlanSentence(durationMs, goal){
       const el = grEl('grPlanSentence');

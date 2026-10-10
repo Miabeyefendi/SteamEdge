@@ -151,7 +151,7 @@
       if (typeof renderLifeStats === 'function') renderLifeStats();
     }
 
-    // Startup page (Ayarlar > Genel > "Açılış sayfası")
+    // Startup page (Ayarlar > Genel > "Start page")
     function applyStartPage(){
       const map = { overview:'overview', farm:'card', hub:'inventory', boost:'hours', ach:'achievements' };
       const tab = map[appSettings.startPage];
@@ -161,7 +161,7 @@
     }
 
     // Quiet hours: it handles ranges that wrap around midnight like "23:00"→"08:00" correctly too.
-    // kaynak: which settings object to look at (the test notification looks at the draft).
+    // source: which settings object to look at (the test notification looks at the draft).
     function inQuietHours(source){
       const a = source || appSettings;
       if (!a.quietHoursEnabled) return false;
@@ -218,7 +218,7 @@
       showSetSection(pick || currentSetSec);
     }
 
-    // The currency suffixes in setting rows (e.g. the ₺ next to "Düşük değer eşiği") follow the selected
+    // The currency suffixes in setting rows (e.g. the ₺ next to "Low-value threshold") follow the selected
     // currency; it comes from the Steam wallet, no fixed symbol is written.
     function paintCurrencySymbols(){
       const sym  = (typeof curSym  === 'function') ? curSym()  : '';
@@ -226,11 +226,11 @@
       const sub  = (typeof curSubunit === 'function') ? curSubunit() : 'birim';
       document.querySelectorAll('#tab-settings [data-cursym]').forEach(e=>{ e.textContent = sym; });
       document.querySelectorAll('#tab-settings [data-curcode]').forEach(e=>{ e.textContent = code; });
-      // The unit of "Alt sıralama miktarı": in a USD account it must say "sent", not "kuruş"
+      // The unit of "Undercut amount": in a USD account it must say "sent", not "cents"
       document.querySelectorAll('#tab-settings [data-cursub]').forEach(e=>{ e.textContent = sub; });
     }
 
-    // The "Fiyat kaynağı" row. The currency choice was removed: amounts are ALWAYS shown in the Steam account's
+    // The "Price source" row. The currency choice was removed: amounts are ALWAYS shown in the Steam account's
     // wallet currency, no conversion is done - so wrong amounts caused by currency/separators
     // like "44.898,67" are impossible.
     function paintFxInfo(){
@@ -295,14 +295,14 @@
       paintFxInfo();
       writeConnectionState();
       writeConfigCard();
-      // The version comes from package.json (preload > imu.surum). There is no hand-written version line.
+      // The version comes from package.json (preload > imu.versionStr). There is no hand-written version line.
       const version = (window.imu && window.imu.versionStr) || '';
       set('setVersion', version ? ('SteamEdge v' + version) : 'SteamEdge');
       set('setVersionSide', version ? ('v' + version) : '-');
       showSetSection(currentSetSec);
     }
 
-    // ---- Hesap Statüsü: the connection state the engine last reported, not a guess ----
+    // ---- Account status: the connection state the engine last reported, not a guess ----
     let activeConnection = { condition: 'none' };
     const CONNECTION_VIEW = {
       connected:      { textValue: 'Bağlı',                colorValue: '#5FB324' },
@@ -368,7 +368,7 @@
 
     // ================= MEMORY GAUGE =================
     // The measurement comes from the main process (app.getAppMetrics), not a guess. It is updated only while Ayarlar >
-    // Gelişmiş is visible and the window is open - so the gauge itself does not keep running in the background
+    // Advanced is visible and the window is open - so the gauge itself does not keep running in the background
     // just to measure memory.
     let memTimer = null;
     function writeMemory(d){
@@ -460,7 +460,7 @@
       }
     };
 
-    // Hakkında > author and credits links - opened in the external browser
+    // About > author and credits links - opened in the external browser
     document.querySelectorAll('#tab-settings [data-gh]').forEach(a=>{
       a.addEventListener('click', (e)=>{
         e.preventDefault();

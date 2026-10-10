@@ -1,6 +1,6 @@
 <!--
   ================================================================
-  SAAT YÜKSELTİCİ (HOUR BOOSTER)
+  HOUR BOOSTER
   Sizes, colours and spacing are inline; :hover and :focus states are tied to the .h-* / .f-*
   classes in edge.css. Data: hours.js - the real library list and the boost engine.
   ================================================================
@@ -141,7 +141,7 @@
             <span style="font-size:12px;color:#B9C0D6">Sıralı bekletme modu</span>
             <span class="e-toggle" data-bset="seqIdle"><span class="e-knob"></span></span>
           </div>
-          <!-- "Sırayı tekrarla" only makes sense in sequential idling mode: in simultaneous mode there is no queue, the games run together and drop off at the target. While sequential mode is off this row dims and cannot be clicked; otherwise it would be a switch that looks on and does nothing. -->
+          <!-- "Repeat the queue" only makes sense in sequential idling mode: in simultaneous mode there is no queue, the games run together and drop off at the target. While sequential mode is off this row dims and cannot be clicked; otherwise it would be a switch that looks on and does nothing. -->
           <div id="hoursLoopRow" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Sırayı tekrarla (kuyruk bitince baştan başlar)</span>
             <span class="e-toggle" data-bset="loopQueue"><span class="e-knob"></span></span>
@@ -152,7 +152,7 @@
       <div style="display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Gizlilik</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-          <!-- "Oyun adını gizle" was removed from here: it is already under Ayarlar > Gizlilik and its description is there. With it in two places it was unclear which one applied. -->
+          <!-- "Hide the game name" was removed from here: it is already under Ayarlar > Gizlilik and its description is there. With it in two places it was unclear which one applied. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Çevrimdışı görün</span>
             <span class="e-toggle" data-bset="offlineMode"><span class="e-knob"></span></span>

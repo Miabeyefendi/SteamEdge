@@ -175,11 +175,11 @@ contextBridge.exposeInMainWorld('imu', {
     // The main process badge watcher's current card list (for the account on screen).
     onFarmList: (cb) => ipcRenderer.on('farm:list', (_e, data) => cb(data)),
     // games: [{appid, playtimeMin}] - needed to build the hour sync steps.
-    // tumu: every selected game; if the "at most at once" limit changes while a job runs, the list is cut from here.
+    // allItems: every selected game; if the "at most at once" limit changes while a job runs, the list is cut from here.
     boostStart: (appids, durationMs, games, allOfIt) => ipcRenderer.send('engine:boostStart', { appids, durationMs, games, allItems: allOfIt }),
     boostSyncPlan: (games, mode, targetHours) => ipcRenderer.invoke('engine:boostSyncPlan', { games, mode, targetHours }),
     onBoostSync: (cb) => ipcRenderer.on('boost:sync', (_e, d) => cb(d)),
-    // G3: Steam connection state (bagli | koptu | baglaniyor | vazgecildi)
+    // G3: Steam connection state (connected | dropped | connecting | abandoned)
     onStatus: (cb) => ipcRenderer.on('engine:status', (_e, d) => cb(d)),
     connectionStatus: () => ipcRenderer.invoke('engine:connectionStatus'),
     // Retries a connection that has run out of attempts or was permanently dropped.

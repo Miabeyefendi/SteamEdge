@@ -7,6 +7,23 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.1)
+
+Card farming options release: the card drop threshold is now a setting, there are two new queue orders, and farming can leave out unplayed games or close the app when it is done.
+
+### Added
+
+- **Card drop threshold** (Settings > Card farming). Steam only holds back cards until a game passes a certain playtime on accounts with restricted card drops, usually 2 hours. The value Fast mode warms games up to was hidden in the settings file; it is now a setting, and `0` skips the warm-up for accounts that get cards from the first minutes.
+- **Least played first / Most played first.** Two new queue orders for card farming, available on the Card Farming page and as the default mode in Settings.
+- **Skip games that were never played.** Leaves games with no recorded playtime out of the queue.
+- **When all cards are collected.** Choose between doing nothing and closing the app. Closing waits 20 seconds and only happens when no other account has a job running.
+
+### Changed
+
+- **Fast mode text and warnings.** The hint and the start message no longer say "2 hours" as if it were fixed, and the hint now warns that a newly bought game can no longer be refunded once it passes 2 hours.
+- **Tutorial and README** now say the playtime threshold applies to accounts with restricted card drops and is something to test on your own account, instead of presenting it as a rule for everyone.
+- **Code leftovers in English.** The learned list of games without achievements moved from `cache/basarimsiz.json` to `cache/no-achievements.json` (the old file is renamed on first start, nothing is lost), the settings export defaults to `steamedge-settings-*.json`, and every code comment is English now (quoted interface labels in comments use the English names).
+
 ## [1.4.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.0)
 
 Code cleanup release: the whole source code is now in English. No feature changes, and the interface language is unchanged.

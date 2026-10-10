@@ -89,16 +89,16 @@
   <script src="../main/js/theme.js"></script>
   <script src="../main/js/i18n.js"></script>
   <script>
-    // Giris ekraninda da secili dil uygulanir (ayarlar main surecten okunur).
+    // The selected language is applied on the login screen too (settings are read from the main process).
     window.imu.settings.get().then(s => {
       if (typeof initI18n !== 'function') return;
       initI18n(s && s.language);
-      // applyI18n yalnizca body'yi geziyor, <title> ona gorunmuyor. Pencere basligi
-      // gorev cubugunda duruyor, o da cevrilmeli.
+      // applyI18n only walks the body, <title> is not visible to it. The window title
+      // sits in the task bar, so it has to be translated too.
       if (typeof t === 'function') document.title = t(document.title);
     }).catch(()=>{});
-    // Surum numarasi elle yazilmisti ve 1.0.8'de kalmisti. Tek kaynak package.json;
-    // ana surec app.getVersion() ile veriyor.
+    // The version number used to be typed by hand and was stuck at 1.0.8. The single source is package.json;
+    // the main process provides it through app.getVersion().
     window.imu.appInfo().then(b => {
       const el = document.getElementById('lgVersion');
       if (el && b && b.versionStr) el.textContent = 'v' + b.versionStr;
@@ -113,12 +113,12 @@
     addBox.onmouseenter = () => { addBox.style.color = 'var(--e-brandActive)'; };
     addBox.onmouseleave = () => { addBox.style.color = 'var(--e-off)'; };
     addBox.onclick = () => addSlot();
-    // (+) kutusu varsayılan görünümde YOK - sadece "Birden fazla hesabınız mı var?" ile açılır.
+    // The (+) box is NOT in the default view - it only opens with "Have more than one account?".
 
     let slotCount = 0;
     const activeSlots = new Set();
 
-    // İkincil hesap kutuları için hue-cycle: ana hesap her zaman marka moru kalır, sonrakiler bu sırayla.
+    // Hue cycle for the secondary account boxes: the main account always stays brand purple, the following ones use this order.
     const SLOT_COLORS = ['#24AEB3', '#B37E24', '#a78bfa', '#B32453', '#ec4899', '#22d3ee'];
     function colorFor(i) { return i === 0 ? '#5624B3' : SLOT_COLORS[(i - 1) % SLOT_COLORS.length]; }
 
@@ -126,7 +126,7 @@
       const n = Math.max(1, activeSlots.size);
       const addBoxW = addBox.parentNode ? 96 : 0;
       const w = 360 + Math.min(n, 3) * 352 + addBoxW + 64;
-      // Pencere varsayılan 1716 genişlikte açılır - sadece çok hesap eklenince bunun üzerine çıkar.
+      // The window opens at the default width of 1716 - it only grows beyond that when many accounts are added.
       A.win.setWidth(Math.max(1716, w));
     }
 
@@ -152,10 +152,10 @@
             + '<div id="qrBox-' + i + '" style="width:196px;height:196px;border-radius:12px;border:1px solid var(--e-bd);background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden">'
               + '<div class="spin"></div>'
             + '</div>'
-            // Cumle eskiden "Steam Guard" cevresinde <b> ile ikiye bolunuyordu. Sozluk
-            // metin dugumu bazinda calistigi icin iki yarim cumle iki ayri anahtar olmus,
-            // biri cevrilmis biri Turkce kalmisti. Ustelik bu kalip cevrilebilir degil:
-            // her dil "Steam Guard"i cumlenin baska yerine koyar. Tek dugum yapildi.
+            // The sentence used to be split in two around "Steam Guard" with a <b>. The dictionary
+            // works per text node, so the two half sentences became two separate keys,
+            // one translated and one left in Turkish. This pattern is not translatable anyway:
+            // every language puts "Steam Guard" somewhere else in the sentence. It is a single node now.
             + '<div style="font-size:11px;line-height:1.6;color:var(--e-muted);text-align:center;max-width:30ch">'
               + 'Steam mobil uygulamasında Steam Guard sekmesini aç, tarama simgesine bas ve bu kodu okut.'
             + '</div>'
@@ -190,7 +190,7 @@
       if (addBox.parentNode) slotsRow.insertBefore(card, addBox);
       else slotsRow.appendChild(card);
       wireSlot(i);
-      setMode(i, 'qr');          // QR varsayilan - parola girmeye gerek yok
+      setMode(i, 'qr');          // QR is the default - no need to type a password
       resizeWindow();
     }
 
@@ -229,7 +229,7 @@
       });
       setStatus(i, '');
       if (qrOn) startQR(i);
-      else A.auth.cancel(i);          // QR oturumu acik kaldiysa kapat
+      else A.auth.cancel(i);          // close the QR session if it was left open
     }
 
     function startQR(i) {
@@ -259,8 +259,8 @@
       g('guard').addEventListener('keydown', e => { if (e.key === 'Enter') g('go').click(); });
     }
 
-    // slot 0 = ana kutu: başarıyla bitince panele geçilir. Diğer kutular arka planda kalabilir,
-    // sadece kendi kartında "başarılı" durumunu gösterir - pencere kapanmaz.
+    // slot 0 = the main box: when it finishes successfully the dashboard opens. The other boxes can stay in the background,
+    // they only show a "success" state on their own card - the window does not close.
     function finishSlot(i) {
       if (String(i) === '0') { A.goDashboard(); return; }
       const login = $id('stLogin-' + i), prep = $id('stPrep-' + i), ok = $id('stSuccess-' + i);
@@ -269,7 +269,7 @@
       if (ok) ok.classList.remove('hide');
     }
 
-    // Motordan gelen QR gorseli (steamAuth > startQR > emit('qr'))
+    // The QR image coming from the engine (steamAuth > startQR > emit('qr'))
     A.auth.on('qr', d => {
       const box = $id('qrBox-' + d.slotId);
       if (!box || !d.image) return;
@@ -301,7 +301,7 @@
       if (rm) removeSlot(+rm.getAttribute('data-remove'));
     });
 
-    addSlot(); // slot 0: her zaman baştan açık
+    addSlot(); // slot 0: always open from the start
   </script>
 </body>
 </html>

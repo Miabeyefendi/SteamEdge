@@ -11,7 +11,7 @@
     // screen and a separate permission model. Everything here goes through the friend list.
     let chFriends = [];
     let chSelected = null;                  // steamid
-    let chMessages = new Map();           // steamid -> [{ben, metin, ts}]
+    let chMessages = new Map();           // steamid -> [{me, textValue, ts}]
     let chUnread = new Map();          // steamid -> count
     let chLoaded = false;
     let chRequest = 0;                      // race condition counter

@@ -1,4 +1,4 @@
-    // ================= ENVANTER & PAZAR (INVENTORY & MARKET) =================
+    // ================= INVENTORY & MARKET =================
     // The order book in the right panel is parsed structurally from the market page;
     // the realised sales come from the pricehistory endpoint.
     let invItems = null, invMerged = null, inventoryLoaded = false;
@@ -22,13 +22,13 @@
     const EC = { ok:'#5FB324', teal:'#24AEB3', bad:'#B32453', brand:'#5624B3', sub:'#C2AAEE',
                  title:'#DCE2FA', muted:'#8B8F9E', off:'#656D80', bd:'#2B3345', s1:'#0D1118' };
 
-    // Amounts are in the selected currency (common.js fmtMoney). If "Fiyat gösterimi: Net" is selected
+    // Amounts are in the selected currency (common.js fmtMoney). If "Price display: Net" is selected
     // the listed prices are shown with Steam's commission deducted.
     const fmtLira = (n) => fmtMoney(n);
-    // The "En düşük" and "Ortalama" columns in the list are the MARKET price: the same as the amount on the Steam
+    // The "Lowest" and "Average" columns in the list are the MARKET price: the same as the amount on the Steam
     // page, with no deduction at all. The amount you will get (net) is found with Steam's own
     // fee calculation (below, "SALE") and is only shown in the sale flow.
-    // "Düşük değer eşiği": items below this amount are shown dimmed and are not included in "select all"
+    // "Low-value threshold": items below this amount are shown dimmed and are not included in "select all"
     const lowLimit = () => +((appSettings||{}).invLowValue) || 0;
     const isLowValue = (it) => { const v = medVal(it); return lowLimit() > 0 && v != null && v < lowLimit(); };
     function priceOf(it){ return it.marketHashName ? priceMap.get(it.marketHashName) : undefined; }
@@ -205,7 +205,7 @@
       if (appSettings.hideUnsellable) fState = 'marketable';
       if (appSettings.groupByGame) groupByGame = true;
       if (appSettings.saleMode){
-        // "Varsayılan satış fiyatı" - the starting strategy of the detail panel and the bottom bar
+        // "Default selling price" - the starting strategy of the detail panel and the bottom bar
         const map = { median:'median', lowest:'match', undercut:'undercut', match:'match', manual:'manual' };
         const s = map[appSettings.saleMode];
         if (s) bulkStrategy = s;
@@ -215,7 +215,7 @@
       armPriceAutoRefresh();
     }
 
-    // "Fiyatları otomatik yenile" + "Fiyat yenileme aralığı" - refreshes in the background while Envanter is open
+    // "Refresh prices automatically" + "Price refresh interval" - refreshes in the background while Envanter is open
     let priceRefreshTimer = null;
     function armPriceAutoRefresh(){
       if (priceRefreshTimer){ clearInterval(priceRefreshTimer); priceRefreshTimer = null; }
@@ -239,9 +239,9 @@
 
     // ================= PRICE FETCH GATE =================
     // Steam market requests are limited to ~20 requests / 30 seconds. Asking the whole inventory
-    // as soon as the page opened hit the limit and the boxes filled with "alınamadı". Now:
+    // as soon as the page opened hit the limit and the boxes filled with "could not be fetched". Now:
     //   1) On first entering the page it asks "fetch now?".
-    //   2) If the answer is no the user sets up the filter and presses the "Fiyatları Getir" button.
+    //   2) If the answer is no the user sets up the filter and presses the "Fetch prices" button.
     //   3) Only the items that match the CURRENT filter are fetched, the button stays locked until all are done.
     //   4) If the filter changes the button opens again (a new list needs a new request).
     let priceFetching = false;      // the request sequence is running
@@ -315,7 +315,7 @@
         body: (function(){
           const everything = hashesForView().length;
           const lacking = hashesForView().filter(h => !priceMap.has(h)).length;
-          // Since Turkish suffixes change with the number ("80'inin", "3'ünün") no suffix is attached to the number.
+          // Since Turkish suffixes change with the number, no suffix is attached to the number.
           return lacking < everything
             ? (tf('Toplam # öğenin # tanesinin fiyatı önbellekte.', everything, everything - lacking) + ' '
                + tf('Kalan # öğe için Steam pazar fiyatı çekilecek.', lacking))
@@ -330,7 +330,7 @@
       else if (typeof toast === 'function') toast('Fiyat').done('Filtreni kur, sonra alttaki "Fiyatları Getir" düğmesine bas.');
       paintFetchBtn();
     }
-    // "Fiyat düşüşü uyarısı": when the lowest listing drops below Steam's 24 hour average by the threshold
+    // "Price drop alert": when the lowest listing drops below Steam's 24 hour average by the threshold
     // (see SALE > checkPriceDrop). It used to look at the difference between two measurements
     // and was tied to the "error" notification: it never came if the error notification was off.
     E.onPriceOne(({ hashName, price }) => {
@@ -404,7 +404,7 @@
       const buckets = { all:[0,Infinity], '0-1':[0,1], '1-5':[1,5], '5-10':[5,10], '10-':[10,Infinity] };
       const pb = buckets[fPrice] || buckets.all;
       let out = invMerged.filter(i=>{
-        // "Satılan öğeyi envanterden gizle": the copies put on sale in this session are subtracted;
+        // "Hide sold items from the inventory": the copies put on sale in this session are subtracted;
         // if all were put on sale the row is hidden. The Steam inventory is sometimes updated late.
         if (appSettings && appSettings.hideAfterSell && i.assetIds.every(a=>listedAssets.has(a))) return false;
         if (fType !== 'all' && i.type !== fType) return false;
@@ -463,7 +463,7 @@
     const GRID_COLS = '34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px';
 
     // G9: the "half the rows stay grey" complaint. This is not a bug: items below Ayarlar > Envanter >
-    // Düşük değer eşiği are shown dimmed. Since it was written nowhere the user
+    // Low-value threshold are shown dimmed. Since it was written nowhere the user
     // thought it was a sort and got confused. Now there is a small explanation in the top bar.
     function drawThresholdBadge(){
       const el = document.getElementById('invThresholdNote');
@@ -532,7 +532,7 @@
       viewRows = applyFilters();
       setTimeout(drawThresholdBadge, 0);   // so the count is right after the rows are drawn
       setTimeout(paintAvgBtn, 0);     // when the filter changes the missing count changes too
-      paintFetchBtn();   // when the filter changes "Fiyatları Getir" becomes active again
+      paintFetchBtn();   // when the filter changes "Fetch prices" becomes active again
       const scroll = document.getElementById('invScroll');
       const rows = document.getElementById('invRows');
       document.getElementById('invCount').textContent = viewRows.length + ' / ' + invMerged.length + ' öğe';
@@ -608,8 +608,8 @@
 
     // ---- sale price strategies (computed from the real price) ----
     function strategyPrice(it, strat){
-      // "Altına in" / "En ucuzla aynı" look at the CURRENT listings (that is where the competition is).
-      // "Ortalama" comes from REALISED sales - so that an outlier listing on sale
+      // "Undercut" / "Match lowest" look at the CURRENT listings (that is where the competition is).
+      // "Average" comes from REALISED sales - so that an outlier listing on sale
       // does not inflate it. It never goes below Steam's lower limit (0.03 etc.).
       const ord = ordersMap.get(it.marketHashName);
       const bookLow = (ord && ord !== 'loading' && ord !== 'none' && ord.lowestSell != null) ? ord.lowestSell : null;
@@ -720,7 +720,7 @@
       renderBulk();
     });
     document.getElementById('bulkSellNow').onclick = ()=> sellFlow(invMerged.filter(i=>selected.has(i.dedupKey)), bulkStrategy);
-    // "Fiyatları Getir": fetches only those that match the current filter, locked until done.
+    // "Fetch prices": fetches only those that match the current filter, locked until done.
     document.getElementById('invFetchPrices').onclick = fetchPricesForView;
 
     // ---- right detail panel ----
@@ -749,7 +749,7 @@
       if (!res || !res.ok) o = { failed: true, reason: (res && res.error) || 'Uygulama içi iletişim hatası' };
       else if (!res.orders) o = { failed: true, reason: 'Steam boş yanıt döndürdü' };
       else if (res.orders.noCurrency) o = { failed: true, reason: 'hesabın pazar kuru henüz okunmadı' };
-      // Keep the reason: saying "alınamadı" is not enough, WHY it could not be fetched must be written.
+      // Keep the reason: saying "could not be fetched" is not enough, WHY it could not be fetched must be written.
       else if (res.orders.error || res.orders.rateLimited) o = { failed: true, reason: res.orders.error || 'Steam istek sınırı', rateLimited: !!res.orders.rateLimited };
       else o = res.orders;
       ordersMap.set(it.marketHashName, o);
@@ -875,7 +875,7 @@
         + '</div>'
         // Three boxes: listings on sale · hemen sat · realised sales
         + '<div style="display:flex;flex-direction:column;gap:10px">' + obBoxes + '</div>'
-        // NOTE: the "Satış Stratejisi" and "Satış fiyatı" sections were REMOVED from this panel.
+        // NOTE: the "Sale strategy" and "Sale price" sections were REMOVED from this panel.
         // All sale operations are done from the bottom bar (bulk or single, manual price included).
         ;
 
@@ -888,7 +888,7 @@
       if (!ord)  ensureOrders(it);
     }
 
-    // "Pazarda Otomatik Satış" (Kart Düşür > Otomasyon) - when a card drops in a game it lists that game's
+    // "Auto-list on the market" (Card Farming > Automation) - when a card drops in a game it lists that game's
     // new sellable cards at the average price. It refreshes the inventory and finds the cards that were not in the PREVIOUS snapshot;
     // so it does not touch the old cards you have.
     let autoSellSeen = null;   // dedupKey -> count (last known inventory)
@@ -946,7 +946,7 @@
       const u = feeCache.get(subunit(buyerValue));
       return u ? u.seller / 100 : null;
     }
-    // "Eline geçecek" in the bottom bar: if the fee calculation has not arrived it is requested in the background and drawn when it arrives.
+    // "You receive" in the bottom bar: if the fee calculation has not arrived it is requested in the background and drawn when it arrives.
     // If the calculation failed (could not reach Steam) it is not tried again for a minute; otherwise every
     // draw would send a new request.
     let feeErrorTime = 0;
@@ -961,7 +961,7 @@
 
     // ---- price drop ----
     // Items that drop clearly below Steam's 24 hour average. The notification is tied to
-    // its own key ("Fiyat düşüşü uyarısı"), it does not go quiet when the error notification is turned off.
+    // its own key ("Price drop alert"), it does not go quiet when the error notification is turned off.
     // The same item is notified once a day. It is also warned with a red line in the sale confirmation.
     const priceDrops = new Map();          // marketHashName -> { yuzde, ts }
     function priceDropThreshold(){ return Math.max(1, +((appSettings || {}).priceDropThreshold) || 10) / 100; }
@@ -991,7 +991,7 @@
     // Steam limits listing by the account's trustworthiness: a new account can be stopped after 10-15
     // listings, an old account can list 80+ at once. So:
     //   - When Steam returns an error the job STOPS and the reason is told; no blind continuing.
-    //   - If wanted it is split into batches (Ayarlar > Pazar > Parti büyüklüğü). When a batch ends
+    //   - If wanted it is split into batches (Settings > Market > Batch size). When a batch ends
     //     it either waits for the set time and continues or asks the user.
     // Nearly every listing lands in the Steam Guard mobile confirmation; when the job ends it is said how many
     // are waiting for confirmation. The two step "type SAT" confirmation was removed: prompt() never

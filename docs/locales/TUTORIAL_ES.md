@@ -36,7 +36,7 @@ La aplicación habla el propio protocolo de red de Steam, el mismo que usa el cl
 De ahí se derivan dos consecuencias, y explican casi todo el comportamiento de la aplicación:
 
 - **Steam es la única fuente de verdad.** Nada se estima ni se inventa. Si un número no se puede obtener, la casilla muestra un guion en lugar de una suposición.
-- **Los límites de Steam son los límites de la aplicación.** Las peticiones de mercado están topadas en unas 20 cada 30 segundos por cuenta, y todas las partes de la aplicación que tocan el mercado comparten ese único presupuesto. Los cromos no empiezan a caer hasta que un juego supera las dos horas de tiempo total. Son hechos medidos, no ajustes. Publicar anuncios tiene además un límite propio por cuenta que Steam no publica.
+- **Los límites de Steam son los límites de la aplicación.** Las peticiones de mercado están topadas en unas 20 cada 30 segundos por cuenta, y todas las partes de la aplicación que tocan el mercado comparten ese único presupuesto. En cuentas con caídas de cromos restringidas, los cromos no empiezan a caer hasta que un juego supera cierto tiempo de juego, normalmente dos horas. Los límites en sí son de Steam; solo se puede ajustar el umbral que la aplicación supone. Publicar anuncios tiene además un límite propio por cuenta que Steam no publica.
 
 ### Estructura de archivos
 
@@ -139,7 +139,7 @@ Se abre desde el botón Chat de arriba a la derecha, no desde el menú lateral. 
 
 ### Farmeo de cromos
 
-Steam no suelta cromos hasta que un juego supera las **dos horas** de tiempo total. Todos los modos menos uno ignoran ese hecho y simplemente ejecutan juegos; el **modo Rápido** lo tiene en cuenta y sube por encima del umbral los juegos que aún están por debajo antes de empezar a rotar.
+En cuentas con caídas de cromos restringidas, Steam no suelta cromos hasta que un juego supera cierto tiempo total, normalmente **dos horas** (Ajustes > Farmeo de cromos > **Umbral de caída de cromos**). Se informa de que algunas cuentas antiguas no tienen esa restricción y reciben cromos en los primeros minutos; en ese caso pon el umbral a 0. No es una regla fija para todos, pruébalo en tu cuenta. Todos los modos menos uno ignoran ese hecho y simplemente ejecutan juegos; el **modo Rápido** lo tiene en cuenta y sube por encima del umbral los juegos que aún están por debajo antes de empezar a rotar.
 
 En todos los modos salvo Rápido se ejecuta un juego cada vez durante el **Tiempo por juego** que fijes (Ajustes > Farmeo de cromos, 5 minutos por defecto; el temporizador de la página de farmeo parte de ese valor y se puede cambiar en cada ejecución) y luego toma el relevo el siguiente. Un juego sin cromos pendientes sale de la cola y el siguiente empieza de inmediato. Cuando ningún juego de la cola tiene cromos, o **Pasar al siguiente al terminar un juego** está desactivado y se acaba el tiempo del juego actual o sus cromos, el farmeo se detiene y explica por qué en lugar de reiniciar el último juego. El farmeo y el impulsor de horas pueden funcionar a la vez: cada uno mantiene sus propios juegos y Steam ve ambos, hasta su límite de 32.
 
@@ -152,8 +152,10 @@ Los modos:
 | Uno por uno | Un juego cada vez, en el orden de la lista |
 | Más cromos | Primero los juegos con más cromos pendientes |
 | Menos cromos | Primero los juegos más cerca de terminar |
+| Menos jugados primero | Uno por uno, primero el juego con menos tiempo jugado |
+| Más jugados primero | Uno por uno, primero el juego con más tiempo jugado |
 | Prioridad | Tu propio orden |
-| Rápido | Calentamiento de los juegos por debajo de dos horas y luego todos abiertos a la vez con un juego destacado que rota |
+| Rápido | Calentamiento de los juegos por debajo del umbral y luego todos abiertos a la vez con un juego destacado que rota |
 
 Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación vuelve a leer las páginas de insignias de cada cuenta cada tres minutos y reporta la diferencia honesta del total de cromos restantes en lugar de un contador inventado.
 
@@ -243,9 +245,11 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | Clave | Por defecto | Qué hace |
 |---|---|---|
 | `autoNextGame` | `true` | Pasa al siguiente juego cuando uno termina. Desactivado: el farmeo se detiene tras el juego actual |
+| `farmSkipUnplayed` | `false` | Deja fuera de la cola los juegos sin tiempo de juego registrado |
+| `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha |
 | `cardMaxGames` | `32` | Juegos abiertos a la vez |
 | `farmMaxMinutes` | `5` | Minutos que funciona cada juego antes de que tome el relevo el siguiente. El modo Rápido marca su propio ritmo |
-| `fastMinPlaytimeMin`* | `120` | El modo Rápido sube primero por encima de este tiempo los juegos que están por debajo y luego rota todos |
+| `fastMinPlaytimeMin` | `120` | Umbral de caída de cromos en minutos. El modo Rápido sube primero por encima los juegos que están por debajo y luego rota todos. `0` omite el calentamiento |
 
 ### Mercado
 
@@ -327,7 +331,7 @@ Steam limita cuántos anuncios puede crear una cuenta, y el límite depende de s
 
 ### Dice "quedan 40 cromos" pero solo cayeron unos pocos
 
-Los cromos solo caen después de que un juego supere las dos horas de tiempo total, y cada juego tiene su propio número limitado de caídas. Una sesión larga en los otros modos sobre juegos que están todos por debajo de dos horas no produce nada hasta que cruzan el umbral; el modo Rápido primero los sube todos juntos por encima.
+En cuentas con caídas de cromos restringidas, los cromos solo caen después de que un juego supere el umbral de caída de cromos (normalmente dos horas de tiempo total), y cada juego tiene su propio número limitado de caídas. Una sesión larga en los otros modos sobre juegos que están todos por debajo de dos horas no produce nada hasta que cruzan el umbral; el modo Rápido primero los sube todos juntos por encima.
 
 ### Los precios muestran un guion, o se rellenan muy despacio
 

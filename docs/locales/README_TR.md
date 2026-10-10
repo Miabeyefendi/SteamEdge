@@ -34,7 +34,7 @@
 
 ## ✨ Öne çıkanlar
 
-- **Kart düşürme** - Oyunlarını "oynanıyor" gösterir, ticari kartlar düşer. Beş mod var; biri Steam'in kart düşürmeye ancak oyun iki saati geçince başladığını bilir.
+- **Kart düşürme** - Oyunlarını "oynanıyor" gösterir, ticari kartlar düşer. Yedi mod var; biri, kart düşürmesi kısıtlı hesaplarda Steam'in kart düşürmeye ancak oyun bir süre eşiğini (genelde iki saat) geçince başladığını bilir.
 - **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar. İsteğe bağlı saat eşitlemesi seçili oyunları aynı toplam süreye çeker.
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
 - **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar. Profilde gerçekten oynanmış gibi bir iz bırakır.

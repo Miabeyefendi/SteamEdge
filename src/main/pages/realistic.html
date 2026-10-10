@@ -1,6 +1,6 @@
 <!--
   ================================================================
-  GERÇEKÇİ MOD (REALISTIC MODE)
+  REALISTIC MODE
   The design was taken from the template as is (Template Steam > App UI rebuilt as component).
   The template uses a component language: {{ value }} placeholders, sc-if / sc-for blocks,
   style-hover / style-focus attributes. Their counterparts here:
@@ -259,7 +259,7 @@
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun Verisi · HLTB</span>
           <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
-            <!-- The "100% time · Tc" row was removed: the same value is now in the "%100 Bitiş Süresi" box in the main panel and is kept per game. With it in two places it was unclear which one applied. -->
+            <!-- The "100% time · Tc" row was removed: the same value is now in the "100% completion time" box in the main panel and is kept per game. With it in two places it was unclear which one applied. -->
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #101621">
               <span style="font-size:12px;color:#B9C0D6">Oyun türü · CR</span>
               <select id="grCR2" class="f-brand" style="width:126px;height:26px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
@@ -307,7 +307,7 @@
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px">
-        <!-- The "Başarımı Olmayan Oyunlar" select box was removed: collecting hours, skipping the game or stopping the queue is not this page's job. A game found to have no achievements drops off the list and is not shown again. -->
+        <!-- The "Games without achievements" select box was removed: collecting hours, skipping the game or stopping the queue is not this page's job. A game found to have no achievements drops off the list and is not shown again. -->
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Kütüphane</span>
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
@@ -318,7 +318,7 @@
             <span style="font-size:12px;color:#B9C0D6">Başarımsız oyunları listede göster</span>
             <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
-          <!-- When the "Süreyi ayarlara göre belirle" row was added in 1.1.5, it had fallen INSIDE the OPEN <div> of the next row. Because of this three flex children came side by side on a single row and the labels dropped down letter by letter, and the panel got a horizontal scroll. The two rows are now siblings. -->
+          <!-- When the "Set the duration from the settings" row was added in 1.1.5, it had fallen INSIDE the OPEN <div> of the next row. Because of this three flex children came side by side on a single row and the labels dropped down letter by letter, and the panel got a horizontal scroll. The two rows are now siblings. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <div style="display:flex;align-items:center;gap:7px;min-width:0">
               <span style="font-size:12px;color:#B9C0D6">Süreyi ayarlara göre belirle</span>

@@ -3,7 +3,7 @@
 //
 // Why it was needed: the tray menu, titles of file dialogs, desktop notifications and the error messages
 // returned to the interface are produced in the main process and came out Turkish in every language. The Steam
-// engine's error texts were also written without Turkish letters ("zaman asimina ugradi").
+// engine's error texts were also written without Turkish letters (for example a timeout message spelled in ASCII Turkish).
 const fs = require('fs');
 const path = require('path');
 
@@ -81,7 +81,7 @@ function stripTags(s) {
   return out;
 }
 
-// Template that carries values: tf('# oyun sırada.', 5). The plural form follows the first numeric value.
+// Template that carries values: tf('# games queued.', 5). The plural form follows the first numeric value.
 function tf(template, ...degerler) {
   const rawText = (lang !== 'tr' && table) ? table[String(template).replace(/\s+/g, ' ').trim()] : undefined;
   let translation;

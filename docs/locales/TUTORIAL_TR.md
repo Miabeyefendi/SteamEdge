@@ -36,7 +36,7 @@ Uygulama, Steam'in kendi ağ protokolüyle konuşur; istemcinin kullandığı pr
 Buradan iki sonuç çıkıyor ve uygulamanın davranışının çoğunu bu ikisi açıklıyor:
 
 - **Tek doğru kaynağı Steam.** Hiçbir şey tahmin edilmez, uydurulmaz. Bir sayı çekilemiyorsa kutuda tahmin değil, tire görürsün.
-- **Steam'in sınırları uygulamanın da sınırı.** Pazar istekleri hesap başına kabaca 30 saniyede 20 istekle sınırlı ve uygulamanın pazara dokunan her parçası bu tek bütçeyi paylaşıyor. Kart düşürme, bir oyunun toplam süresi iki saati geçmeden başlamıyor. Bunlar ölçülmüş gerçekler, ayar değil. İlan vermenin de Steam'in yayımlamadığı, hesaba göre değişen ayrı bir sınırı var.
+- **Steam'in sınırları uygulamanın da sınırı.** Pazar istekleri hesap başına kabaca 30 saniyede 20 istekle sınırlı ve uygulamanın pazara dokunan her parçası bu tek bütçeyi paylaşıyor. Kart düşürmesi kısıtlı hesaplarda kartlar, oyun belirli bir süreyi (genelde iki saat) geçmeden düşmüyor. Sınırların kendisi Steam'in; uygulamada yalnızca varsaydığı eşiği ayarlayabilirsin. İlan vermenin de Steam'in yayımlamadığı, hesaba göre değişen ayrı bir sınırı var.
 
 ### Dosya düzeni
 
@@ -139,7 +139,7 @@ Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkada�
 
 ### Kart düşürme
 
-Steam, bir oyunun toplam süresi **iki saati** geçmeden kart düşürmez. Bir mod dışında hepsi bunu yok sayıp oyunları çalıştırır; **Hızlı mod** bunu bilir ve eşiğin altındaki oyunları, döndürmeye başlamadan önce eşiğin üstüne çıkarır.
+Kart düşürmesi kısıtlı hesaplarda Steam, bir oyunun toplam süresi belirli bir eşiği, genelde **iki saati**, geçmeden kart düşürmez (Ayarlar > Kart Düşürme > **Kart düşme eşiği**). Bazı eski hesaplarda bu kısıtın olmadığı bildiriliyor ve kartlar ilk dakikalarda gelebiliyor; böyle bir hesapta eşiği 0 yap. Bu herkes için sabit bir kural değil, kendi hesabında dene. Bir mod dışında hepsi bunu yok sayıp oyunları çalıştırır; **Hızlı mod** bunu bilir ve eşiğin altındaki oyunları, döndürmeye başlamadan önce eşiğin üstüne çıkarır.
 
 Hızlı mod dışındaki her modda aynı anda bir oyun, ayarladığın **Oyun başına süre** kadar çalışır (Ayarlar > Kart Düşürme, varsayılan 5 dakika; Kart Düşür sayfasındaki zamanlayıcı buradan başlar ve her çalıştırmada değiştirilebilir), sonra sıradaki oyun devralır. Kartı biten oyun kuyruktan düşer ve sıradaki hemen başlar. Kuyruktaki her oyunun kartı bittiğinde ya da **Oyun bitince sıradakine geç** kapalıyken mevcut oyunun süresi dolduğunda veya kartı bittiğinde, kart düşürme son oyunu yeniden başlatmak yerine durur ve sebebini söyler. Kart düşürme ve saat yükseltici birlikte çalışabilir: her biri kendi oyun kümesini tutar, Steam ikisini birden 32 sınırına kadar görür.
 
@@ -152,8 +152,10 @@ Modlar:
 | Sıralı | Liste sırasıyla, teker teker |
 | Çok Kart | En çok kartı kalan oyunlar önce |
 | Az Kart | Bitmeye en yakın oyunlar önce |
+| En az oynanan önce | Teker teker, oynanma süresi en az olan oyun önce |
+| En çok oynanan önce | Teker teker, oynanma süresi en çok olan oyun önce |
 | Öncelik | Senin belirlediğin sıra |
-| Hızlı | İki saatin altındaki oyunlar için ısınma, sonra hepsi birlikte açık ve dönen bir öne çıkan oyun |
+| Hızlı | Eşiğin altındaki oyunlar için ısınma, sonra hepsi birlikte açık ve dönen bir öne çıkan oyun |
 
 Kartlar bir programa göre gelmez ve Steam "kart düştü" diye bir olay yollamaz. Uygulama her hesabın rozet sayfalarını üç dakikada bir yeniden okur ve kalan kart toplamındaki dürüst farkı bildirir, uydurma bir sayaç göstermez.
 
@@ -243,9 +245,11 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
 | `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
+| `farmSkipUnplayed` | `false` | Hiç oynanma süresi kayıtlı olmayan oyunları kuyruğa almaz |
+| `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır |
 | `cardMaxGames` | `32` | Aynı anda açık oyun |
 | `farmMaxMinutes` | `5` | Her oyunun sıradakine geçmeden önce çalıştığı dakika. Hızlı mod kendi ritmini kullanır |
-| `fastMinPlaytimeMin`* | `120` | Hızlı mod bu sürenin altındaki oyunları önce bunun üstüne çıkarır, sonra hepsini döndürür |
+| `fastMinPlaytimeMin` | `120` | Dakika cinsinden kart düşme eşiği. Hızlı mod bunun altındaki oyunları önce eşiğin üstüne çıkarır, sonra hepsini döndürür. `0` ısınmayı atlar |
 
 ### Pazar
 
@@ -327,7 +331,7 @@ Steam bir hesabın kaç ilan açabileceğini sınırlar; sınır hesabın yaşı
 
 ### "40 kart kaldı" yazıyor ama birkaç tane düştü
 
-Kartlar ancak oyunun toplam süresi iki saati geçince düşer ve her oyunun düşecek kart sayısı sınırlıdır. Diğer modlarda, hepsi iki saatin altındaki oyunlarla geçen uzun bir oturum eşik geçilene kadar hiçbir şey üretmez; Hızlı mod önce bu oyunları birlikte eşiğin üstüne çıkarır.
+Kart düşürmesi kısıtlı hesaplarda kartlar ancak oyun Kart düşme eşiğini (genelde toplam iki saat) geçince düşer ve her oyunun düşecek kart sayısı sınırlıdır. Diğer modlarda, hepsi iki saatin altındaki oyunlarla geçen uzun bir oturum eşik geçilene kadar hiçbir şey üretmez; Hızlı mod önce bu oyunları birlikte eşiğin üstüne çıkarır.
 
 ### Fiyatlar tire gösteriyor ya da çok yavaş doluyor
 

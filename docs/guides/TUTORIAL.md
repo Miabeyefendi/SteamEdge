@@ -36,7 +36,7 @@ The application speaks Steam's own network protocol, the same one the client use
 Two consequences follow from that, and they explain most of the app's behaviour:
 
 - **Steam is the only source of truth.** Nothing is estimated or invented. If a number cannot be fetched, the box shows a dash rather than a guess.
-- **Steam's limits are the app's limits.** Market requests are capped at roughly 20 per 30 seconds per account, and every part of the app that touches the market shares that one budget. Listing has its own per-account limit that Steam does not publish. Card drops only begin after a game passes two hours of total playtime. These are measured facts, not settings.
+- **Steam's limits are the app's limits.** Market requests are capped at roughly 20 per 30 seconds per account, and every part of the app that touches the market shares that one budget. Listing has its own per-account limit that Steam does not publish. On accounts with restricted card drops, cards only begin to drop after a game passes a certain playtime, usually two hours. The limits themselves are Steam's; the app only lets you set the threshold it assumes.
 
 ### File layout
 
@@ -139,7 +139,7 @@ Opened from the Chat button at the top right, not the sidebar. Friends on the le
 
 ### Card farming
 
-Steam does not drop cards until a game passes **two hours** of total playtime. Every mode except one ignores that and simply runs games; **Fast mode** knows it, and lifts the games still under the threshold above it before it starts rotating.
+On accounts with restricted card drops, Steam does not drop cards until a game passes a certain total playtime, usually **two hours** (Settings > Card farming > **Card drop threshold**). Reportedly some older accounts have no such restriction and get cards within the first minutes; set the threshold to 0 there. This is not a fixed rule for everyone, so test it on your own account. Every mode except one ignores that and simply runs games; **Fast mode** knows it, and lifts the games still under the threshold above it before it starts rotating.
 
 In every mode but Fast, one game runs at a time for the **Time per game** you set (Settings > Card farming, default 5 minutes; the timer on the Card Farming page starts from it and can be changed per run), then the next game takes over. A game whose cards run out is dropped from the queue and the next one starts at once. When every game in the queue is out of cards, or **Move on when a game is done** is off and the current game's time is up or its cards run out, farming stops and says why instead of restarting the last game. Card farming and the hours booster can run together: each keeps its own set of games and Steam sees both, up to its limit of 32.
 
@@ -152,8 +152,10 @@ The modes:
 | Sequential | One game at a time, in list order |
 | Most cards | Games with the most remaining cards first |
 | Fewest cards | Games closest to finishing first |
+| Least played first | One at a time, the game with the least playtime first |
+| Most played first | One at a time, the game with the most playtime first |
 | Priority | Your own order |
-| Fast | Warm-up for games under two hours, then every game open together with a rotating featured game |
+| Fast | Warm-up for games under the threshold, then every game open together with a rotating featured game |
 
 Cards do not arrive on a schedule and Steam sends no "a card dropped" event. The app re-reads each account's badge pages every three minutes and reports the honest difference in the remaining-card total rather than a made-up counter.
 
@@ -243,9 +245,11 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | Key | Default | What it does |
 |---|---|---|
 | `autoNextGame` | `true` | Move to the next game when one finishes. Off: farming stops after the current game |
+| `farmSkipUnplayed` | `false` | Leave games with no recorded playtime out of the queue |
+| `farmFinishedAction` | `none` | `none` or `exit`: close the app 20 seconds after every card is collected, if no other job is running |
 | `cardMaxGames` | `32` | Games open at once |
 | `farmMaxMinutes` | `5` | Minutes each game runs before the next one takes over. Fast mode sets its own rhythm |
-| `fastMinPlaytimeMin`* | `120` | Fast mode lifts games under this playtime above it first, then rotates all of them |
+| `fastMinPlaytimeMin` | `120` | Card drop threshold in minutes. Fast mode lifts games under it above it first, then rotates all of them. `0` skips the warm-up |
 
 ### Market
 
@@ -327,7 +331,7 @@ Steam limits how many listings an account may create, and the limit depends on t
 
 ### "40 cards left" but only a handful dropped
 
-Cards only drop after a game passes two hours of total playtime, and each game has its own limited number of drops. A long session in the other modes on games that are all under two hours produces nothing until they cross it; Fast mode lifts them all above the threshold together first.
+On accounts with restricted card drops, cards only drop after a game passes the Card drop threshold (usually two hours of total playtime), and each game has its own limited number of drops. A long session in the other modes on games that are all under two hours produces nothing until they cross it; Fast mode lifts them all above the threshold together first.
 
 ### Prices show a dash, or fill in very slowly
 

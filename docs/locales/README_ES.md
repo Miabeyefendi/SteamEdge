@@ -34,7 +34,7 @@
 
 ## ✨ Lo esencial
 
-- **Farmeo de cromos** - Ejecuta tus juegos como "jugando" para que caigan los cromos. Cinco modos, uno de ellos sabe que Steam no empieza a soltar cromos hasta que un juego pasa de dos horas.
+- **Farmeo de cromos** - Ejecuta tus juegos como "jugando" para que caigan los cromos. Siete modos, uno de ellos sabe que en cuentas con caídas restringidas Steam no empieza a soltar cromos hasta que un juego supera un umbral de tiempo, normalmente dos horas.
 - **Impulsor de horas** - Mantiene hasta 32 juegos abiertos a la vez, con sincronización opcional que iguala las horas totales de una selección.
 - **Gestor de logros** - Lee el estado real de bloqueo y desbloqueo directamente del protocolo de Steam, y luego desbloquea o rebloquea en lote.
 - **Modo realista** - Mantiene un juego abierto y desbloquea sus logros del más común al más raro, repartidos por la sesión, de forma que el perfil parezca jugado de verdad.

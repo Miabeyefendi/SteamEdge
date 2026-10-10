@@ -34,7 +34,7 @@
 
 ## ✨ Highlights
 
-- **Card farming** - Runs your games as "playing" so trading cards drop. Five modes, one of which knows Steam only starts dropping after a game passes two hours.
+- **Card farming** - Runs your games as "playing" so trading cards drop. Seven modes, one of which knows that on accounts with restricted drops Steam only starts dropping after a game passes a playtime threshold, usually two hours.
 - **Hours booster** - Keeps up to 32 games open at once, with optional playtime syncing that pulls a selection up to the same total.
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
@@ -105,10 +105,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.4.0-win-x64.rar`:
-`84ca3de277e8a8f37569d8f801119c6000412cf4985d343d652abcd5cd35d350`
+SHA-256 of `SteamEdge-v1.4.1-win-x64.rar`:
+`e3497c223ed036cbb24da6df333597d3d087d49e2f4a17b05e53948766df485d`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.0-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.1-win-x64.rar`.
 
 </details>
 

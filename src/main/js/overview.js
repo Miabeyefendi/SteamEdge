@@ -1,4 +1,4 @@
-    // ================= GENEL BAKIŞ (OVERVIEW) =================
+    // ================= OVERVIEW =================
     // All the numbers in the panels come from real Steam data and from the engine's own
     // measurements; there is no sample/fixed data.
     const sessionStartTs = Date.now();
@@ -6,7 +6,7 @@
 
     // Palette shortcuts
     const GC = { ok:'#5FB324', warn:'#B37E24', bad:'#B32453', sub:'#C2AAEE', bdActive:'#5624B3', muted:'#8B8F9E' };
-    // Dictionary of the "Durum" column: Başarılı / Çalışıyor / Uyarı / Durdu
+    // Dictionary of the "Status" column: Success / Running / Warning / Stopped
     const FEED_STATUS = {
       'Başarılı':  { color: GC.ok,  bd: GC.ok },
       'Çalışıyor': { color: GC.sub, bd: GC.bdActive },
@@ -89,7 +89,7 @@
       const el=document.getElementById('gStatSession');
       if(el) el.innerHTML = monoTime(fmtSessionDur(Date.now()-sessionStartTs));
       // The countdowns in the task row must not depend on the engine tick: Realistic Mode can stay
-      // silent for minutes and "Kalan Süre" froze during that time.
+      // silent for minutes and "Time left" froze during that time.
       if (taskList.length) renderOverviewActive();
     }, 1000);
 
@@ -102,7 +102,7 @@
       c.textContent = cardsLoaded ? totalCards.toLocaleString(localCode()) : '-';
       set('gStatCardsSub', cardsLoaded ? (dropGames.length+' oyunda kart var') : 'Kart Düşür sekmesinde yenile');
 
-      // Kütüphane
+      // Library
       set('gStatGames', (hoursLoaded && ownedGames.length) ? ownedGames.length.toLocaleString(localCode()) : '-');
       set('gStatGamesSub', cardsLoaded ? tf('# oyun toplamaya hazır', dropGames.length) : '-');
 
@@ -129,7 +129,7 @@
         set('gStatValueSub', 'Envanter sekmesinde yükle');
       }
 
-      // Saat Yükseltici
+      // Hour Booster
       const bOn = boostState && boostState.running;
       const bIds = bOn ? (boostState.activeAppids || boostState.appids || []) : [];
       set('gStatBoost', bIds.length + ' aktif');
@@ -138,7 +138,7 @@
         set('gStatBoostSub', t('Kalan') + ' ' + fmtSessionDur(left));
       } else set('gStatBoostSub', bOn ? 'Süresiz çalışıyor' : 'Çalışmıyor');
 
-      // Başarımlar - there is real data only if a game is selected in the Başarımlar tab
+      // Achievements - there is real data only if a game is selected in the Achievements tab
       if (typeof acData !== 'undefined' && acData && acData.total){
         const pct = Math.round(acData.unlocked/acData.total*100);
         set('gStatAch', acData.unlocked+' / '+acData.total);
@@ -174,7 +174,7 @@
         await loadActivity();   // bring back the persistent activity history
         // Even if fetching the data fails (could not connect to Steam, IPC error) the panel must still be
         // drawn - otherwise the await blew up here and the renders below never ran
-        // and the Genel Bakış stayed completely empty.
+        // and the Overview stayed completely empty.
         try {
           const con = await E.connect();
           if (con && con.ok){
@@ -188,7 +188,7 @@
             if (!cardsLoaded || !listsFresh){ const r = await E.dropGames(); if (r.ok){ dropGames = r.games; cardsLoaded = true; } }
             if (!hoursLoaded || !listsFresh){ const r2 = await E.ownedGames(); if (r2.ok){ ownedGames = r2.games; hoursLoaded = true; } }
             listsFresh = true;
-            // If Kart Düşür is open on screen redraw it with the fresh list (if hidden leave it alone:
+            // If Card Farming is open on screen redraw it with the fresh list (if hidden leave it alone:
             // the hidden tab's list is deliberately not kept in memory).
             try {
               if (typeof renderCards === 'function' && designed.card && !designed.card.classList.contains('hidden')) renderCards();
@@ -236,7 +236,7 @@
     window.imu.onAccountEvent((o)=>{
       if (!o || !o.typeName) return;
       const b = EVENT_NOTIFICATION[o.typeName];
-      // The card drop depends on a separate setting ("Kart düşünce bildir")
+      // The card drop depends on a separate setting ("Notify on card drop")
       const report = b && (o.typeName !== 'cardDropped' || (appSettings && appSettings.notifyCardDrop));
       if (report){
         const [category, title, bodyEl] = b(o);
@@ -246,7 +246,7 @@
       if (o.typeName === 'cardDropped'){
         pushFeed('card', tf('# kart düştü', o.itemCount), o.displayName, 'Başarılı');
         if (typeof pushDrop === 'function') pushDrop(o.appid, o.displayName, o.itemCount);
-        // "Pazarda Otomatik Satış": list that game's new cards
+        // "Auto-list on the market": list that game's new cards
         if (appSettings && appSettings.farmAutoSell && typeof autoSellDropped === 'function') autoSellDropped(o.displayName);
       } else if (o.feedEntry){
         pushFeed(o.feedEntry.kind, o.feedEntry.title, o.feedEntry.text, o.feedEntry.status);
@@ -254,8 +254,8 @@
       if (o.typeName === 'achievementUnlocked' && typeof acCache !== 'undefined') acCache.delete(o.appid);
     });
 
-    // The "Aktif Görev" panel.
-    // Two type tags ("Aksiyon", "Çok Oyunculu") are shown next to the game capsule; since Steam's
+    // The "Active task" panel.
+    // Two type tags ("Action", "Multiplayer") are shown next to the game capsule; since Steam's
     // GetOwnedGames reply gives no type information, instead of a made up type the real running
     // information (mode + number of simultaneous games) is written there.
     function chip(text){
@@ -326,8 +326,8 @@
         + '</div>';
     }
 
-    // The task currently shown in the panel. The Başlat / Durdur / Detay below act according to this selection;
-    // all three used to be tied to the fixed Kart Düşür and while hour boosting ran Detay opened the wrong
+    // The task currently shown in the panel. The Start / Stop / Details below act according to this selection;
+    // all three used to be tied to the fixed Card Farming and while hour boosting ran Details opened the wrong
     // page.
     let taskList = [], taskIndex = 0;
     const shorten = (s, n)=>{ s = String(s||''); return s.length > n ? (s.slice(0, n-1)+'…') : s; };
@@ -349,7 +349,7 @@
       // in the same global scope as achievements.js; if a bulk operation is running let it show here too
       const achOn = (typeof acRunning !== 'undefined') && acRunning;
       // G12: Realistic Mode is a job too - it used to never be watched. While running alone the
-      // panel said "no running job" and Başlat started card farming.
+      // panel said "no running job" and Start started card farming.
       const grOn = (typeof grStatus !== 'undefined') && grStatus && grStatus.runningFlag;
 
       let heroId = null;
@@ -470,7 +470,7 @@
     // ---- DETAIL AREA OF THE SHOWN TASK ----
     // Until 1.1.8 this box was FIXED as the card farming queue. When you moved to another job with ‹ › in the panel
     // the row above changed, the queue below stayed as it was; even if the card queue was empty
-    // it showed "Kuyruk boş" on screen while looking at the achievement job. Now the area
+    // it showed "Queue is empty" on screen while looking at the achievement job. Now the area
     // draws the shown job's own detail.
     const DETAIL_ROW = 'display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #101621';
     const DETAIL_MONO = 'font-family:Geist Mono,monospace;font-size:11px';
@@ -589,7 +589,7 @@
     }
 
     // Draws the shown task's detail. If no job is running the card queue is shown:
-    // the Başlat at the bottom of the panel starts card farming too, so it is consistent on screen.
+    // the Start at the bottom of the panel starts card farming too, so it is consistent on screen.
     function renderTaskDetail(taskItem, currentId){
       const qbox = document.getElementById('gQueue');
       if (!qbox) return;
@@ -655,7 +655,7 @@
     document.getElementById('gNavBoost').onclick = ()=> goTab('hours');
     document.getElementById('gNavAch').onclick = ()=> goTab('achievements');
 
-    // Connects to Kart Düşür's real engine, with the mode and duration selected there.
+    // Connects to Card Farming's real engine, with the mode and duration selected there.
     function startCard(){
       if (!dropGames.length){ toast('Önce oyun listesini yenile.').fail('Düşürülecek kart bulunamadı.'); return; }
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining}));
@@ -672,8 +672,8 @@
     }
 
     // The three buttons under the panel behave according to the task being shown at that moment. While a running
-    // job is shown Başlat is meaningless (it is already running), Durdur stops that job;
-    // when no job is running Durdur is meaningless, Başlat starts card farming.
+    // job is shown Start is meaningless (it is already running), Stop stops that job;
+    // when no job is running Stop is meaningless, Start starts card farming.
     function paintPanelButtons(){
       const begin = document.getElementById('gStart');
       const halt = document.getElementById('gStop');
@@ -748,7 +748,7 @@
       return { messageText: tf('# çeşit öğe yüklendi.', invMerged.length) };
     });
 
-    // "Pazarı Yenile" - refreshes the market PRICES, not the inventory (skips the cache).
+    // "Refresh market" - refreshes the market PRICES, not the inventory (skips the cache).
     quickAction('qaMarket', 'Pazar fiyatları yenileniyor…', async ()=>{
       if (!invMerged || !invMerged.length) return { failure: 'Önce envanteri yükle.' };
       if (typeof fetchPricesForView !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
@@ -762,7 +762,7 @@
     });
     document.getElementById('qaSettings').onclick = ()=> openSettingsPage();
 
-    // Genel Bakış is already the visible tab at startup - load the first data without a click.
+    // Overview is already the visible tab at startup - load the first data without a click.
     loadOverview();
     // The language change reloaded the page: take the user back to the Ayarlar section they left (i18n.js).
     try {
