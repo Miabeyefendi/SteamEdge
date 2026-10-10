@@ -19,7 +19,7 @@ const update = require('./src/services/updater');
 const translation = require('./src/core/translation');
 const { migrateKeys } = require('./src/core/keyMigration');
 const ct = translation.t;
-// The `error` and `hata` text in every reply returned to the interface is translated to the selected language. Instead of
+// The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
 // wrapping every return point one by one, it is done here: a newly added error message gets
 // translated on its own (if the dictionary has an entry; otherwise it stays Turkish and `npm run lang` catches it).
 {
@@ -111,7 +111,7 @@ app.commandLine.appendSwitch('disk-cache-size', String(50 * 1024 * 1024));
 
 let win = null;
 // Multi-account parallel login: each (+) box on the login screen gets its own independent SteamAuth
-// session (slotId -> instance). Slot "0" is always the main box; the "Panele Geç" navigation
+// session (slotId -> instance). Slot "0" is always the main box; the "Go to dashboard" navigation
 // is triggered ONLY when slot 0 finishes successfully, the other boxes may keep working in the background.
 const authSlots = new Map();
 // Becomes true when we return to login.html through the "Add Account" flow - NO slot in that session
@@ -247,9 +247,9 @@ const DEFAULT_SETTINGS = {
   farmSkipUnplayed: false,    // leave games with no recorded playtime out of the queue
   farmFinishedAction: 'none', // none | exit: what to do when every card has been collected
   cardMaxGames: 32,         // games open at once in fast mode (Steam's known upper limit is 32)
-  notifyCardDrop: false,    // desktop notification as cards drop (Kart Düşür > Otomasyon)
-  // Kart Düşür > Otomasyon. All three really work; two affect the account permanently so
-  // the default is OFF and the sale flow follows the "Satış öncesi onay iste" setting.
+  notifyCardDrop: false,    // desktop notification as cards drop (Card Farming > Automation)
+  // Card Farming > Automation. All three really work; two affect the account permanently so
+  // the default is OFF and the sale flow follows the "Ask for confirmation before selling" setting.
   farmAutoSell: false,      // puts the dropped card on sale at the median price
   farmSilent: false,        // stops interface refreshes while the window is not visible
   farmAchUnlock: false,     // unlocks locked achievements at intervals during farming
@@ -269,7 +269,7 @@ const DEFAULT_SETTINGS = {
   // Hour Booster
   boostMaxGames: 32,
   rememberBoostList: true,
-  pauseFarmOnBoost: false,  // automatically stop Kart Düşür when boosting starts
+  pauseFarmOnBoost: false,  // automatically stop Card Farming when boosting starts
   // Achievements
   achConfirmSingle: true,   // ask for confirmation on a single unlock/lock (confirmation is ALWAYS asked for bulk operations)
   // Notifications
@@ -348,7 +348,7 @@ const DEFAULT_SETTINGS = {
   seqIdle: false,           // sequential idling (off = all simultaneous)
   loopQueue: true,          // in sequential mode start over when the queue ends
   boostDurationSec: 3600,
-  boostGameIds: [],         // the selected games when "Oyun listesini hatırla" is on
+  boostGameIds: [],         // the selected games when "Remember the game list" is on
   // Achievement unlock interval (SECONDS). 1 = fastest; the real wait is computed with a random
   // deviation on every unlock, so no fixed rhythm forms (achievements.js > acNextDelayMs).
   // Realistic Mode (G11: the page was renewed according to the template)
@@ -385,7 +385,7 @@ const DEFAULT_SETTINGS = {
 };
 let settings = { ...DEFAULT_SETTINGS };
 
-// ---- levelled logging (Settings > Gelişmiş > "Kayıt dosyası") ----
+// ---- levelled logging (Settings > Advanced > "Log file") ----
 // A single choice: off / errors / warnings / events / verbose. The level and "write to file"
 // used to be two separate settings: when a level was chosen and the file stayed off nothing was recorded.
 const LOG_FILE = path.join(CACHE_DIR, 'steamedge.log');   // the log file is on the cache side
@@ -443,7 +443,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 });
 // ---- SETTINGS MIGRATIONS ----
 // Removed and merged settings are carried over from the old file to here: the user's old choice
-// is not lost, and no dead key is left in the file. ayarSurumu is raised once.
+// is not lost, and no dead key is left in the file. settingsVersion is raised once.
 const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs'];
 function migrateSettings(v) {
   if (!v || typeof v !== 'object') return false;
@@ -459,7 +459,7 @@ function migrateSettings(v) {
     // Old values that have no counterpart in the choice list: the box looked empty.
     if (v.dblAction === 'open') v.dblAction = 'steam';
     if (v.saleMode === 'lowest') v.saleMode = 'match';
-    // "Hata ayıklama kayıtlarını tut" was removed: the chosen level is now also written to the file.
+    // "Keep debug logs" was removed: the chosen level is now also written to the file.
     v.settingsVersion = 2;
     hasChanged = true;
   }
@@ -469,7 +469,7 @@ function migrateSettings(v) {
   REMOVED_SETTINGS.forEach((k) => { if (k in v) { delete v[k]; hasChanged = true; } });
   return hasChanged;
 }
-// The moment the settings were last saved by the user (Ayarlar > Yapılandırma > Son kayıt).
+// The moment the settings were last saved by the user (Settings > Configuration > Last saved).
 let settingSaveTime = null;
 function loadSettings() {
   const r = readJson(SETTINGS_FILE);
@@ -482,7 +482,7 @@ function loadSettings() {
     try { settingSaveTime = fs.statSync(SETTINGS_FILE).mtimeMs; } catch (_) {}
   } else {
     settings = { ...DEFAULT_SETTINGS };
-    // yok = first run, normal. bozuk = a real problem, tell the user.
+    // none = first run, normal. corrupt = a real problem, tell the user.
     if (r.corrupt) readErrors.push({ displayName: 'Ayarlar', recoveredFlag: false });
   }
   translation.pickLang(settings.language);
@@ -501,7 +501,7 @@ function updateSleepBlocker() {
     else if (!keepAwake && psbId !== null) { powerSaveBlocker.stop(psbId); psbId = null; }
   } catch (_) {}
 }
-// "Bağlantı koparsa yeniden bağlan". null = unlimited, 0 = off, n = at most n attempts.
+// "Reconnect if the connection drops". null = unlimited, 0 = off, n = at most n attempts.
 function reconnectLimit() {
   const v = settings.reconnectPolicy;
   if (v === 'off') return 0;
@@ -559,14 +559,14 @@ function ensureTray() {
     tray.on('click', () => { if (win) { win.isVisible() ? win.hide() : (win.show(), win.focus()); } });
   } catch (_) {}
 }
-// When the language changes the menu is rebuilt; it used to say "Göster / Çıkış" in every language.
+// When the language changes the menu is rebuilt; it used to stay in Turkish in every language.
 function setupTrayMenu() {
   if (!tray) return;
   try {
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: ct('Pencereyi göster'), click: () => { if (win) { win.show(); win.focus(); } } },
       { type: 'separator' },
-      // the "Çıkış" key is translated in the sense of "sign out" in the navigation; this one closes the app.
+      // the dictionary key "Exit" (Turkish source text) means "sign out" in the navigation; this entry closes the app.
       { label: ct("SteamEdge'i kapat"), click: () => { isQuitting = true; app.quit(); } },
     ]));
   } catch (_) {}
@@ -699,7 +699,7 @@ ipcMain.on('auth:loginCookie', (_e, { slotId, sessionid, steamLoginSecure, steam
 
 // logout: clear saved session, back to login
 ipcMain.on('auth:logout', () => {
-  // "Tüm hesaplardan çık" - all of them close, including the ones running in the background
+  // "Sign out of all accounts" - all of them close, including the ones running in the background
   disconnectAll();
   try { fs.unlinkSync(path.join(CONFIG_DIR, 'session.json')); } catch (_) {}
   try { fs.unlinkSync(path.join(CONFIG_DIR, 'web-session.json')); } catch (_) {}
@@ -930,7 +930,7 @@ function addFeed(steamID, record) {
 }
 
 // ---- Statistics (per account) ----
-// Cards dropped day by day for "En Verimli Gün". Local date: the user's day, not by UTC.
+// Cards dropped day by day for "Best day". Local date: the user's day, not by UTC.
 function dayKey(t) {
   const d = new Date(t || Date.now());
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -943,7 +943,7 @@ function addDailyCard(steamID, count) {
   const days = Object.keys(st.dailyCards).sort();
   while (days.length > 400) delete st.dailyCards[days.shift()];
 }
-// "Kesintisiz Çalışma": the longest time a job (card, hour, Realistic Mode) on an account ran without a
+// "Uninterrupted run": the longest time a job (card, hour, Realistic Mode) on an account ran without a
 // break. Pauses shorter than a minute do not count as a break (like the job being paused a few
 // seconds when a setting is saved, or a short connection drop).
 function handleUninterruptedRun(steamID, isRunning) {
@@ -1057,7 +1057,7 @@ function farmBroadcast(steamID) {
       resumeFarm(steamID);
       if (settings.farmFinishedAction === 'exit') scheduleExitWhenIdle();
     } else if ((payloadData.cause === 'duration' || payloadData.cause === 'gameFinished') && payloadData.wasRunning) {
-      // "Oyun bitince sıradakine geç" is off: it says why it stopped, otherwise the user
+      // "Move on when a game is done" is off: it says why it stopped, otherwise the user
       // thought the job had closed on its own.
       accountEvent(steamID, {
         typeName: 'cardStopped',
@@ -1149,7 +1149,7 @@ async function watchCards(steamID) {
     trace.occupiedFlag = false;
   }
 }
-// "Kart düşerken başarımları aç" (farmAchUnlock). It was in the interface and only worked for the account on screen,
+// "Unlock achievements while farming" (farmAchUnlock). It was in the interface and only worked for the account on screen,
 // while the window was open. Interval: the achievement unlock interval, at least one minute.
 async function openCardAchievements(steamID) {
   if (!settings.farmAchUnlock) return;
@@ -1182,7 +1182,7 @@ async function openCardAchievements(steamID) {
     trace.achievementBusy = false;
   }
 }
-// "Saat yükseltirken kart düşürmeyi duraklat". The setting's description said "when hour boosting ends
+// "Pause farming while boosting hours". The setting's description said "when hour boosting ends
 // card farming continues where it left off" but the code only stopped it; it never
 // started again. Now the paused job is kept and resumed when hour boosting ends.
 function delayFarm(steamID, reasonWhy) {
@@ -1249,8 +1249,8 @@ function bindConnectionState(eng, steamID) {
       syncConnectionChanged(steamID, s.ready);
     }
     if (steamID === activeSteamID) { engineReady = (status === 'connected'); }
-    // Log text. The interface builds the text in its own language from the fields (durum, sebep, deneme, bekleMs,
-    // sinir, oyunlar); the text here is only for the log file.
+    // Log text. The interface builds the text in its own language from the fields (condition, cause, attemptCount, waitMs,
+    // limitValue, gameEntries); the text here is only for the log file.
     const message = status === 'dropped'
       ? ('Steam connection dropped: ' + (extra.cause || '?'))
       : status === 'connecting'
@@ -1272,7 +1272,7 @@ function bindConnectionState(eng, steamID) {
     }
   };
 }
-// The "Yeniden bağlan" button in the interface: restarts the attempts of an engine that gave up.
+// The "Reconnect" button in the interface: restarts the attempts of an engine that gave up.
 ipcMain.handle('engine:reconnect', () => {
   const s = accounts.get(activeSteamID);
   if (!s || !s.engine) return { ok: false, error: 'Bağlı değil.' };
@@ -1280,7 +1280,7 @@ ipcMain.handle('engine:reconnect', () => {
   s.engine.tryReconnect(true);
   return { ok: true };
 });
-// The connection of the account on screen (Ayarlar > Hesap Statüsü). Not a guess, the last thing the engine reported.
+// The connection of the account on screen (Settings > Account status). Not a guess, the last thing the engine reported.
 ipcMain.handle('engine:connectionStatus', () => {
   const s = activeSteamID ? accounts.get(activeSteamID) : null;
   if (!s || !s.engine) return { condition: 'none' };
@@ -1469,7 +1469,7 @@ ipcMain.handle('engine:connect', async () => {
 
 // The last fetched lists are kept in the account's own file. The purpose: at startup the Overview should not
 // wait empty. The badge page and the library call take a few seconds; during
-// that time "Toplam Kart" and "Kütüphane" showed a dash. Now the last known values are
+// that time "Total cards" and "Library" showed a dash. Now the last known values are
 // drawn instantly and overwritten when the fresh data comes.
 function storeLists(field, payloadData, steamID) {
   const id = steamID || activeSteamID;
@@ -1513,12 +1513,12 @@ ipcMain.handle('engine:inventory', async () => {
 const PRICE_FILE = path.join(CACHE_DIR, 'prices.json');   // price cache
 // G8: realised sale history cache (the average/median comes from here).
 // Kept SEPARATE from the price: the pricehistory endpoint needs a separate request for every item and is much
-// more expensive. It is never filled until the user says "ortalamaları getir".
+// more expensive. It is never filled until the user says "Fetch averages".
 const HISTORY_FILE = path.join(CACHE_DIR, 'history.json');
 const BATCH_SIZE = 18;
 const BATCH_COOLDOWN_MS = 32000;
 
-// Two separate caches, ONE queue (see "BIRLESIK PAZAR KUYRUGU"). The caches stay separate
+// Two separate caches, ONE queue (see "UNIFIED MARKET QUEUE"). The caches stay separate
 // because they go stale at different speeds: price 24 hours, the realised sale median 72 hours.
 let priceCache = new Map();   // hashName -> { price, ts }
 let historyCache = new Map();  // hashName -> { hist, ts, cur }
@@ -1561,7 +1561,7 @@ function cachedHistory(h) {
 //      pricehistory shared). Two queues unaware of each other spent the quota in two places.
 // Now there is a single queue and it works PER ITEM: an item's lowest price and its average are fetched
 // in the same round, back to back, then it moves to the next item.
-let marketQueue = [];        // [{ h, fiyat, gecmis }]
+let marketQueue = [];        // [{ h, priceValue, pastRecords }]
 let marketRunning = false;
 let marketCancel = false;
 
@@ -1742,8 +1742,8 @@ const MAX_PRICE_TRIES = 3;
 // "fetch prices now?", the prices come instantly anyway.
 //
 // THE AVERAGE IN THE SAME ROUND TOO: while an item's lowest price is fetched its average is also fetched
-// (Ayarlar > "Fiyatla birlikte ortalamayı da çek"). If turned off the average only comes with the
-// "Ortalama" button in Envanter - then a single request is made per item.
+// (Ayarlar > "Fetch the average alongside the price"). If turned off the average only comes with the
+// "Average" button in Inventory - then a single request is made per item.
 ipcMain.handle('engine:pricesFor', (_e, arg) => {
   const hashNames = Array.isArray(arg) ? arg : (arg && arg.hashNames);
   const cacheOnly = !Array.isArray(arg) && !!(arg && arg.cacheOnly);
@@ -1821,10 +1821,10 @@ ipcMain.handle('engine:vanity', async () => {
 const STATS_FILE = path.join(CONFIG_DIR, 'stats.json');
 const DEFAULT_STATS = {
   totalRuntimeMs: 0, cardsDropped: 0, cardsSold: 0, boostRuntimeMs: 0, sessions: 0, since: Date.now(),
-  dailyCards: {},        // 'YYYY-MM-DD' -> cards dropped that day (En Verimli Gün)
+  dailyCards: {},        // 'YYYY-MM-DD' -> cards dropped that day (Best day)
   saleAmount: 0,         // the total the seller keeps of the items put on sale (cents)
-  pricedForSale: 0,       // number of listings whose amount is known (Ortalama Satış = satisTutar / satisFiyatli)
-  longestRunMs: 0,    // uninterrupted run (Kesintisiz Çalışma)
+  pricedForSale: 0,       // number of listings whose amount is known (Average sale = satisTutar / satisFiyatli)
+  longestRunMs: 0,    // uninterrupted run (Uninterrupted run)
 };
 let lifeStats = { ...DEFAULT_STATS };
 function loadStats() {
@@ -2003,7 +2003,7 @@ ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) =>
   try {
     const result = await engine.sellItem(assetId, priceCents, amount || 1);
     // The statistic is the number of items "put on sale": a listing was made, whether it sold is not known. The amount is
-    // what the seller will keep (Steam's cut deducted); "Ortalama Satış" is computed from it.
+    // what the seller will keep (Steam's cut deducted); "Average sale" is computed from it.
     const count = amount || 1;
     addStat(steamID, { cardsSold: count, saleAmount: (+priceCents || 0) * count, pricedForSale: count });
     return { ok: true, result };
@@ -2015,7 +2015,7 @@ ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) =>
 // External links - only the expected domain names (so a random URL cannot be opened).
 ipcMain.on('open:external', (_e, url) => {
   if (typeof url !== 'string') return;
-  // The "Yayın Sayfasını Aç" button of the update window opens the release address; the allow
+  // The "Open release page" button of the update window opens the release address; the allow
   // list used to recognise only the profile address and the button silently did nothing.
   if (/^https:\/\/steamcommunity\.com\//.test(url) || /^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/?$/.test(url)
       || /^https:\/\/github\.com\/Miabeyefendi\/SteamEdge\/releases(\/[A-Za-z0-9_.\/-]*)?$/.test(url)) {
@@ -2290,7 +2290,7 @@ function boostStart(steamID, request) {
   const appids = (request.appids || []).slice();
   const games = Array.isArray(request.games) ? request.games : null;
   const durationMs = +request.durationMs || 0;
-  // tumu: all the games selected on the page. If the "at most at once" setting changes while the job runs
+  // allItems: all the games selected on the page. If the "at most at once" setting changes while the job runs
   // the list is cut again from here; if only the first slice were kept the limit could not be raised.
   const allOfIt = Array.isArray(request.allItems) && request.allItems.length ? request.allItems : null;
   b.request = { appids, durationMs, games, allItems: allOfIt };
@@ -2330,7 +2330,7 @@ function boostStart(steamID, request) {
         return { ok: true };
       }
     } else {
-      // Sync computes its own duration; the "yükseltme süresi" setting is invalid here.
+      // Sync computes its own duration; the "boost duration" setting is invalid here.
       const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
       b.sync = {
         strategyName: 'parallel', targetMin, limit, gameEntries: ledger.setupLedger(behind, targetMin),
@@ -2348,8 +2348,8 @@ function boostStart(steamID, request) {
     }
   }
 
-  // The "Süre dolunca otomatik durdur" setting was removed: if a duration is chosen it stops when the time is up,
-  // if "Sınırsız" is chosen it runs until stopped. Two separate switches said the same thing.
+  // The "Stop automatically when time is up" setting was removed: if a duration is chosen it stops when the time is up,
+  // if "Unlimited" is chosen it runs until stopped. Two separate switches said the same thing.
   const proceed = request.proceeding || null;
   const start = proceed && proceed.startPoint ? proceed.startPoint : Date.now();
   const remainingMs = durationMs ? Math.max(1000, durationMs - (Date.now() - start)) : 0;
@@ -2361,7 +2361,7 @@ function boostStart(steamID, request) {
     s.engine.play(appids, 'hours');
     emit();
   } else {
-    // "Oyun başlatma aralığı": added one after another at this interval, not all at once
+    // "Game start interval": added one after another at this interval, not all at once
     log('info', `[${accountName(steamID)}] boost: starting ${appids.length} games ${stagger}ms apart`);
     appids.forEach((id, i) => {
       b.stagger.push(setTimeout(() => {
@@ -2422,7 +2422,7 @@ function boostFinish(steamID, cause, deferContinue) {
 }
 function boostStopAccount(steamID, cause) { boostFinish(steamID, cause || 'user'); }
 
-// Sequential idling (Saat Yükseltici, "eş zamanlı" off): one by one, `durationMs` each.
+// Sequential idling (Hour Booster, "simultaneous" off): one by one, `durationMs` each.
 // Uses FarmController's 'sequential' mode; a separate instance so it does not clash with card farming.
 function sequentialBroadcast(steamID) {
   const broadcast = accountBroadcast(steamID);
@@ -2449,7 +2449,7 @@ function startSequential(steamID, request) {
   if (!s.hoursFarm) s.hoursFarm = new FarmController(s.engine, sequentialBroadcast(steamID), 'sequential');
   s.hoursFarm.engine = s.engine;
   s.sequentialRequest = { games: request.games || [], durationMs: request.durationMs, loop: request.loop !== false };
-  // "Oyun sırasını karıştır" only makes sense here: since games are opened one by one the order
+  // "Shuffle the game order" only makes sense here: since games are opened one by one the order
   // shows on the profile. In simultaneous boosting all are open together and the order has no effect.
   s.hoursFarm.start('sequential', s.sequentialRequest.games, s.sequentialRequest.durationMs, {
     loop: s.sequentialRequest.loop, shuffle: !!settings.shuffleBoost, proceeding: request.proceeding || null,
@@ -2464,7 +2464,7 @@ function startSequential(steamID, request) {
 // Why rarity order: in a real player too the entry level achievements unlock first. Unlocking hundreds of
 // achievements in a minute stands out right away on the profile and on third party sites.
 // G11: the page was renewed according to the template. The engine now does this extra:
-//   - GAME QUEUE: more than one game is processed in turn (if "Sırayı otomatik başlat" is off
+//   - GAME QUEUE: more than one game is processed in turn (if "Start the queue automatically" is off
 //     it stops after the first game).
 //   - TARGET COUNT: the user can say "unlock this many achievements"; the queue is trimmed toward the front.
 //   - DISTRIBUTION MODEL: the unlock times are placed on a linear, exponential or Pareto curve.
@@ -2536,7 +2536,7 @@ function realisticRarityWeight(pct, ultraMultiplier) {
 
 // Writes the unlock times into the queue (ms relative to the start of the session).
 //   birikim > 0 : the first that many achievements are squeezed into the start of the session
-//   ayar        : { speedMultiplier, ultraMultiplier, compensationShare, finishedFlag, finishedRatio }
+//   setting     : { speedMultiplier, ultraMultiplier, compensationShare, finishedFlag, finishedRatio }
 function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
   const n = queue.length;
   if (!n) return queue;
@@ -2546,7 +2546,7 @@ function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
   const compensationShare = Math.max(0.02, Math.min(0.9, +a.compensationShare || 0.2));
   // If the game is already finished (playtime >= completion time) there is no point imitating the learning curve:
   // the schedule is compressed as a whole. The session itself is not shortened, only the unlocks
-  // end early - with "basarimlar bitince saati surdur" on it keeps collecting hours.
+  // end early - with "Keep collecting hours when unlocks finish" on it keeps collecting hours.
   const finishedRatio = a.finishedFlag ? Math.max(0.05, Math.min(1, +a.finishedRatio || 0.5)) : 1;
   const activeDuration = Math.max(60000, Math.round(durationMs * hiz * finishedRatio));
 
@@ -2621,8 +2621,8 @@ async function realisticStep(steamID) {
   const a = d.activeIds;
   const goal = a.queueList[a.indexNum];
   if (!goal) {
-    // This game's achievements are done. If there is another game in the queue it moves on to it; if not, with "Başarımlar
-    // bitince saati sürdür" on the game stays open until the end of the time (it keeps boosting hours).
+    // This game's achievements are done. If there is another game in the queue it moves on to it; if not, with "Keep collecting hours when unlocks finish"
+    // on, the game stays open until the end of the time (it keeps boosting hours).
     log('info', '[' + accountName(steamID) + '] realistic mode: ' + a.gameTitle + ' achievements done');
     realisticNotify(steamID, { achievementsDone: true });
     if (realisticNextGame(steamID)) return;
@@ -2672,7 +2672,7 @@ function realisticNextGame(steamID) {
   const s = accounts.get(steamID);
   const d = s && s.realistic;
   if (!d) return false;
-  if (!d.optionList.autoOrder) return false;             // "Sırayı otomatik başlat" is off
+  if (!d.optionList.autoOrder) return false;             // "Start the queue automatically" is off
   while (d.gameIndex + 1 < d.gameEntries.length) {
     d.gameIndex++;
     const o = d.gameEntries[d.gameIndex];
@@ -2786,7 +2786,7 @@ async function prepareRealisticQueue(motor, appid, options) {
   // Locked + not protected. Protected ones are rejected by Steam (see G4).
   let suitable = everything.filter((a) => !a.achieved && !a.protectedFlag);
   const protected = everything.filter((a) => !a.achieved && a.protectedFlag).length;
-  // "Ultra Nadir Başarımları Atla": those under 5% are the ones that stand out most on a profile.
+  // "Skip ultra rare achievements": those under 5% are the ones that stand out most on a profile.
   let ultraSkipped = 0;
   if (options.ultraRareSkip) {
     const earlier = suitable.length;
@@ -2888,7 +2888,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       spanMs: duration,
       model: pick.model,
       averageIntervalMs: h.queueList.length ? Math.round(duration / h.queueList.length) : 0,
-      // Full list: the interface draws the "Açılma Sırası" table from this.
+      // Full list: the interface draws the "Unlock order" table from this.
       queueList: h.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, timeValue: a.timeValue })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
@@ -3124,7 +3124,7 @@ ipcMain.on('chat:typing', (_ev, steamid) => {
   if (e && steamid) e.sendTyping(steamid);
 });
 
-// ---- Session timeout (Ayarlar > Gelişmiş) ----
+// ---- Session timeout (Settings > Advanced) ----
 // The renderer sends 'session:activity' on every user interaction. If there is no interaction for the
 // set time the Steam sessions are closed. If card farming, hour boosting or Realistic Mode is running on an account
 // it is NOT closed: closing an app that is working in the background as "idle" would cut the job
@@ -3224,7 +3224,7 @@ ipcMain.handle('settings:save', (_e, patch) => {
   const r = applySettingPatch(patch);
   return { ...r, settings: accountSettingsAdded(publicSettings()), saveTime: settingSaveTime, pauseMs: SETTINGS_DEBOUNCE_MS };
 });
-// "Varsayılana Sıfırla" no longer writes anything: the defaults are loaded into the page's draft,
+// "Reset to defaults" no longer writes anything: the defaults are loaded into the page's draft,
 // applied if the user presses Kaydet. It used to write instantly and it also pulled the language to Turkish.
 ipcMain.handle('settings:defaults', () => {
   const v = { ...DEFAULT_SETTINGS };
@@ -3260,7 +3260,7 @@ function applyAndContinueCardFarm(steamID, changed) {
   const position = s.farm.location();
   const mode = s.farm.mode;
   const games = s.farm.games.map((g) => ({ ...g }));
-  // If "Oyun başına süre" changed the new time, if not the time selected on the Kart Düşür page.
+  // If "Time per game" changed the new time, if not the time selected on the Card Farming page.
   const dk = +settings.farmMaxMinutes;
   const duration = changed.has('farmMaxMinutes') && dk > 0 ? dk * 60000 : s.farm.durationMs;
   s.farm.stop('setting');
@@ -3512,7 +3512,7 @@ function startupUpdateCheck() {
 ipcMain.handle('update:check', () => checkForUpdate(true));
 ipcMain.handle('update:lastStatus', () => lastUpdateStatus);
 // The app's real memory use, process by process. So that the answer to "how much RAM does it eat" is not a guess
-// Ayarlar > Gelişmiş shows this live. Electron runs multi process: five separate SteamEdge
+// Settings > Advanced shows this live. Electron runs multi process: five separate SteamEdge
 // rows show up in Task Manager, the user had to add them up one by one.
 // tek tek toplamasi gerekiyordu.
 ipcMain.handle('app:memory', () => {

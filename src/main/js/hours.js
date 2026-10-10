@@ -1,6 +1,6 @@
-    // ================= SAAT YÜKSELTİCİ (HOUR BOOSTER) =================
+    // ================= HOUR BOOSTER =================
     // Simultaneous = all together (stops at the set time).
-    // When "Sıralı bekletme modu" is on, FarmController cycles the games in turn with 'sequential'.
+    // When "Sequential idling mode" is on, FarmController cycles the games in turn with 'sequential'.
     let ownedGames = [], hoursLoaded = false;
     let selectedHours = [];
     let hourDurSec = 3600;
@@ -36,7 +36,7 @@
     }
     document.getElementById('hoursSearch').addEventListener('input', renderHoursList);
 
-    // if the "Oyun listesini hatırla" setting is on the selection is persistent
+    // if the "Remember the game list" setting is on the selection is persistent
     function persistBoostList(){
       if (appSettings && appSettings.rememberBoostList){
         window.imu.settings.set({ boostGameIds: selectedHours.map(g=>g.appid) }).catch(()=>{});
@@ -297,8 +297,8 @@
       document.getElementById('hoursConcCustom').style.display = concurrentCustom ? '' : 'none';
     }
     // The limit is written to disk INSTANTLY. The reason: the main process runs the hour sync and reads the simultaneous
-    // count from settings.boostMaxGames. This value used to be written only with "Preset olarak
-    // kaydet", so while the screen said 8 the sync could be running with 32.
+    // count from settings.boostMaxGames. This value used to be written only with "Save as
+    // preset", so while the screen said 8 the sync could be running with 32.
     function writeLimit(){
       concUserTouched = true;
       window.imu.settings.set({ boostMaxGames: maxConcurrent }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
@@ -317,8 +317,8 @@
 
     // ---- boost duration ----
     const bH = document.getElementById('hoursH'), bM = document.getElementById('hoursM'), bS = document.getElementById('hoursS');
-    // hourDurSec 0 = UNLIMITED: the session continues until it is stopped (same as Ayarlar > "Varsayılan hedef
-    // süre" > Sınırsız). The page used to be unable to show unlimited; the setting was dead.
+    // hourDurSec 0 = UNLIMITED: the session continues until it is stopped (same as Settings > "Default target
+    // duration" > Unlimited). The page used to be unable to show unlimited; the setting was dead.
     function writeSegs(){
       if (!hourDurSec){ bH.value='∞'; bM.value='--'; bS.value='--'; paintBoostPresets(); return; }
       const h=Math.floor(hourDurSec/3600), m=Math.floor((hourDurSec%3600)/60), s=hourDurSec%60;
@@ -366,9 +366,9 @@
     writeSegs();
 
     // ---- Behaviour / Privacy switches ----
-    // Applies the Ayarlar > Saat Yükseltici preferences ("Varsayılan hedef süre" included).
+    // Applies the Settings > Hour Booster preferences ("Default target duration" included).
     let boostUserTouched = false, concUserTouched = false;
-    // degisen: the keys changed with Kaydet in Ayarlar. When "Varsayılan hedef süre" is saved the duration
+    // degisen: the keys changed with Kaydet in Ayarlar. When "Default target duration" is saved the duration
     // on the page moves to it too; it used to be that the page read the last used duration so this setting
     // changed nothing.
     function applyBoostSettings(changed){
@@ -382,12 +382,12 @@
           window.imu.settings.set({ boostDurationSec: hourDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
         }
       } else if (!boostUserTouched){
-        // First the saved duration (0 = unlimited), otherwise the "Varsayılan hedef süre" in Ayarlar.
+        // First the saved duration (0 = unlimited), otherwise the "Default target duration" in Ayarlar.
         const saved = appSettings.boostDurationSec;
         if (+saved >= 60 || (saved === 0 && !boostFlags.seqIdle)){
           if (hourDurSec !== +saved){ hourDurSec = +saved; writeSegs(); }
         } else if (appSettings.boostTarget){
-          // 'inf' = unlimited → duration 0, behaves as if "Süre dolunca otomatik durdur" were off
+          // 'inf' = unlimited → duration 0, behaves as if "Stop automatically when time is up" were off
           const t = appSettings.boostTarget;
           const hours = t === 'inf' ? 0 : (+t || 0);
           if (hours > 0 && hourDurSec !== hours*3600){ hourDurSec = hours*3600; writeSegs(); }
@@ -445,7 +445,7 @@
       });
     });
 
-    // "Preset olarak kaydet" - writes the current configuration (limit, duration, switches, selected games)
+    // "Save as preset" - writes the current configuration (limit, duration, switches, selected games)
     document.getElementById('hoursSavePreset').onclick = async ()=>{
       await window.imu.settings.set({
         boostMaxGames: maxConcurrent,

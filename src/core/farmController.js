@@ -20,7 +20,7 @@
 // the main process badge watcher hands over the current list through `updateGames`; a finished
 // game is removed, the pool is refilled, and when no game is left the job stops by itself.
 class FarmController {
-  // sahip: the name of this job's game list in the engine ('kart' | 'sirali'). So that when another job on the same
+  // ownerId: the name of this job's game list in the engine ('card' | 'sequential'). So that when another job on the same
   // account (hour boosting, Realistic Mode) is running they do not close each other's games.
   constructor(engine, emit, ownerId) {
     this.engine = engine;
@@ -109,7 +109,7 @@ class FarmController {
   }
 
   // cause: 'user' | 'finished' | 'duration' | 'gameFinished' | 'boost' | 'setting' - the interface and the
-  // statistics read this. 'sure' and 'oyunBitti': a game finished while moving on is off.
+  // statistics read this. 'duration' and 'gameFinished': a game finished while moving on is off.
   stop(cause) {
     const wasRunning = this.running;
     this.running = false;

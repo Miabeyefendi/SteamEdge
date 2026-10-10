@@ -1,4 +1,4 @@
-    // ================= KART DÜŞÜR (CARD FARMING) =================
+    // ================= CARD FARMING =================
     // The fields on the page are filled with real engine data (dropGames / farm:tick).
     let dropGames = [], cardsLoaded = false;
     let selectedMode = 'sequential';
@@ -6,9 +6,9 @@
     let lastTick = { running: false, activeAppids: [] };
 
     // Queue controls (sortable column headers + the Hepsi/1-2/3+ filter +
-    // inline up/down/En Öne Al/remove buttons)
+    // inline up/down/Move to top/remove buttons)
     let queueSort = 'rank', queueSortDir = 'asc', qfilter = 'all';
-    let priorityOrder = [];          // array of appids - the source of the "Öncelikli" mode and of manual ordering
+    let priorityOrder = [];          // array of appids - the source of the "Priority" mode and of manual ordering
     const removedIds = new Set();    // removed from the queue (not sent to farm)
     const recentDrops = [];          // {appid,name,count,ts} - from overview.js's real drop measurement
 
@@ -31,7 +31,7 @@
     const SEG_OFF = { bg:'transparent', fg:'#8B8F9E', bd:'transparent' };
     function paint(el, s){ el.style.background = s.bg; el.style.color = s.fg; el.style.borderColor = s.bd; }
 
-    // Applies the Ayarlar > Kart Düşürme preferences to the page (default mode, duration, queue order).
+    // Applies the Settings > Card farming preferences to the page (default mode, duration, queue order).
     // It does not overwrite what the user changed by hand on the page; BUT a value changed with Kaydet in Ayarlar
     // (degisen) is always applied, because the user explicitly chose it a moment ago. The mode of a running
     // queue does not change (the order is set up in the engine); the main process applies a duration change to the running job
@@ -155,8 +155,8 @@
         const on = activeIds.has(g.appid);
         const bd = on ? '#5624B3' : '#2B3345';
         const pct = (g.appid===currentId) ? turnPct : 0;
-        // Every game that is open is "Çalışıyor": in fast mode all the games in the pool are open,
-        // they all used to say "1. Sırada".
+        // Every game that is open is "Running": in fast mode all the games in the pool are open,
+        // they all used to say "1st in line".
         const state = on ? 'Çalışıyor' : 'Bekliyor';
         return '<div class="h-bd" data-row="'+g.appid+'" style="border:1px solid '+bd+';border-radius:12px;background:'+(on?'#0D1118':'#090C12')+';padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;opacity:'+(on?1:0.5)+'">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?'#B37E24':'#8B8F9E')+';border:1px solid '+bd+';border-radius:12px;padding:4px 0;width:34px;box-sizing:border-box;text-align:center;flex-shrink:0">#'+g.rank+'</span>'
@@ -183,15 +183,15 @@
       renderDrops();
     }
 
-    // Inline order/remove operations - manual ordering is written to the "Öncelikli" mode (priority
-    // = "Öncelik listendeki oyunları önce düşürür").
+    // Inline order/remove operations - manual ordering is written to the "Priority" mode (priority
+    // = "runs the games on the priority list first").
     document.getElementById('cardQueue').addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-act]'); if (!btn) return;
       const row = e.target.closest('[data-row]'); if (!row) return;
       const id = +row.getAttribute('data-row');
       const act = btn.getAttribute('data-act');
       if (act === 'remove'){ removedIds.add(id); saveCardState(); renderCards(); return; }
-      // the order change is made in the priority list and the mode automatically moves to "Öncelikli"
+      // the order change is made in the priority list and the mode automatically moves to "Priority"
       if (!priorityOrder.length) priorityOrder = orderedForMode().map(g=>g.appid);
       const i = priorityOrder.indexOf(id);
       if (i < 0) return;
@@ -281,7 +281,7 @@
       });
     });
 
-    // ---- Son Düşüşler (real measurement - overview.js's card counter feeds it) ----
+    // ---- Recent drops (real measurement - overview.js's card counter feeds it) ----
     function pushDrop(appid, name, count){
       recentDrops.unshift({ appid, name, count, ts: Date.now() });
       if (recentDrops.length > 12) recentDrops.length = 12;

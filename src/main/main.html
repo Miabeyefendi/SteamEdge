@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style/edge.css">
-<!-- Kart Düşür / Saat Yükseltici are moving to the SteamEdge design in this round; the old common/kart/saat CSS is still loaded because some inner classes produced by cards.js/hours.js (e.g. .cslot, .tbadge) belong to it and have not been moved yet - edge.css is added ON TOP of them, with new class names that do not clash. -->
+<!-- Card Farming / Hour Booster are moving to the SteamEdge design in this round; the old common/cards/hours CSS is still loaded because some inner classes produced by cards.js/hours.js (e.g. .cslot, .tbadge) belong to it and have not been moved yet - edge.css is added ON TOP of them, with new class names that do not clash. -->
 <link rel="stylesheet" href="style/common.css">
 <link rel="stylesheet" href="style/cards.css">
 <link rel="stylesheet" href="style/hours.css">
@@ -171,8 +171,8 @@
   </div>
 
   <script>
-    // Sayfa parçaları burada, SAYFA JS'LERİ ÇALIŞMADAN ÖNCE senkron olarak enjekte edilir -
-    // her sayfanın kendi script'i (js/*.js) ilgili id'lere anında getElementById ile bağlanıyor.
+    // The page fragments are injected here synchronously, BEFORE THE PAGE JS FILES RUN -
+    // each page's own script (js/*.js) binds to the matching ids with getElementById right away.
     document.getElementById('tab-overview').innerHTML = window.imu.pages.load('overview');
     document.getElementById('tab-card').innerHTML = window.imu.pages.load('cards');
     document.getElementById('tab-inventory').innerHTML = window.imu.pages.load('inventory');

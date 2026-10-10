@@ -1,4 +1,4 @@
-    // ================= ACHIEVEMENTS (BAŞARIMLAR) =================
+    // ================= ACHIEVEMENTS =================
     // The schema + unlock state come from the Steam protocol, the rarity percentage from the global
     // achievement percentages, the unlock date from GetPlayerAchievements.
     let acLoaded = false, acGames = [], acData = null, acAppid = null;
@@ -444,7 +444,7 @@
 
     // Unlock interval. The value in the settings is in seconds (fastest 1 s, above that minute
     // based). So that it does not look rhythmic a random deviation is applied on every unlock: normally
-    // ±40%, much wider (40%-160%) when "Açılışları zamana yay" is on.
+    // ±40%, much wider (40%-160%) when "Spread unlocks over time" is on.
     function acBaseDelaySec(){
       const v = +((appSettings||{}).achDelay);
       return Number.isFinite(v) && v > 0 ? v : 1;
@@ -457,7 +457,7 @@
     function acNextDelayMs(){
       const base = acBaseDelaySec() * 1000;
       // When safe mode is OFF the interval is applied exactly - no deviation. When on it deviates:
-      // normally +-40%, 40%-160% when "Açılışları zamana yay" is on. The three settings are independent:
+      // normally +-40%, 40%-160% when "Spread unlocks over time" is on. The three settings are independent:
       // the interval is always valid, safe mode turns the deviation on, spreading widens the deviation.
       const safe = !appSettings || appSettings.achSafeMode !== false;
       if (!safe) return Math.max(250, base);
@@ -541,7 +541,7 @@
     }
 
     // Bulk operation - the selected ones if there is a selection, otherwise everything in the filter.
-    // With safe mode on they are sent one by one and spaced (the "Açılış aralığı" setting).
+    // With safe mode on they are sent one by one and spaced (the "Unlock interval" setting).
     async function acBulk(unlock){
       if (!acData) return;
       const pool = acSelected.size
@@ -691,13 +691,13 @@
     // ---- ITEM 8: running state, progress and stopping ----
     let acRunning = false, acStopRequested = false, acStopReason = null;
     let acWaitCancel = null;
-    // The "Aktif Görev" panel in Genel Bakış reads these (ITEM 16)
+    // The "Active task" panel in Overview reads these (ITEM 16)
     // acRunNote was added in 1.1.8: the panel now also says which achievement is being sent at that moment,
     // not only the counter.
     let acRunDone = 0, acRunTotal = 0, acRunNote = '';
     function paintRunBox(doneItems, sumTotal, not){
       acRunDone = doneItems; acRunTotal = sumTotal; acRunNote = not || '';
-      // So the Genel Bakış panel shows the achievement job too; when it runs alone no other
+      // So the Overview panel shows the achievement job too; when it runs alone no other
       // event is triggered, so we notify from here.
       if (typeof renderOverviewActive === 'function') { try { renderOverviewActive(); } catch (_) {} }
       const box = document.getElementById('acRunBox');

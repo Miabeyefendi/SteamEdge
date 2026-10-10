@@ -22,7 +22,7 @@ Card farming options release: the card drop threshold is now a setting, there ar
 
 - **Fast mode text and warnings.** The hint and the start message no longer say "2 hours" as if it were fixed, and the hint now warns that a newly bought game can no longer be refunded once it passes 2 hours.
 - **Tutorial and README** now say the playtime threshold applies to accounts with restricted card drops and is something to test on your own account, instead of presenting it as a rule for everyone.
-- **Code leftovers in English.** The learned list of games without achievements moved from `cache/basarimsiz.json` to `cache/no-achievements.json` (the old file is renamed on first start, nothing is lost), the settings export defaults to `steamedge-settings-*.json`, and the last Turkish comments and log reasons were translated.
+- **Code leftovers in English.** The learned list of games without achievements moved from `cache/basarimsiz.json` to `cache/no-achievements.json` (the old file is renamed on first start, nothing is lost), the settings export defaults to `steamedge-settings-*.json`, and every code comment is English now (quoted interface labels in comments use the English names).
 
 ## [1.4.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.0)
 

@@ -126,7 +126,7 @@
         back.className = 'e-modal-back';
         const accent = o.danger ? '#B32453' : '#5624B3';
         // o.sayfa: the window belongs to a page; if the user moves to another tab it closes
-        // on its own (counts as cancelled). Envanter's "fiyatlar getirilsin mi" question used to open on top of
+        // on its own (counts as cancelled). The Inventory "fetch prices now?" question used to open on top of
         // another page after the tab was changed.
         if (o.pageName) back.setAttribute('data-sayfa', o.pageName);
         back.innerHTML =
@@ -193,7 +193,7 @@
       USD:'$', EUR:'€', GBP:'£', TRY:'₺', RUB:'₽', BRL:'R$', JPY:'¥', CNY:'¥',
       CAD:'CA$', AUD:'A$', INR:'₹', UAH:'₴', PLN:'zł', KZT:'₸', ARS:'AR$', MXN:'MX$',
     };
-    // The local name of the cent/kuruş - for the unit of fields like "Alt sıralama miktarı"
+    // The local name of the cent/kurus - for the unit of fields like "Undercut amount"
     const CUR_SUBUNIT = {
       USD:'sent', EUR:'sent', GBP:'peni', TRY:'kuruş', RUB:'kopek', BRL:'sentavo',
       JPY:'yen', CNY:'fen', CAD:'sent', AUD:'sent', INR:'paisa', UAH:'kopiyka',
@@ -230,14 +230,14 @@
                          CAD:0.04, AUD:0.05, INR:2.00, UAH:1.00, PLN:0.11, KZT:12, ARS:2.00, MXN:0.50 };
     function marketMin(){ const c = curCode(); return (c && MARKET_MIN[c] != null) ? MARKET_MIN[c] : 0.03; }
 
-    // "Saat biçimi" - 24 hour / 12 hour (AM-PM)
+    // "Time format" - 24 hour / 12 hour (AM-PM)
     function fmtClock(d){
       const use12 = (typeof appSettings==='object' && appSettings && String(appSettings.timeFormat)==='12');
       return new Date(d).toLocaleTimeString(localCode(), { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: use12 });
     }
     function fmtDateShort(d){ return new Date(d).toLocaleDateString(localCode()); }
 
-    // "Arayüz yoğunluğu" - in compact mode row heights and inner spacing shrink
+    // "Interface density" - in compact mode row heights and inner spacing shrink
     function applyDensity(){
       const compact = (typeof appSettings==='object' && appSettings && appSettings.density==='compact');
       document.body.classList.toggle('e-compact', !!compact);
@@ -391,7 +391,7 @@
     document.addEventListener('visibilitychange', () => {
       if (document.hidden){
         // When "Arka Planda Topla" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
-        // That was the promise of the setting ("en az işlemci ve bellek kullanımı"); before, it only skipped
+        // That was the promise of the setting ("lowest processor and memory use"); before, it only skipped
         // per-second drawing and did nothing on the memory side.
         if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) flushHeavyLists(null);
         return;
@@ -404,7 +404,7 @@
       try { if (typeof renderOverviewStats === 'function' && !designed.overview.classList.contains('hidden')) renderOverviewStats(); } catch (_) {}
     });
 
-    // "Oturum zaman aşımı" - report real user interaction to main (resets the counter)
+    // "Session timeout" - report real user interaction to main (resets the counter)
     (function wireActivity(){
       let last = 0;
       const ping = () => { const t = Date.now(); if (t - last < 5000) return; last = t; window.imu.activity(); };
@@ -488,8 +488,7 @@
     let lifeStats = null;
     function fmtHrs(ms){ const h=ms/3600000; return h>=1 ? (h.toLocaleString(localCode(), { maximumFractionDigits:1 })+' '+t('saat')) : (Math.round(ms/60000)+' '+t('dk')); }
     // if data is given no IPC is made (the main process's 'stats:degisti' event already carries the current data).
-    // All of them are the real measurement of the account on screen counted in the main process. "En verimli gün", "Ortalama
-    // satış" and "Kesintisiz çalışma" used to never be filled, they always showed a dash.
+    // All of them are the real measurement of the account on screen counted in the main process. "Best day", "Average sale" and "Uninterrupted run" used to never be filled, they always showed a dash.
     async function renderLifeStats(payloadData){
       lifeStats = payloadData || await window.imu.stats.get().catch(()=>null);
       if (!lifeStats) return;
@@ -562,7 +561,7 @@
     };
 
     // ---- top bar: version badge and update warning ----
-    // The version is read from package.json (preload > imu.surum); it is written by hand nowhere.
+    // The version is read from package.json (preload > imu.versionStr); it is written by hand nowhere.
     const APP_VERSION = (window.imu && window.imu.versionStr) || '';
     (function paintVersion(){
       const e = document.getElementById('tbVersion');
@@ -732,7 +731,7 @@
     function closeNotif(){ notifDropdown.classList.remove('open'); }
 
     // Sidebar bottom status indicator: statusColor = running ? ok : warn,
-    // statusLabel = running ? 'ÇALIŞIYOR' : 'HAZIR'. overview.js calls it when the state changes.
+    // statusLabel = the running / ready text. overview.js calls it when the state changes.
     function setSysStatus(running){
       const d = document.getElementById('sysDot'), l = document.getElementById('sysLabel');
       const c = running ? 'var(--e-ok)' : 'var(--e-warn)';
@@ -790,8 +789,8 @@
     // G3: Steam connection state strip. So that a drop is not silent a persistent strip is shown
     // below the top bar; it disappears on its own when reconnected.
     // The text is built here in the interface language, not from the main process; the main process only sends the fields
-    // (durum, sebep, deneme, bekleme, sinir). The strip used to say ASCII Turkish
-    // "yeniden baglaniyor (deneme 2, 10 sn sonra)" in every language.
+    // (condition, cause, attemptCount, waitMs, limitValue). The strip used to show a fixed Turkish text
+    // such as "reconnecting (attempt 2, in 10 s)" in every language.
     function connectionText(d){
       if (d.condition === 'dropped') return t('Steam bağlantısı koptu.') + (d.cause ? (' (' + t(d.cause) + ')') : '');
       if (d.condition === 'connecting'){
@@ -854,7 +853,7 @@
         if (d.condition === 'dropped'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
           if (typeof pushFeed === 'function') pushFeed('error', 'Steam Bağlantısı', connectionText(d), 'Hata');
-          // If reconnecting is off "vazgeçildi" comes right after, and that gives the notification.
+          // If reconnecting is off "abandoned" comes right after, and that gives the notification.
           if (d.limitValue !== 0 && typeof notify === 'function') notify('error', 'Steam Bağlantısı Koptu', 'Yeniden bağlanılıyor...');
         } else if (d.condition === 'connected' && d.reconnected){
           if (typeof pushFeed === 'function') pushFeed('card', 'Steam Bağlantısı', connectionText(d), 'Başarılı');
@@ -904,7 +903,7 @@
       if (typeof recentDrops !== 'undefined') recentDrops.length = 0;
     }
     // The visible tab is found from the DOM. Ayarlar and Sohbet have no link in the sidebar,
-    // Realistic Mode was not in the list either: while these were open Genel Bakış was loaded when the account changed,
+    // Realistic Mode was not in the list either: while these were open Overview was loaded when the account changed,
     // and the visible page stayed in the skeleton.
     function reloadActiveTab(){
       const tab = Object.keys(designed).find(k => designed[k] && !designed[k].classList.contains('hidden')) || 'overview';

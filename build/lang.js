@@ -261,8 +261,8 @@ const normA = (x) => x.replace(/\d[\d.,]*/g, '#');
 const enNorm = new Set([...dictionary.en.keys()].map(normA));
 const jsMissing = new Map();
 // The <script> blocks inside HTML are scanned too. The whole logic of the sign-in screen lives inside
-// login.html; section 6 strips the scripts, so status texts such as "Kod gönderiliyor..." and
-// "Bağlanılıyor..." never showed up in any section until 1.3.3 and stayed Turkish in every language.
+// login.html; section 6 strips the scripts, so status texts such as "Sending code..." and
+// "Connecting..." never showed up in any section until 1.3.3 and stayed Turkish in every language.
 const jsSources = fs.readdirSync(JS_DIR).filter((f) => f.endsWith('.js') && f !== 'i18n.js')
   .map((f) => ({ displayName: f, text: fs.readFileSync(path.join(JS_DIR, f), 'utf8') }));
 HTML_FILES.forEach(({ ad: displayName, yol: pathStr }) => {
@@ -282,7 +282,7 @@ jsSources.forEach(({ displayName: f, text }) => {
     const raw = (m[1] !== undefined ? m[1] : m[2]);
     if (!raw || !TR_LETTER.test(raw)) continue;
     // Strip the tags and keep only the visible text. A piece can start and end in the middle of a tag
-    // ('">Giriş yap', '<span style="'): the remains of a half tag do not count as text.
+    // ('">Sign in', '<span style="'): the remains of a half tag do not count as text.
     const visible = raw.replace(/\\(['"])/g, '$1').replace(/\\n/g, ' ')
       .replace(/^[^<>]*"[^<>]*>/, '').replace(/<[^>]*$/, '');
     visible.split(/<[^>]*>/).forEach((p) => {
