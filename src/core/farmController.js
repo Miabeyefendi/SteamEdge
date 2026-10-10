@@ -108,7 +108,7 @@ class FarmController {
     if (this._napFn) { const r = this._napFn; this._napFn = null; r(); }
   }
 
-  // cause: 'user' | 'finished' | 'duration' | 'gameFinished' | 'boost' | 'setting' - the interface and the
+  // cause: 'user' | 'finished' | 'duration' | 'gameFinished' | 'boost' | 'setting' | 'schedule' - the interface and the
   // statistics read this. 'duration' and 'gameFinished': a game finished while moving on is off.
   stop(cause) {
     const wasRunning = this.running;

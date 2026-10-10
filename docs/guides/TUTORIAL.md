@@ -60,7 +60,7 @@ SteamEdge/
     steamedge.log              the log to attach to a bug report
 ```
 
-> **`settings/` is the sensitive one.** `session.json` holds a token that is enough to use your account. Do not put it in a backup you share, an archive you upload or a screenshot.
+> **`settings/` is the sensitive one.** `session.json` holds a token that is enough to use your account. Do not put it in a backup you share, an archive you upload or a screenshot. With **Encrypt login tokens** on (Settings > Privacy & security) the tokens are stored encrypted, but keep `settings/` private anyway.
 
 ---
 
@@ -227,6 +227,24 @@ Keys go into a per-account queue that runs in the background. A key is accepted 
 
 If the Steam account uses Family View, Steam does not serve web pages until the PIN is entered, so the inventory, the market and the badge pages fail to load. Enter the PIN at Settings > Privacy & security > **Family View PIN** and SteamEdge unlocks every new web session with it. The PIN is kept as plain text in the account's file under `settings/accounts/` and is not part of exported backups.
 
+### Card farming schedule
+
+With **Card farming schedule** on (Settings > Card farming), card farming starts by itself on every connected account when the time range opens, and the farms it started stop when the range closes. The range can pass midnight, for example 22:00 - 07:00. The queue is built the way a manual start builds it: your **Default priority mode**, the games you removed from the queue, **Skip games that were never played** and **Time per game**.
+
+A farm you started by hand is never stopped by the schedule, and an account is started at most once per range: if you stop it by hand inside the range it stays stopped until the next range. Only accounts that are connected are started; the schedule does not sign anyone in.
+
+### Login token protection
+
+The saved sign-in tokens in `settings/accounts.json` and `settings/session.json` are plain text by default. With **Encrypt login tokens** on (Settings > Privacy & security) they are stored encrypted with Windows DPAPI, so a copy of the folder is useless on another computer or under another Windows user. Switching it on rewrites both files at once and deletes the `.bak` copies that still held the plain text; switching it off writes plain text again. Encrypted tokens are read whatever the setting is, so nothing is lost either way.
+
+The catch: if you move the folder to another computer or Windows user, or reinstall Windows, those accounts need a fresh sign-in. Only the tokens are covered; the Family View PIN and the proxy password in `settings/accounts/<steamID>.json` stay plain text.
+
+### Proxy
+
+Each account can have its own proxy under Settings > Privacy & security > **Proxy server**: `http://host:port`, `https://host:port` or `socks5://host:port`, with `user:password@` in front of the host when it needs a login. The account's Steam connection and its market, inventory and key requests go through it, and with SOCKS5 the proxy resolves host names. If the proxy is down the account does not connect; it never falls back to a direct connection. A change applies when the account reconnects.
+
+Not covered: the sign-in itself (adding an account), update checks, the fee script download and the item images, which load directly.
+
 ### Chat
 
 Friend messages run over the same network protocol as everything else here, so no Steam client is involved. Opening a conversation marks it read on Steam, and the person you are writing to sees the typing indicator.
@@ -263,6 +281,9 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `autoNextGame` | `true` | Move to the next game when one finishes. Off: farming stops after the current game |
 | `farmSkipUnplayed` | `false` | Leave games with no recorded playtime out of the queue |
 | `farmFinishedAction` | `none` | `none` or `exit`: close the app 20 seconds after every card is collected, if no other job is running |
+| `farmScheduleEnabled` | `false` | Start card farming by itself inside the time range below |
+| `farmScheduleFrom` | `22:00` | Start of the range |
+| `farmScheduleTo` | `07:00` | End of the range. An end before the start means the range passes midnight |
 | `cardMaxGames` | `32` | Games open at once |
 | `farmMaxMinutes` | `5` | Minutes each game runs before the next one takes over. Fast mode sets its own rhythm |
 | `fastMinPlaytimeMin` | `120` | Card drop threshold in minutes. Fast mode lifts games under it above it first, then rotates all of them. `0` skips the warm-up |
@@ -314,6 +335,8 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `offlineMode` | `false` | Appear offline while running |
 | `hideGameName` | `false` | Share that you are online but not which game |
 | `parentalPin` | empty | Steam Family View PIN of the account, used to unlock web pages. Stored per account, never exported |
+| `protectTokens` | `false` | Store the saved sign-in tokens encrypted with Windows DPAPI. Specific to this Windows user and computer, never exported |
+| `proxyUrl` | empty | Proxy of the account: `http://`, `https://` or `socks5://`, with an optional `user:password@`. The password is stored in plain text in the account's file. Stored per account, never exported |
 
 > Appearing offline changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
 
@@ -374,6 +397,10 @@ Steam keeps web pages locked until the Family View PIN is entered. Put the PIN u
 
 Steam sent a refusal reason that the app does not know by name. The common reasons (already owned, region locked, invalid, already used, base game required) are shown by name. Check the key on the Steam website; a refused key is not retried.
 
+### An account says its session is encrypted for another Windows user
+
+The settings folder was copied to another computer or Windows user while **Encrypt login tokens** was on. Windows encryption keys do not travel, so the saved tokens cannot be opened. Sign in to the account again; the new token is stored for the current user.
+
 ### Collecting a log for a bug report
 
 The log is `cache/steamedge.log` next to the executable, or open it from Settings. By default only errors are written; set Settings > Advanced & data > **Log file** to **Verbose (debug)**, reproduce the problem, then attach the file. It records connection events, queue decisions and errors. It does **not** contain your password or session token, so it is safe to attach; skim it anyway before you post it. The log is capped: past 2 MB it is moved aside as `steamedge.log.1` and a new file starts, so one older part is always kept.
@@ -413,7 +440,7 @@ Because that is how Steam sends it. Converting would mean inventing a rate.
 <details>
 <summary><b>Can I move my setup to another machine?</b></summary>
 
-Copy the folder. Everything is in it. Remember that `settings/` includes your session token, so copy it privately. The Backup box under Settings > General can also export settings and per-account data to a single file, without the session token.
+Copy the folder. Everything is in it. Remember that `settings/` includes your session token, so copy it privately. The Backup box under Settings > General can also export settings and per-account data to a single file, without the session token. With **Encrypt login tokens** on, the tokens do not open on another computer or Windows user, so sign in again there.
 
 </details>
 

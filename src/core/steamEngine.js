@@ -1,5 +1,6 @@
 const SteamUser = require('steam-user');
 const translation = require('./translation');
+const { parseProxy, proxyFetch } = require('./proxyFetch');
 // steam-user's internal protobufs map doesn't register the user-stats messages, so we encode/decode
 // them ourselves from its generated schema and hand raw buffers to _send.
 const Schema = require('steam-user/protobufs/generated/_load.js');
@@ -14,6 +15,7 @@ class SteamEngine {
     // on"; the attempt limit and the "Off" option in Settings also did not reach steam-user's
     // own attempts.
     this.user = new SteamUser({ autoRelogin: false });
+    this._proxy = null;          // set by setProxy: { url, socks } - every request of this account then goes through it
     this.cookies = null;
     this.steamID = null;
     this.persona = null;
@@ -77,6 +79,19 @@ class SteamEngine {
   // language. A Chinese error notification in the Turkish interface was seen because of this: the text
   // came from Steam itself, not from the dictionary. The `Steam_Language` cookie pins this choice;
   // the `l=english` parameter does the same for calls without a cookie.
+  // Routes this account's Steam connection and web requests through a proxy (see proxyFetch.js). Call it before logOn;
+  // an empty value means a direct connection. Throws on an unusable address instead of silently going direct.
+  setProxy(text) {
+    const p = parseProxy(text);
+    if (!p.ok) throw new Error(translation.t(p.error));
+    this._proxy = p.empty ? null : p;
+    // socks5h: the proxy resolves host names (no DNS lookup on this computer)
+    if (this._proxy) this.user.setOption(this._proxy.socks ? 'socksProxy' : 'httpProxy', this._proxy.url.replace(/^socks5:/, 'socks5h:'));
+  }
+  _fetch(url, options) {
+    return this._proxy ? proxyFetch(url, options, this._proxy) : fetch(url, options);
+  }
+
   cookieHeader() {
     const c = this.cookies ? this.cookies.slice() : [];
     c.push('Steam_Language=english');
@@ -103,7 +118,7 @@ class SteamEngine {
       const trim = new AbortController();
       const counter = setTimeout(() => trim.abort(), timeoutMs);
       try {
-        const r = await fetch(url, { ...fetchSec, headers: titles, signal: trim.signal });
+        const r = await this._fetch(url, { ...fetchSec, headers: titles, signal: trim.signal });
         clearTimeout(counter);
         // 429 and 5xx count as transient and are retried. Anything else is an immediate error.
         if (r.status === 429 || r.status >= 500) {
@@ -609,7 +624,7 @@ class SteamEngine {
     const cur = code && SteamEngine.CURRENCY[code];
     if (!cur) return { noCurrency: true };
     const url = `https://steamcommunity.com/market/priceoverview/?appid=753&currency=${cur}&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
-    const r = await fetch(url);
+    const r = await this._fetch(url);
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
     const j = await r.json();
@@ -632,7 +647,7 @@ class SteamEngine {
   async getPriceHistory(marketHashName) {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
-    const r = await fetch(url, { headers: { Cookie: this.cookieHeader() } });
+    const r = await this._fetch(url, { headers: { Cookie: this.cookieHeader() } });
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
     const j = await r.json().catch(() => null);
@@ -711,7 +726,7 @@ class SteamEngine {
     const code = this.currencyCode();
     if (!code) return { noCurrency: true };
     const url = `https://steamcommunity.com/market/listings/753/${encodeURIComponent(marketHashName)}?l=english`;
-    const r = await fetch(url, {
+    const r = await this._fetch(url, {
       headers: {
         Cookie: this.cookieHeader(),
         // The language is pinned so that the summary sentences can be caught in English; without a browser-like
@@ -793,7 +808,7 @@ class SteamEngine {
       sessionid, appid: '753', contextid: '6',
       assetid: String(assetId), amount: String(amount), price: String(Math.round(priceCents)),
     });
-    const r = await fetch('https://steamcommunity.com/market/sellitem/', {
+    const r = await this._fetch('https://steamcommunity.com/market/sellitem/', {
       method: 'POST',
       headers: {
         Cookie: this.cookieHeader(),
@@ -870,7 +885,7 @@ class SteamEngine {
     if (!/^\d+$/.test(String(listingId))) throw new Error(translation.t('Geçersiz ilan numarası'));
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
     if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
-    const r = await fetch(`https://steamcommunity.com/market/removelisting/${listingId}`, {
+    const r = await this._fetch(`https://steamcommunity.com/market/removelisting/${listingId}`, {
       method: 'POST',
       headers: {
         Cookie: this.cookieHeader(),
@@ -908,7 +923,7 @@ class SteamEngine {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
     if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
-    const r = await fetch(`https://steamcommunity.com/profiles/${this.steamID}/ajaxunpackbooster/`, {
+    const r = await this._fetch(`https://steamcommunity.com/profiles/${this.steamID}/ajaxunpackbooster/`, {
       method: 'POST',
       headers: {
         Cookie: this.cookieHeader(),
@@ -934,7 +949,7 @@ class SteamEngine {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
     if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
-    const r = await fetch('https://steamcommunity.com/parental/ajaxunlock', {
+    const r = await this._fetch('https://steamcommunity.com/parental/ajaxunlock', {
       method: 'POST',
       headers: {
         Cookie: this.cookieHeader(),

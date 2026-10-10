@@ -60,7 +60,7 @@ SteamEdge/
     steamedge.log              el registro que adjuntar a un informe de fallo
 ```
 
-> **`settings/` es la carpeta sensible.** `session.json` contiene un token que basta para usar tu cuenta. No lo metas en una copia de seguridad que compartas, en un archivo que subas ni en una captura de pantalla.
+> **`settings/` es la carpeta sensible.** `session.json` contiene un token que basta para usar tu cuenta. No lo metas en una copia de seguridad que compartas, en un archivo que subas ni en una captura de pantalla. Con **Cifrar los tokens de inicio de sesión** activado (Ajustes > Privacidad y seguridad) los tokens se guardan cifrados, pero mantén `settings/` en privado de todos modos.
 
 ---
 
@@ -227,6 +227,24 @@ Las claves entran en una cola por cuenta que funciona en segundo plano. Se acept
 
 Si la cuenta de Steam usa la Vista familiar, Steam no sirve páginas web hasta que se introduce el PIN, y las páginas de inventario, mercado e insignias no cargan. Introduce el PIN en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y SteamEdge desbloquea con él cada nueva sesión web. El PIN se guarda como texto plano en el archivo de la cuenta bajo `settings/accounts/` y no entra en las copias exportadas.
 
+### Programación de la recolección de cartas
+
+Con **Programación de cartas** activada (Ajustes > Farmeo de cromos), la recolección empieza sola en cada cuenta conectada cuando se abre el horario, y las tareas que inició se detienen cuando termina. El horario puede pasar de medianoche, por ejemplo 22:00 - 07:00. La cola se arma como en un inicio manual: tu **Modo de prioridad predeterminado**, los juegos que quitaste de la cola, **Omitir juegos nunca jugados** y **Tiempo por juego**.
+
+La programación nunca detiene una tarea que iniciaste a mano, y una cuenta se inicia como máximo una vez por horario: si la detienes a mano dentro del horario, sigue detenida hasta el siguiente. Solo se inician las cuentas conectadas; la programación no inicia sesión por nadie.
+
+### Protección de los tokens de inicio de sesión
+
+Los tokens de inicio de sesión guardados en `settings/accounts.json` y `settings/session.json` son texto plano por defecto. Con **Cifrar los tokens de inicio de sesión** activado (Ajustes > Privacidad y seguridad) se guardan cifrados con Windows DPAPI, de modo que una copia de la carpeta no sirve en otro equipo ni con otro usuario de Windows. Al activarlo se reescriben los dos archivos a la vez y se borran las copias `.bak` que aún tenían el texto plano; al desactivarlo se vuelve a escribir texto plano. Los tokens cifrados se leen sea cual sea el ajuste, así que no se pierde nada en ningún sentido.
+
+La contrapartida: si mueves la carpeta a otro equipo o usuario de Windows, o reinstalas Windows, esas cuentas necesitan iniciar sesión de nuevo. Solo se protegen los tokens; el PIN de Vista familiar y la contraseña del proxy en `settings/accounts/<steamID>.json` siguen en texto plano.
+
+### Proxy
+
+Cada cuenta puede tener su propio proxy en Ajustes > Privacidad y seguridad > **Servidor proxy**: `http://host:puerto`, `https://host:puerto` o `socks5://host:puerto`, con `usuario:contraseña@` delante del host si pide credenciales. La conexión de Steam de la cuenta y sus solicitudes de mercado, inventario y claves pasan por él, y con SOCKS5 el proxy resuelve los nombres de host. Si el proxy no responde, la cuenta no se conecta; nunca recurre a una conexión directa. Un cambio se aplica cuando la cuenta se vuelve a conectar.
+
+No cubre: el inicio de sesión en sí (añadir una cuenta), la comprobación de actualizaciones, la descarga del script de comisiones y las imágenes de los objetos, que se cargan directamente.
+
 ### Chat
 
 Los mensajes de amigos van por el mismo protocolo de red que todo lo demas, sin cliente de Steam de por medio. Abrir una conversacion la marca como leida en Steam, y la persona a la que escribes ve el indicador de escritura.
@@ -263,6 +281,9 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `autoNextGame` | `true` | Pasa al siguiente juego cuando uno termina. Desactivado: el farmeo se detiene tras el juego actual |
 | `farmSkipUnplayed` | `false` | Deja fuera de la cola los juegos sin tiempo de juego registrado |
 | `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha |
+| `farmScheduleEnabled` | `false` | Iniciar la recolección de cartas sola dentro del horario de abajo |
+| `farmScheduleFrom` | `22:00` | Inicio del horario |
+| `farmScheduleTo` | `07:00` | Fin del horario. Si el fin es anterior al inicio, el horario pasa de medianoche |
 | `cardMaxGames` | `32` | Juegos abiertos a la vez |
 | `farmMaxMinutes` | `5` | Minutos que funciona cada juego antes de que tome el relevo el siguiente. El modo Rápido marca su propio ritmo |
 | `fastMinPlaytimeMin` | `120` | Umbral de caída de cromos en minutos. El modo Rápido sube primero por encima los juegos que están por debajo y luego rota todos. `0` omite el calentamiento |
@@ -314,6 +335,8 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `offlineMode` | `false` | Aparecer desconectado mientras se ejecuta |
 | `hideGameName` | `false` | Compartir que estás en línea pero no a qué juegas |
 | `parentalPin` | vacío | PIN de la Vista familiar de Steam de la cuenta, para desbloquear las páginas web. Se guarda por cuenta y nunca se exporta |
+| `protectTokens` | `false` | Guardar los tokens de inicio de sesión cifrados con Windows DPAPI. Es propio de este usuario de Windows y equipo, no se exporta |
+| `proxyUrl` | vacío | Proxy de la cuenta: `http://`, `https://` o `socks5://`, con `usuario:contraseña@` opcional. La contraseña se guarda en texto plano en el archivo de la cuenta. Se guarda por cuenta, no se exporta |
 
 > Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 
@@ -374,6 +397,10 @@ Steam mantiene bloqueadas las páginas web hasta que se introduce el PIN de la V
 
 Steam envió un motivo de rechazo que la aplicación no conoce por su nombre. Los motivos habituales (ya en tu cuenta, bloqueada por región, no válida, ya utilizada, se requiere el juego base) se muestran con su nombre. Prueba la clave en la web de Steam; una clave rechazada no se reintenta.
 
+### Una cuenta dice que su sesión está cifrada para otro usuario de Windows
+
+La carpeta de ajustes se copió a otro equipo o usuario de Windows con **Cifrar los tokens de inicio de sesión** activado. Las claves de cifrado de Windows no se trasladan, así que los tokens guardados no se pueden abrir. Inicia sesión de nuevo en la cuenta; el token nuevo se guarda para el usuario actual.
+
 ### Recoger un registro para informar de un fallo
 
 El registro es `cache/steamedge.log`, junto al ejecutable, o ábrelo desde Ajustes. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo. Por defecto solo se escriben errores; pon Ajustes > Avanzado y datos > **Archivo de registro** en **Detallado (depuración)**, reproduce el problema y adjunta el archivo. El registro tiene tope: al pasar de 2 MB se aparta como `steamedge.log.1` y empieza un archivo nuevo, de modo que siempre se conserva una parte anterior.
@@ -413,7 +440,7 @@ Porque así es como lo envía Steam. Convertir significaría inventarse un tipo 
 <details>
 <summary><b>¿Puedo llevarme mi configuración a otro equipo?</b></summary>
 
-Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado. La sección Copia de seguridad de Ajustes > General también puede exportar ajustes y datos por cuenta a un único archivo, sin el token de sesión.
+Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado. La sección Copia de seguridad de Ajustes > General también puede exportar ajustes y datos por cuenta a un único archivo, sin el token de sesión. Con **Cifrar los tokens de inicio de sesión** activado, los tokens no se abren en otro equipo ni con otro usuario de Windows; inicia sesión de nuevo allí.
 
 </details>
 

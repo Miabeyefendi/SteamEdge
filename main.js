@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const FarmController = require('./src/core/farmController');
@@ -18,6 +18,7 @@ const update = require('./src/services/updater');
 // notifications and the error messages returned to the interface (the dictionary is shared with the interface).
 const translation = require('./src/core/translation');
 const { migrateKeys } = require('./src/core/keyMigration');
+const { parseProxy } = require('./src/core/proxyFetch');
 const ct = translation.t;
 // The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
 // wrapping every return point one by one, it is done here: a newly added error message gets
@@ -127,7 +128,11 @@ function getAuthSlot(slotId) {
   return authSlots.get(id);
 }
 function makeAuthSend(slotId) {
-  return (event, data) => { if (win && !win.isDestroyed()) win.webContents.send('auth:' + event, { ...data, slotId }); };
+  return (event, data) => {
+    if (win && !win.isDestroyed()) win.webContents.send('auth:' + event, { ...data, slotId });
+    // steamAuth has just written the new login to disk in plain text
+    if (event === 'authenticated' && settings.protectTokens) rewriteTokenFiles();
+  };
 }
 let tray = null;
 let isQuitting = false;
@@ -243,6 +248,10 @@ const DEFAULT_SETTINGS = {
   preventSleep: false,      // prevent sleep while the app is open
   language: 'en',
   // Card farming
+  farmScheduleEnabled: false, // card farming runs by itself inside the time window below
+  farmScheduleFrom: '22:00',
+  farmScheduleTo: '07:00',
+  protectTokens: false,       // seal the saved login tokens with Windows DPAPI (safeStorage)
   cardPriorityMode: 'sequential',
   farmSkipUnplayed: false,    // leave games with no recorded playtime out of the queue
   farmFinishedAction: 'none', // none | exit: what to do when every card has been collected
@@ -602,32 +611,82 @@ function writeCrash(category, e) {
 process.on('uncaughtException', (e) => { writeCrash('uncaughtException', e); });
 process.on('unhandledRejection', (e) => { writeCrash('unhandledRejection', e); });
 
+// ---- LOGIN TOKEN PROTECTION ----
+// The refresh tokens in session.json and accounts.json are enough to use the Steam account. With "Seal login tokens"
+// on they are stored encrypted with Windows DPAPI (Electron safeStorage), which only the same Windows user on the
+// same computer can open. A sealed value is `enc1:<base64>`; it is always opened when read, whatever the setting is,
+// so switching the setting off (or moving back to plain text) never loses an account.
+const TOKEN_PREFIX = 'enc1:';
+function tokenProtectionAvailable() {
+  try { return safeStorage.isEncryptionAvailable(); } catch (_) { return false; }
+}
+function sealIfEnabled(token) {
+  if (!token || typeof token !== 'string' || token.startsWith(TOKEN_PREFIX)) return token;
+  if (!settings.protectTokens || !tokenProtectionAvailable()) return token;
+  try { return TOKEN_PREFIX + safeStorage.encryptString(token).toString('base64'); }
+  catch (_) { return token; }
+}
+// Returns the plain token, the value unchanged if it was never sealed, or null if it is sealed and cannot be opened
+// here (the folder was copied to another Windows user or computer).
+function openToken(value) {
+  if (typeof value !== 'string' || !value.startsWith(TOKEN_PREFIX)) return value;
+  try { return safeStorage.decryptString(Buffer.from(value.slice(TOKEN_PREFIX.length), 'base64')); }
+  catch (_) { return null; }
+}
 function hasSession() {
   try {
     const s = JSON.parse(fs.readFileSync(path.join(CONFIG_DIR, 'session.json'), 'utf8'));
-    return s && s.refreshToken ? s : null;
+    if (!s || !s.refreshToken) return null;
+    const token = openToken(s.refreshToken);
+    if (token === null) { log('warn', 'session.json is sealed for another Windows user or computer, signing in again is needed'); return null; }
+    return { ...s, refreshToken: token };
   } catch (_) { return null; }
 }
 
 // ---- multi-account store (accounts.json) - session.json always reflects the "active" account ----
 const ACCOUNTS_FILE = path.join(CONFIG_DIR, 'accounts.json');
+// An entry whose token cannot be opened here keeps its sealed value and gets `locked: true`.
+function openAccountEntry(a) {
+  const token = openToken(a && a.refreshToken);
+  if (token === null) return { ...a, locked: true };
+  return token === (a && a.refreshToken) ? a : { ...a, refreshToken: token };
+}
 function loadAccounts() {
   const r = readJson(ACCOUNTS_FILE);
   if (r.ok) {
     if (r.fromBackup) readErrors.push({ displayName: 'Kayıtlı hesaplar', recoveredFlag: true });
-    return Array.isArray(r.dataBlock) ? r.dataBlock : [];
+    return Array.isArray(r.dataBlock) ? r.dataBlock.map(openAccountEntry) : [];
   }
   if (r.corrupt) readErrors.push({ displayName: 'Kayıtlı hesaplar', recoveredFlag: false });
   return [];
 }
-function saveAccounts(list) { writeJson(ACCOUNTS_FILE, list, true); }
+function saveAccounts(list) {
+  writeJson(ACCOUNTS_FILE, list.map((a) => { const { locked, ...rest } = a; return { ...rest, refreshToken: sealIfEnabled(rest.refreshToken) }; }), true);
+}
+// Writes both token files again in the form the setting asks for, and removes the .bak/.tmp copies that would
+// still hold the previous (plain text) version.
+function rewriteTokenFiles() {
+  try {
+    const list = loadAccounts();
+    if (list.length) saveAccounts(list);
+    const sp = path.join(CONFIG_DIR, 'session.json');
+    if (fs.existsSync(sp)) {
+      const sess = JSON.parse(fs.readFileSync(sp, 'utf8'));
+      const token = openToken(sess.refreshToken);
+      if (token !== null) writeJson(sp, { ...sess, refreshToken: sealIfEnabled(token) }, true);
+    }
+    if (settings.protectTokens) {
+      ['accounts.json', 'session.json'].forEach((f) => ['.bak', '.tmp'].forEach((x) => { try { fs.unlinkSync(path.join(CONFIG_DIR, f + x)); } catch (_) {} }));
+    }
+  } catch (e) { log('warn', 'rewriting the token files failed: ' + (e && e.message)); }
+}
 // Makes this account the active session (session.json) and resets the engine - the next engine:connect
 // reconnects with this account's refreshToken. The renderer, the caller will reload.
 // session.json = "which account shows at app startup". It does NOT reset the engine - since accounts
 // work independently of each other switching does not affect the others.
 function makeActiveSession(entry) {
   writeJson(path.join(CONFIG_DIR, 'session.json'), {
-    accountName: entry.accountName, steamID: entry.steamID, refreshToken: entry.refreshToken,
+    accountName: entry.accountName, steamID: entry.steamID, refreshToken: sealIfEnabled(entry.refreshToken),
   }, true);
 }
 
@@ -1301,11 +1360,12 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl'];
 const DEFAULT_ACCOUNT_DATA = {
   boostGameIds: [], entries: {}, achLog: [], stats: null, profileInfo: null,
   grQueue: [], grPresets: [],
   parentalPin: '',                 // Steam Family View PIN of this account (never exported)
+  proxyUrl: '',                    // proxy of this account (http://, https:// or socks5://, may hold a user:password; never exported)
   keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
 };
 
@@ -1400,6 +1460,7 @@ function disconnectAll() {
 async function connectAccount(entry) {
   const s = slotOf(entry.steamID);
   s.accountName = entry.accountName;
+  if (entry.locked) return { ok: false, error: 'Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.' };
   if (s.ready && s.engine) return { ok: true, persona: s.engine.persona, steamID: s.engine.steamID };
   // DO NOT OPEN A SECOND LOGON FOR THE SAME ACCOUNT. The old code short-circuited only if the session was
   // COMPLETE; when `accounts:connectAll` at startup and the pages' `engine:connect`
@@ -1421,6 +1482,8 @@ async function connectAccount(entry) {
     const eng = new SteamEngine();
     eng.reconnectLimit = reconnectLimit();
     eng.parentalPin = accountData(entry.steamID).parentalPin || '';
+    try { eng.setProxy(accountData(entry.steamID).proxyUrl); }
+    catch (e) { log('error', '[' + entry.accountName + '] proxy not used, connection stopped: ' + e.message); return { ok: false, error: e.message }; }
     // G3: carry drop/reconnect events to the interface
     bindConnectionState(eng, entry.steamID);
     applyChatSettings(eng);
@@ -3382,6 +3445,11 @@ const SESSION_FIELDS = ['persona', 'steamID', 'accountCurrency'];
 function applySettingPatch(patch) {
   const received = { ...(patch || {}) };
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
+  if ('proxyUrl' in received) {
+    const p = parseProxy(received.proxyUrl);
+    if (!p.ok) return { ok: false, changedOne: [], appliedOne: [], error: p.error };
+    received.proxyUrl = p.empty ? '' : String(received.proxyUrl).trim();
+  }
   let writtenToAccount = false;
   let pinChanged = false;
   ACCOUNT_SETTING_KEYS.forEach((k) => {
@@ -3404,6 +3472,15 @@ function applySettingPatch(patch) {
     return { ok: false, changedOne: [], appliedOne: [], error: 'Ayar dosyası yazılamadı. Açılışta okunamadığı için korunuyor olabilir.' };
   }
   settingSaveTime = Date.now();
+  if (changed.includes('protectTokens')) {
+    if (settings.protectTokens && !tokenProtectionAvailable()) {
+      settings = { ...settings, protectTokens: false };
+      saveSettings();
+      return { ok: false, changedOne: [], appliedOne: [], error: 'Windows şifrelemesi bu bilgisayarda kullanılamıyor.' };
+    }
+    rewriteTokenFiles();
+    log('info', 'login token protection ' + (settings.protectTokens ? 'on' : 'off'));
+  }
   applySettings();
   if (changed.includes('language')) { translation.pickLang(settings.language); setupTrayMenu(); }
   // If the retention period was shortened the extra records are deleted right away (it does not wait for startup).
@@ -3552,7 +3629,8 @@ ipcMain.handle('settings:openConfigFolder', () => { shell.openPath(DATA_ROOT); r
 // the current session (persona/steamID/currency) are DELIBERATELY left out: if the backup file falls
 // into someone else's hands it must not give access to the account. The backup used to hold the old shared statistics
 // file detached from the account; the real statistics counted per account were never backed up.
-const EXPORT_SKIP = ['persona', 'steamID', 'accountCurrency'];
+// protectTokens belongs to this Windows user and computer; a backup must not switch it on somewhere else.
+const EXPORT_SKIP = ['persona', 'steamID', 'accountCurrency', 'protectTokens'];
 const BACKUP_ACCOUNT_FIELDS = ['boostGameIds', 'grQueue', 'grPresets'];
 function exportPayload() {
   const out = {};
@@ -3826,6 +3904,96 @@ function isSetupConsistent() {
   return { ok: true };
 }
 
+// ---- CARD FARMING SCHEDULE ----
+// With the schedule on, every connected account starts card farming when the window opens and the farms started this
+// way stop when it closes. A farm the user started by hand is never stopped by the schedule, and an account is
+// started at most once per window: stopping it by hand inside the window keeps it stopped until the next window.
+const SCHEDULE_CHECK_MS = 30000;
+let scheduleTimer = null;
+// Identifies the window the clock is in (the day it opened), or null outside of it.
+function scheduleWindowKey(now) {
+  const [fh, fm] = String(settings.farmScheduleFrom || '22:00').split(':').map(Number);
+  const [th, tm] = String(settings.farmScheduleTo || '07:00').split(':').map(Number);
+  const f = fh * 60 + (fm || 0), t = th * 60 + (tm || 0);
+  if (f === t || [f, t].some(Number.isNaN)) return null;
+  const cur = now.getHours() * 60 + now.getMinutes();
+  if (f < t) return (cur >= f && cur < t) ? dayKey(now.getTime()) : null;
+  if (cur >= f) return dayKey(now.getTime());
+  if (cur < t) return dayKey(now.getTime() - 86400000);
+  return null;
+}
+// The same order the Card farming page uses for a manual start (orderedForMode in cards.js).
+function orderForMode(list, mode, order) {
+  const byPlay = (k) => (a, b) => k * ((a.playtimeMin || 0) - (b.playtimeMin || 0));
+  if (mode === 'most') return list.slice().sort((a, b) => b.remaining - a.remaining);
+  if (mode === 'least') return list.slice().sort((a, b) => a.remaining - b.remaining);
+  if (mode === 'leastPlayed') return list.slice().sort(byPlay(1));
+  if (mode === 'mostPlayed') return list.slice().sort(byPlay(-1));
+  if (mode === 'priority') {
+    return list.slice().sort((a, b) => {
+      const ia = order.indexOf(a.appid), ib = order.indexOf(b.appid);
+      return (ia < 0 ? 1e9 : ia) - (ib < 0 ? 1e9 : ib);
+    });
+  }
+  return list;
+}
+async function scheduleStartFarm(steamID) {
+  const s = accounts.get(steamID);
+  if (!s || !s.engine || !s.ready) return;
+  try {
+    const games = await s.engine.getDropGames();
+    const mins = new Map();
+    try { (await s.engine.getOwnedGames()).forEach((o) => mins.set(o.appid, o.playtimeForever || 0)); }
+    catch (e) { log('warn', '[' + accountName(steamID) + '] schedule: could not get the playtime: ' + e.message); }
+    const saved = (accountData(steamID).entries['cards.queue'] || {}).v || {};
+    const removed = new Set(saved.removed || []);
+    const list = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }))
+      .filter((g) => !removed.has(g.appid) && !(settings.farmSkipUnplayed && !(g.playtimeMin > 0)));
+    // the account may have been given another job while the lists were loading
+    if (!s.ready || accountRunning(s) || s.pendingFarm) return;
+    if (!list.length) { log('info', '[' + accountName(steamID) + '] schedule: no game with cards left'); return; }
+    const ordered = orderForMode(list, settings.cardPriorityMode, saved.order || []);
+    const durationMs = Math.max(1, +settings.farmMaxMinutes || 5) * 60000;
+    if (!startCardFarm(steamID, settings.cardPriorityMode, ordered.map((g) => ({ appid: g.appid, name: g.name, remaining: g.remaining, playtimeMin: g.playtimeMin })), durationMs)) return;
+    if (!s.farm || !s.farm.running) return;
+    s.scheduleStarted = true;
+    log('info', '[' + accountName(steamID) + '] schedule: card farming started (' + ordered.length + ' games)');
+    accountEvent(steamID, {
+      typeName: 'cardStarted',
+      feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Zamanlayıcı kart düşürmeyi başlattı.', status: 'Çalışıyor' },
+    });
+  } catch (e) { log('warn', '[' + accountName(steamID) + '] schedule: start failed: ' + (e && e.message)); }
+}
+function scheduleTick() {
+  if (!settings.farmScheduleEnabled) {
+    // Turning the schedule off leaves a running farm alone
+    accounts.forEach((s) => { s.scheduleStarted = false; s.scheduleKey = null; });
+    return;
+  }
+  const key = scheduleWindowKey(new Date());
+  accounts.forEach((s, steamID) => {
+    if (!key) {
+      if (s.scheduleStarted && s.pendingFarm) s.pendingFarm = null;   // paused for a boost: it must not resume after the window
+      if (s.scheduleStarted && s.farm && s.farm.running) {
+        s.farm.stop('schedule');
+        log('info', '[' + accountName(steamID) + '] schedule: window closed, card farming stopped');
+        accountEvent(steamID, {
+          typeName: 'cardStopped',
+          feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Zamanlayıcı aralığı bitti; kart düşürme durduruldu.', status: 'Durdu' },
+        });
+      }
+      s.scheduleStarted = false; s.scheduleKey = null;
+      return;
+    }
+    if (s.scheduleKey === key || !s.ready || !s.engine || s.scheduleBusy) return;
+    s.scheduleKey = key;
+    // a job already running (started by hand, boosting, Realistic Mode) is not touched and is not the schedule's to stop
+    if (accountRunning(s) || s.pendingFarm) return;
+    s.scheduleBusy = true;
+    scheduleStartFarm(steamID).finally(() => { s.scheduleBusy = false; });
+  });
+}
+
 app.whenReady().then(() => {
   const setup = isSetupConsistent();
   if (!setup.ok) {
@@ -3851,10 +4019,12 @@ app.whenReady().then(() => {
     return;
   }
   loadSettings(); applySettings(); loadStats(); loadState(); loadPriceCache(); loadHistoryCache();
+  if (settings.protectTokens) rewriteTokenFiles();   // a login made while the app was not running may still be plain text
   createWindow(); ensureTray();
   setTimeout(reportReadErrors, 1200);
   startupUpdateCheck();
   earlyConnect();
+  scheduleTimer = setInterval(scheduleTick, SCHEDULE_CHECK_MS);
 });
 app.on('window-all-closed', () => { if (process.platform !== 'darwin' && !settings.closeToTray) app.quit(); });
 app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });

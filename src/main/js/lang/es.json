@@ -1379,5 +1379,21 @@
  "Anahtar kuyruğu bitti. Sonuçlar Anahtarlar sayfasında.": "La cola de claves ha terminado. Los resultados están en la página Claves.",
  "Pazar yanıtı beklenen biçimde değil": "La respuesta del mercado no tiene el formato esperado",
  "Geçersiz ilan numarası": "Número de anuncio no válido",
- "Aile Görünümü PIN'i reddedildi": "Se rechazó el PIN de la Vista familiar"
+ "Aile Görünümü PIN'i reddedildi": "Se rechazó el PIN de la Vista familiar",
+ "Kart düşürme zamanlayıcısı": "Programación de cartas",
+ "Açıkken kart düşürme, aşağıdaki saat aralığında bağlı her hesapta kendiliğinden başlar ve aralık bitince durur. Elle başlattığın bir işi zamanlayıcı durdurmaz. Aralık içinde elle durdurursan, sonraki aralığa kadar yeniden başlamaz.": "Si está activado, la recolección de cartas empieza sola en cada cuenta conectada dentro del horario de abajo y se detiene cuando termina. La programación nunca detiene una tarea que iniciaste a mano. Si la detienes a mano dentro del horario, no vuelve a empezar hasta el siguiente.",
+ "Kart zamanlayıcı aralığı": "Horario de la programación",
+ "Kart düşürmenin çalışacağı saatler. Bitiş başlangıçtan önceyse aralık geceyi aşar (örneğin 22:00 - 07:00).": "Las horas en que funciona la recolección de cartas. Si el final es anterior al inicio, el horario pasa de medianoche (por ejemplo 22:00 - 07:00).",
+ "\"Kart düşürme zamanlayıcısı\" kapalıyken kullanılmaz.": "No se usa mientras \"Programación de cartas\" está desactivada.",
+ "Zamanlayıcı kart düşürmeyi başlattı.": "La programación inició la recolección de cartas.",
+ "Zamanlayıcı aralığı bitti; kart düşürme durduruldu.": "Terminó el horario de la programación; se detuvo la recolección de cartas.",
+ "Giriş anahtarlarını şifrele": "Cifrar los tokens de inicio de sesión",
+ "Kayıtlı giriş anahtarları (hesaplar ve son oturum) Windows DPAPI ile şifrelenir; yalnızca bu bilgisayarda, bu Windows kullanıcısı açabilir. Klasörü başka bir bilgisayara ya da kullanıcıya taşırsan bu hesaplarda yeniden giriş yapman gerekir.": "Los tokens de inicio de sesión guardados (cuentas y última sesión) se cifran con Windows DPAPI; solo este usuario de Windows en este equipo puede abrirlos. Si mueves la carpeta a otro equipo o usuario, tendrás que volver a iniciar sesión en esas cuentas.",
+ "Vekil sunucu (proxy)": "Servidor proxy",
+ "Bu hesabın Steam bağlantısı ve pazar istekleri bu vekil üzerinden gider. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Kullanıcı adı ve parola gerekiyorsa http://kullanıcı:parola@sunucu:port yazılır. Parola bu hesabın dosyasında düz metin olarak saklanır. Boş bırakırsan doğrudan bağlanılır. Değişiklik hesap yeniden bağlanınca geçerli olur.": "La conexión de Steam y las solicitudes del mercado de esta cuenta pasan por este proxy. Formato: http://host:puerto, https://host:puerto o socks5://host:puerto. Si hacen falta usuario y contraseña, escribe http://usuario:contraseña@host:puerto. La contraseña se guarda como texto plano en el archivo de esta cuenta. Déjalo vacío para conectarte directamente. El cambio se aplica cuando la cuenta se vuelva a conectar.",
+ "socks5://127.0.0.1:1080": "socks5://127.0.0.1:1080",
+ "Vekil, hesap yeniden bağlanınca etkili olur.": "El proxy se aplica cuando la cuenta se vuelve a conectar.",
+ "Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.": "La sesión de esta cuenta se cifró para otro usuario de Windows u otro equipo; tienes que volver a iniciar sesión.",
+ "Windows şifrelemesi bu bilgisayarda kullanılamıyor.": "El cifrado de Windows no está disponible en este equipo.",
+ "Vekil adresi geçersiz. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port.": "La dirección del proxy no es válida. Formato: http://host:puerto, https://host:puerto o socks5://host:puerto."
 }

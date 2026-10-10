@@ -60,7 +60,7 @@ SteamEdge/
     steamedge.log              das Protokoll für einen Fehlerbericht
 ```
 
-> **Empfindlich ist `settings/`.** In `session.json` liegt ein Token, das ausreicht, um dein Konto zu benutzen. Es gehört nicht in ein geteiltes Backup, ein hochgeladenes Archiv oder einen Screenshot.
+> **Empfindlich ist `settings/`.** In `session.json` liegt ein Token, das ausreicht, um dein Konto zu benutzen. Es gehört nicht in ein geteiltes Backup, ein hochgeladenes Archiv oder einen Screenshot. Ist **Anmelde-Token verschlüsseln** an (Einstellungen > Datenschutz & Sicherheit), liegen die Token verschlüsselt vor; halte `settings/` trotzdem privat.
 
 ---
 
@@ -227,6 +227,24 @@ Schlüssel kommen in eine Warteschlange pro Konto, die im Hintergrund läuft. Ei
 
 Nutzt das Steam-Konto die Familienansicht, liefert Steam keine Webseiten, bis die PIN eingegeben wurde; Inventar-, Markt- und Abzeichenseiten laden dann nicht. Gib die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein, und SteamEdge entsperrt damit jede neue Websitzung. Die PIN liegt als Klartext in der Datei des Kontos unter `settings/accounts/` und gehört nicht zu exportierten Sicherungen.
 
+### Zeitplan für das Kartensammeln
+
+Ist der **Zeitplan für Kartensammeln** an (Einstellungen > Kartenfarmen), startet das Kartensammeln auf jedem verbundenen Konto von selbst, sobald der Zeitraum beginnt, und die so gestarteten Aufträge enden mit dem Zeitraum. Der Zeitraum darf über Mitternacht reichen, zum Beispiel 22:00 - 07:00. Die Warteschlange wird wie bei einem manuellen Start aufgebaut: dein **Standard-Prioritätsmodus**, die aus der Warteschlange entfernten Spiele, **Nie gespielte Spiele überspringen** und **Zeit pro Spiel**.
+
+Ein von Hand gestarteter Auftrag wird vom Zeitplan nie gestoppt, und ein Konto wird pro Zeitraum höchstens einmal gestartet: Stoppst du es im Zeitraum von Hand, bleibt es bis zum nächsten Zeitraum gestoppt. Nur verbundene Konten werden gestartet; der Zeitplan meldet niemanden an.
+
+### Schutz der Anmelde-Token
+
+Die gespeicherten Anmelde-Token in `settings/accounts.json` und `settings/session.json` sind standardmäßig Klartext. Ist **Anmelde-Token verschlüsseln** an (Einstellungen > Datenschutz & Sicherheit), werden sie mit Windows DPAPI verschlüsselt gespeichert; eine Kopie des Ordners ist auf einem anderen Computer oder unter einem anderen Windows-Benutzer wertlos. Beim Einschalten werden beide Dateien sofort neu geschrieben und die `.bak`-Kopien, die noch Klartext enthielten, gelöscht; beim Ausschalten wird wieder Klartext geschrieben. Verschlüsselte Token werden unabhängig von der Einstellung gelesen, es geht also in beide Richtungen nichts verloren.
+
+Der Haken: Verschiebst du den Ordner auf einen anderen Computer oder Windows-Benutzer oder installierst du Windows neu, müssen sich diese Konten neu anmelden. Geschützt sind nur die Token; die PIN der Familienansicht und das Proxy-Passwort in `settings/accounts/<steamID>.json` bleiben Klartext.
+
+### Proxy
+
+Jedes Konto kann einen eigenen Proxy haben, unter Einstellungen > Datenschutz & Sicherheit > **Proxyserver**: `http://Host:Port`, `https://Host:Port` oder `socks5://Host:Port`, bei Anmeldung mit `Benutzer:Passwort@` vor dem Host. Die Steam-Verbindung des Kontos sowie seine Markt-, Inventar- und Schlüsselanfragen laufen darüber; bei SOCKS5 löst der Proxy Hostnamen auf. Ist der Proxy nicht erreichbar, verbindet sich das Konto nicht; es fällt nie auf eine direkte Verbindung zurück. Eine Änderung gilt, wenn sich das Konto neu verbindet.
+
+Nicht abgedeckt: die Anmeldung selbst (Konto hinzufügen), die Update-Prüfung, der Download des Gebührenskripts und die Artikelbilder, die direkt geladen werden.
+
 ### Chat
 
 Freundesnachrichten laufen ueber dasselbe Netzwerkprotokoll wie alles andere hier, ein Steam-Client ist nicht beteiligt. Das Oeffnen einer Unterhaltung markiert sie bei Steam als gelesen, und dein Gegenueber sieht die Schreibanzeige.
@@ -263,6 +281,9 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `autoNextGame` | `true` | Zum nächsten Spiel wechseln, wenn eines fertig ist. Aus: Das Farmen stoppt nach dem aktuellen Spiel |
 | `farmSkipUnplayed` | `false` | Lässt Spiele ohne gespeicherte Spielzeit aus der Warteschlange |
 | `farmFinishedAction` | `none` | `none` oder `exit`: schließt die App 20 Sekunden nach dem Sammeln aller Karten, wenn kein anderer Auftrag läuft |
+| `farmScheduleEnabled` | `false` | Kartensammeln im folgenden Zeitraum von selbst starten |
+| `farmScheduleFrom` | `22:00` | Beginn des Zeitraums |
+| `farmScheduleTo` | `07:00` | Ende des Zeitraums. Liegt das Ende vor dem Beginn, reicht der Zeitraum über Mitternacht |
 | `cardMaxGames` | `32` | Gleichzeitig offene Spiele |
 | `farmMaxMinutes` | `5` | Minuten, die jedes Spiel läuft, bevor das nächste übernimmt. Der schnelle Modus hat seinen eigenen Rhythmus |
 | `fastMinPlaytimeMin` | `120` | Schwelle für Kartendrops in Minuten. Der schnelle Modus hebt Spiele darunter zuerst darüber, dann rotiert er alle. `0` überspringt das Aufwärmen |
@@ -314,6 +335,8 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `offlineMode` | `false` | Während des Laufs offline erscheinen |
 | `hideGameName` | `false` | Zeigen, dass du online bist, aber nicht welches Spiel |
 | `parentalPin` | leer | PIN der Steam-Familienansicht des Kontos, zum Entsperren der Webseiten. Pro Konto gespeichert, nie exportiert |
+| `protectTokens` | `false` | Gespeicherte Anmelde-Token mit Windows DPAPI verschlüsselt ablegen. Gilt nur für diesen Windows-Benutzer und Computer, wird nicht exportiert |
+| `proxyUrl` | leer | Proxy des Kontos: `http://`, `https://` oder `socks5://`, optional mit `Benutzer:Passwort@`. Das Passwort liegt im Klartext in der Datei des Kontos. Pro Konto gespeichert, wird nicht exportiert |
 
 > Offline zu erscheinen ändert, was Freunde sehen. Es kann auch ändern, ob Steam dich als spielend zählt; teste es, bevor du dich in einer langen Sitzung darauf verlässt.
 
@@ -374,6 +397,10 @@ Steam hält Webseiten gesperrt, bis die PIN der Familienansicht eingegeben wurde
 
 Steam hat einen Ablehnungsgrund geschickt, den die App nicht beim Namen kennt. Die häufigen Gründe (bereits im Besitz, regionsgesperrt, ungültig, bereits benutzt, Basisspiel erforderlich) werden mit Namen angezeigt. Prüfe den Schlüssel auf der Steam-Website; ein abgelehnter Schlüssel wird nicht erneut versucht.
 
+### Ein Konto meldet, die Sitzung sei für einen anderen Windows-Benutzer verschlüsselt
+
+Der Einstellungsordner wurde bei aktivem **Anmelde-Token verschlüsseln** auf einen anderen Computer oder Windows-Benutzer kopiert. Windows-Schlüssel wandern nicht mit, deshalb lassen sich die gespeicherten Token nicht öffnen. Melde das Konto neu an; das neue Token wird für den aktuellen Benutzer gespeichert.
+
 ### Ein Protokoll für einen Fehlerbericht sammeln
 
 Das Protokoll ist `cache/steamedge.log` neben der ausführbaren Datei, oder aus den Einstellungen zu öffnen. Es hält Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Es enthält **weder** dein Passwort **noch** dein Sitzungstoken, ist also sicher anzuhängen; sieh es trotzdem durch, bevor du es veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Datei an. Das Protokoll ist begrenzt: ab 2 MB wird es als `steamedge.log.1` beiseitegelegt und eine neue Datei beginnt, sodass immer ein älterer Teil erhalten bleibt.
@@ -413,7 +440,7 @@ Weil Steam es so schickt. Umrechnen hieße, einen Kurs zu erfinden.
 <details>
 <summary><b>Kann ich meine Installation auf einen anderen Rechner mitnehmen?</b></summary>
 
-Kopiere den Ordner, alles steckt darin. Denk daran, dass in `settings/` dein Sitzungstoken liegt, kopiere also privat. Die Sicherung unter Einstellungen > Allgemein kann Einstellungen und Kontodaten auch ohne Sitzungstoken in eine Datei exportieren.
+Kopiere den Ordner, alles steckt darin. Denk daran, dass in `settings/` dein Sitzungstoken liegt, kopiere also privat. Die Sicherung unter Einstellungen > Allgemein kann Einstellungen und Kontodaten auch ohne Sitzungstoken in eine Datei exportieren. Ist **Anmelde-Token verschlüsseln** an, lassen sich die Token auf einem anderen Computer oder Windows-Benutzer nicht öffnen; melde dich dort neu an.
 
 </details>
 

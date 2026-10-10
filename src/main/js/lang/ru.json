@@ -1379,5 +1379,21 @@
  "Anahtar kuyruğu bitti. Sonuçlar Anahtarlar sayfasında.": "Очередь ключей завершена. Результаты на странице «Ключи».",
  "Pazar yanıtı beklenen biçimde değil": "Ответ площадки имеет неожиданный формат",
  "Geçersiz ilan numarası": "Недопустимый номер лота",
- "Aile Görünümü PIN'i reddedildi": "PIN семейного просмотра отклонён"
+ "Aile Görünümü PIN'i reddedildi": "PIN семейного просмотра отклонён",
+ "Kart düşürme zamanlayıcısı": "Расписание сбора карточек",
+ "Açıkken kart düşürme, aşağıdaki saat aralığında bağlı her hesapta kendiliğinden başlar ve aralık bitince durur. Elle başlattığın bir işi zamanlayıcı durdurmaz. Aralık içinde elle durdurursan, sonraki aralığa kadar yeniden başlamaz.": "Когда включено, сбор карточек сам запускается на каждом подключённом аккаунте в указанном ниже интервале и останавливается по его окончании. Расписание никогда не останавливает задачу, запущенную вручную. Если остановить её вручную внутри интервала, она не запустится снова до следующего интервала.",
+ "Kart zamanlayıcı aralığı": "Интервал расписания",
+ "Kart düşürmenin çalışacağı saatler. Bitiş başlangıçtan önceyse aralık geceyi aşar (örneğin 22:00 - 07:00).": "Часы, в которые идёт сбор карточек. Если конец раньше начала, интервал переходит через полночь (например, 22:00 - 07:00).",
+ "\"Kart düşürme zamanlayıcısı\" kapalıyken kullanılmaz.": "Не используется, пока «Расписание сбора карточек» выключено.",
+ "Zamanlayıcı kart düşürmeyi başlattı.": "Расписание запустило сбор карточек.",
+ "Zamanlayıcı aralığı bitti; kart düşürme durduruldu.": "Интервал расписания закончился; сбор карточек остановлен.",
+ "Giriş anahtarlarını şifrele": "Шифровать токены входа",
+ "Kayıtlı giriş anahtarları (hesaplar ve son oturum) Windows DPAPI ile şifrelenir; yalnızca bu bilgisayarda, bu Windows kullanıcısı açabilir. Klasörü başka bir bilgisayara ya da kullanıcıya taşırsan bu hesaplarda yeniden giriş yapman gerekir.": "Сохранённые токены входа (аккаунты и последняя сессия) шифруются с помощью Windows DPAPI; открыть их может только этот пользователь Windows на этом компьютере. Если перенести папку на другой компьютер или к другому пользователю, в этих аккаунтах придётся войти заново.",
+ "Vekil sunucu (proxy)": "Прокси-сервер",
+ "Bu hesabın Steam bağlantısı ve pazar istekleri bu vekil üzerinden gider. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Kullanıcı adı ve parola gerekiyorsa http://kullanıcı:parola@sunucu:port yazılır. Parola bu hesabın dosyasında düz metin olarak saklanır. Boş bırakırsan doğrudan bağlanılır. Değişiklik hesap yeniden bağlanınca geçerli olur.": "Соединение этого аккаунта со Steam и запросы к торговой площадке идут через этот прокси. Формат: http://хост:порт, https://хост:порт или socks5://хост:порт. Если нужны имя пользователя и пароль, напишите http://пользователь:пароль@хост:порт. Пароль хранится в файле этого аккаунта открытым текстом. Оставьте пустым для прямого подключения. Изменение вступает в силу после повторного подключения аккаунта.",
+ "socks5://127.0.0.1:1080": "socks5://127.0.0.1:1080",
+ "Vekil, hesap yeniden bağlanınca etkili olur.": "Прокси вступит в силу после повторного подключения аккаунта.",
+ "Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.": "Сессия этого аккаунта зашифрована для другого пользователя Windows или компьютера; нужно войти заново.",
+ "Windows şifrelemesi bu bilgisayarda kullanılamıyor.": "Шифрование Windows недоступно на этом компьютере.",
+ "Vekil adresi geçersiz. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port.": "Адрес прокси недопустим. Формат: http://хост:порт, https://хост:порт или socks5://хост:порт."
 }

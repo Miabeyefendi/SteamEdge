@@ -1379,5 +1379,21 @@
  "Anahtar kuyruğu bitti. Sonuçlar Anahtarlar sayfasında.": "序號佇列已完成，結果在「序號」頁面。",
  "Pazar yanıtı beklenen biçimde değil": "市集回應的格式不符預期",
  "Geçersiz ilan numarası": "無效的上架編號",
- "Aile Görünümü PIN'i reddedildi": "家庭檢視 PIN 被拒絕"
+ "Aile Görünümü PIN'i reddedildi": "家庭檢視 PIN 被拒絕",
+ "Kart düşürme zamanlayıcısı": "集卡排程",
+ "Açıkken kart düşürme, aşağıdaki saat aralığında bağlı her hesapta kendiliğinden başlar ve aralık bitince durur. Elle başlattığın bir işi zamanlayıcı durdurmaz. Aralık içinde elle durdurursan, sonraki aralığa kadar yeniden başlamaz.": "開啟後，集卡會在下方的時段內於每個已連線的帳號自動開始，時段結束時停止。排程不會停止你手動開始的工作。若在時段內手動停止，要到下一個時段才會再次開始。",
+ "Kart zamanlayıcı aralığı": "排程時段",
+ "Kart düşürmenin çalışacağı saatler. Bitiş başlangıçtan önceyse aralık geceyi aşar (örneğin 22:00 - 07:00).": "集卡運作的時段。若結束時間早於開始時間，時段會跨過午夜（例如 22:00 - 07:00）。",
+ "\"Kart düşürme zamanlayıcısı\" kapalıyken kullanılmaz.": "「集卡排程」關閉時不會使用。",
+ "Zamanlayıcı kart düşürmeyi başlattı.": "排程已開始集卡。",
+ "Zamanlayıcı aralığı bitti; kart düşürme durduruldu.": "排程時段已結束，已停止集卡。",
+ "Giriş anahtarlarını şifrele": "加密登入權杖",
+ "Kayıtlı giriş anahtarları (hesaplar ve son oturum) Windows DPAPI ile şifrelenir; yalnızca bu bilgisayarda, bu Windows kullanıcısı açabilir. Klasörü başka bir bilgisayara ya da kullanıcıya taşırsan bu hesaplarda yeniden giriş yapman gerekir.": "儲存的登入權杖（帳號與上次工作階段）會以 Windows DPAPI 加密；只有這台電腦上的這位 Windows 使用者能開啟。若將資料夾移到其他電腦或使用者，這些帳號需要重新登入。",
+ "Vekil sunucu (proxy)": "代理伺服器",
+ "Bu hesabın Steam bağlantısı ve pazar istekleri bu vekil üzerinden gider. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Kullanıcı adı ve parola gerekiyorsa http://kullanıcı:parola@sunucu:port yazılır. Parola bu hesabın dosyasında düz metin olarak saklanır. Boş bırakırsan doğrudan bağlanılır. Değişiklik hesap yeniden bağlanınca geçerli olur.": "此帳號的 Steam 連線與市集請求會經由這個代理。格式：http://主機:連接埠、https://主機:連接埠 或 socks5://主機:連接埠。若需要使用者名稱與密碼，請寫成 http://使用者:密碼@主機:連接埠。密碼會以純文字存放在此帳號的檔案中。留空則直接連線。變更會在帳號重新連線後生效。",
+ "socks5://127.0.0.1:1080": "socks5://127.0.0.1:1080",
+ "Vekil, hesap yeniden bağlanınca etkili olur.": "代理會在帳號重新連線後生效。",
+ "Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.": "此帳號的工作階段是為其他 Windows 使用者或電腦加密的，你需要重新登入。",
+ "Windows şifrelemesi bu bilgisayarda kullanılamıyor.": "這台電腦無法使用 Windows 加密。",
+ "Vekil adresi geçersiz. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port.": "代理位址無效。格式：http://主機:連接埠、https://主機:連接埠 或 socks5://主機:連接埠。"
 }

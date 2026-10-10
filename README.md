@@ -42,6 +42,7 @@
 - **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time. When Steam's hourly limit is reached the queue waits and carries on by itself.
 - **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
+- **Schedule, proxy and token protection** - Card farming can run by itself inside a time range, each account can use its own HTTP or SOCKS5 proxy, and saved sign-in tokens can be encrypted with Windows DPAPI.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
@@ -106,10 +107,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.4.2-win-x64.rar`:
-`410e1359406ecd7cae5ce7b7b678c2ec96230bcd451bd37be60f40feb09c4b52`
+SHA-256 of `SteamEdge-v1.4.3-win-x64.rar`:
+`108d1e0b41245612d2fdbd12d156ca10dd95c5e585ffbc2315dd1bbe54708b55`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.2-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.3-win-x64.rar`.
 
 </details>
 

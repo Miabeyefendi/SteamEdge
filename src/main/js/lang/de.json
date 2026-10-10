@@ -1379,5 +1379,21 @@
  "Anahtar kuyruğu bitti. Sonuçlar Anahtarlar sayfasında.": "Die Schlüssel-Warteschlange ist abgearbeitet. Die Ergebnisse stehen auf der Seite Schlüssel.",
  "Pazar yanıtı beklenen biçimde değil": "Die Marktantwort hat nicht das erwartete Format",
  "Geçersiz ilan numarası": "Ungültige Angebotsnummer",
- "Aile Görünümü PIN'i reddedildi": "Die PIN der Familienansicht wurde abgelehnt"
+ "Aile Görünümü PIN'i reddedildi": "Die PIN der Familienansicht wurde abgelehnt",
+ "Kart düşürme zamanlayıcısı": "Zeitplan für Kartensammeln",
+ "Açıkken kart düşürme, aşağıdaki saat aralığında bağlı her hesapta kendiliğinden başlar ve aralık bitince durur. Elle başlattığın bir işi zamanlayıcı durdurmaz. Aralık içinde elle durdurursan, sonraki aralığa kadar yeniden başlamaz.": "Wenn aktiv, startet das Kartensammeln im Zeitraum unten auf jedem verbundenen Konto von selbst und endet mit dem Zeitraum. Ein von Hand gestarteter Auftrag wird vom Zeitplan nie beendet. Stoppst du im Zeitraum von Hand, startet es erst im nächsten Zeitraum wieder.",
+ "Kart zamanlayıcı aralığı": "Zeitraum des Zeitplans",
+ "Kart düşürmenin çalışacağı saatler. Bitiş başlangıçtan önceyse aralık geceyi aşar (örneğin 22:00 - 07:00).": "Die Uhrzeiten, in denen das Kartensammeln läuft. Liegt das Ende vor dem Beginn, reicht der Zeitraum über Mitternacht (z. B. 22:00 - 07:00).",
+ "\"Kart düşürme zamanlayıcısı\" kapalıyken kullanılmaz.": "Wird nicht verwendet, solange „Zeitplan für Kartensammeln“ aus ist.",
+ "Zamanlayıcı kart düşürmeyi başlattı.": "Der Zeitplan hat das Kartensammeln gestartet.",
+ "Zamanlayıcı aralığı bitti; kart düşürme durduruldu.": "Der Zeitraum des Zeitplans ist zu Ende; das Kartensammeln wurde gestoppt.",
+ "Giriş anahtarlarını şifrele": "Anmelde-Token verschlüsseln",
+ "Kayıtlı giriş anahtarları (hesaplar ve son oturum) Windows DPAPI ile şifrelenir; yalnızca bu bilgisayarda, bu Windows kullanıcısı açabilir. Klasörü başka bir bilgisayara ya da kullanıcıya taşırsan bu hesaplarda yeniden giriş yapman gerekir.": "Die gespeicherten Anmelde-Token (Konten und letzte Sitzung) werden mit Windows DPAPI verschlüsselt; nur dieser Windows-Benutzer auf diesem Computer kann sie öffnen. Verschiebst du den Ordner auf einen anderen Computer oder Benutzer, musst du dich bei diesen Konten neu anmelden.",
+ "Vekil sunucu (proxy)": "Proxyserver",
+ "Bu hesabın Steam bağlantısı ve pazar istekleri bu vekil üzerinden gider. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Kullanıcı adı ve parola gerekiyorsa http://kullanıcı:parola@sunucu:port yazılır. Parola bu hesabın dosyasında düz metin olarak saklanır. Boş bırakırsan doğrudan bağlanılır. Değişiklik hesap yeniden bağlanınca geçerli olur.": "Die Steam-Verbindung und die Marktanfragen dieses Kontos laufen über diesen Proxy. Format: http://Host:Port, https://Host:Port oder socks5://Host:Port. Werden Benutzername und Passwort benötigt, schreibe http://Benutzer:Passwort@Host:Port. Das Passwort wird im Klartext in der Datei dieses Kontos gespeichert. Leer lassen für eine direkte Verbindung. Die Änderung gilt, wenn sich das Konto neu verbindet.",
+ "socks5://127.0.0.1:1080": "socks5://127.0.0.1:1080",
+ "Vekil, hesap yeniden bağlanınca etkili olur.": "Der Proxy gilt, wenn sich das Konto neu verbindet.",
+ "Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.": "Die Sitzung dieses Kontos wurde für einen anderen Windows-Benutzer oder Computer verschlüsselt; du musst dich neu anmelden.",
+ "Windows şifrelemesi bu bilgisayarda kullanılamıyor.": "Die Windows-Verschlüsselung ist auf diesem Computer nicht verfügbar.",
+ "Vekil adresi geçersiz. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port.": "Die Proxy-Adresse ist ungültig. Format: http://Host:Port, https://Host:Port oder socks5://Host:Port."
 }
