@@ -60,7 +60,7 @@ SteamEdge/
     steamedge.log              hata bildirimine eklenecek kayıt
 ```
 
-> **Hassas olan `settings/`.** `session.json` içinde hesabını kullanmaya yeten bir anahtar var. Paylaştığın bir yedeğe, yüklediğin bir arşive ya da ekran görüntüsüne girmesin.
+> **Hassas olan `settings/`.** `session.json` içinde hesabını kullanmaya yeten bir anahtar var. Paylaştığın bir yedeğe, yüklediğin bir arşive ya da ekran görüntüsüne girmesin. **Giriş anahtarlarını şifrele** açıkken (Ayarlar > Gizlilik & Güvenlik) anahtarlar şifreli saklanır, yine de `settings/` klasörünü özel tut.
 
 ---
 
@@ -227,6 +227,24 @@ Anahtarlar hesaba özel, arka planda çalışan bir kuyruğa girer. Anahtar, tir
 
 Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayfalarını vermez; envanter, pazar ve rozet sayfaları açılmaz. PIN'i Ayarlar > Gizlilik & Güvenlik > **Aile Görünümü PIN'i** altına gir; SteamEdge her yeni web oturumunu bununla açar. PIN, hesabın `settings/accounts/` altındaki dosyasında düz metin olarak durur ve dışa aktarılan yedeklere girmez.
 
+### Kart düşürme zamanlayıcısı
+
+**Kart düşürme zamanlayıcısı** açıkken (Ayarlar > Kart düşürme), saat aralığı başlayınca bağlı her hesapta kart düşürme kendiliğinden başlar, aralık bitince onun başlattığı işler durur. Aralık geceyi aşabilir, örneğin 22:00 - 07:00. Kuyruk elle başlatmadaki gibi kurulur: **Varsayılan öncelik modu**, kuyruktan çıkardığın oyunlar, **Hiç oynanmamış oyunları atla** ve **Oyun başına süre** kullanılır.
+
+Elle başlattığın bir işi zamanlayıcı asla durdurmaz ve bir hesap aralık başına en fazla bir kez başlatılır: aralık içinde elle durdurursan sonraki aralığa kadar durur. Yalnızca bağlı hesaplar başlatılır; zamanlayıcı kimseye giriş yapmaz.
+
+### Giriş anahtarı koruması
+
+`settings/accounts.json` ve `settings/session.json` içindeki kayıtlı giriş anahtarları varsayılan olarak düz metindir. **Giriş anahtarlarını şifrele** açıkken (Ayarlar > Gizlilik & Güvenlik) Windows DPAPI ile şifreli saklanır; klasörün kopyası başka bir bilgisayarda ya da başka bir Windows kullanıcısında işe yaramaz. Açınca iki dosya birden yeniden yazılır ve düz metni hâlâ tutan `.bak` kopyaları silinir; kapatınca yeniden düz metin yazılır. Şifreli anahtarlar ayar ne olursa olsun okunur, yani iki yönde de hiçbir şey kaybolmaz.
+
+Bedeli: klasörü başka bir bilgisayara ya da Windows kullanıcısına taşırsan ya da Windows'u yeniden kurarsan o hesaplarda yeniden giriş gerekir. Yalnızca anahtarlar kapsanır; `settings/accounts/<steamID>.json` içindeki Aile Görünümü PIN'i ve vekil parolası düz metin kalır.
+
+### Vekil sunucu
+
+Her hesabın kendi vekili olabilir: Ayarlar > Gizlilik & Güvenlik > **Vekil sunucu (proxy)**. Biçim `http://sunucu:port`, `https://sunucu:port` ya da `socks5://sunucu:port`; giriş gerekiyorsa sunucunun önüne `kullanıcı:parola@` yazılır. Hesabın Steam bağlantısı ile pazar, envanter ve anahtar istekleri bundan geçer; SOCKS5'te sunucu adlarını vekil çözer. Vekil kapalıysa hesap bağlanmaz, doğrudan bağlantıya asla düşülmez. Değişiklik hesap yeniden bağlanınca geçerli olur.
+
+Kapsam dışı: girişin kendisi (hesap ekleme), güncelleme denetimi, ücret betiğinin indirilmesi ve öğe görselleri; bunlar doğrudan yüklenir.
+
 ### Sohbet
 
 Arkadaş mesajları buradaki her şeyle aynı ağ protokolü üzerinden gider, Steam istemcisi işin içinde değildir. Yazışmayı açmak Steam tarafında okundu olarak işaretler, yazdığın kişi de "yazıyor" bilgisini görür.
@@ -263,6 +281,9 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
 | `farmSkipUnplayed` | `false` | Hiç oynanma süresi kayıtlı olmayan oyunları kuyruğa almaz |
 | `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır |
+| `farmScheduleEnabled` | `false` | Kart düşürmeyi aşağıdaki saat aralığında kendiliğinden başlat |
+| `farmScheduleFrom` | `22:00` | Aralığın başlangıcı |
+| `farmScheduleTo` | `07:00` | Aralığın sonu. Bitiş başlangıçtan önceyse aralık geceyi aşar |
 | `cardMaxGames` | `32` | Aynı anda açık oyun |
 | `farmMaxMinutes` | `5` | Her oyunun sıradakine geçmeden önce çalıştığı dakika. Hızlı mod kendi ritmini kullanır |
 | `fastMinPlaytimeMin` | `120` | Dakika cinsinden kart düşme eşiği. Hızlı mod bunun altındaki oyunları önce eşiğin üstüne çıkarır, sonra hepsini döndürür. `0` ısınmayı atlar |
@@ -314,6 +335,8 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `offlineMode` | `false` | Çalışırken çevrimdışı görün |
 | `hideGameName` | `false` | Çevrimiçi olduğunu paylaş ama hangi oyunu değil |
 | `parentalPin` | boş | Web sayfalarının kilidini açmak için hesabın Steam Aile Görünümü PIN'i. Hesaba özel saklanır, dışa aktarılmaz |
+| `protectTokens` | `false` | Kayıtlı giriş anahtarlarını Windows DPAPI ile şifreli sakla. Bu Windows kullanıcısına ve bilgisayara özeldir, dışa aktarılmaz |
+| `proxyUrl` | boş | Hesabın vekili: `http://`, `https://` ya da `socks5://`, isteğe bağlı `kullanıcı:parola@` ile. Parola hesabın dosyasında düz metin saklanır. Hesap başına saklanır, dışa aktarılmaz |
 
 > Çevrimdışı görünmek arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
 
@@ -374,6 +397,10 @@ Steam, Aile Görünümü PIN'i girilene kadar web sayfalarını kilitli tutar. P
 
 Steam, uygulamanın adıyla tanımadığı bir ret sebebi gönderdi. Yaygın sebepler (zaten sahip, bölge kilitli, geçersiz, daha önce kullanılmış, ana oyun gerekli) adlarıyla gösterilir. Anahtarı Steam sitesinde dene; reddedilen anahtar yeniden denenmez.
 
+### Bir hesap, oturumunun başka bir Windows kullanıcısı için şifrelendiğini söylüyor
+
+Ayar klasörü **Giriş anahtarlarını şifrele** açıkken başka bir bilgisayara ya da Windows kullanıcısına kopyalanmış. Windows şifreleme anahtarları taşınmaz, bu yüzden kayıtlı anahtarlar açılamaz. Hesaba yeniden giriş yap; yeni anahtar mevcut kullanıcı için saklanır.
+
 ### Hata bildirimi için kayıt toplama
 
 Kayıt exe'nin yanındaki `cache/steamedge.log` dosyasıdır, Ayarlar'dan da açılır. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyayı ekle. Kayıt dosyası sınırlıdır: 2 MB'ı geçince `steamedge.log.1` adıyla kenara alınır ve yeni bir dosya başlar, böylece bir önceki parça hep durur.
@@ -413,7 +440,7 @@ Steam öyle gönderdiği için. Çevirmek bir kur uydurmak olurdu.
 <details>
 <summary><b>Kurulumumu başka makineye taşıyabilir miyim?</b></summary>
 
-Klasörü kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın olduğunu unutma, gizli kopyala. Ayarlar > Genel altındaki Yedekleme kutusu ayarları ve hesap verilerini oturum anahtarı olmadan tek dosyaya da aktarabilir.
+Klasörü kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın olduğunu unutma, gizli kopyala. Ayarlar > Genel altındaki Yedekleme kutusu ayarları ve hesap verilerini oturum anahtarı olmadan tek dosyaya da aktarabilir. **Giriş anahtarlarını şifrele** açıkken anahtarlar başka bir bilgisayarda ya da Windows kullanıcısında açılmaz, orada yeniden giriş yap.
 
 </details>
 

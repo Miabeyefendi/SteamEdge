@@ -107,6 +107,8 @@
       { keyField: 'quietHoursEnabled', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifSound', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifyChat', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'farmScheduleFrom', ruleCondition: () => !!rawValue('farmScheduleEnabled'), not: '"Kart düşürme zamanlayıcısı" kapalıyken kullanılmaz.' },
+      { keyField: 'farmScheduleTo', ruleCondition: () => !!rawValue('farmScheduleEnabled'), not: '"Kart düşürme zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'quietFrom', ruleCondition: () => rawValue('notifications') !== false && !!rawValue('quietHoursEnabled'), not: '"Sessiz saatler" kapalıyken kullanılmaz.' },
       { keyField: 'chatReplyText', ruleCondition: () => !!rawValue('chatAutoReply'), not: '"Otomatik yanıt gönder" kapalıyken kullanılmaz.' },
       { keyField: 'chatReplyCooldown', ruleCondition: () => !!rawValue('chatAutoReply'), not: '"Otomatik yanıt gönder" kapalıyken kullanılmaz.' },
@@ -548,6 +550,7 @@
       (r.appliedOne || []).filter(u => u.how === 'resumed').forEach(u => rowsList.push(t('Kart düşürme')
         + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('kaldığı yerden sürüyor.')));
       if (listing.some(k => RESTART.includes(k))) rowsList.push(t('Grafik ayarları SteamEdge yeniden başlatılınca etkili olur.'));
+      if (listing.includes('proxyUrl')) rowsList.push(t('Vekil, hesap yeniden bağlanınca etkili olur.'));
       const title = tf('# ayar kaydedildi.', listing.length);
       if (typeof toast === 'function') toast('Ayarlar').done(rowsList.length ? (t(title) + ' ' + rowsList.join(' ')) : title);
     }

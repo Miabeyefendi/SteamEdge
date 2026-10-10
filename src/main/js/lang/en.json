@@ -1379,5 +1379,21 @@
  "Anahtar kuyruğu bitti. Sonuçlar Anahtarlar sayfasında.": "The key queue is finished. The results are on the Keys page.",
  "Pazar yanıtı beklenen biçimde değil": "The market reply is not in the expected format",
  "Geçersiz ilan numarası": "Invalid listing number",
- "Aile Görünümü PIN'i reddedildi": "The Family View PIN was rejected"
+ "Aile Görünümü PIN'i reddedildi": "The Family View PIN was rejected",
+ "Kart düşürme zamanlayıcısı": "Card farming schedule",
+ "Açıkken kart düşürme, aşağıdaki saat aralığında bağlı her hesapta kendiliğinden başlar ve aralık bitince durur. Elle başlattığın bir işi zamanlayıcı durdurmaz. Aralık içinde elle durdurursan, sonraki aralığa kadar yeniden başlamaz.": "When on, card farming starts by itself on every connected account inside the time range below and stops when the range ends. The schedule never stops a job you started by hand. If you stop it by hand inside the range, it does not start again until the next range.",
+ "Kart zamanlayıcı aralığı": "Schedule time range",
+ "Kart düşürmenin çalışacağı saatler. Bitiş başlangıçtan önceyse aralık geceyi aşar (örneğin 22:00 - 07:00).": "The hours card farming runs. If the end is before the start, the range goes past midnight (for example 22:00 - 07:00).",
+ "\"Kart düşürme zamanlayıcısı\" kapalıyken kullanılmaz.": "Not used while \"Card farming schedule\" is off.",
+ "Zamanlayıcı kart düşürmeyi başlattı.": "The schedule started card farming.",
+ "Zamanlayıcı aralığı bitti; kart düşürme durduruldu.": "The schedule range ended; card farming was stopped.",
+ "Giriş anahtarlarını şifrele": "Encrypt login tokens",
+ "Kayıtlı giriş anahtarları (hesaplar ve son oturum) Windows DPAPI ile şifrelenir; yalnızca bu bilgisayarda, bu Windows kullanıcısı açabilir. Klasörü başka bir bilgisayara ya da kullanıcıya taşırsan bu hesaplarda yeniden giriş yapman gerekir.": "The saved login tokens (accounts and last session) are encrypted with Windows DPAPI; only this Windows user on this computer can open them. If you move the folder to another computer or user, you have to sign in again on those accounts.",
+ "Vekil sunucu (proxy)": "Proxy server",
+ "Bu hesabın Steam bağlantısı ve pazar istekleri bu vekil üzerinden gider. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Kullanıcı adı ve parola gerekiyorsa http://kullanıcı:parola@sunucu:port yazılır. Parola bu hesabın dosyasında düz metin olarak saklanır. Boş bırakırsan doğrudan bağlanılır. Değişiklik hesap yeniden bağlanınca geçerli olur.": "This account's Steam connection and market requests go through this proxy. Format: http://host:port, https://host:port or socks5://host:port. If a user name and password are needed, write http://user:password@host:port. The password is stored as plain text in this account's file. Leave it empty to connect directly. The change takes effect when the account reconnects.",
+ "socks5://127.0.0.1:1080": "socks5://127.0.0.1:1080",
+ "Vekil, hesap yeniden bağlanınca etkili olur.": "The proxy takes effect when the account reconnects.",
+ "Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.": "This account's session was encrypted for another Windows user or computer; you need to sign in again.",
+ "Windows şifrelemesi bu bilgisayarda kullanılamıyor.": "Windows encryption is not available on this computer.",
+ "Vekil adresi geçersiz. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port.": "The proxy address is not valid. Format: http://host:port, https://host:port or socks5://host:port."
 }

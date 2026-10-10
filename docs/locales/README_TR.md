@@ -42,6 +42,7 @@
 - **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir. Steam'in saatlik sınırına gelince kuyruk bekler ve kendiliğinden sürer.
 - **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır. İstatistikler hesap başına tutulur.
+- **Zamanlayıcı, vekil ve anahtar koruması** - Kart düşürme bir saat aralığında kendiliğinden çalışabilir, her hesap kendi HTTP ya da SOCKS5 vekilini kullanabilir ve kayıtlı giriş anahtarları Windows DPAPI ile şifrelenebilir.
 - **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.

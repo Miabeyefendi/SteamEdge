@@ -42,6 +42,7 @@
 - **Claves de producto** - Pega una lista de claves y se canjean en segundo plano, una a una. Al llegar al límite horario de Steam, la cola espera y sigue sola.
 - **Chat** - Lista de amigos, conversaciones y envío, por el mismo protocolo de red. Los no leídos se ven en la pestaña, así no se escapa nada mientras corre una cola.
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso. Las estadísticas se guardan por cuenta.
+- **Programación, proxy y protección de tokens** - La recolección de cartas puede ejecutarse sola dentro de un horario, cada cuenta puede usar su propio proxy HTTP o SOCKS5 y los tokens de inicio de sesión guardados pueden cifrarse con Windows DPAPI.
 - **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso. Las instalaciones nuevas empiezan en inglés.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
