@@ -7,6 +7,22 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.4)
+
+Hardening release: a Content-Security-Policy for the app pages and a locked app window.
+
+### Added
+
+- **Content-Security-Policy.** Both pages (login and main) now declare which sources they may load: the app's own files, Google Fonts and https images, and nothing else. No other connections, frames or objects.
+
+### Changed
+
+- The app window no longer opens popups and never navigates away from its own pages, so injected markup could neither load a web page nor send data to another host.
+- The tooltips of the Family View PIN and Proxy server settings now say that the values are encrypted while **Encrypt login tokens** is on, instead of calling them plain text.
+
+
+SHA-256 (`SteamEdge-v1.4.4-win-x64.rar`): `35dd7ee5bfd42e56c3b5a63dd854243c676faa7ccb36ce125f0a1882b8afd78a`
+
 ## [1.4.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.3)
 
 Security and operations release: encrypted login tokens, a card farming schedule and a proxy for each account.
