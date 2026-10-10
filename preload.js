@@ -129,6 +129,20 @@ contextBridge.exposeInMainWorld('imu', {
     onTick: (cb) => ipcRenderer.on('realistic:tick', (_e, d) => cb(d)),
     onOpened: (cb) => ipcRenderer.on('realistic:opened', (_e, d) => cb(d)),
   },
+  // Own active market listings (list and take back)
+  market: {
+    myListings: () => ipcRenderer.invoke('market:myListings'),
+    removeListing: (listingId) => ipcRenderer.invoke('market:removeListing', listingId),
+  },
+  // Product key queue of the account on screen, worked off in the main process
+  keys: {
+    state: () => ipcRenderer.invoke('keys:state'),
+    add: (text) => ipcRenderer.invoke('keys:add', text),
+    start: (skipWait) => ipcRenderer.invoke('keys:start', !!skipWait),
+    stop: () => ipcRenderer.invoke('keys:stop'),
+    clear: (what) => ipcRenderer.invoke('keys:clear', what),
+    onChanged: (cb) => ipcRenderer.on('keys:changed', (_e, d) => cb(d)),
+  },
   // Steam chat - one-to-one friend messages. Group chat is out of scope.
   chat: {
     friends: () => ipcRenderer.invoke('chat:friends'),
@@ -159,6 +173,7 @@ contextBridge.exposeInMainWorld('imu', {
     onHistoryProgress: (cb) => ipcRenderer.on('history:progress', (_e, d) => cb(d)),
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
     sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
+    unpackBooster: (assetId, appid) => ipcRenderer.invoke('engine:unpackBooster', { assetId, appid }),
     // Steam's own fee calculation: the amounts the buyer pays (cents) -> what the seller keeps
     saleFee: (totals) => ipcRenderer.invoke('engine:saleFee', totals),
     ownedGames: () => ipcRenderer.invoke('engine:ownedGames'),

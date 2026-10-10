@@ -560,7 +560,7 @@
       if (typeof grStatus === 'undefined' || !grStatus) return detailEmpty('Gerçekçi Mod çalışmıyor.');
       const opened = grStatus.openedGames || 0, sumTotal = grStatus.totalSum || 0;
       const remainingName = grStatus.upNext || '-';
-      // siradakiZaman is an absolute timestamp, converted to a countdown.
+      // upNextTime is an absolute timestamp, converted to a countdown.
       const following = grStatus.upNextTime
         ? monoTime(fmtSessionDur(Math.max(0, grStatus.upNextTime - Date.now()))) : '-';
       const remainingTime = grStatus.finishTime ? Math.max(0, grStatus.finishTime - Date.now()) : 0;

@@ -38,7 +38,8 @@
 - **Hours booster** - Keeps up to 32 games open at once, with optional playtime syncing that pulls a selection up to the same total.
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
-- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches.
+- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches. Active listings can be taken back, and booster packs opened, from the same page.
+- **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time. When Steam's hourly limit is reached the queue waits and carries on by itself.
 - **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
@@ -105,10 +106,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.4.1-win-x64.rar`:
-`e3497c223ed036cbb24da6df333597d3d087d49e2f4a17b05e53948766df485d`
+SHA-256 of `SteamEdge-v1.4.2-win-x64.rar`:
+`410e1359406ecd7cae5ce7b7b678c2ec96230bcd451bd37be60f40feb09c4b52`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.1-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.2-win-x64.rar`.
 
 </details>
 

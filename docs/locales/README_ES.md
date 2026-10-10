@@ -38,7 +38,8 @@
 - **Impulsor de horas** - Mantiene hasta 32 juegos abiertos a la vez, con sincronización opcional que iguala las horas totales de una selección.
 - **Gestor de logros** - Lee el estado real de bloqueo y desbloqueo directamente del protocolo de Steam, y luego desbloquea o rebloquea en lote.
 - **Modo realista** - Mantiene un juego abierto y desbloquea sus logros del más común al más raro, repartidos por la sesión, de forma que el perfil parezca jugado de verdad.
-- **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera. Los precios de venta usan el cálculo de comisión propio de Steam, y la venta en lote se detiene y avisa al llegar al límite de Steam por cuenta, o divide la venta en lotes.
+- **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera. Los precios de venta usan el cálculo de comisión propio de Steam, y la venta en lote se detiene y avisa al llegar al límite de Steam por cuenta, o divide la venta en lotes. Los anuncios activos se pueden retirar y los sobres de refuerzo se abren desde la misma página.
+- **Claves de producto** - Pega una lista de claves y se canjean en segundo plano, una a una. Al llegar al límite horario de Steam, la cola espera y sigue sola.
 - **Chat** - Lista de amigos, conversaciones y envío, por el mismo protocolo de red. Los no leídos se ven en la pestaña, así no se escapa nada mientras corre una cola.
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso. Las estadísticas se guardan por cuenta.
 - **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso. Las instalaciones nuevas empiezan en inglés.

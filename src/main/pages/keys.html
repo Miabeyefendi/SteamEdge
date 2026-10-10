@@ -1,0 +1,69 @@
+<!--
+  ================================================================
+  KEYS
+  Product key queue of the account on screen. The keys are worked off in the main process, one at a time, in the
+  background (main.js > PRODUCT KEYS); this page only adds keys and shows the queue and the results.
+  Colours and sizes come from the edge.css palette. Logic: keys.js.
+  ================================================================
+-->
+<div style="flex:1;min-height:0;display:flex;flex-direction:column">
+
+  <!-- TOP STRIP -->
+  <div style="flex-shrink:0;padding:20px 26px 16px 44px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:1px solid #1D2432;background:#090C12">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Arka Planda Etkinleştirme</span>
+      <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#DCE2FA">Anahtarlar</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:26px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Bekleyen</span>
+        <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#B37E24" id="kyPending">0</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Etkinleştirilen</span>
+        <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5FB324" id="kyUsed">0</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Reddedilen</span>
+        <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#B32453" id="kyRefused">0</span>
+      </div>
+      <div style="width:1px;height:34px;background:#1D2432"></div>
+      <span id="kyRunPill" style="display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:999px;border:1px solid #2B3345;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#8B8F9E">Beklemede</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-height:0;display:flex;gap:0">
+
+    <!-- LEFT: add keys + queue -->
+    <div style="width:430px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
+      <div style="flex-shrink:0;padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Anahtar Ekle</span>
+        <textarea id="kyInput" spellcheck="false" placeholder="Anahtarları buraya yapıştır. Her satırda bir anahtar ya da oyun adı, Tab, anahtar." class="f-brand" style="width:100%;height:150px;resize:vertical;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;line-height:1.5;padding:10px 12px;outline:none;box-sizing:border-box"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span id="kyAddNote" style="font-size:11px;color:#8B8F9E;line-height:1.5;min-width:0"></span>
+          <button id="kyAdd" class="h-start" style="height:34px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kuyruğa Ekle</button>
+        </div>
+        <span style="font-size:10.5px;color:#656D80;line-height:1.5">Steam saatte yaklaşık 50 anahtara izin verir. Sınıra gelince kuyruk bir saat bekler ve kendiliğinden sürer; uygulamayı açık bırakman yeter.</span>
+      </div>
+      <div style="flex-shrink:0;padding:12px 14px;border-bottom:1px solid #1D2432;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Anahtar Kuyruğu</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="kyStart" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Başlat</button>
+          <button id="kyStop" class="h-stop" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#B32453;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Durdur</button>
+          <button id="kyClearQueue" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Kuyruğu Temizle</button>
+        </div>
+      </div>
+      <div id="kyBanner" style="display:none;flex-shrink:0;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid #1D2432;background:#1A1408;color:#B37E24;font-size:11.5px;line-height:1.5"></div>
+      <div id="kyQueue" style="flex:1;min-height:0;overflow-y:auto;padding:8px 14px"></div>
+    </div>
+
+    <!-- RIGHT: results -->
+    <div style="flex:1;min-width:0;min-height:0;display:flex;flex-direction:column">
+      <div style="flex-shrink:0;padding:12px 22px;border-bottom:1px solid #1D2432;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Sonuçlar</span>
+        <button id="kyClearResults" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sonuçları Temizle</button>
+      </div>
+      <div id="kyResults" style="flex:1;min-height:0;overflow-y:auto;padding:6px 22px"></div>
+    </div>
+  </div>
+</div>

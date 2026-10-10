@@ -7,6 +7,21 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.2)
+
+Market and account tools release: a product key queue, your own market listings with the option to take them back, booster pack and gem types with opening, and Family View support.
+
+### Added
+
+- **Keys page.** Paste a list of product keys (one per line, or game name, Tab, key) and they are redeemed one at a time in the background, even while another page is open. Every key gets a result: redeemed, already owned, region locked, invalid, already used, base game required, or the code Steam sent. When Steam's hourly limit is reached the queue waits an hour and carries on by itself. The queue and the results are saved per account.
+- **My listings** (Inventory & Market). Shows your active market listings, the ones waiting for confirmation and the ones on hold, and takes selected active listings back. Cancelling a listing used to mean opening Steam.
+- **Booster packs and gems** have their own item types in the inventory filter, and a booster pack can be opened from the detail panel.
+- **Family View PIN** (Settings > Privacy & security). With Family View on, Steam refuses web pages until the PIN is entered, so the inventory, market and badge pages stayed empty. The PIN is stored per account in plain text, is never exported, and unlocks every new web session.
+
+### Changed
+
+- Tutorial and README describe the new pages; the file layout notes the key queue in the account file.
+
 ## [1.4.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.1)
 
 Card farming options release: the card drop threshold is now a setting, there are two new queue orders, and farming can leave out unplayed games or close the app when it is done.

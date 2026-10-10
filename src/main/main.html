@@ -128,6 +128,10 @@
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4h8v5a4 4 0 0 1-8 0z"></path><path d="M12 13v4M9 20h6"></path><path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3"></path></svg>
               <span class="e-lbl">Başarımlar</span>
             </a>
+            <a data-tab="keys" class="e-nav-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="12" r="4"></circle><path d="M12 12h9M18 12v3M21 12v2"></path></svg>
+              <span class="e-lbl">Anahtarlar</span>
+            </a>
             <div class="e-nav-sep"></div>
             <a data-tab="exit" class="e-nav-item e-logout">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 5H6v14h8"></path><path d="M17 8l3 4-3 4M11 12h9"></path></svg>
@@ -158,6 +162,7 @@
         <section id="tab-hours" class="hidden"></section>
         <section id="tab-realistic" class="hidden"></section>
         <section id="tab-achievements" class="hidden"></section>
+        <section id="tab-keys" class="hidden"></section>
         <section id="tab-chat" class="hidden"></section>
         <section id="tab-settings" class="hidden"></section>
         <section id="tab-empty" class="hidden">
@@ -179,6 +184,7 @@
     document.getElementById('tab-hours').innerHTML = window.imu.pages.load('hours');
     document.getElementById('tab-realistic').innerHTML = window.imu.pages.load('realistic');
     document.getElementById('tab-achievements').innerHTML = window.imu.pages.load('achievements');
+    document.getElementById('tab-keys').innerHTML = window.imu.pages.load('keys');
     document.getElementById('tab-chat').innerHTML = window.imu.pages.load('chat');
     document.getElementById('tab-settings').innerHTML = window.imu.pages.load('settings');
   </script>
@@ -189,8 +195,10 @@
   <script src="js/cards.js"></script>
   <script src="js/hours.js"></script>
   <script src="js/inventory.js"></script>
+  <script src="js/listings.js"></script>
   <script src="js/achievements.js"></script>
   <script src="js/realistic.js"></script>
+  <script src="js/keys.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/overview.js"></script>

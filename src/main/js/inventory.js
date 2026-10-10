@@ -44,7 +44,7 @@
     }
     // Median for the ACCOUNT: in places like total value/ranking the lowest listing is the last resort.
     function medVal(it){ const m = medValRaw(it); return m != null ? m : priceVal(it); }
-    const TYPE_LABEL = { all:'Tümü', card:'Kart', background:'Arka Plan', emoticon:'İfade', coupon:'Kupon', profile:'Profil Öğesi', other:'Diğer' };
+    const TYPE_LABEL = { all:'Tümü', card:'Kart', background:'Arka Plan', emoticon:'İfade', coupon:'Kupon', profile:'Profil Öğesi', booster:'Booster Paketi', gems:'Gem', other:'Diğer' };
     // The name of Steam foil cards contains "(Foil)" - the real marker for the badge.
     const isFoil = (it) => /\(foil\)/i.test(it.name || '');
     function statusOf(it){
@@ -755,6 +755,19 @@
       ordersMap.set(it.marketHashName, o);
       if (detailKey === it.dedupKey) renderDetail();
     }
+    // Opens one booster pack of the selected row. The cards that come out are added to the inventory, so it is read again.
+    async function unpackBooster(it){
+      const ok = await edgeConfirm({ tag: 'Booster Paketi', title: 'Booster paketi açılsın mı?',
+        body: 'Paket kalıcı olarak açılır, içinden çıkan kartlar envanterine eklenir. Bu işlem geri alınamaz.', confirmText: 'Aç' });
+      if (!ok) return;
+      const tt = toast('Booster paketi açılıyor…');
+      const r = await E.unpackBooster(it.assetIds[0], it.appid).catch(e=>({ ok:false, error:(e&&e.message) }));
+      if (!r || !r.ok){ tt.fail((r && r.error) || 'Booster paketi açılamadı.'); return; }
+      tt.done(tf('Çıkan kartlar: #', (r.items || []).map(x => x.name + (x.foil ? ' (Foil)' : '')).join(', ') || '-'));
+      pushFeed('inventory', 'Booster Paketi', it.name, 'Başarılı');
+      selected.clear(); inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null;
+      loadInventory();
+    }
     // An item's REAL market value: the quantity weighted median of realised sales.
     // In order: 30/90 day sale median → Steam's 24 hour median → (last resort) the lowest
     // listing. Which one was used is stated clearly in the interface, the estimate is not hidden.
@@ -873,6 +886,10 @@
           + '<span style="font-size:16px;font-weight:700;color:#DCE2FA">'+esc(it.name)+'</span>'
           + '<span style="font-size:12px;color:#8B8F9E">'+esc(it.gameName||'-')+' · '+esc(t(TYPE_LABEL[it.type]||'Diğer'))+' · ×'+it.count+'</span>'
         + '</div>'
+        // A booster pack can be opened right here (only when the game it belongs to is known)
+        + (it.type === 'booster' && it.appid
+            ? '<button data-unpack class="h-brand" style="height:34px;border-radius:999px;background:#090C12;border:1px solid #5624B3;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">' + esc(t('Booster Paketini Aç')) + '</button>'
+            : '')
         // Three boxes: listings on sale · hemen sat · realised sales
         + '<div style="display:flex;flex-direction:column;gap:10px">' + obBoxes + '</div>'
         // NOTE: the "Sale strategy" and "Sale price" sections were REMOVED from this panel.
@@ -880,6 +897,8 @@
         ;
 
       // The "Tekrar Dene" buttons in the failed boxes: force-refresh the cache.
+      const unpackBtn = box.querySelector('[data-unpack]');
+      if (unpackBtn) unpackBtn.onclick = () => unpackBooster(it);
       const rOrd = box.querySelector('[data-ordretry]');
       if (rOrd) rOrd.onclick = ()=>{ ordersMap.delete(it.marketHashName); ensureOrders(it, true); };
       const rHist = box.querySelector('[data-histretry]');

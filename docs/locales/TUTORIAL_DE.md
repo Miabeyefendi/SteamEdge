@@ -49,7 +49,7 @@ SteamEdge/
     settings.json              allgemeine Einstellungen
     accounts.json              gespeicherte Konten
     session.json               aktives Sitzungstoken
-    accounts/<steamID>.json    pro Konto: Statistik, Warteschlangen, Voreinstellungen, Errungenschaftsprotokoll
+    accounts/<steamID>.json    pro Konto: Statistik, Warteschlangen, Schlüssel-Warteschlange, Voreinstellungen, Errungenschaftsprotokoll
     stats.json, state.json     nur von älteren Versionen: einmal gelesen, nie wieder geschrieben
     *.bak, *.bozuk             automatische Sicherungskopie und beiseitegelegte defekte Datei
   cache/
@@ -107,7 +107,7 @@ Die Warteschlange der Spiele mit verbleibenden Karten, aus deinen Abzeichenseite
 
 ### Inventar & Markt
 
-Dein Steam-Inventar, Duplikate als eine Zeile, filterbar nach Spiel, Name, Typ, Status und Preis, wahlweise nach Spiel gruppiert. **Preise abrufen** lädt die Marktpreise dessen, was der aktuelle Filter zeigt, standardmäßig zusammen mit dem Verkaufsdurchschnitt jedes Gegenstands; **Durchschnitte holen** füllt nur fehlende Durchschnitte nach, nennt vorher die geschätzte Dauer und lässt sich abbrechen. Der Detailbereich zeigt aktuelle Angebote, den Preis für einen Sofortverkauf und abgeschlossene Verkäufe. Die Leiste unten summiert Auswahl, Brutto und was du erhältst, und bietet die Verkaufsmodi (vom Durchschnitt, unterbieten, günstigstes Angebot, sofort verkaufen, eigener Preis) vor **Verkaufen**.
+Dein Steam-Inventar, Duplikate als eine Zeile, filterbar nach Spiel, Name, Typ, Status und Preis, wahlweise nach Spiel gruppiert. **Preise abrufen** lädt die Marktpreise dessen, was der aktuelle Filter zeigt, standardmäßig zusammen mit dem Verkaufsdurchschnitt jedes Gegenstands; **Durchschnitte holen** füllt nur fehlende Durchschnitte nach, nennt vorher die geschätzte Dauer und lässt sich abbrechen. Der Detailbereich zeigt aktuelle Angebote, den Preis für einen Sofortverkauf und abgeschlossene Verkäufe. Die Leiste unten summiert Auswahl, Brutto und was du erhältst, und bietet die Verkaufsmodi (vom Durchschnitt, unterbieten, günstigstes Angebot, sofort verkaufen, eigener Preis) vor **Verkaufen**. **Meine Angebote** (oben rechts) öffnet deine aktiven Angebote, und Booster-Packs und Edelsteine haben im Typfilter eigene Typen.
 
 ### Stunden-Booster
 
@@ -120,6 +120,10 @@ Ein dreispaltiger Arbeitsbereich unter einer Leiste mit Spiel, freigeschalteter 
 ### Errungenschaften
 
 Pro Spiel der echte gesperrte und freigeschaltete Zustand aus dem Protokoll, oben die Summen, Filter für Status und Seltenheit, Raster- oder Listenansicht und ein Detailbereich. Errungenschaften auswählen und gesammelt freischalten oder wieder sperren; die Leiste unten zeigt Auswahl, geschätzte Zeit und ob der sichere Modus die Freischaltungen verteilt. Der Fortschritt ist live, Stoppen greift auch mitten in einer Wartezeit.
+
+### Schlüssel
+
+Füge Produktschlüssel ein, einen pro Zeile oder als "Spielname, Tab, Schlüssel", und drücke **Zur Warteschlange**. Die Schlüssel werden im Hintergrund nacheinander eingelöst, auch wenn eine andere Seite offen ist. Die Seite zeigt die Warteschlange, die Zähler und die Antwort zu jedem Schlüssel: eingelöst, bereits im Besitz, regionsgesperrt, ungültig, bereits benutzt, Basisspiel erforderlich oder die Codenummer, die Steam geschickt hat. Meldet Steam, dass zu viele Schlüssel versucht wurden (etwa 50 pro Stunde), wartet die Warteschlange von selbst eine Stunde; **Jetzt versuchen** überspringt das Warten. Warteschlange und Ergebnisse werden pro Konto gespeichert und laufen nach einem Neustart weiter.
 
 ### Einstellungen
 
@@ -211,6 +215,18 @@ Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann 
 
 **Preissturz-Warnung.** Liegt das günstigste Angebot eines Objekts mindestens um die **Preissturz-Schwelle** (Standard 10 %) unter Steams 24-Stunden-Durchschnitt, wird es mit einem roten ▼ markiert, die Verkaufsbestätigung warnt rot, und mit aktiver Warnung kommt höchstens einmal täglich pro Objekt eine Benachrichtigung.
 
+**Meine Angebote.** Die Schaltfläche oben auf der Seite listet deine aktiven Marktangebote, die auf Bestätigung wartenden und die zurückgehaltenen, mit dem Preis, den der Käufer zahlt, und dem, was du erhältst. Wähle aktive Angebote aus und nimm sie zurück; die Gegenstände kehren ins Inventar zurück und das Inventar wird neu gelesen. Auf Bestätigung wartende Angebote werden in der Steam-App bestätigt oder abgebrochen, zurückgehaltene kehren von selbst zurück, wenn die Sperre endet.
+
+**Booster-Packs und Edelsteine** haben eigene Typen. Ein Booster-Pack lässt sich im Detailbereich öffnen; die enthaltenen Karten kommen ins Inventar. Das Öffnen ist endgültig.
+
+### Produktschlüssel
+
+Schlüssel kommen in eine Warteschlange pro Konto, die im Hintergrund läuft. Ein Schlüssel wird in der üblichen Form akzeptiert: drei bis sechs durch Bindestriche getrennte Gruppen aus je vier bis sechs Großbuchstaben oder Ziffern; vor dem Schlüssel darf in der Zeile ein Spielname stehen. Schlüssel, die schon in der Warteschlange oder in den Ergebnissen stehen, werden übersprungen. Nach jeder Antwort gibt es eine kurze Pause, und meldet Steam, dass zu viele Schlüssel versucht wurden, wartet die ganze Warteschlange eine Stunde. Ein von Steam abgelehnter Schlüssel wird nicht erneut versucht; bleibt die Antwort aus (keine Verbindung, Zeitüberschreitung), bleibt der Schlüssel in der Warteschlange und wird kurz darauf erneut versucht. Die neuesten 1000 Ergebnisse bleiben gespeichert. Bereits vorhandene Schlüssel werden nicht an deine anderen Konten weitergegeben.
+
+### Familienansicht
+
+Nutzt das Steam-Konto die Familienansicht, liefert Steam keine Webseiten, bis die PIN eingegeben wurde; Inventar-, Markt- und Abzeichenseiten laden dann nicht. Gib die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein, und SteamEdge entsperrt damit jede neue Websitzung. Die PIN liegt als Klartext in der Datei des Kontos unter `settings/accounts/` und gehört nicht zu exportierten Sicherungen.
+
 ### Chat
 
 Freundesnachrichten laufen ueber dasselbe Netzwerkprotokoll wie alles andere hier, ein Steam-Client ist nicht beteiligt. Das Oeffnen einer Unterhaltung markiert sie bei Steam als gelesen, und dein Gegenueber sieht die Schreibanzeige.
@@ -297,6 +313,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `offlineMode` | `false` | Während des Laufs offline erscheinen |
 | `hideGameName` | `false` | Zeigen, dass du online bist, aber nicht welches Spiel |
+| `parentalPin` | leer | PIN der Steam-Familienansicht des Kontos, zum Entsperren der Webseiten. Pro Konto gespeichert, nie exportiert |
 
 > Offline zu erscheinen ändert, was Freunde sehen. Es kann auch ändern, ob Steam dich als spielend zählt; teste es, bevor du dich in einer langen Sitzung darauf verlässt.
 
@@ -348,6 +365,14 @@ Die Abschlusszeit ist zu hoch. Leer gelassen wird sie aus deiner Spielzeit gesch
 ### SteamEdge meldet, dass eine Datei nicht gelesen werden konnte
 
 Ist eine Einstellungs- oder Datendatei beschädigt, stellt SteamEdge die automatische `.bak`-Kopie wieder her. Ist auch sie beschädigt, bleibt die Datei, wie sie ist, eine Kopie wird daneben mit der Endung `.bozuk` beiseitegelegt, die betroffenen Daten beginnen mit den Standardwerten und die App meldet es beim Start. Nichts wird überschrieben, du kannst die Datei also von Hand zurücklegen.
+
+### Inventar-, Markt- oder Abzeichenseiten bleiben bei einem Konto mit Familienansicht leer
+
+Steam hält Webseiten gesperrt, bis die PIN der Familienansicht eingegeben wurde. Trage die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein und verbinde neu.
+
+### Ein Schlüssel kommt als "Abgelehnt (Code N)" zurück
+
+Steam hat einen Ablehnungsgrund geschickt, den die App nicht beim Namen kennt. Die häufigen Gründe (bereits im Besitz, regionsgesperrt, ungültig, bereits benutzt, Basisspiel erforderlich) werden mit Namen angezeigt. Prüfe den Schlüssel auf der Steam-Website; ein abgelehnter Schlüssel wird nicht erneut versucht.
 
 ### Ein Protokoll für einen Fehlerbericht sammeln
 

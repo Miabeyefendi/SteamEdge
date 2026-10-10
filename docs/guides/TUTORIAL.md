@@ -49,7 +49,7 @@ SteamEdge/
     settings.json              general settings
     accounts.json              saved accounts
     session.json               active session token
-    accounts/<steamID>.json    per-account data: statistics, queues, presets, achievement log
+    accounts/<steamID>.json    per-account data: statistics, queues, key queue, presets, achievement log
     stats.json, state.json     older versions only: read once, never written again
     *.bak, *.bozuk             automatic backup copy and set-aside damaged file
   cache/
@@ -107,7 +107,7 @@ The queue of games with cards still to drop, scraped from your badge pages, with
 
 ### Inventory & Market
 
-Your Steam inventory, merged so duplicates count as one row, filterable by game, name, type, state and price, optionally grouped by game. **Fetch prices** loads the market prices of what the current filter shows, by default together with each item's sale average; **Fetch averages** fills in only the missing averages, tells you the estimated time first and can be cancelled. The detail panel shows current listings, the price you can sell for instantly and completed sales. The bar at the bottom totals the selection, gross and what you receive, and offers the sale modes (from the average, undercut, match the lowest, sell instantly, your own price) before **Sell**.
+Your Steam inventory, merged so duplicates count as one row, filterable by game, name, type, state and price, optionally grouped by game. **Fetch prices** loads the market prices of what the current filter shows, by default together with each item's sale average; **Fetch averages** fills in only the missing averages, tells you the estimated time first and can be cancelled. The detail panel shows current listings, the price you can sell for instantly and completed sales. The bar at the bottom totals the selection, gross and what you receive, and offers the sale modes (from the average, undercut, match the lowest, sell instantly, your own price) before **Sell**. **My listings** (top right) opens your active listings, and booster packs and gems have their own types in the type filter.
 
 ### Hours Booster
 
@@ -120,6 +120,10 @@ A three column workspace under a strip that shows the game, unlocked count, aver
 ### Achievements
 
 Per game, the real locked and unlocked state read from the protocol, with totals at the top and filters for state and rarity, a grid or list view and a detail panel. Select achievements and unlock or relock them in bulk; the bar at the bottom shows the selection, the estimated time and whether safe mode spaces the unlocks. Progress is live and Stop takes effect mid-wait.
+
+### Keys
+
+Paste product keys, one per line or as "game name, Tab, key", and press **Add to queue**. The keys are redeemed one at a time in the background, even while another page is open. The page shows the queue, the counters and the answer for every key: redeemed, already owned, region locked, invalid, already used, base game required, or the code number Steam sent. When Steam says too many keys were tried (about 50 an hour), the queue waits an hour by itself; **Try now** skips the wait. The queue and the results are saved per account and carry on after a restart.
 
 ### Settings
 
@@ -211,6 +215,18 @@ Price and sale average are fetched **per item, together**, then the queue moves 
 
 **Price drop alert.** When an item's cheapest listing is at least the **Price drop threshold** (default 10%) below Steam's 24-hour average, it is marked with a red ▼, the sale confirmation warns in red, and with the alert enabled you get a notification, at most once a day per item.
 
+**My listings.** The button at the top of the page lists your active market listings, the ones waiting for a confirmation and the ones on hold, with the price the buyer pays and what you receive. Select active listings and take them back; the items return to your inventory and the inventory is read again. Listings waiting for confirmation are confirmed or cancelled in the Steam app, and listings on hold return by themselves when the hold ends.
+
+**Booster packs and gems** have their own types. A booster pack can be opened from the detail panel; the cards that come out are added to the inventory. Opening a pack is permanent.
+
+### Product keys
+
+Keys go into a per-account queue that runs in the background. A key is accepted in the usual form of three to six groups of four to six capital letters or digits, separated by hyphens; a line can also carry a game name before the key. Keys that are already in the queue or in the results are skipped. After each answer there is a short pause, and when Steam reports that too many keys were tried the whole queue waits an hour before continuing. A key that Steam refuses is not retried; a key whose answer did not arrive (no connection, timeout) stays in the queue and is tried again shortly. The newest 1000 results are kept. Keys that are already owned are not forwarded to your other accounts.
+
+### Family View
+
+If the Steam account uses Family View, Steam does not serve web pages until the PIN is entered, so the inventory, the market and the badge pages fail to load. Enter the PIN at Settings > Privacy & security > **Family View PIN** and SteamEdge unlocks every new web session with it. The PIN is kept as plain text in the account's file under `settings/accounts/` and is not part of exported backups.
+
 ### Chat
 
 Friend messages run over the same network protocol as everything else here, so no Steam client is involved. Opening a conversation marks it read on Steam, and the person you are writing to sees the typing indicator.
@@ -297,6 +313,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `offlineMode` | `false` | Appear offline while running |
 | `hideGameName` | `false` | Share that you are online but not which game |
+| `parentalPin` | empty | Steam Family View PIN of the account, used to unlock web pages. Stored per account, never exported |
 
 > Appearing offline changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
 
@@ -348,6 +365,14 @@ The completion time is too high. Left empty it is estimated from your playtime, 
 ### SteamEdge says a file could not be read
 
 If a settings or data file is damaged, SteamEdge restores the automatic `.bak` copy. If that is damaged too, the file is left exactly as it is, a copy is set aside next to it with the `.bozuk` extension, the affected data starts from defaults and the app tells you at startup. Nothing is overwritten, so you can put the file back by hand.
+
+### Inventory, market or badge pages stay empty on a Family View account
+
+Steam keeps web pages locked until the Family View PIN is entered. Put the PIN under Settings > Privacy & security > **Family View PIN** and reconnect.
+
+### A key comes back as "Refused (code N)"
+
+Steam sent a refusal reason that the app does not know by name. The common reasons (already owned, region locked, invalid, already used, base game required) are shown by name. Check the key on the Steam website; a refused key is not retried.
 
 ### Collecting a log for a bug report
 
