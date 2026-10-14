@@ -84,6 +84,12 @@ app.whenReady().then(async () => {
   await js("document.querySelector('#qFilter button[data-qf=all]').click()"); await wait(200);
   await js("document.getElementById('btnStart').click()"); await wait(400);
   log('startFarm games', JSON.stringify(calls.filter(c=>c[0]==='engine:startFarm').pop()));
+  const started = calls.filter((c) => c[0] === 'engine:startFarm').pop();
+  let failures = consoleErr.length ? 1 : 0;
+  const check = (name, condition) => { if (!condition) failures++; log((condition ? 'PASS ' : 'FAIL ') + name); };
+  check('blacklisting saves the list to the account settings', settingsSetCalls.some((p) => JSON.stringify(p) === '{"farmExcluded":[20],"farmWhitelist":[]}'));
+  check('the whitelist-only switch is saved', settingsSetCalls.some((p) => p.farmWhitelistOnly === true));
+  check('whitelist-only start sends only the starred game', !!started && started[1].games.length === 1 && started[1].games[0].appid === 10);
   log('console errors', JSON.stringify(consoleErr));
-  app.exit(0);
+  app.exit(failures ? 1 : 0);
 });

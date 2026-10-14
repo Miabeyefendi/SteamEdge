@@ -1,6 +1,9 @@
 // Product key queue: parsing, results, rate limit wait, duplicates.
 // Run with `npm test` (tests/run.js).
 const fs = require('fs'), vm = require('vm');
+let failures = 0;
+const check = (name, condition) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name); };
+
 const src = fs.readFileSync(require('path').resolve(__dirname, '..', '..', 'main.js'), 'utf8');
 let code = src.slice(src.indexOf('const KEY_GAP_MS'), src.indexOf("ipcMain.handle('keys:state'"));
 code = code.replace('const KEY_GAP_MS = 1500;', 'const KEY_GAP_MS = 5;').replace('const KEY_COOLDOWN_MS = 60 * 60 * 1000;', 'const KEY_COOLDOWN_MS = 120;');
@@ -28,14 +31,19 @@ Some Game - RATE1-RATE2-RATE3
 Half-Life-Alyx-Soundtrack`);
 console.log('parsed:', JSON.stringify(t1.found), 'invalid lines:', t1.invalid);
 const a = ctx.add(7, 'AAAAA-BBBBB-CCCCC\nDDDDD-EEEEE-FFFFF\nGGGGG-HHHHH-IIIII\nJJJJJ-KKKKK-LLLLL\nRATE1-RATE2-RATE3\nAAAAA-BBBBB-CCCCC\nxx');
-console.log('add:', JSON.stringify(a), 'queue:', d.keyQueue.length);
+check('parse finds 6 keys and a name before a key', t1.found.length === 6 && t1.found[0].name === 'Half-Life-Alyx' && t1.found[5].name === 'Some Game');
+check('add: 5 queued, 1 duplicate, 1 invalid line', a.added === 5 && a.duplicates === 1 && a.invalid === 1 && d.keyQueue.length === 5);
 (async () => {
   await ctx.run(7);
   const st = ctx.state(7);
+  check('every key is tried in order and the rate-limited one is tried again', calls.join(' ') === 'AAAAA-BBBBB-CCCCC DDDDD-EEEEE-FFFFF GGGGG-HHHHH-IIIII JJJJJ-KKKKK-LLLLL RATE1-RATE2-RATE3 RATE1-RATE2-RATE3');
+  check('results carry the right status for each key', d.keyResults.map((r) => r.key.slice(0, 5) + ':' + r.status + (r.status === 'other' ? '#' + r.detail : '')).join(' | ') === 'RATE1:used | JJJJJ:other#77 | GGGGG:invalid | DDDDD:owned | AAAAA:used');
+  check('queue is empty, run is over and two keys were redeemed', d.keyQueue.length === 0 && st.running === false && st.usedCount === 2 && d.keyActive === false);
+  check('a keysDone event was sent', events.some((e) => Array.isArray(e) && e[1] === 'keysDone'));
   console.log('calls:', calls.join(' '));
   console.log('results:', d.keyResults.map((r) => r.key.slice(0, 5) + ':' + r.status + (r.status === 'other' ? '#' + r.detail : '')).join(' | '));
   console.log('left in queue:', d.keyQueue.length, '| running:', st.running, '| usedCount:', st.usedCount, '| keyActive:', d.keyActive, '| events:', events.filter((e) => Array.isArray(e)).map((e) => e[1]).join());
   const again = ctx.add(7, 'AAAAA-BBBBB-CCCCC');
-  console.log('re-add finished key ->', JSON.stringify(again));
-  process.exit(0);
+  check('a key that was already tried is not added again', again.added === 0 && again.duplicates === 1);
+  process.exit(failures ? 1 : 0);
 })();
