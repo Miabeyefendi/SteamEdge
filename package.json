@@ -32,6 +32,7 @@
     "start": "electron .",
     "build": "node build/build.js",
     "verify": "node build/verify.js",
+    "test": "node tests/run.js",
     "build:win": "node build/build.js --platform=win32",
     "postinstall": "node -e \"console.log('SteamEdge: npm start ile calistirin, npm run build ile paketleyin.')\"",
     "lang": "node build/lang.js",
