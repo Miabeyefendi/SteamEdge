@@ -254,7 +254,7 @@ const DEFAULT_SETTINGS = {
   protectTokens: false,       // seal the saved login tokens with Windows DPAPI (safeStorage)
   cardPriorityMode: 'sequential',
   farmSkipUnplayed: false,    // leave games with no recorded playtime out of the queue
-  farmFinishedAction: 'none', // none | exit: what to do when every card has been collected
+  farmFinishedAction: 'none', // none | exit | boost: what to do when every card has been collected
   cardMaxGames: 32,         // games open at once in fast mode (Steam's known upper limit is 32)
   notifyCardDrop: false,    // desktop notification as cards drop (Card Farming > Automation)
   // Card Farming > Automation. All three really work; two affect the account permanently so
@@ -1108,6 +1108,28 @@ function scheduleExitWhenIdle() {
     app.quit();
   }, 20000);
 }
+// "When all cards are collected" set to "Start hour boosting": the account's remembered hour-boost list starts running,
+// as the Hour Booster page would start it without sync (the page's own options such as sequential idling are not applied here).
+async function startBoostAfterCards(steamID) {
+  const s = accounts.get(steamID);
+  if (!s || !s.engine || !s.ready || accountBoostRunning(s) || s.realistic) return;
+  try {
+    const ids = accountData(steamID).boostGameIds || [];
+    if (!ids.length) {
+      log('info', '[' + accountName(steamID) + '] cards done, no hour-boost list saved: nothing to start');
+      accountEvent(steamID, { typeName: 'cardStopped', feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Saat yükseltme listesi boş olduğu için başlatılmadı.', status: 'Uyarı' } });
+      return;
+    }
+    const owned = new Map((await s.engine.getOwnedGames()).map((o) => [o.appid, o]));
+    const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+    const games = ids.filter((id) => owned.has(id)).slice(0, limit)
+      .map((id) => ({ appid: id, name: owned.get(id).name, playtimeMin: owned.get(id).playtimeForever || 0 }));
+    if (!games.length || accountBoostRunning(s) || s.realistic) return;
+    boostStart(steamID, { appids: games.map((g) => g.appid), durationMs: 0, games, allItems: null });
+    log('info', '[' + accountName(steamID) + '] cards done: hour boosting started (' + games.length + ' games)');
+    accountEvent(steamID, { typeName: 'boostStarted', feedEntry: { kind: 'hours', title: 'Saat Yükseltme', text: 'Kartlar bitti; saat yükseltme başladı.', status: 'Çalışıyor' } });
+  } catch (e) { log('warn', '[' + accountName(steamID) + '] starting hour boosting after the cards failed: ' + (e && e.message)); }
+}
 function farmBroadcast(steamID) {
   const broadcast = accountBroadcast(steamID);
   return (channelName, payloadData) => {
@@ -1123,6 +1145,7 @@ function farmBroadcast(steamID) {
       });
       resumeFarm(steamID);
       if (settings.farmFinishedAction === 'exit') scheduleExitWhenIdle();
+      else if (settings.farmFinishedAction === 'boost') startBoostAfterCards(steamID);
     } else if ((payloadData.cause === 'duration' || payloadData.cause === 'gameFinished') && payloadData.wasRunning) {
       // "Move on when a game is done" is off: it says why it stopped, otherwise the user
       // thought the job had closed on its own.
@@ -1368,13 +1391,16 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly'];
 const DEFAULT_ACCOUNT_DATA = {
   boostGameIds: [], entries: {}, achLog: [], stats: null, profileInfo: null,
   grQueue: [], grPresets: [],
   parentalPin: '',                 // Steam Family View PIN of this account (never exported)
   proxyUrl: '',                    // proxy of this account (http://, https:// or socks5://, may hold a user:password; never exported)
   keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
+  farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
+  farmWhitelist: [],               // appids that card farming is limited to while farmWhitelistOnly is on
+  farmWhitelistOnly: false,
 };
 
 const accountDataAll = new Map();   // steamID -> data
@@ -1383,6 +1409,10 @@ const SECRET_ACCOUNT_FIELDS = ['parentalPin', 'proxyUrl'];
 
 function accountFile(steamID) { return path.join(ACCOUNT_DIR, String(steamID) + '.json'); }
 
+// A list of appids from the interface: positive integers only, no duplicates
+function cleanAppIds(list) {
+  return [...new Set((Array.isArray(list) ? list : []).map(Number).filter((n) => Number.isInteger(n) && n > 0))];
+}
 function accountData(steamID) {
   if (!steamID) return { ...DEFAULT_ACCOUNT_DATA, entries: {}, achLog: [], keyQueue: [], keyResults: [] };
   if (accountDataAll.has(steamID)) return accountDataAll.get(steamID);
@@ -1398,7 +1428,14 @@ function accountData(steamID) {
   if (r.ok && r.fromBackup) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: true });
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
   // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
-  ['keyQueue', 'keyResults'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  ['keyQueue', 'keyResults', 'farmExcluded', 'farmWhitelist'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  // Games taken out of the queue used to live in the queue state, which expires with the retention period: move them to the blacklist once
+  const legacy = v.entries && v.entries['cards.queue'] && v.entries['cards.queue'].v;
+  if (legacy && Array.isArray(legacy.removed) && legacy.removed.length) {
+    v.farmExcluded = cleanAppIds(v.farmExcluded.concat(legacy.removed));
+    legacy.removed = [];
+    log('info', 'account ' + steamID + ': ' + v.farmExcluded.length + ' removed games moved to the card farming blacklist');
+  }
   accountDataAll.set(steamID, v);
   return v;
 }
@@ -3463,6 +3500,8 @@ const SESSION_FIELDS = ['persona', 'steamID', 'accountCurrency'];
 function applySettingPatch(patch) {
   const received = { ...(patch || {}) };
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
+  ['farmExcluded', 'farmWhitelist'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
+  if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
   if ('proxyUrl' in received) {
     const p = parseProxy(received.proxyUrl);
     if (!p.ok) return { ok: false, changedOne: [], appliedOne: [], error: p.error };
@@ -3964,9 +4003,11 @@ async function scheduleStartFarm(steamID) {
     try { (await s.engine.getOwnedGames()).forEach((o) => mins.set(o.appid, o.playtimeForever || 0)); }
     catch (e) { log('warn', '[' + accountName(steamID) + '] schedule: could not get the playtime: ' + e.message); }
     const saved = (accountData(steamID).entries['cards.queue'] || {}).v || {};
-    const removed = new Set(saved.removed || []);
+    const acct = accountData(steamID);
+    const excluded = new Set(acct.farmExcluded);
+    const only = acct.farmWhitelistOnly ? new Set(acct.farmWhitelist) : null;
     const list = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }))
-      .filter((g) => !removed.has(g.appid) && !(settings.farmSkipUnplayed && !(g.playtimeMin > 0)));
+      .filter((g) => !excluded.has(g.appid) && (!only || only.has(g.appid)) && !(settings.farmSkipUnplayed && !(g.playtimeMin > 0)));
     // the account may have been given another job while the lists were loading
     if (!s.ready || accountRunning(s) || s.pendingFarm) return;
     if (!list.length) { log('info', '[' + accountName(steamID) + '] schedule: no game with cards left'); return; }

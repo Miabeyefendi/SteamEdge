@@ -163,6 +163,10 @@ Die Modi:
 
 Karten kommen nicht nach Plan, und Steam sendet kein Ereignis "eine Karte ist gefallen". Die App liest die Abzeichenseiten jedes Kontos alle drei Minuten neu und meldet die ehrliche Differenz der verbleibenden Karten statt eines erfundenen Zählers.
 
+**Sperrliste und Whitelist.** Die rote Taste in einer Zeile der Warteschlange setzt das Spiel auf die Sperrliste: Es wird weder von Hand noch durch den Zeitplan gefarmt, bis du es im Tab **Sperrliste** wieder entfernst. Der Stern setzt es auf die Whitelist, und bei aktivem **Nur Whitelist** (Seite Karten farmen, Kasten Automatisierung) werden nur die markierten Spiele gefarmt. Ein Spiel steht nie auf beiden Listen. Beide Listen gehören zum Konto und laufen, anders als der übrige Warteschlangenzustand, nicht mit der Aufbewahrungsdauer ab; Spiele, die du vor 1.4.5 aus der Warteschlange entfernt hast, wurden automatisch auf die Sperrliste verschoben.
+
+**Wenn alle Karten gesammelt sind** kann auch auf **Stunden-Boost starten** stehen: Die gemerkte Stunden-Boost-Liste des Kontos startet, begrenzt durch **Max. Spiele gleichzeitig**. Bei leerer Liste startet nichts und der Aktivitätsfeed sagt das.
+
 ### Stunden-Booster
 
 Lässt bis zu 32 Spiele gleichzeitig laufen. Steam rechnet die Zeit jedem offenen Spiel einzeln an, 32 Spiele eine Stunde offen sind also 32 Stunden Spielzeit. Der **Sequenzielle Idle-Modus** (ein Schalter auf der Seite) lässt die Warteschlange stattdessen Spiel für Spiel durchlaufen, wobei die eingestellte Dauer für jedes Spiel gilt; deshalb ist dort ∞ nicht wählbar und der Stundenabgleich wird nicht verwendet.
@@ -280,10 +284,13 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `autoNextGame` | `true` | Zum nächsten Spiel wechseln, wenn eines fertig ist. Aus: Das Farmen stoppt nach dem aktuellen Spiel |
 | `farmSkipUnplayed` | `false` | Lässt Spiele ohne gespeicherte Spielzeit aus der Warteschlange |
-| `farmFinishedAction` | `none` | `none` oder `exit`: schließt die App 20 Sekunden nach dem Sammeln aller Karten, wenn kein anderer Auftrag läuft |
+| `farmFinishedAction` | `none` | `none` oder `exit`: schließt die App 20 Sekunden nach dem Sammeln aller Karten, wenn kein anderer Auftrag läuft. Oder `boost`: die gemerkte Stunden-Boost-Liste des Kontos starten. |
 | `farmScheduleEnabled` | `false` | Kartensammeln im folgenden Zeitraum von selbst starten |
 | `farmScheduleFrom` | `22:00` | Beginn des Zeitraums |
 | `farmScheduleTo` | `07:00` | Ende des Zeitraums. Liegt das Ende vor dem Beginn, reicht der Zeitraum über Mitternacht |
+| `farmExcluded` | leer | Sperrliste des Kartenfarmens (App-IDs). Pro Konto gespeichert, läuft nicht ab, wird nicht exportiert |
+| `farmWhitelist` | leer | App-IDs, auf die das Kartenfarmen beschränkt ist, solange `farmWhitelistOnly` an ist. Pro Konto gespeichert |
+| `farmWhitelistOnly` | `false` | Nur Spiele der Whitelist farmen. Pro Konto gespeichert |
 | `cardMaxGames` | `32` | Gleichzeitig offene Spiele |
 | `farmMaxMinutes` | `5` | Minuten, die jedes Spiel läuft, bevor das nächste übernimmt. Der schnelle Modus hat seinen eigenen Rhythmus |
 | `fastMinPlaytimeMin` | `120` | Schwelle für Kartendrops in Minuten. Der schnelle Modus hebt Spiele darunter zuerst darüber, dann rotiert er alle. `0` überspringt das Aufwärmen |

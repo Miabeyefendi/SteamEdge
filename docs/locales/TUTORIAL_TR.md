@@ -163,6 +163,10 @@ Modlar:
 
 Kartlar bir programa göre gelmez ve Steam "kart düştü" diye bir olay yollamaz. Uygulama her hesabın rozet sayfalarını üç dakikada bir yeniden okur ve kalan kart toplamındaki dürüst farkı bildirir, uydurma bir sayaç göstermez.
 
+**Kara liste ve beyaz liste.** Kuyruk satırındaki kırmızı düğme oyunu kara listeye alır: **Kara listedekiler** sekmesinden çıkarana kadar ne elle ne zamanlayıcıyla farm edilir. Yıldız oyunu beyaz listeye alır; **Yalnızca Beyaz Listedekiler** açıkken (Kart Düşür sayfası, Otomasyon kutusu) yalnızca yıldızlı oyunlar farm edilir. Bir oyun hiçbir zaman iki listede birden olmaz. İki liste de hesaba aittir ve kuyruk durumunun geri kalanından farklı olarak saklama süresiyle silinmez; 1.4.5'ten önce kuyruktan çıkardığın oyunlar kara listeye kendiliğinden taşındı.
+
+**Tüm kartlar bitince** seçeneği **Saat yükseltmeyi başlat** da olabilir: hesabın hatırlanan saat yükseltme listesi çalışmaya başlar, **Aynı anda en fazla oyun** ile sınırlıdır. Liste boşsa hiçbir şey başlamaz ve etkinlik akışı bunu söyler.
+
 ### Saat yükseltici
 
 Aynı anda 32 oyuna kadar çalıştırır. Steam süreyi açık olan her oyuna ayrı ayrı işler, yani 32 oyun bir saat açık kalırsa 32 saat oynanma süresi olur. **Sıralı bekletme modu** (sayfadaki bir anahtar) bunun yerine kuyruğu her seferinde bir oyunla döndürür; ayarlanan süre her oyun için geçerlidir, bu yüzden orada ∞ seçilemez ve saat eşitleme kullanılmaz.
@@ -280,10 +284,13 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
 | `farmSkipUnplayed` | `false` | Hiç oynanma süresi kayıtlı olmayan oyunları kuyruğa almaz |
-| `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır |
+| `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır. Ya da hesabın hatırlanan saat yükseltme listesini başlatan `boost`. |
 | `farmScheduleEnabled` | `false` | Kart düşürmeyi aşağıdaki saat aralığında kendiliğinden başlat |
 | `farmScheduleFrom` | `22:00` | Aralığın başlangıcı |
 | `farmScheduleTo` | `07:00` | Aralığın sonu. Bitiş başlangıçtan önceyse aralık geceyi aşar |
+| `farmExcluded` | boş | Kart düşürme kara listesi (uygulama kimlikleri). Hesap başına saklanır, süresi dolmaz, dışa aktarılmaz |
+| `farmWhitelist` | boş | `farmWhitelistOnly` açıkken kart düşürmenin sınırlandığı uygulama kimlikleri. Hesap başına saklanır |
+| `farmWhitelistOnly` | `false` | Yalnızca beyaz listedeki oyunları farm et. Hesap başına saklanır |
 | `cardMaxGames` | `32` | Aynı anda açık oyun |
 | `farmMaxMinutes` | `5` | Her oyunun sıradakine geçmeden önce çalıştığı dakika. Hızlı mod kendi ritmini kullanır |
 | `fastMinPlaytimeMin` | `120` | Dakika cinsinden kart düşme eşiği. Hızlı mod bunun altındaki oyunları önce eşiğin üstüne çıkarır, sonra hepsini döndürür. `0` ısınmayı atlar |
