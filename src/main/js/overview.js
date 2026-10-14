@@ -233,6 +233,7 @@
         ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.'],
       cardStopped:     (o)=>['farm',  'Kart Düşürme Durdu', o.feedEntry ? o.feedEntry.text : ''],
       cardStarted:     (o)=>['farm',  'Kart Düşürme Başladı', o.feedEntry ? o.feedEntry.text : ''],
+      boostStarted:    (o)=>['boost', 'Saat Yükseltme Başladı', o.feedEntry ? o.feedEntry.text : ''],
     };
     window.imu.onAccountEvent((o)=>{
       if (!o || !o.typeName) return;

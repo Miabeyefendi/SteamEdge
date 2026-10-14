@@ -163,6 +163,10 @@ The modes:
 
 Cards do not arrive on a schedule and Steam sends no "a card dropped" event. The app re-reads each account's badge pages every three minutes and reports the honest difference in the remaining-card total rather than a made-up counter.
 
+**Blacklist and whitelist.** The red button on a queue row puts the game on the blacklist: it never farms, by hand or by the schedule, until you take it off in the **Blacklist** tab. The star puts it on the whitelist, and with **Whitelist only** on (Card farming page, Automation box) only the starred games farm. A game is never on both lists. Both lists belong to the account and, unlike the rest of the queue state, never expire with the retention period; games you removed from the queue before 1.4.5 were moved to the blacklist automatically.
+
+**When all cards are collected** can also be set to **Start hour boosting**: the account's remembered hour boosting list starts running, limited to **Max games at once**. With an empty list nothing starts and the activity feed says so.
+
 ### Hours booster
 
 Runs up to 32 games at once. Steam counts time against every open game separately, so 32 games open for an hour is 32 hours of playtime. **Sequential idling mode** (a toggle on the page) instead cycles the queue one game at a time, with the set duration applying to each game, so ∞ is not available there and hour syncing is not used.
@@ -280,10 +284,13 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `autoNextGame` | `true` | Move to the next game when one finishes. Off: farming stops after the current game |
 | `farmSkipUnplayed` | `false` | Leave games with no recorded playtime out of the queue |
-| `farmFinishedAction` | `none` | `none` or `exit`: close the app 20 seconds after every card is collected, if no other job is running |
+| `farmFinishedAction` | `none` | `none`, `exit` or `boost`: close the app 20 seconds after every card is collected, if no other job is running, or start the account's remembered hour boosting list |
 | `farmScheduleEnabled` | `false` | Start card farming by itself inside the time range below |
 | `farmScheduleFrom` | `22:00` | Start of the range |
 | `farmScheduleTo` | `07:00` | End of the range. An end before the start means the range passes midnight |
+| `farmExcluded` | empty | Card farming blacklist (app ids). Stored per account, never expires, never exported |
+| `farmWhitelist` | empty | App ids card farming is limited to while `farmWhitelistOnly` is on. Stored per account |
+| `farmWhitelistOnly` | `false` | Farm only the whitelisted games. Stored per account |
 | `cardMaxGames` | `32` | Games open at once |
 | `farmMaxMinutes` | `5` | Minutes each game runs before the next one takes over. Fast mode sets its own rhythm |
 | `fastMinPlaytimeMin` | `120` | Card drop threshold in minutes. Fast mode lifts games under it above it first, then rotates all of them. `0` skips the warm-up |

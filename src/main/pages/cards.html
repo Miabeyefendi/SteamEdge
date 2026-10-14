@@ -43,6 +43,8 @@
             <button data-qf="all" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">Hepsi</button>
             <button data-qf="low" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">1-2 Kart</button>
             <button data-qf="high" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">3+ Kart</button>
+            <button data-qf="excl" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">Kara listedekiler</button>
+            <button data-qf="wl" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">Beyaz listedekiler</button>
           </div>
         </div>
         <div id="cardQueue"></div>
@@ -103,6 +105,13 @@
               <span style="font-size:11px;color:#8B8F9E">Düşen kartı medyan fiyata koyar</span>
             </div>
             <span class="e-toggle" data-set="farmAutoSell"><span class="e-knob"></span></span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #101621">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font-size:12px;font-weight:600;color:#DCE2FA">Yalnızca Beyaz Listedekiler</span>
+              <span style="font-size:11px;color:#8B8F9E">Açıkken yalnızca yıldızla işaretlediğin oyunlar farm edilir</span>
+            </div>
+            <span class="e-toggle" data-set="farmWhitelistOnly"><span class="e-knob"></span></span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #101621">
             <div style="display:flex;flex-direction:column;gap:3px">

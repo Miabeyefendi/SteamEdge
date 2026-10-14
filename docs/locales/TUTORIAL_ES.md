@@ -163,6 +163,10 @@ Los modos:
 
 Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación vuelve a leer las páginas de insignias de cada cuenta cada tres minutos y reporta la diferencia honesta del total de cromos restantes en lugar de un contador inventado.
 
+**Lista negra y lista blanca.** El botón rojo de una fila de la cola pone el juego en la lista negra: no se farmea nunca, ni a mano ni por la programación, hasta que lo quites en la pestaña **Lista negra**. La estrella lo pone en la lista blanca, y con **Solo lista blanca** activado (página Farmeo de cromos, cuadro Automatización) solo se farmean los juegos con estrella. Un juego nunca está en las dos listas. Ambas listas pertenecen a la cuenta y, a diferencia del resto del estado de la cola, no caducan con el período de retención; los juegos que quitaste de la cola antes de la 1.4.5 pasaron automáticamente a la lista negra.
+
+**Cuando se obtienen todos los cromos** también puede ser **Iniciar el impulso de horas**: arranca la lista de impulso de horas recordada de la cuenta, limitada por **Máx. juegos a la vez**. Con la lista vacía no empieza nada y el registro de actividad lo indica.
+
 ### Impulsor de horas
 
 Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo de cada juego abierto por separado, así que 32 juegos abiertos durante una hora son 32 horas de tiempo jugado. El **Modo secuencial** (un interruptor de la página) recorre en cambio la cola juego a juego, con la duración fijada aplicada a cada uno, así que ahí no se puede elegir ∞ y no se usa la sincronización de horas.
@@ -280,10 +284,13 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 |---|---|---|
 | `autoNextGame` | `true` | Pasa al siguiente juego cuando uno termina. Desactivado: el farmeo se detiene tras el juego actual |
 | `farmSkipUnplayed` | `false` | Deja fuera de la cola los juegos sin tiempo de juego registrado |
-| `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha |
+| `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha. O `boost`: iniciar la lista de impulso de horas recordada de la cuenta. |
 | `farmScheduleEnabled` | `false` | Iniciar la recolección de cartas sola dentro del horario de abajo |
 | `farmScheduleFrom` | `22:00` | Inicio del horario |
 | `farmScheduleTo` | `07:00` | Fin del horario. Si el fin es anterior al inicio, el horario pasa de medianoche |
+| `farmExcluded` | vacío | Lista negra del farmeo de cromos (app ids). Se guarda por cuenta, no caduca, no se exporta |
+| `farmWhitelist` | vacío | App ids a los que se limita el farmeo mientras `farmWhitelistOnly` está activo. Se guarda por cuenta |
+| `farmWhitelistOnly` | `false` | Farmear solo los juegos de la lista blanca. Se guarda por cuenta |
 | `cardMaxGames` | `32` | Juegos abiertos a la vez |
 | `farmMaxMinutes` | `5` | Minutos que funciona cada juego antes de que tome el relevo el siguiente. El modo Rápido marca su propio ritmo |
 | `fastMinPlaytimeMin` | `120` | Umbral de caída de cromos en minutos. El modo Rápido sube primero por encima los juegos que están por debajo y luego rota todos. `0` omite el calentamiento |
