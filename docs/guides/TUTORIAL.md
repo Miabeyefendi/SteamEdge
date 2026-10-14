@@ -178,6 +178,8 @@ Runs up to 32 games at once. Steam counts time against every open game separatel
 
 Progress bars sit on a shared timeline: a bar is one minus the game's remaining time over the length of the whole job. A game finishing four hours into a thirty-five hour run starts nearly full; one running to the end starts empty. Each reaches 100% exactly when it hits the target.
 
+**Level the playtimes** (Hour Booster page) pulls the selected games up to a common total. The **Highest of the selected** target needs two or more selected games: with a single game there is nothing to level, so the duration and the limit stay yours. A manual hour target or the library's highest still works for one game. With **All at once**, every selected game runs together, up to Steam's 32, whatever **Concurrent limit** says, and a game that reaches the target drops out of the list; **One by one** pulls the game furthest behind up alone and lets the next one join when it catches up. The switch is on by default.
+
 ### Achievements
 
 Achievements are read and written over the protocol, not by scraping your public profile. A private profile makes no difference.
@@ -189,7 +191,7 @@ Two categories cannot be touched, and the app detects both from the schema rathe
 
 Some games only accept achievement writes while the game is open. The app opens the game for the write and then restores whatever was running before.
 
-**Bulk unlock and relock** act on the selected achievements, or on everything the current filter shows when nothing is selected. They are always sent one by one at the **Unlock interval** (Settings > Achievements), never as one burst. With **Safe mode** on, each wait varies randomly by up to 40% either way, or from 40% to 160% of the interval with **Spread unlocks over time**; with Safe mode off the interval is exact. The confirmation shows the interval and the estimated total time, a bulk run stops after three failures in a row, and when it ends the app re-reads the game from Steam and corrects any mark Steam did not actually save. A single unlock asks first unless you ticked Don't ask again (**Ask for confirmation on single changes** in Settings turns it back on); bulk runs always ask. Rarity follows Steam's global unlock percentage in five steps: under 1% Legendary, under 5% Ultra rare, under 10% Rare, under 25% Uncommon, the rest Common.
+**Bulk unlock and relock** act on the selected achievements, or on everything the current filter shows when nothing is selected. They are always sent one by one at the **Unlock interval** (Settings > Achievements), never as one burst. With **Safe mode** on, each wait varies randomly by up to 40% either way, or from 40% to 160% of the interval with **Spread unlocks over time**; with Safe mode off the interval is exact. The confirmation shows the interval and the estimated total time, a bulk run stops after three failures in a row, and when it ends the app re-reads the game from Steam and corrects any mark Steam did not actually save. A single unlock asks first unless you ticked Don't ask again (**Ask for confirmation on single changes** in Settings turns it back on); bulk runs always ask. Rarity follows Steam's global unlock percentage in five steps: under 1% Legendary, under 5% Ultra rare, under 10% Rare, under 25% Uncommon, the rest Common. The interval choices are 15, 30 and 45 seconds, 1, 2, 5, 10 and 30 minutes, and 1 hour. While farming cards, **Unlock achievements** works at most once a minute, so shorter values behave like 1 minute there.
 
 ### Realistic Mode
 
@@ -309,9 +311,9 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 
 ### Hours booster
 
-| Key | Default | What it does |
+| `boostMaxGames` | `32` | Games open at once. Not used while the hour sync runs: it opens up to 32 itself |
 |---|---|---|
-| `boostMaxGames` | `32` | Games open at once |
+| `boostSync` | `true` | Pull the selection up to a common total. The `highest` target only applies when two or more games are selected |
 | `boostDurationSec` | `3600` | Session length |
 | `boostSync` | `false` | Pull the selection up to a common total |
 | `boostSyncMode` | `highest` | Target: `highest` selected, `manual` hours, or `library` highest |

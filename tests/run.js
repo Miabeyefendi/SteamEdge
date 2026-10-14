@@ -25,7 +25,10 @@ for (const [group, runner] of groups) {
     total++;
     const data = fs.mkdtempSync(path.join(os.tmpdir(), 'steamedge-test-'));
     const args = runner === 'node' ? [path.join(dir, file)] : [electronCli, path.join(dir, file), '--user-data-dir=' + data];
-    const r = spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
+    let r = spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
+    // Electron sometimes dies with an access violation while it quits, after the test has already printed its results:
+    // that is not a failed check, so such a run is repeated once
+    if (r.status === 3221225477) r = spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
     fs.rmSync(data, { recursive: true, force: true });
     const out = (r.stdout || '') + (r.stderr || '');
     const bad = [];

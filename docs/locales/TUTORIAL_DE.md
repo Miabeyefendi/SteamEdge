@@ -178,6 +178,8 @@ Lässt bis zu 32 Spiele gleichzeitig laufen. Steam rechnet die Zeit jedem offene
 
 Die Fortschrittsbalken liegen auf einer gemeinsamen Zeitachse: ein Balken ist eins minus der Restzeit des Spiels geteilt durch die Länge des gesamten Auftrags. Ein Spiel, das vier Stunden in einen 35-Stunden-Lauf hinein fertig ist, startet fast voll; eines, das bis zum Ende läuft, startet leer. Jeder erreicht genau dann 100%, wenn sein Spiel das Ziel erreicht.
 
+**Spielzeiten angleichen** (Seite Stunden-Booster) zieht die ausgewählten Spiele auf eine gemeinsame Summe. Das Ziel **Höchster Wert der Auswahl** braucht zwei oder mehr ausgewählte Spiele: Bei einem einzelnen Spiel gibt es nichts anzugleichen, daher bleiben Dauer und Limit bei dir. Ein manuelles Stundenziel oder der höchste Wert der Bibliothek funktioniert auch mit einem Spiel. Bei **Alle gleichzeitig** laufen alle ausgewählten Spiele zusammen, bis zu Steams 32, egal was **Gleichzeitiges Limit** sagt, und ein Spiel, das das Ziel erreicht, fällt aus der Liste; **Nacheinander** zieht das am weitesten zurückliegende Spiel allein vor und nimmt das nächste auf, wenn es aufgeholt hat. Der Schalter ist standardmäßig an.
+
 ### Errungenschaften
 
 Errungenschaften werden über das Protokoll gelesen und geschrieben, nicht durch Auslesen deines öffentlichen Profils. Ein privates Profil macht keinen Unterschied.
@@ -189,7 +191,7 @@ Zwei Kategorien lassen sich nicht anfassen, und die Anwendung erkennt beide am S
 
 Manche Spiele nehmen Schreibvorgänge für Errungenschaften nur an, während das Spiel offen ist. Die Anwendung öffnet das Spiel für den Schreibvorgang und stellt danach wieder her, was vorher lief.
 
-**Massenfreischaltung und -sperre** wirken auf die gewählten Errungenschaften, oder auf alles, was der aktuelle Filter zeigt, wenn nichts gewählt ist. Sie werden immer einzeln im **Freischaltintervall** (Einstellungen > Errungenschaften) gesendet, nie als ein Schub. Bei aktivem **Sicherer Modus** schwankt jede Wartezeit zufällig um bis zu 40 % in beide Richtungen, mit **Freischaltungen zeitlich verteilen** zwischen 40 % und 160 % des Intervalls; bei ausgeschaltetem sicheren Modus gilt das Intervall exakt. Die Bestätigung zeigt Intervall und geschätzte Gesamtdauer, ein Massenlauf stoppt nach drei Fehlern in Folge, und am Ende liest die App das Spiel neu von Steam und korrigiert jede Markierung, die Steam nicht wirklich gespeichert hat. Eine einzelne Freischaltung fragt zuerst, außer du hast Nicht mehr fragen angehakt (**Bei Einzeländerungen bestätigen** in den Einstellungen schaltet es wieder ein); Massenläufe fragen immer. Die Seltenheit folgt Steams globalem Freischaltanteil in fünf Stufen: unter 1 % Legendär, unter 5 % Ultra selten, unter 10 % Selten, unter 25 % Ungewöhnlich, der Rest Häufig.
+**Massenfreischaltung und -sperre** wirken auf die gewählten Errungenschaften, oder auf alles, was der aktuelle Filter zeigt, wenn nichts gewählt ist. Sie werden immer einzeln im **Freischaltintervall** (Einstellungen > Errungenschaften) gesendet, nie als ein Schub. Bei aktivem **Sicherer Modus** schwankt jede Wartezeit zufällig um bis zu 40 % in beide Richtungen, mit **Freischaltungen zeitlich verteilen** zwischen 40 % und 160 % des Intervalls; bei ausgeschaltetem sicheren Modus gilt das Intervall exakt. Die Bestätigung zeigt Intervall und geschätzte Gesamtdauer, ein Massenlauf stoppt nach drei Fehlern in Folge, und am Ende liest die App das Spiel neu von Steam und korrigiert jede Markierung, die Steam nicht wirklich gespeichert hat. Eine einzelne Freischaltung fragt zuerst, außer du hast Nicht mehr fragen angehakt (**Bei Einzeländerungen bestätigen** in den Einstellungen schaltet es wieder ein); Massenläufe fragen immer. Die Seltenheit folgt Steams globalem Freischaltanteil in fünf Stufen: unter 1 % Legendär, unter 5 % Ultra selten, unter 10 % Selten, unter 25 % Ungewöhnlich, der Rest Häufig. Die Intervalle sind 15, 30 und 45 Sekunden, 1, 2, 5, 10 und 30 Minuten sowie 1 Stunde. Beim Kartenfarmen arbeitet **Erfolge freischalten** höchstens einmal pro Minute; kürzere Werte verhalten sich dort wie 1 Minute.
 
 ### Realistischer Modus
 
@@ -309,9 +311,9 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 
 ### Stunden-Booster
 
-| Schlüssel | Standard | Wirkung |
+| `boostMaxGames` | `32` | Gleichzeitig geöffnete Spiele. Wird beim Stundenabgleich nicht benutzt: Er öffnet selbst bis zu 32 |
 |---|---|---|
-| `boostMaxGames` | `32` | Gleichzeitig offene Spiele |
+| `boostSync` | `true` | Die Auswahl auf eine gemeinsame Summe ziehen. Das Ziel `highest` gilt nur bei zwei oder mehr ausgewählten Spielen |
 | `boostDurationSec` | `3600` | Sitzungsdauer |
 | `boostSync` | `false` | Auswahl auf eine gemeinsame Gesamtzeit ziehen |
 | `boostSyncMode` | `highest` | Ziel: höchstes ausgewähltes, manuelle Stunden oder höchstes der Bibliothek |

@@ -178,6 +178,8 @@ Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo de cada juego abierto p
 
 Las barras de progreso comparten una línea temporal: una barra es uno menos el tiempo restante del juego dividido entre la duración del trabajo completo. Un juego que termina a las cuatro horas de una tanda de treinta y cinco empieza casi lleno; uno que corre hasta el final empieza vacío. Cada uno llega al 100% exactamente cuando alcanza su objetivo.
 
+**Igualar tiempos** (página Impulso de horas) sube los juegos seleccionados a un total común. El objetivo **El más alto de los seleccionados** necesita dos o más juegos seleccionados: con un solo juego no hay nada que igualar, así que la duración y el límite siguen siendo tuyos. Un objetivo de horas manual o el más alto de la biblioteca sí funciona con un juego. Con **Todos a la vez**, todos los juegos seleccionados corren juntos, hasta los 32 de Steam, diga lo que diga **Límite simultáneo**, y el juego que llega al objetivo sale de la lista; **Uno a uno** sube solo al juego más atrasado y deja entrar al siguiente cuando lo alcanza. El interruptor viene activado por defecto.
+
 ### Logros
 
 Los logros se leen y se escriben por el protocolo, no raspando tu perfil público. Que el perfil sea privado no cambia nada.
@@ -189,7 +191,7 @@ Hay dos categorías intocables, y la aplicación detecta ambas desde el esquema 
 
 Algunos juegos solo aceptan escrituras de logros mientras el juego está abierto. La aplicación abre el juego para la escritura y luego restaura lo que estuviera corriendo antes.
 
-**Desbloquear y bloquear en lote** actúan sobre los logros seleccionados, o sobre todo lo que muestra el filtro actual si no hay selección. Siempre se envían uno a uno según el **Intervalo de desbloqueo** (Ajustes > Logros), nunca de golpe. Con el **Modo seguro** activado, cada espera varía al azar hasta un 40 % en ambos sentidos, o entre el 40 % y el 160 % del intervalo con **Repartir los desbloqueos en el tiempo**; con el modo seguro desactivado el intervalo es exacto. La confirmación muestra el intervalo y el tiempo total estimado, un lote se detiene tras tres fallos seguidos, y al terminar la aplicación vuelve a leer el juego desde Steam y corrige las marcas que Steam no guardó realmente. Un desbloqueo individual pregunta antes, salvo que marques No volver a preguntar (**Pedir confirmación en cambios individuales** en Ajustes lo reactiva); los lotes siempre preguntan. La rareza sigue el porcentaje global de desbloqueo de Steam en cinco niveles: menos del 1 % Legendario, menos del 5 % Ultra raro, menos del 10 % Raro, menos del 25 % Poco común, el resto Común.
+**Desbloquear y bloquear en lote** actúan sobre los logros seleccionados, o sobre todo lo que muestra el filtro actual si no hay selección. Siempre se envían uno a uno según el **Intervalo de desbloqueo** (Ajustes > Logros), nunca de golpe. Con el **Modo seguro** activado, cada espera varía al azar hasta un 40 % en ambos sentidos, o entre el 40 % y el 160 % del intervalo con **Repartir los desbloqueos en el tiempo**; con el modo seguro desactivado el intervalo es exacto. La confirmación muestra el intervalo y el tiempo total estimado, un lote se detiene tras tres fallos seguidos, y al terminar la aplicación vuelve a leer el juego desde Steam y corrige las marcas que Steam no guardó realmente. Un desbloqueo individual pregunta antes, salvo que marques No volver a preguntar (**Pedir confirmación en cambios individuales** en Ajustes lo reactiva); los lotes siempre preguntan. La rareza sigue el porcentaje global de desbloqueo de Steam en cinco niveles: menos del 1 % Legendario, menos del 5 % Ultra raro, menos del 10 % Raro, menos del 25 % Poco común, el resto Común. Las opciones de intervalo son 15, 30 y 45 segundos, 1, 2, 5, 10 y 30 minutos, y 1 hora. Mientras se farmean cromos, **Desbloquear logros** actúa como máximo una vez por minuto, así que los valores más cortos se comportan como 1 minuto.
 
 ### Modo realista
 
@@ -309,9 +311,9 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 
 ### Impulsor de horas
 
-| Clave | Por defecto | Qué hace |
+| `boostMaxGames` | `32` | Juegos abiertos a la vez. No se usa mientras corre la igualación de horas: ella abre hasta 32 por sí sola |
 |---|---|---|
-| `boostMaxGames` | `32` | Juegos abiertos a la vez |
+| `boostSync` | `true` | Sube la selección a un total común. El objetivo `highest` solo se aplica con dos o más juegos seleccionados |
 | `boostDurationSec` | `3600` | Duración de la sesión |
 | `boostSync` | `false` | Llevar la selección a un total común |
 | `boostSyncMode` | `highest` | Objetivo: el `highest` seleccionado, horas `manual`, o el más alto de la `library` |
