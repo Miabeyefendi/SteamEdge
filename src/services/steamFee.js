@@ -13,6 +13,7 @@
 // when you open Steam in your browser. The script is only fetched from Steam's CDN.
 const { BrowserWindow, session } = require('electron');
 const https = require('https');
+const { activeAgent } = require('../core/proxyFetch');
 
 const SCRIPT_URL = 'https://community.akamai.steamstatic.com/public/javascript/economy_common.js';
 const ALLOWED_HOST = /^community\.(akamai|cloudflare|fastly)\.steamstatic\.com$/;
@@ -27,7 +28,7 @@ function downloadScript(address) {
     let u;
     try { u = new URL(address); } catch (_) { rejectIt(new Error('geçersiz adres')); return; }
     if (u.protocol !== 'https:' || !ALLOWED_HOST.test(u.hostname)) { rejectIt(new Error('izin verilmeyen adres')); return; }
-    const request = https.get(u, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 15000 }, (r) => {
+    const request = https.get(u, { headers: { 'User-Agent': 'Mozilla/5.0' }, timeout: 15000, agent: activeAgent(true) }, (r) => {
       if (r.statusCode !== 200) { r.resume(); rejectIt(new Error('HTTP ' + r.statusCode)); return; }
       let payloadData = '';
       r.setEncoding('utf8');

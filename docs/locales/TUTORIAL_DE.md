@@ -235,6 +235,8 @@ Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann 
 
 Schlüssel kommen in eine Warteschlange pro Konto, die im Hintergrund läuft. Ein Schlüssel wird in der üblichen Form akzeptiert: drei bis sechs durch Bindestriche getrennte Gruppen aus je vier bis sechs Großbuchstaben oder Ziffern; vor dem Schlüssel darf in der Zeile ein Spielname stehen. Schlüssel, die schon in der Warteschlange oder in den Ergebnissen stehen, werden übersprungen. Nach jeder Antwort gibt es eine kurze Pause, und meldet Steam, dass zu viele Schlüssel versucht wurden, wartet die ganze Warteschlange eine Stunde. Ein von Steam abgelehnter Schlüssel wird nicht erneut versucht; bleibt die Antwort aus (keine Verbindung, Zeitüberschreitung), bleibt der Schlüssel in der Warteschlange und wird kurz darauf erneut versucht. Die neuesten 1000 Ergebnisse bleiben gespeichert. Bereits vorhandene Schlüssel werden nicht an deine anderen Konten weitergegeben.
 
+**Vorhandene Schlüssel weitergeben.** Ist **Vorhandene Schlüssel weitergeben** an (Seite Schlüssel), wird ein Schlüssel, den das Konto schon besitzt, beim nächsten verbundenen Konto versucht, das ihn noch nicht gesehen hat, und so weiter; ein Ersatzschlüssel geht nicht verloren, das Ergebnis zeigt, wohin er ging. **Kostenlose Spiele:** Ein Steam-Shop-Link eines kostenlosen Spiels (oder `app/123`) in einer eigenen Zeile fordert bei Steam die kostenlose Lizenz dieser App an; das Ergebnis sagt, ob sie dem Konto hinzugefügt wurde oder keine Lizenz erteilt wurde (schon vorhanden oder nicht kostenlos).
+
 ### Familienansicht
 
 Nutzt das Steam-Konto die Familienansicht, liefert Steam keine Webseiten, bis die PIN eingegeben wurde; Inventar-, Markt- und Abzeichenseiten laden dann nicht. Gib die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein, und SteamEdge entsperrt damit jede neue Websitzung. Die PIN liegt als Klartext in der Datei des Kontos unter `settings/accounts/` und gehört nicht zu exportierten Sicherungen. Ist **Anmelde-Token verschlüsseln** an, wird sie verschlüsselt.
@@ -255,7 +257,7 @@ Der Haken: Verschiebst du den Ordner auf einen anderen Computer oder Windows-Ben
 
 Jedes Konto kann einen eigenen Proxy haben, unter Einstellungen > Datenschutz & Sicherheit > **Proxyserver**: `http://Host:Port`, `https://Host:Port` oder `socks5://Host:Port`, bei Anmeldung mit `Benutzer:Passwort@` vor dem Host. Die Steam-Verbindung des Kontos sowie seine Markt-, Inventar- und Schlüsselanfragen laufen darüber; bei SOCKS5 löst der Proxy Hostnamen auf. Ist der Proxy nicht erreichbar, verbindet sich das Konto nicht; es fällt nie auf eine direkte Verbindung zurück. Eine Änderung gilt, wenn sich das Konto neu verbindet.
 
-Nicht abgedeckt: die Anmeldung selbst (Konto hinzufügen), die Update-Prüfung, der Download des Gebührenskripts und die Artikelbilder, die direkt geladen werden.
+Solange das Konto angezeigt wird, laufen auch die Seitenbilder, der Download des Gebührenskripts und die Update-Prüfung darüber, über einen kleinen Proxy auf 127.0.0.1, der mit der Anmeldung an deinen Proxy weitergibt (so funktioniert auch eine SOCKS5-Anmeldung für die Bilder). Die Anmeldung hat eine eigene Einstellung **Proxyserver für die Anmeldung**, weil der eigene Proxy eines Kontos erst nach der Anmeldung bekannt ist; diese Adresse liegt im Klartext in `settings/settings.json` und gehört nicht zum Einstellungsexport.
 
 ### Lieblingsspiele
 
@@ -296,6 +298,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `autoNextGame` | `true` | Zum nächsten Spiel wechseln, wenn eines fertig ist. Aus: Das Farmen stoppt nach dem aktuellen Spiel |
 | `farmSkipUnplayed` | `false` | Lässt Spiele ohne gespeicherte Spielzeit aus der Warteschlange |
+| `keyForwardOwned` | `false` | Einen Schlüssel, den das Konto schon besitzt, beim nächsten verbundenen Konto versuchen |
 | `farmSkipRecent` | `false` | Spiele auslassen, die in den letzten 14 Tagen gekauft und weniger als 2 Stunden gespielt wurden |
 | `farmFinishedAction` | `none` | `none` oder `exit`: schließt die App 20 Sekunden nach dem Sammeln aller Karten, wenn kein anderer Auftrag läuft. Oder `boost`: die gemerkte Stunden-Boost-Liste des Kontos starten. |
 | `farmScheduleEnabled` | `false` | Kartensammeln im folgenden Zeitraum von selbst starten |
@@ -361,6 +364,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `parentalPin` | leer | PIN der Steam-Familienansicht des Kontos, zum Entsperren der Webseiten. Pro Konto gespeichert, nie exportiert |
 | `protectTokens` | `false` | Gespeicherte Anmelde-Token mit Windows DPAPI verschlüsselt ablegen. Gilt nur für diesen Windows-Benutzer und Computer, wird nicht exportiert |
 | `proxyUrl` | leer | Proxy des Kontos: `http://`, `https://` oder `socks5://`, optional mit `Benutzer:Passwort@`. Das Passwort liegt in der Datei des Kontos, verschlüsselt, wenn **Anmelde-Token verschlüsseln** an ist. Pro Konto gespeichert, wird nicht exportiert |
+| `loginProxyUrl` | leer | Proxy der Anmeldung (`http://`, `https://` oder `socks5://`). Klartext in der Einstellungsdatei, wird nicht exportiert |
 
 > Offline zu erscheinen ändert, was Freunde sehen. Es kann auch ändern, ob Steam dich als spielend zählt; teste es, bevor du dich in einer langen Sitzung darauf verlässt.
 

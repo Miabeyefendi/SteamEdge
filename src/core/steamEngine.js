@@ -921,6 +921,25 @@ class SteamEngine {
   // Returns { ok, detail, packages } for every answer Steam gives, including the refusals (they carry the
   // reason in `detail`). Only a missing answer (timeout, no connection) is thrown so that the caller
   // keeps the key in its queue instead of marking it as used up.
+  // Asks Steam for the free license of an app (a free-on-demand game: the "Add to account" button of its store page).
+  // Resolves { ok, granted, packages } or, when Steam refuses, { ok: false, detail: EResult }. `granted` is false when
+  // Steam answered without granting anything: the account owns it already or the app is not free.
+  async claimFreeApp(appid) {
+    if (!this.user || !this.isConnected) throw new Error(translation.t('Steam oturumu yok'));
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Request timed out')), 30000);
+      this.user.requestFreeLicense([+appid], (err, packages, apps) => {
+        clearTimeout(timer);
+        if (err) {
+          if (err.eresult !== undefined) resolve({ ok: false, detail: err.eresult, granted: false, packages: [] });
+          else reject(err);
+          return;
+        }
+        resolve({ ok: true, granted: !!((apps && apps.length) || (packages && packages.length)), packages: packages || [] });
+      });
+    });
+  }
+
   async redeemKey(key) {
     if (!this.user || !this.isConnected) throw new Error(translation.t('Steam oturumu yok'));
     try {

@@ -39,10 +39,11 @@
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
 - **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar. Profilde gerçekten oynanmış gibi bir iz bırakır.
 - **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda. Satış fiyatı Steam'in kendi ücret hesabıyla belirlenir; toplu satış Steam'in hesap başına sınırına gelince durup söyler ya da satışı partilere böler. Aktif ilanlar geri alınabilir, booster paketleri aynı sayfadan açılır.
-- **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir. Steam'in saatlik sınırına gelince kuyruk bekler ve kendiliğinden sürer.
+- **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir. Steam'in saatlik sınırına gelince kuyruk bekler ve kendiliğinden sürer. Bir hesabın zaten sahip olduğu anahtar diğer hesaplarında denenebilir, ücretsiz bir oyun mağaza bağlantısından eklenir.
 - **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır. İstatistikler hesap başına tutulur.
-- **Zamanlayıcı, vekil ve anahtar koruması** - Kart düşürme bir saat aralığında kendiliğinden çalışabilir, her hesap kendi HTTP ya da SOCKS5 vekilini kullanabilir ve kayıtlı giriş anahtarları Windows DPAPI ile şifrelenebilir.
+- **Zamanlayıcı, vekil ve anahtar koruması** - Kart düşürme ve Gerçekçi Mod bir saat aralığında kendiliğinden çalışabilir, her hesap kendi HTTP ya da SOCKS5 vekilini kullanabilir (girişin de bir vekili vardır) ve kayıtlı giriş anahtarları Windows DPAPI ile şifrelenebilir.
+- **Listeler ve süzgeçler** - Kart düşürme için kalıcı kara liste ve beyaz liste, iade süresindeki oyunları dışarıda bırakan bir süzgeç, listelerin başında duran favori oyunlar ve envanterin CSV olarak dışa aktarımı.
 - **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.

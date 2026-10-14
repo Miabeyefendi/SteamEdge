@@ -38,10 +38,17 @@
     <div style="width:430px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
       <div style="flex-shrink:0;padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Anahtar Ekle</span>
-        <textarea id="kyInput" spellcheck="false" placeholder="Anahtarları buraya yapıştır. Her satırda bir anahtar ya da oyun adı, Tab, anahtar." class="f-brand" style="width:100%;height:150px;resize:vertical;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;line-height:1.5;padding:10px 12px;outline:none;box-sizing:border-box"></textarea>
+        <textarea id="kyInput" spellcheck="false" placeholder="Anahtarları buraya yapıştır. Her satırda bir anahtar, oyun adı ve anahtar ya da ücretsiz bir oyunun Steam mağaza bağlantısı." class="f-brand" style="width:100%;height:150px;resize:vertical;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;line-height:1.5;padding:10px 12px;outline:none;box-sizing:border-box"></textarea>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
           <span id="kyAddNote" style="font-size:11px;color:#8B8F9E;line-height:1.5;min-width:0"></span>
           <button id="kyAdd" class="h-start" style="height:34px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">Kuyruğa Ekle</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #1D2432;border-radius:12px;background:#0D1118">
+          <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+            <span style="font-size:12px;font-weight:600;color:#DCE2FA">Sahip olunan anahtarı ilet</span>
+            <span style="font-size:10.5px;color:#8B8F9E;line-height:1.5">Hesap oyuna zaten sahipse anahtar, bağlı sıradaki hesapta denenir</span>
+          </div>
+          <span class="e-toggle" data-set="keyForwardOwned"><span class="e-knob"></span></span>
         </div>
         <span style="font-size:10.5px;color:#656D80;line-height:1.5">Steam saatte yaklaşık 50 anahtara izin verir. Sınıra gelince kuyruk bir saat bekler ve kendiliğinden sürer; uygulamayı açık bırakman yeter.</span>
       </div>

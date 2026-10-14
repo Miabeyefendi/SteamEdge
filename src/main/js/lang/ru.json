@@ -1437,5 +1437,13 @@
  "Dosya yazılamadı.": "Не удалось записать файл.",
  "Zamanlayıcı aralığı bitti": "Интервал расписания закончился",
  "Zamanlayıcı için kayıtlı bir Gerçekçi Mod ayarı yok; bir kez elle başlat.": "Для расписания ещё нет сохранённого запуска Реалистичного режима; запустите его один раз вручную.",
- "Zamanlayıcı Gerçekçi Modu başlattı.": "Расписание запустило Реалистичный режим."
+ "Zamanlayıcı Gerçekçi Modu başlattı.": "Расписание запустило Реалистичный режим.",
+ "Sahip olunan anahtarı ilet": "Передавать уже имеющиеся ключи",
+ "Hesap oyuna zaten sahipse anahtar, bağlı sıradaki hesapta denenir": "Если игра у аккаунта уже есть, ключ пробуется на следующем подключённом аккаунте",
+ "Anahtarları buraya yapıştır. Her satırda bir anahtar, oyun adı ve anahtar ya da ücretsiz bir oyunun Steam mağaza bağlantısı.": "Вставьте ключи сюда. В каждой строке ключ, название игры с ключом или ссылка на страницу бесплатной игры в магазине Steam.",
+ "Giriş için vekil sunucu": "Прокси-сервер для входа",
+ "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "Прокси, который используется при добавлении аккаунта и входе. Собственный прокси аккаунта становится известен только после входа, поэтому для входа нужен отдельный адрес. Формат: http://хост:порт, https://хост:порт или socks5://хост:порт. Адрес хранится открытым текстом в файле настроек этого компьютера. Оставьте пустым, чтобы входить напрямую.",
+ "# hesabında denenecek.": "Будет проверен на аккаунте #.",
+ "Hesaba eklendi": "Добавлено в аккаунт",
+ "Lisans verilmedi": "Лицензия не выдана"
 }

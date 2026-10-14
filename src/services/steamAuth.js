@@ -3,6 +3,7 @@ const QRCode = require('qrcode');
 const fs = require('fs');
 const path = require('path');
 const translation = require('../core/translation');
+const { parseProxy } = require('../core/proxyFetch');
 
 // All Steam authentication for the app. Runs in the MAIN process (renderer can't use node
 // modules). Talks back to the renderer through `emit(event, data)` (main.js forwards over IPC).
@@ -11,7 +12,9 @@ const translation = require('../core/translation');
 // valid for the Steam client / CM logon (headless idle). The old embedded web login produced a
 // web-audience token that the CM rejects (InvalidPassword) - that path is intentionally gone.
 class SteamAuth {
-  constructor(configDir, emit) {
+  // options.proxyUrl: the proxy the sign-in goes through (steam-session takes one httpProxy or one socksProxy)
+  constructor(configDir, emit, options) {
+    this.proxyUrl = (options && options.proxyUrl) || '';
     this.configDir = configDir;
     this.emit = emit;
     this.session = null;
@@ -60,7 +63,9 @@ class SteamAuth {
 
   _newSession() {
     this.cancel();
-    this.session = new LoginSession(EAuthTokenPlatformType.SteamClient);
+    const proxy = parseProxy(this.proxyUrl);
+    const proxyOption = proxy.ok && !proxy.empty ? (proxy.socks ? { socksProxy: proxy.url.replace(/^socks5:/, 'socks5h:') } : { httpProxy: proxy.url }) : undefined;
+    this.session = new LoginSession(EAuthTokenPlatformType.SteamClient, proxyOption);
     this.session.on('authenticated', () => this._onAuth());
     this.session.on('timeout', () => this.emit('error', { message: 'Oturum zaman aşımına uğradı, tekrar dene.' }));
     this.session.on('error', (e) => this.emit('error', { message: e.message }));

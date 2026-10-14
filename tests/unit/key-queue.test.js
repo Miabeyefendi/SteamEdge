@@ -18,7 +18,7 @@ const engine = { redeemKey: async (k) => { calls.push(k);
   if (k === 'RATE1-RATE2-RATE3') return { ok: true, detail: 0, packages: { 9: 'Late game' } };
   return answers[k]; } };
 const s = { engine, ready: true };
-const ctx = { accounts: new Map([[7, s]]), accountData: () => d, accountName: () => 'acc', log: () => {}, sendRaw: (c, p) => events.push(p), activeSteamID: 7,
+const ctx = { settings: {}, accounts: new Map([[7, s]]), accountData: () => d, accountName: () => 'acc', log: () => {}, sendRaw: (c, p) => events.push(p), activeSteamID: 7,
   writeAccountDataDelayed: () => {}, writeAccountData: () => {}, accountEvent: (id, e) => events.push(['evt', e.typeName]), setTimeout, clearTimeout, console };
 vm.createContext(ctx);
 vm.runInContext(code + ';this.parse=parseKeyText;this.add=addKeys;this.run=processKeys;this.state=keyState;this.resume=resumeKeyQueue;', ctx);

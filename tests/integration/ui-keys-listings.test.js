@@ -107,6 +107,18 @@ app.whenReady().then(async () => {
   await wait(500);
   log('save patch', JSON.stringify(calls.filter((c) => c[0] === 'settings:save').pop()));
   await shot('settings-privacy');
+  // 1.4.8: the "pass on owned keys" switch on the Keys page saves its setting, and a store link is accepted as a line
+  let failures = consoleErr.length ? 1 : 0;
+  const check = (name, condition) => { if (!condition) failures++; log((condition ? 'PASS ' : 'FAIL ') + name); };
+  const setCalls = [];
+  ipcMain.removeHandler('settings:set'); ipcMain.handle('settings:set', (_e, patch) => { setCalls.push(patch); Object.assign(settings, patch); return settings; });
+  await js("document.querySelector('.nav a[data-tab=keys]').click()");
+  await wait(800);
+  check('the keys page has the pass-on switch', (await js("!!document.querySelector('#tab-keys .e-toggle[data-set=keyForwardOwned]')")) === true);
+  await js("document.querySelector('#tab-keys .e-toggle[data-set=keyForwardOwned]').click()");
+  await wait(400);
+  check('switching it saves keyForwardOwned', setCalls.some((p) => p.keyForwardOwned === true));
+  check('the box tells about store links', (await js("document.getElementById('kyInput').placeholder")).toLowerCase().includes('steam'));
   log('console errors', JSON.stringify(consoleErr));
-  app.exit(0);
+  app.exit(failures ? 1 : 0);
 });

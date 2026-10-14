@@ -1437,5 +1437,13 @@
  "Dosya yazılamadı.": "The file could not be written.",
  "Zamanlayıcı aralığı bitti": "The schedule range ended",
  "Zamanlayıcı için kayıtlı bir Gerçekçi Mod ayarı yok; bir kez elle başlat.": "There is no saved Realistic Mode setup for the schedule yet; start one by hand once.",
- "Zamanlayıcı Gerçekçi Modu başlattı.": "The schedule started Realistic Mode."
+ "Zamanlayıcı Gerçekçi Modu başlattı.": "The schedule started Realistic Mode.",
+ "Sahip olunan anahtarı ilet": "Pass on owned keys",
+ "Hesap oyuna zaten sahipse anahtar, bağlı sıradaki hesapta denenir": "If the account already owns the game, the key is tried on the next connected account",
+ "Anahtarları buraya yapıştır. Her satırda bir anahtar, oyun adı ve anahtar ya da ücretsiz bir oyunun Steam mağaza bağlantısı.": "Paste the keys here. One key per line, a game name and a key, or the Steam store link of a free game.",
+ "Giriş için vekil sunucu": "Proxy server for sign-in",
+ "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "The proxy used when adding an account and signing in. An account's own proxy is only known once it is signed in, so the sign-in needs an address of its own. Format: http://host:port, https://host:port or socks5://host:port. The address is stored as plain text in this computer's settings file. Leave it empty to sign in directly.",
+ "# hesabında denenecek.": "Will be tried on account #.",
+ "Hesaba eklendi": "Added to account",
+ "Lisans verilmedi": "No license granted"
 }

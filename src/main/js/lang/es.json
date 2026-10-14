@@ -1437,5 +1437,13 @@
  "Dosya yazılamadı.": "No se pudo escribir el archivo.",
  "Zamanlayıcı aralığı bitti": "Terminó el horario de la programación",
  "Zamanlayıcı için kayıtlı bir Gerçekçi Mod ayarı yok; bir kez elle başlat.": "Aún no hay un ajuste guardado del Modo realista para la programación; inicia uno a mano una vez.",
- "Zamanlayıcı Gerçekçi Modu başlattı.": "La programación inició el Modo realista."
+ "Zamanlayıcı Gerçekçi Modu başlattı.": "La programación inició el Modo realista.",
+ "Sahip olunan anahtarı ilet": "Reenviar claves ya poseídas",
+ "Hesap oyuna zaten sahipse anahtar, bağlı sıradaki hesapta denenir": "Si la cuenta ya tiene el juego, la clave se prueba en la siguiente cuenta conectada",
+ "Anahtarları buraya yapıştır. Her satırda bir anahtar, oyun adı ve anahtar ya da ücretsiz bir oyunun Steam mağaza bağlantısı.": "Pega las claves aquí. Una clave por línea, un nombre de juego con su clave o el enlace de la tienda de Steam de un juego gratuito.",
+ "Giriş için vekil sunucu": "Servidor proxy para iniciar sesión",
+ "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "El proxy que se usa al añadir una cuenta e iniciar sesión. El proxy propio de una cuenta solo se conoce cuando ya ha iniciado sesión, por eso el inicio de sesión necesita su propia dirección. Formato: http://host:puerto, https://host:puerto o socks5://host:puerto. La dirección se guarda como texto plano en el archivo de ajustes de este equipo. Déjalo vacío para iniciar sesión directamente.",
+ "# hesabında denenecek.": "Se probará en la cuenta #.",
+ "Hesaba eklendi": "Añadido a la cuenta",
+ "Lisans verilmedi": "No se concedió licencia"
 }

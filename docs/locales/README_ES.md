@@ -39,10 +39,11 @@
 - **Gestor de logros** - Lee el estado real de bloqueo y desbloqueo directamente del protocolo de Steam, y luego desbloquea o rebloquea en lote.
 - **Modo realista** - Mantiene un juego abierto y desbloquea sus logros del más común al más raro, repartidos por la sesión, de forma que el perfil parezca jugado de verdad.
 - **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera. Los precios de venta usan el cálculo de comisión propio de Steam, y la venta en lote se detiene y avisa al llegar al límite de Steam por cuenta, o divide la venta en lotes. Los anuncios activos se pueden retirar y los sobres de refuerzo se abren desde la misma página.
-- **Claves de producto** - Pega una lista de claves y se canjean en segundo plano, una a una. Al llegar al límite horario de Steam, la cola espera y sigue sola.
+- **Claves de producto** - Pega una lista de claves y se canjean en segundo plano, una a una. Al llegar al límite horario de Steam, la cola espera y sigue sola. Una clave que una cuenta ya tiene se puede probar en tus otras cuentas, y un juego gratuito se añade desde el enlace de su tienda.
 - **Chat** - Lista de amigos, conversaciones y envío, por el mismo protocolo de red. Los no leídos se ven en la pestaña, así no se escapa nada mientras corre una cola.
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso. Las estadísticas se guardan por cuenta.
-- **Programación, proxy y protección de tokens** - La recolección de cartas puede ejecutarse sola dentro de un horario, cada cuenta puede usar su propio proxy HTTP o SOCKS5 y los tokens de inicio de sesión guardados pueden cifrarse con Windows DPAPI.
+- **Programación, proxy y protección de tokens** - La recolección de cartas y el Modo realista pueden ejecutarse solos dentro de un horario, cada cuenta puede usar su propio proxy HTTP o SOCKS5 (el inicio de sesión también tiene uno) y los tokens de inicio de sesión guardados pueden cifrarse con Windows DPAPI.
+- **Listas y filtros** - Una lista negra permanente y una lista blanca para el farmeo de cromos, un filtro que deja fuera los juegos aún en plazo de reembolso, juegos favoritos que quedan al principio de las listas y una exportación del inventario a CSV.
 - **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso. Las instalaciones nuevas empiezan en inglés.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
