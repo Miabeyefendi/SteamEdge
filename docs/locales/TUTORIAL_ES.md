@@ -167,6 +167,8 @@ Los cromos no llegan según un horario y Steam no envía ningún evento de "ha c
 
 **Cuando se obtienen todos los cromos** también puede ser **Iniciar el impulso de horas**: arranca la lista de impulso de horas recordada de la cuenta, limitada por **Máx. juegos a la vez**. Con la lista vacía no empieza nada y el registro de actividad lo indica.
 
+**Plazo de reembolso.** Con **Omitir juegos en el plazo de reembolso** activado (página Farmeo de cromos, o Ajustes > Farmeo de cromos), los juegos comprados en los últimos 14 días y jugados menos de 2 horas quedan fuera de la cola: Steam mantiene el derecho a reembolso hasta ese límite de horas y farmear cromos lo terminaría. La fecha de compra se lee de los registros de licencias de Steam; si no se puede leer, no se omite ningún juego. La programación usa el mismo filtro.
+
 ### Impulsor de horas
 
 Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo de cada juego abierto por separado, así que 32 juegos abiertos durante una hora son 32 horas de tiempo jugado. El **Modo secuencial** (un interruptor de la página) recorre en cambio la cola juego a juego, con la duración fijada aplicada a cada uno, así que ahí no se puede elegir ∞ y no se usa la sincronización de horas.
@@ -209,6 +211,8 @@ Mantiene un juego abierto y va desbloqueando sus logros a lo largo de la sesión
 
 Con **Intervalos aleatorios**, los intervalos varían hasta un 40 % en ambos sentidos y nunca bajan de tres segundos. Con varios juegos en la cola, el tiempo restante se reparte según el número de logros y la cola avanza sola si **Iniciar la cola automáticamente** está activado. Si se acaba el tiempo con logros pendientes, la ejecución se detiene e indica cuántos no se desbloquearon en lugar de forzarlos; un farmeo de cromos que se hubiera pausado para ella se reanuda después.
 
+**Programación.** Con **Programación del Modo realista** activada (Ajustes > Logros), el Modo realista empieza solo dentro de su propio horario en cada cuenta conectada, repitiendo el último inicio hecho a mano en esa cuenta (juegos, duración, opciones). La ejecución se recorta a lo que queda del horario y se detiene cuando termina. Una cuenta con otra tarea en marcha se deja en paz, una ejecución iniciada a mano nunca se detiene y una cuenta sin inicio guardado recibe una nota en el registro de actividad.
+
 ### Inventario y mercado
 
 El valor de un artículo es la **mediana ponderada por cantidad de las ventas realizadas**, no el listado activo más barato. Que alguien publique un cromo a 999.999 no lo mueve.
@@ -224,6 +228,8 @@ El precio y la media de ventas se obtienen **por artículo, juntos**, y después
 **Mis anuncios.** El botón de la parte superior de la página lista tus anuncios activos del mercado, los pendientes de confirmación y los retenidos, con el precio que paga el comprador y lo que recibes. Selecciona anuncios activos y retíralos; los objetos vuelven a tu inventario y este se vuelve a leer. Los anuncios pendientes de confirmación se confirman o cancelan en la aplicación de Steam, y los retenidos vuelven solos cuando termina la retención.
 
 **Los sobres de refuerzo y las gemas** tienen tipos propios. Un sobre de refuerzo se puede abrir desde el panel de detalle; los cromos que salen se añaden al inventario. Abrir un sobre es permanente.
+
+**Exportar CSV.** El botón de la parte superior escribe los objetos que muestra la página (el filtro actual o todos) en un archivo CSV que eliges: nombre, juego, tipo, cantidad, vendible en el mercado, intercambiable, el precio más bajo y la mediana ya obtenidos, el valor unitario y el valor del montón. Los precios no se obtienen para la exportación, así que obténlos antes si los quieres en el archivo. Los nombres de las columnas siempre están en inglés y un nombre que empieza como una fórmula se marca con un apóstrofo para que una hoja de cálculo no lo ejecute.
 
 ### Claves de producto
 
@@ -250,6 +256,10 @@ La contrapartida: si mueves la carpeta a otro equipo o usuario de Windows, o rei
 Cada cuenta puede tener su propio proxy en Ajustes > Privacidad y seguridad > **Servidor proxy**: `http://host:puerto`, `https://host:puerto` o `socks5://host:puerto`, con `usuario:contraseña@` delante del host si pide credenciales. La conexión de Steam de la cuenta y sus solicitudes de mercado, inventario y claves pasan por él, y con SOCKS5 el proxy resuelve los nombres de host. Si el proxy no responde, la cuenta no se conecta; nunca recurre a una conexión directa. Un cambio se aplica cuando la cuenta se vuelve a conectar.
 
 No cubre: el inicio de sesión en sí (añadir una cuenta), la comprobación de actualizaciones, la descarga del script de comisiones y las imágenes de los objetos, que se cargan directamente.
+
+### Juegos favoritos
+
+La estrella de un juego en la biblioteca del Impulsor de horas, en la lista de juegos de Logros y en la búsqueda del Modo realista lo pone al principio de esas listas, y en el Modo realista una búsqueda vacía muestra tus juegos con estrella. Los favoritos pertenecen a la cuenta.
 
 ### Chat
 
@@ -286,6 +296,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 |---|---|---|
 | `autoNextGame` | `true` | Pasa al siguiente juego cuando uno termina. Desactivado: el farmeo se detiene tras el juego actual |
 | `farmSkipUnplayed` | `false` | Deja fuera de la cola los juegos sin tiempo de juego registrado |
+| `farmSkipRecent` | `false` | Dejar fuera los juegos comprados en los últimos 14 días y jugados menos de 2 horas |
 | `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha. O `boost`: iniciar la lista de impulso de horas recordada de la cuenta. |
 | `farmScheduleEnabled` | `false` | Iniciar la recolección de cartas sola dentro del horario de abajo |
 | `farmScheduleFrom` | `22:00` | Inicio del horario |
@@ -321,6 +332,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `boostAutoRestart` | `false` | Volver a lanzar la cola cuando acaba la sesión |
 | `rememberBoostList` | `true` | Conservar la selección entre sesiones |
 | `pauseFarmOnBoost` | `false` | Pausa el farmeo mientras funcionan el impulsor de horas o el Modo realista y luego sigue donde estaba |
+| `favoriteGames` | vacío | Juegos con estrella de la cuenta, mostrados primero en las listas de Impulsor de horas, Logros y Modo realista. Se guarda por cuenta, no se exporta |
 
 ### Modo realista
 
@@ -336,6 +348,9 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `grFinishedRatio` | `50` | Cuánto se comprime el calendario en un juego ya terminado |
 | `grKeepHours` | `true` | Seguir acumulando horas cuando terminen los desbloqueos |
 | `grSkipUltraRare` | `false` | Saltarse por completo los logros por debajo del 5% |
+| `grScheduleEnabled` | `false` | Iniciar el Modo realista solo dentro del horario de abajo, repitiendo el último inicio de la cuenta |
+| `grScheduleFrom` | `22:00` | Inicio del horario |
+| `grScheduleTo` | `07:00` | Fin del horario. Si el fin es anterior al inicio, el horario pasa de medianoche |
 
 ### Privacidad
 

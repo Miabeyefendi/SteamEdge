@@ -108,6 +108,8 @@
       { keyField: 'notifSound', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifyChat', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'hideGameName', ruleCondition: () => !rawValue('offlineMode'), not: '"Çevrimdışı görün" açıkken oyun adı zaten görünmez.' },
+      { keyField: 'grScheduleFrom', ruleCondition: () => !!rawValue('grScheduleEnabled'), not: '"Gerçekçi Mod zamanlayıcısı" kapalıyken kullanılmaz.' },
+      { keyField: 'grScheduleTo', ruleCondition: () => !!rawValue('grScheduleEnabled'), not: '"Gerçekçi Mod zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'farmScheduleFrom', ruleCondition: () => !!rawValue('farmScheduleEnabled'), not: '"Kart düşürme zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'farmScheduleTo', ruleCondition: () => !!rawValue('farmScheduleEnabled'), not: '"Kart düşürme zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'quietFrom', ruleCondition: () => rawValue('notifications') !== false && !!rawValue('quietHoursEnabled'), not: '"Sessiz saatler" kapalıyken kullanılmaz.' },

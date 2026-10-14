@@ -167,6 +167,8 @@ Karten kommen nicht nach Plan, und Steam sendet kein Ereignis "eine Karte ist ge
 
 **Wenn alle Karten gesammelt sind** kann auch auf **Stunden-Boost starten** stehen: Die gemerkte Stunden-Boost-Liste des Kontos startet, begrenzt durch **Max. Spiele gleichzeitig**. Bei leerer Liste startet nichts und der Aktivitätsfeed sagt das.
 
+**Rückgabezeitraum.** Ist **Spiele im Rückgabezeitraum überspringen** an (Seite Karten farmen oder Einstellungen > Kartenfarmen), kommen Spiele, die in den letzten 14 Tagen gekauft und weniger als 2 Stunden gespielt wurden, nicht in die Warteschlange: Steam erhält hier das Rückgaberecht bis zu dieser Stundengrenze, und Kartenfarmen würde es beenden. Das Kaufdatum wird aus den Lizenzdaten von Steam gelesen; lässt es sich nicht lesen, wird kein Spiel übersprungen. Der Zeitplan nutzt denselben Filter.
+
 ### Stunden-Booster
 
 Lässt bis zu 32 Spiele gleichzeitig laufen. Steam rechnet die Zeit jedem offenen Spiel einzeln an, 32 Spiele eine Stunde offen sind also 32 Stunden Spielzeit. Der **Sequenzielle Idle-Modus** (ein Schalter auf der Seite) lässt die Warteschlange stattdessen Spiel für Spiel durchlaufen, wobei die eingestellte Dauer für jedes Spiel gilt; deshalb ist dort ∞ nicht wählbar und der Stundenabgleich wird nicht verwendet.
@@ -209,6 +211,8 @@ Hält ein Spiel offen und schaltet seine Errungenschaften über die Sitzung vert
 
 Mit **Zufällige Abstände** schwanken die Abstände um bis zu 40 % in beide Richtungen und sind nie kürzer als drei Sekunden. Stehen mehrere Spiele in der Warteschlange, wird die Restzeit nach Anzahl der Errungenschaften aufgeteilt, und die Warteschlange rückt von selbst vor, wenn **Warteschlange automatisch starten** an ist. Läuft die Zeit ab, obwohl noch Errungenschaften übrig sind, endet der Lauf und nennt, wie viele nicht freigeschaltet wurden, statt sie zu erzwingen; ein dafür pausiertes Kartenfarmen wird danach fortgesetzt.
 
+**Zeitplan.** Ist der **Zeitplan für den Realistischen Modus** an (Einstellungen > Errungenschaften), startet der Realistische Modus in seinem eigenen Zeitraum auf jedem verbundenen Konto von selbst und wiederholt den zuletzt von Hand gestarteten Lauf dieses Kontos (Spiele, Dauer, Optionen). Der Lauf wird auf den Rest des Zeitraums gekürzt und endet mit ihm. Ein Konto mit einem anderen laufenden Auftrag bleibt unberührt, ein von Hand gestarteter Lauf wird nie gestoppt, und für ein Konto ohne gespeicherten Start gibt es einen Hinweis im Aktivitätsfeed.
+
 ### Inventar und Markt
 
 Der Gegenstandswert ist der **mengengewichtete Median der erzielten Verkäufe**, nicht das niedrigste aktive Angebot. Eine einzelne Person, die eine Karte für 999.999 einstellt, verschiebt ihn nicht.
@@ -224,6 +228,8 @@ Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann 
 **Meine Angebote.** Die Schaltfläche oben auf der Seite listet deine aktiven Marktangebote, die auf Bestätigung wartenden und die zurückgehaltenen, mit dem Preis, den der Käufer zahlt, und dem, was du erhältst. Wähle aktive Angebote aus und nimm sie zurück; die Gegenstände kehren ins Inventar zurück und das Inventar wird neu gelesen. Auf Bestätigung wartende Angebote werden in der Steam-App bestätigt oder abgebrochen, zurückgehaltene kehren von selbst zurück, wenn die Sperre endet.
 
 **Booster-Packs und Edelsteine** haben eigene Typen. Ein Booster-Pack lässt sich im Detailbereich öffnen; die enthaltenen Karten kommen ins Inventar. Das Öffnen ist endgültig.
+
+**CSV exportieren.** Die Taste oben auf der Seite schreibt die angezeigten Gegenstände (aktueller Filter oder alle) in eine CSV-Datei deiner Wahl: Name, Spiel, Typ, Anzahl, handelbar auf dem Markt, tauschbar, der bereits abgerufene niedrigste und mittlere Preis, der Einzelwert und der Wert des Stapels. Preise werden für den Export nicht abgerufen; hole sie vorher, wenn sie in der Datei stehen sollen. Die Spaltennamen sind immer englisch, und ein Name, der wie eine Formel beginnt, wird mit einem Apostroph markiert, damit eine Tabellenkalkulation ihn nicht ausführt.
 
 ### Produktschlüssel
 
@@ -250,6 +256,10 @@ Der Haken: Verschiebst du den Ordner auf einen anderen Computer oder Windows-Ben
 Jedes Konto kann einen eigenen Proxy haben, unter Einstellungen > Datenschutz & Sicherheit > **Proxyserver**: `http://Host:Port`, `https://Host:Port` oder `socks5://Host:Port`, bei Anmeldung mit `Benutzer:Passwort@` vor dem Host. Die Steam-Verbindung des Kontos sowie seine Markt-, Inventar- und Schlüsselanfragen laufen darüber; bei SOCKS5 löst der Proxy Hostnamen auf. Ist der Proxy nicht erreichbar, verbindet sich das Konto nicht; es fällt nie auf eine direkte Verbindung zurück. Eine Änderung gilt, wenn sich das Konto neu verbindet.
 
 Nicht abgedeckt: die Anmeldung selbst (Konto hinzufügen), die Update-Prüfung, der Download des Gebührenskripts und die Artikelbilder, die direkt geladen werden.
+
+### Lieblingsspiele
+
+Der Stern an einem Spiel in der Bibliothek des Stunden-Boosters, der Spieleliste der Errungenschaften und der Suche des Realistischen Modus setzt es an den Anfang dieser Listen; im Realistischen Modus zeigt eine leere Suche deine markierten Spiele. Favoriten gehören zum Konto.
 
 ### Chat
 
@@ -286,6 +296,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `autoNextGame` | `true` | Zum nächsten Spiel wechseln, wenn eines fertig ist. Aus: Das Farmen stoppt nach dem aktuellen Spiel |
 | `farmSkipUnplayed` | `false` | Lässt Spiele ohne gespeicherte Spielzeit aus der Warteschlange |
+| `farmSkipRecent` | `false` | Spiele auslassen, die in den letzten 14 Tagen gekauft und weniger als 2 Stunden gespielt wurden |
 | `farmFinishedAction` | `none` | `none` oder `exit`: schließt die App 20 Sekunden nach dem Sammeln aller Karten, wenn kein anderer Auftrag läuft. Oder `boost`: die gemerkte Stunden-Boost-Liste des Kontos starten. |
 | `farmScheduleEnabled` | `false` | Kartensammeln im folgenden Zeitraum von selbst starten |
 | `farmScheduleFrom` | `22:00` | Beginn des Zeitraums |
@@ -321,6 +332,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `boostAutoRestart` | `false` | Warteschlange nach Sitzungsende erneut starten |
 | `rememberBoostList` | `true` | Auswahl zwischen Sitzungen behalten |
 | `pauseFarmOnBoost` | `false` | Pausiert das Farmen, solange Stunden-Booster oder Realistischer Modus laufen, und setzt es danach fort |
+| `favoriteGames` | leer | Markierte Spiele des Kontos, in den Listen von Stunden-Booster, Errungenschaften und Realistischem Modus zuerst angezeigt. Pro Konto gespeichert, wird nicht exportiert |
 
 ### Realistischer Modus
 
@@ -336,6 +348,9 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `grFinishedRatio` | `50` | Wie stark der Plan bei einem abgeschlossenen Spiel staucht |
 | `grKeepHours` | `true` | Nach den Freischaltungen weiter Stunden sammeln |
 | `grSkipUltraRare` | `false` | Errungenschaften unter 5% ganz überspringen |
+| `grScheduleEnabled` | `false` | Den Realistischen Modus im folgenden Zeitraum von selbst starten und den letzten Lauf des Kontos wiederholen |
+| `grScheduleFrom` | `22:00` | Beginn des Zeitraums |
+| `grScheduleTo` | `07:00` | Ende des Zeitraums. Liegt das Ende vor dem Beginn, reicht der Zeitraum über Mitternacht |
 
 ### Privatsphäre
 

@@ -127,3 +127,23 @@
       mlLoad();
     }
     document.getElementById('invMyListings').onclick = openMyListings;
+
+    // ================= CSV EXPORT =================
+    // The rows of the inventory as it is filtered on the page (all items when no filter), one line per item kind with its count,
+    // the prices already fetched, and the value of the stack. Prices come from the page's own price cache: nothing is fetched here.
+    document.getElementById('invExportCsv').onclick = async () => {
+      const list = (typeof viewRows !== 'undefined' && viewRows && viewRows.length) ? viewRows : ((typeof invMerged !== 'undefined' && invMerged) || []);
+      if (!list.length){ toast('Envanter').fail('Dışa aktarılacak eşya yok.'); return; }
+      // the column names stay English whatever the interface language is: spreadsheets and scripts read them by name
+      const header = ['Name', 'Game', 'Type', 'Quantity', 'Marketable', 'Tradable', 'Lowest price', 'Median price', 'Unit value', 'Total value'];
+      const rows = [header].concat(list.map(it => {
+        const p = (typeof priceOf === 'function') ? priceOf(it) : null;
+        const unit = p ? (p.medianValue != null ? p.medianValue : p.lowestValue) : null;
+        const count = it.count || it.amount || 1;
+        return [it.name, it.gameName || '', it.type || '', count, it.marketable ? 'yes' : 'no', it.tradable ? 'yes' : 'no',
+                p ? (p.lowest || '') : '', p ? (p.median || '') : '', unit != null ? unit : '', unit != null ? Math.round(unit * count * 100) / 100 : ''];
+      }));
+      const r = await window.imu.inventory.exportCsv(rows).catch(e => ({ ok: false, error: e && e.message }));
+      if (r && r.ok) toast('Envanter').done(tf('# satır dışa aktarıldı.', r.count));
+      else if (r && !r.canceled) toast('Envanter').fail((r && r.error) || 'Dışa aktarılamadı.');
+    };

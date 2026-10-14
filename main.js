@@ -19,6 +19,7 @@ const update = require('./src/services/updater');
 const translation = require('./src/core/translation');
 const { migrateKeys } = require('./src/core/keyMigration');
 const { parseProxy } = require('./src/core/proxyFetch');
+const { toCsv } = require('./src/utils/csv');
 const ct = translation.t;
 // The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
 // wrapping every return point one by one, it is done here: a newly added error message gets
@@ -248,12 +249,16 @@ const DEFAULT_SETTINGS = {
   preventSleep: false,      // prevent sleep while the app is open
   language: 'en',
   // Card farming
+  grScheduleEnabled: false,   // Realistic Mode runs the last setup by itself inside the time range below
+  grScheduleFrom: '22:00',
+  grScheduleTo: '07:00',
   farmScheduleEnabled: false, // card farming runs by itself inside the time window below
   farmScheduleFrom: '22:00',
   farmScheduleTo: '07:00',
   protectTokens: false,       // seal the saved login tokens with Windows DPAPI (safeStorage)
   cardPriorityMode: 'sequential',
   farmSkipUnplayed: false,    // leave games with no recorded playtime out of the queue
+  farmSkipRecent: false,      // leave games out that can still be refunded (bought in the last 14 days, under 2 hours played)
   farmFinishedAction: 'none', // none | exit | boost: what to do when every card has been collected
   cardMaxGames: 32,         // games open at once in fast mode (Steam's known upper limit is 32)
   notifyCardDrop: false,    // desktop notification as cards drop (Card Farming > Automation)
@@ -1402,7 +1407,7 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly', 'favoriteGames'];
 const DEFAULT_ACCOUNT_DATA = {
   boostGameIds: [], entries: {}, achLog: [], stats: null, profileInfo: null,
   grQueue: [], grPresets: [],
@@ -1412,6 +1417,8 @@ const DEFAULT_ACCOUNT_DATA = {
   farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
   farmWhitelist: [],               // appids that card farming is limited to while farmWhitelistOnly is on
   farmWhitelistOnly: false,
+  grLastRun: null,                 // the last Realistic Mode start of this account { gameEntries, spanMs, optionList }: what the schedule repeats
+  favoriteGames: [],               // games starred in the Hour Booster, Realistic Mode and Achievements lists (shown first)
 };
 
 const accountDataAll = new Map();   // steamID -> data
@@ -1439,7 +1446,7 @@ function accountData(steamID) {
   if (r.ok && r.fromBackup) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: true });
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
   // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
-  ['keyQueue', 'keyResults', 'farmExcluded', 'farmWhitelist'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  ['keyQueue', 'keyResults', 'farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
   // Games taken out of the queue used to live in the queue state, which expires with the retention period: move them to the blacklist once
   const legacy = v.entries && v.entries['cards.queue'] && v.entries['cards.queue'].v;
   if (legacy && Array.isArray(legacy.removed) && legacy.removed.length) {
@@ -1618,6 +1625,21 @@ ipcMain.handle('engine:lastLists', () => {
   return { ok: true, ...(v.lists || {}) };
 });
 
+// Games of an account that can still be refunded: bought within REFUND_DAYS and played under REFUND_MAX_MIN. Cached for ten
+// minutes per account. When Steam does not answer the answer is "none", so the farm is not held back by a failed lookup.
+const REFUND_DAYS = 14, REFUND_MAX_MIN = 120, REFUND_CACHE_MS = 10 * 60000;
+const refundCache = new Map();   // steamID -> { at, ids: Set }
+async function refundableAppIds(steamID, playtimes) {
+  const s = accounts.get(steamID);
+  if (!s || !s.engine || !s.ready) return new Set();
+  let hit = refundCache.get(steamID);
+  if (!hit || Date.now() - hit.at > REFUND_CACHE_MS) {
+    try { hit = { at: Date.now(), ids: await s.engine.getRecentAppIds(REFUND_DAYS) }; }
+    catch (e) { log('warn', '[' + accountName(steamID) + '] recent purchases could not be read: ' + (e && e.message)); hit = { at: Date.now() - REFUND_CACHE_MS + 60000, ids: new Set() }; }
+    refundCache.set(steamID, hit);
+  }
+  return new Set([...hit.ids].filter((id) => (playtimes.get(id) || 0) < REFUND_MAX_MIN));
+}
 ipcMain.handle('engine:dropGames', async () => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   try {
@@ -1632,8 +1654,27 @@ ipcMain.handle('engine:dropGames', async () => {
     } catch (e) { log('warn', 'could not get the playtime: ' + e.message); }
     const output = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }));
     storeLists('drop', output);
-    return { ok: true, games: output };
+    const refundIds = settings.farmSkipRecent ? [...await refundableAppIds(activeSteamID, mins)] : [];
+    return { ok: true, games: output, refundIds };
   } catch (e) { return { ok: false, error: e.message }; }
+});
+
+// "Export CSV" on the Inventory page: the page sends the rows it shows, this writes them where the user chooses.
+ipcMain.handle('inventory:exportCsv', async (_e, rows) => {
+  if (!Array.isArray(rows) || !rows.length || rows.length > 200000 || !rows.every((r) => Array.isArray(r) && r.length < 40)) return { ok: false, error: 'Dışa aktarılacak satır yok.' };
+  const stamp = new Date().toISOString().slice(0, 10);
+  const r = await dialog.showSaveDialog(win, {
+    title: ct('Envanteri CSV olarak kaydet'),
+    defaultPath: path.join(app.getPath('documents'), 'steamedge-inventory-' + stamp + '.csv'),
+    filters: [{ name: 'CSV', extensions: ['csv'] }],
+  });
+  if (r.canceled || !r.filePath) return { ok: false, canceled: true };
+  try {
+    // the BOM makes Excel read the text as UTF-8
+    fs.writeFileSync(r.filePath, '\ufeff' + toCsv(rows), 'utf8');
+    log('info', 'inventory exported: ' + rows.length + ' rows');
+    return { ok: true, file: r.filePath, count: rows.length - 1 };
+  } catch (e) { return { ok: false, error: (e && e.message) || 'Dosya yazılamadı.' }; }
 });
 
 ipcMain.handle('engine:inventory', async () => {
@@ -3047,6 +3088,7 @@ function realisticNextGame(steamID) {
 const REALISTIC_REASON = {
   'time up': 'Süre doldu', 'all unlocked': 'Tüm başarımlar açıldı',
   'user stopped': 'Durduruldu', 'no connection': 'Steam bağlantısı yok',
+  'schedule': 'Zamanlayıcı aralığı bitti',
 };
 function realisticFinish(steamID, cause) {
   const s = accounts.get(steamID);
@@ -3229,11 +3271,9 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
 });
 
 // Start. oyunlar: [appid, ...] - the queue. A single game goes through the same path.
-ipcMain.handle('realistic:start', async (_e, arg) => {
-  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  const steamID = activeSteamID;
+async function realisticStartFor(steamID, arg, fromSchedule) {
   const s = accounts.get(steamID);
-  if (!s) return { ok: false, error: 'Bağlı değil.' };
+  if (!s || !s.ready || !s.engine) return { ok: false, error: 'Bağlı değil.' };
   if (s.realistic) return { ok: false, error: 'Zaten çalışıyor.' };
   const motor = s.engine;
   const { appid, hours: hour, spanMs: durationMs } = arg || {};
@@ -3298,6 +3338,11 @@ ipcMain.handle('realistic:start', async (_e, arg) => {
       },
     };
     s.realistic = d;
+    // what the schedule repeats: the setup of the last start made by hand
+    if (!fromSchedule) {
+      accountData(steamID).grLastRun = { gameEntries: listing, spanMs: duration, optionList: (arg && arg.optionList) || null };
+      writeAccountDataDelayed(steamID);
+    }
     log('info', '[' + accountName(steamID) + '] realistic mode started: ' + willRun.length + ' games, ' + totalTarget + ' achievements, '
       + (duration / 3600000).toFixed(2) + ' hours, model=' + pick.model);
     // The first unlock is not immediate - it is not realistic for an achievement to come the moment the game opens.
@@ -3309,7 +3354,8 @@ ipcMain.handle('realistic:start', async (_e, arg) => {
     d.timer = setTimeout(() => { if (realisticStatus(steamID) === d) realisticStep(steamID); }, initial);
     return { ok: true, totalSum: totalTarget, gameCount: willRun.length, gameTitle: firstGame.name };
   } catch (e) { return { ok: false, error: e.message }; }
-});
+}
+ipcMain.handle('realistic:start', (_e, arg) => realisticStartFor(activeSteamID, arg, false));
 
 ipcMain.on('realistic:stop', () => { if (realisticStatus(activeSteamID)) realisticFinish(activeSteamID, 'user stopped'); });
 
@@ -3516,7 +3562,7 @@ const SESSION_FIELDS = ['persona', 'steamID', 'accountCurrency'];
 function applySettingPatch(patch) {
   const received = { ...(patch || {}) };
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
-  ['farmExcluded', 'farmWhitelist'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
+  ['farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
   if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
   if ('proxyUrl' in received) {
     const p = parseProxy(received.proxyUrl);
@@ -3980,16 +4026,22 @@ function isSetupConsistent() {
 const SCHEDULE_CHECK_MS = 30000;
 let scheduleTimer = null;
 // Identifies the window the clock is in (the day it opened), or null outside of it.
-function scheduleWindowKey(now) {
-  const [fh, fm] = String(settings.farmScheduleFrom || '22:00').split(':').map(Number);
-  const [th, tm] = String(settings.farmScheduleTo || '07:00').split(':').map(Number);
+// { key, endsInMs } while the clock is inside the range `from` - `to` (hh:mm, may pass midnight), else null.
+function scheduleWindow(now, fromText, toText) {
+  const [fh, fm] = String(fromText).split(':').map(Number);
+  const [th, tm] = String(toText).split(':').map(Number);
   const f = fh * 60 + (fm || 0), t = th * 60 + (tm || 0);
   if (f === t || [f, t].some(Number.isNaN)) return null;
   const cur = now.getHours() * 60 + now.getMinutes();
-  if (f < t) return (cur >= f && cur < t) ? dayKey(now.getTime()) : null;
-  if (cur >= f) return dayKey(now.getTime());
-  if (cur < t) return dayKey(now.getTime() - 86400000);
+  const untilEnd = (minutes) => Math.max(0, minutes * 60000 - now.getSeconds() * 1000);
+  if (f < t) return (cur >= f && cur < t) ? { key: dayKey(now.getTime()), endsInMs: untilEnd(t - cur) } : null;
+  if (cur >= f) return { key: dayKey(now.getTime()), endsInMs: untilEnd(24 * 60 - cur + t) };
+  if (cur < t) return { key: dayKey(now.getTime() - 86400000), endsInMs: untilEnd(t - cur) };
   return null;
+}
+function scheduleWindowKey(now) {
+  const w = scheduleWindow(now, settings.farmScheduleFrom || '22:00', settings.farmScheduleTo || '07:00');
+  return w ? w.key : null;
 }
 // The same order the Card farming page uses for a manual start (orderedForMode in cards.js).
 function orderForMode(list, mode, order) {
@@ -4018,8 +4070,9 @@ async function scheduleStartFarm(steamID) {
     const acct = accountData(steamID);
     const excluded = new Set(acct.farmExcluded);
     const only = acct.farmWhitelistOnly ? new Set(acct.farmWhitelist) : null;
+    const refunds = settings.farmSkipRecent ? await refundableAppIds(steamID, mins) : new Set();
     const list = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }))
-      .filter((g) => !excluded.has(g.appid) && (!only || only.has(g.appid)) && !(settings.farmSkipUnplayed && !(g.playtimeMin > 0)));
+      .filter((g) => !excluded.has(g.appid) && (!only || only.has(g.appid)) && !(settings.farmSkipUnplayed && !(g.playtimeMin > 0)) && !refunds.has(g.appid));
     // the account may have been given another job while the lists were loading
     if (!s.ready || accountRunning(s) || s.pendingFarm) return;
     if (!list.length) { log('info', '[' + accountName(steamID) + '] schedule: no game with cards left'); return; }
@@ -4036,6 +4089,10 @@ async function scheduleStartFarm(steamID) {
   } catch (e) { log('warn', '[' + accountName(steamID) + '] schedule: start failed: ' + (e && e.message)); }
 }
 function scheduleTick() {
+  cardScheduleTick();
+  realisticScheduleTick();
+}
+function cardScheduleTick() {
   if (!settings.farmScheduleEnabled) {
     // Turning the schedule off leaves a running farm alone
     accounts.forEach((s) => { s.scheduleStarted = false; s.scheduleKey = null; });
@@ -4062,6 +4119,46 @@ function scheduleTick() {
     if (accountRunning(s) || s.pendingFarm) return;
     s.scheduleBusy = true;
     scheduleStartFarm(steamID).finally(() => { s.scheduleBusy = false; });
+  });
+}
+
+// Realistic Mode by itself: when its own time range opens, every connected account that has nothing else running starts the
+// setup of its last Realistic Mode start made by hand (games, duration, options); the run is cut to what is left of the range and
+// stopped when the range closes. A run started by hand is never stopped, and an account is started at most once per range.
+function realisticScheduleTick() {
+  if (!settings.grScheduleEnabled) {
+    accounts.forEach((s) => { s.grScheduleStarted = false; s.grScheduleKey = null; });
+    return;
+  }
+  const w = scheduleWindow(new Date(), settings.grScheduleFrom || '22:00', settings.grScheduleTo || '07:00');
+  accounts.forEach((s, steamID) => {
+    if (!w) {
+      if (s.grScheduleStarted && s.realistic) {
+        log('info', '[' + accountName(steamID) + '] schedule: window closed, Realistic Mode stopped');
+        realisticFinish(steamID, 'schedule');
+      }
+      s.grScheduleStarted = false; s.grScheduleKey = null;
+      return;
+    }
+    if (s.grScheduleKey === w.key || !s.ready || !s.engine || s.grScheduleBusy) return;
+    s.grScheduleKey = w.key;
+    // anything already running on the account (by hand, card farming, boosting) is left alone
+    if (accountRunning(s) || s.pendingFarm) return;
+    const last = accountData(steamID).grLastRun;
+    if (!last || !Array.isArray(last.gameEntries) || !last.gameEntries.length) {
+      log('info', '[' + accountName(steamID) + '] schedule: no Realistic Mode setup saved yet, start one by hand once');
+      accountEvent(steamID, { typeName: 'cardStopped', feedEntry: { kind: 'card', title: 'Gerçekçi Mod', text: 'Zamanlayıcı için kayıtlı bir Gerçekçi Mod ayarı yok; bir kez elle başlat.', status: 'Uyarı' } });
+      return;
+    }
+    s.grScheduleBusy = true;
+    const request = { gameEntries: last.gameEntries, spanMs: Math.max(60000, Math.min(+last.spanMs || 3600000, w.endsInMs)), optionList: last.optionList };
+    realisticStartFor(steamID, request, true).then((r) => {
+      if (r && r.ok) {
+        s.grScheduleStarted = true;
+        log('info', '[' + accountName(steamID) + '] schedule: Realistic Mode started (' + r.gameCount + ' games)');
+        accountEvent(steamID, { typeName: 'realisticStarted', feedEntry: { kind: 'card', title: 'Gerçekçi Mod', text: 'Zamanlayıcı Gerçekçi Modu başlattı.', status: 'Çalışıyor' } });
+      } else log('warn', '[' + accountName(steamID) + '] schedule: Realistic Mode did not start: ' + ((r && r.error) || ''));
+    }).catch((e) => log('warn', '[' + accountName(steamID) + '] schedule: Realistic Mode failed: ' + (e && e.message))).finally(() => { s.grScheduleBusy = false; });
   });
 }
 

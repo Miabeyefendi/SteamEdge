@@ -65,6 +65,13 @@ app.whenReady().then(async () => {
   await wait(600);
   log('save patch 2', JSON.stringify(calls.filter((c) => c[0] === 'settings:save').pop()));
   log('gate state', await js("(()=>{const e=document.querySelector('[data-set=farmScheduleTo]');return e.disabled+' '+(e.closest('[data-setting-row]').getAttribute('title')||'')+' '+e.style.opacity})()"));
+  // rows added in 1.4.7
+  let failures = consoleErr.length ? 1 : 0;
+  for (const k of ['farmSkipRecent', 'grScheduleEnabled', 'grScheduleFrom', 'grScheduleTo']) {
+    const found = await js("!!document.querySelector('[data-set=" + k + "]')");
+    if (!found) failures++;
+    log((found ? 'PASS ' : 'FAIL ') + 'settings row ' + k);
+  }
   log('console errors', JSON.stringify(consoleErr));
-  app.exit(0);
+  app.exit(failures ? 1 : 0);
 });

@@ -167,6 +167,8 @@ Cards do not arrive on a schedule and Steam sends no "a card dropped" event. The
 
 **When all cards are collected** can also be set to **Start hour boosting**: the account's remembered hour boosting list starts running, limited to **Max games at once**. With an empty list nothing starts and the activity feed says so.
 
+**Refund window.** With **Skip games in the refund window** on (Card Farming page, or Settings > Card farming), games bought in the last 14 days and played under 2 hours are left out of the queue: Steam keeps the right to a refund for them up to that hour limit, and farming cards would end it. The purchase date comes from your Steam license records; if it cannot be read, no game is skipped. The schedule follows the same filter.
+
 ### Hours booster
 
 Runs up to 32 games at once. Steam counts time against every open game separately, so 32 games open for an hour is 32 hours of playtime. **Sequential idling mode** (a toggle on the page) instead cycles the queue one game at a time, with the set duration applying to each game, so ∞ is not available there and hour syncing is not used.
@@ -209,6 +211,8 @@ Holds one game open and unlocks its achievements across the session, from the mo
 
 With **Randomised gaps** on, unlock gaps vary by up to 40% either way and are never shorter than three seconds. With several games in the queue the remaining time is shared out by achievement count, and the queue advances on its own when **Start the queue automatically** is on. If the time runs out with achievements left, the run stops and says how many were not unlocked instead of forcing them; a card farm that was paused for the run resumes afterwards.
 
+**Schedule.** With **Realistic Mode schedule** on (Settings > Achievements), Realistic Mode starts by itself inside its own time range on every connected account, repeating that account's last start made by hand (games, duration, options). The run is cut to what is left of the range and stops when the range closes. An account with something else running is left alone, a run started by hand is never stopped, and an account with no saved start gets a note in the activity feed.
+
 ### Inventory and market
 
 Item value is the **quantity-weighted median of realised sales**, not the lowest active listing. One person listing a card at 999,999 does not move it.
@@ -224,6 +228,8 @@ Price and sale average are fetched **per item, together**, then the queue moves 
 **My listings.** The button at the top of the page lists your active market listings, the ones waiting for a confirmation and the ones on hold, with the price the buyer pays and what you receive. Select active listings and take them back; the items return to your inventory and the inventory is read again. Listings waiting for confirmation are confirmed or cancelled in the Steam app, and listings on hold return by themselves when the hold ends.
 
 **Booster packs and gems** have their own types. A booster pack can be opened from the detail panel; the cards that come out are added to the inventory. Opening a pack is permanent.
+
+**Export CSV.** The button at the top of the page writes the items the page shows (the current filter, or everything) to a CSV file you choose: name, game, type, quantity, marketable, tradable, the lowest and median price already fetched, the unit value and the value of the stack. Prices are not fetched for the export, so fetch them first if you want them in the file. The column names are always English, and a name that starts like a formula is marked with an apostrophe so a spreadsheet does not run it.
 
 ### Product keys
 
@@ -250,6 +256,10 @@ The catch: if you move the folder to another computer or Windows user, or reinst
 Each account can have its own proxy under Settings > Privacy & security > **Proxy server**: `http://host:port`, `https://host:port` or `socks5://host:port`, with `user:password@` in front of the host when it needs a login. The account's Steam connection and its market, inventory and key requests go through it, and with SOCKS5 the proxy resolves host names. If the proxy is down the account does not connect; it never falls back to a direct connection. A change applies when the account reconnects.
 
 Not covered: the sign-in itself (adding an account), update checks, the fee script download and the item images, which load directly.
+
+### Favorite games
+
+The star on a game in the Hour Booster library, the Achievements game list and the Realistic Mode search puts it at the top of those lists, and in Realistic Mode an empty search shows your starred games. Favorites belong to the account.
 
 ### Chat
 
@@ -286,6 +296,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `autoNextGame` | `true` | Move to the next game when one finishes. Off: farming stops after the current game |
 | `farmSkipUnplayed` | `false` | Leave games with no recorded playtime out of the queue |
+| `farmSkipRecent` | `false` | Leave games out that were bought in the last 14 days and played under 2 hours |
 | `farmFinishedAction` | `none` | `none`, `exit` or `boost`: close the app 20 seconds after every card is collected, if no other job is running, or start the account's remembered hour boosting list |
 | `farmScheduleEnabled` | `false` | Start card farming by itself inside the time range below |
 | `farmScheduleFrom` | `22:00` | Start of the range |
@@ -321,6 +332,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `boostAutoRestart` | `false` | Start the queue again when the session ends |
 | `rememberBoostList` | `true` | Keep the selection between sessions |
 | `pauseFarmOnBoost` | `false` | Pause farming while the hours booster or Realistic Mode runs, then resume where it was |
+| `favoriteGames` | empty | Starred games of the account, shown first in the Hour Booster, Achievements and Realistic Mode lists. Stored per account, never exported |
 
 ### Realistic Mode
 
@@ -336,6 +348,9 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `grFinishedRatio` | `50` | How far the schedule compresses on a finished game |
 | `grKeepHours` | `true` | Keep collecting hours after the unlocks finish |
 | `grSkipUltraRare` | `false` | Skip achievements under 5% entirely |
+| `grScheduleEnabled` | `false` | Start Realistic Mode by itself inside the time range below, repeating the account's last start |
+| `grScheduleFrom` | `22:00` | Start of the range |
+| `grScheduleTo` | `07:00` | End of the range. An end before the start means the range passes midnight |
 
 ### Privacy
 

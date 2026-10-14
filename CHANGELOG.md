@@ -7,6 +7,25 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.7)
+
+Convenience release: a refund window filter, favorite games, an inventory CSV export and a schedule for Realistic Mode.
+
+### Added
+
+- **Skip games in the refund window** (Card Farming page, and Settings > Card farming). Games bought in the last 14 days and played under 2 hours are left out of the card queue, because Steam keeps the right to a refund for them up to that hour limit and farming cards would end it. The purchase date is read from your Steam license records; if it cannot be read, no game is skipped. The card schedule follows the same filter. It is off by default.
+- **Favorite games.** A star on a game in the Hour Booster library, the Achievements game list and the Realistic Mode search puts it at the top of those lists; in Realistic Mode an empty search shows your starred games. Favorites belong to the account.
+- **Export CSV** (Inventory & Market). Writes the items the page shows to a CSV file you choose: name, game, type, quantity, marketable, tradable, the lowest and median price already fetched, the unit value and the value of the stack. Column names are always English, and names that start like a formula are marked so a spreadsheet does not run them.
+- **Realistic Mode schedule** (Settings > Achievements). Realistic Mode starts by itself inside its own time range on every connected account, repeating that account's last start made by hand (games, duration, options). The run is cut to what is left of the range and stops when the range closes. A run started by hand is never stopped, an account with something else running is left alone, and an account with no saved start gets a note in the activity feed.
+
+### Changed
+
+- The tutorial describes the four features and their settings in all six languages.
+- `npm test` runs 19 tests (new: CSV, the Realistic Mode schedule, the recent purchase lookup, favorites, the refund filter and the export button).
+
+
+SHA-256 (`SteamEdge-v1.4.7-win-x64.rar`): `ab40188b70189e4bc179aaa2cefb9a878a3b36d302b00a737341bdb4a4ad04cc`
+
 ## [1.4.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.6)
 
 Fix release: the hour sync and the achievement interval no longer get in the way of each other.
