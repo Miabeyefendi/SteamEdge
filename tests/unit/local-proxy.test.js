@@ -13,7 +13,8 @@ const listen = (s) => new Promise((r) => s.listen(0, '127.0.0.1', () => r(s.addr
 (async () => {
   // the real target: answers http requests and echoes raw bytes on a second port
   const seenAuth = [];
-  const web = http.createServer((req, res) => { res.end('web:' + req.url); });
+  // the answer never repeats what the request sent, only which of two paths it was
+  const web = http.createServer((req, res) => { res.setHeader('Content-Type', 'text/plain'); res.end(req.url === '/page' ? 'web:/page' : 'web:other'); });
   const echo = net.createServer((c) => { c.on('error', () => {}); c.on('data', (d) => c.write('echo:' + d)); });
   const wport = await listen(web), eport = await listen(echo);
 

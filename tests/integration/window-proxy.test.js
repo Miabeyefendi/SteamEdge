@@ -44,10 +44,14 @@ const GIF = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA
   const url = 'http://steam-images.test:' + tport + '/avatar.gif';
   // the page asks for an image the way the app pages do
   const win = new BrowserWindow({ show: false });
-  await win.loadURL('about:blank');
   let n = 0;
-  // a new address every time, so that the page cache cannot answer for the network
-  const loadImage = () => win.webContents.executeJavaScript(`new Promise((res) => { const i = new Image(); i.onload = () => res('loaded'); i.onerror = () => res('failed'); i.src = ${JSON.stringify(url)} + '?n=' + ${++n}; setTimeout(() => res('timeout'), 6000); })`);
+  // a new address every time, so that the page cache cannot answer for the network. The page is built as a data: URL holding one
+  // <img>, and the script that reads the outcome is a constant: no value is put into code.
+  const loadImage = async () => {
+    const page = '<img src="' + url + '?n=' + (++n) + '">';
+    await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(page));
+    return win.webContents.executeJavaScript(`new Promise((res) => { const i = document.querySelector('img'); const done = () => res(i.naturalWidth > 0 ? 'loaded' : 'failed'); if (i.complete) done(); else { i.onload = done; i.onerror = () => res('failed'); } setTimeout(() => res('timeout'), 6000); })`);
+  };
   let body = await loadImage(), err = null;
   check('an image from a host nobody resolves is carried by the proxy', body === 'loaded', String(body));
   check('the proxy was asked to open a tunnel to the host the page named', seen.some((s) => s.url.startsWith('steam-images.test:')));
