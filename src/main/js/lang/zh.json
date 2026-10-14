@@ -786,7 +786,7 @@
  "Yalnızca sıralı bekletmede geçerli: oyunlar tek tek açıldığı için sıra profilde görünür, her turda farklı sırayla açılır. Eş zamanlı yükseltmede oyunlar birlikte açık, sıra yoktur.": "僅適用於循序掛機：遊戲逐一開啟，順序會顯示在個人檔案上，因此每一輪會以不同順序開啟。同時提升時所有遊戲一起開啟，沒有順序。",
  "Açıkken saat yükseltme ya da Gerçekçi Mod başlayınca kart düşürme duraklar, bitince kaldığı yerden sürer. Kapalıyken ikisi aynı hesapta birlikte çalışır; Steam aynı anda en fazla 32 oyun sayar.": "開啟時，時數提升或擬真模式執行期間卡牌掉落會暫停，結束後從中斷處繼續。關閉時兩者在同一帳號上一起執行；Steam 同時最多計算 32 款遊戲。",
  "Kapalıyken Saat Yükseltici seçili oyunları süre dolana kadar birlikte çalıştırır. Açıkken hedefin gerisindeki oyunlar birlikte çalışır, hedefe ulaşan listeden çıkar. Sıralı bekletme modunda eşitleme uygulanmaz. Eşitleme ayarları bir sonraki başlatmada geçerlidir.": "關閉時，時數提升會讓所選遊戲一起執行直到時間結束。開啟時，低於目標的遊戲一起執行，達標者離開清單。循序掛機模式不會套用同步。同步設定會在下次開始時生效。",
- "İki başarım açılışı arasındaki bekleme. Güvenli mod açıkken her açılışta bu değerin çevresinde rastgele sapar; kapalıyken aynen uygulanır. Uzun aralık daha doğal görünür, toplu açılışı yavaşlatır.": "兩次解鎖成就之間的等待時間。開啟安全模式時，每次都會在此值附近隨機變動；關閉時則照值執行。間隔越長看起來越自然，但批量解鎖會變慢。",
+ "İki başarım açılışı arasındaki bekleme. Güvenli mod açıkken her açılışta bu değerin çevresinde rastgele sapar; kapalıyken aynen uygulanır. Uzun aralık daha doğal görünür, toplu açılışı yavaşlatır. Kart düşürürken \"Başarım Kilitlerini Aç\" en sık dakikada bir çalışır, bu yüzden daha kısa değerler orada 1 dakika gibi davranır.": "兩次解鎖成就之間的等待時間。開啟安全模式時，每次都會在此值附近隨機變動；關閉時則照值執行。間隔越長看起來越自然，但批量解鎖會變慢。集卡期間，「解鎖成就」最多每分鐘執行一次，因此更短的數值在那裡等同於 1 分鐘。",
  "Açılış aralığına her seferinde rastgele sapma eklenir; açılışlar sabit bir ritim oluşturmaz.": "每次都會為解鎖間隔加入隨機變化，讓解鎖不會形成固定節奏。",
  "Tek bir başarımı açarken ya da kilitlerken onay sorulur. Onay penceresindeki \"Bir daha sorma\" bu anahtarı kapatır; buradan yeniden açabilirsin.": "解鎖或鎖定單一成就時會先確認。確認視窗中的「不再詢問」會關閉此選項，你可以在這裡重新開啟。",
  "Bir başarım açıldığında ya da kilitlendiğinde bildirim gösterilir.": "成就解鎖或鎖定時顯示通知。",
@@ -1414,5 +1414,7 @@
  "# kara listeye alındı.": "# 已加入黑名單。",
  "Saat yükseltme listesi boş olduğu için başlatılmadı.": "因為時數提升清單是空的，所以沒有開始。",
  "Saat Yükseltme": "時數提升",
- "Kartlar bitti; saat yükseltme başladı.": "卡牌已全部拿到，時數提升已開始。"
+ "Kartlar bitti; saat yükseltme başladı.": "卡牌已全部拿到，時數提升已開始。",
+ "Tek oyunda \"Seçililerin en yükseği\" hedefi bir şeyi eşitlemez; süreyi ve eşzamanlı limiti kendin belirleyebilirsin. İki ya da daha çok oyun seçince eşitleme devreye girer.": "只選一款遊戲時，「所選中的最高值」目標沒有可對齊的對象；你可以自行設定時間與同時上限。選取兩款以上遊戲時才會進行對齊。",
+ "\"Çevrimdışı görün\" açıkken oyun adı zaten görünmez.": "開啟「顯示為離線」時本來就不會顯示遊戲名稱。"
 }

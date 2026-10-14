@@ -178,6 +178,8 @@ Aynı anda 32 oyuna kadar çalıştırır. Steam süreyi açık olan her oyuna a
 
 İlerleme çubukları ortak bir zaman çizelgesine oturur: çubuk, oyunun kalan süresinin işin toplam süresine oranının bir eksiğidir. Otuz beş saatlik bir işte dört saat sonra bitecek oyunun çubuğu baştan neredeyse doludur, sona kadar sürecek olanınki boştur. Her biri hedefe ulaştığı anda tam %100 olur.
 
+**Süreleri eşitle** (Saat Yükseltici sayfası) seçili oyunları ortak bir toplama çeker. **Seçililerin en yükseği** hedefi iki ya da daha çok seçili oyun ister: tek oyunda eşitlenecek bir şey yoktur, bu yüzden süre ve limit sende kalır. Elle girilen saat hedefi ya da kütüphanedeki en yüksek, tek oyunda da çalışır. **Hepsi birden** ile seçili her oyun, **Eşzamanlı Limit** ne olursa olsun, Steam'in 32 sınırına kadar birlikte çalışır ve hedefe ulaşan oyun listeden çıkar; **Sıralı** en geride kalan oyunu tek başına öne çeker, yetişince bir sonrakini katar. Anahtar varsayılan olarak açıktır.
+
 ### Başarımlar
 
 Başarımlar herkese açık profilin kazınmasıyla değil, protokol üzerinden okunup yazılır. Profilin gizli olması hiçbir şeyi değiştirmez.
@@ -189,7 +191,7 @@ Başarımlar herkese açık profilin kazınmasıyla değil, protokol üzerinden 
 
 Bazı oyunlar başarım yazarken oyunun açık olmasını ister. Uygulama yazma sırasında oyunu açar, sonra öncesinde ne çalışıyorsa ona döner.
 
-**Toplu aç ve kilitle** seçili başarımlara, hiçbiri seçili değilse o an süzgecin gösterdiği her şeye uygulanır. Başarımlar hep tek tek, **Açılış aralığı** (Ayarlar > Başarımlar) kadar bekleyerek gönderilir, asla tek seferde değil. **Güvenli mod** açıkken her bekleme rastgele en fazla %40 sapar, **Açılışları zamana yay** ile aralığın %40 ila %160'ı arasında olur; Güvenli mod kapalıyken aralık aynen uygulanır. Onay penceresi aralığı ve tahmini toplam süreyi gösterir, toplu işlem üst üste üç hatada durur ve bittiğinde uygulama oyunu Steam'den yeniden okuyup Steam'in gerçekte kaydetmediği işaretleri düzeltir. Tekli açma, "Bir daha sorma"yı işaretlemediysen önce sorar (Ayarlar'daki **Tekli işlemde onay iste** tekrar açar); toplu işlem her zaman sorar. Nadirlik, Steam'in genel açılma yüzdesine göre beş basamaklıdır: %1 altı Efsanevi, %5 altı Ultra nadir, %10 altı Nadir, %25 altı Sıra dışı, kalanı Yaygın.
+**Toplu aç ve kilitle** seçili başarımlara, hiçbiri seçili değilse o an süzgecin gösterdiği her şeye uygulanır. Başarımlar hep tek tek, **Açılış aralığı** (Ayarlar > Başarımlar) kadar bekleyerek gönderilir, asla tek seferde değil. **Güvenli mod** açıkken her bekleme rastgele en fazla %40 sapar, **Açılışları zamana yay** ile aralığın %40 ila %160'ı arasında olur; Güvenli mod kapalıyken aralık aynen uygulanır. Onay penceresi aralığı ve tahmini toplam süreyi gösterir, toplu işlem üst üste üç hatada durur ve bittiğinde uygulama oyunu Steam'den yeniden okuyup Steam'in gerçekte kaydetmediği işaretleri düzeltir. Tekli açma, "Bir daha sorma"yı işaretlemediysen önce sorar (Ayarlar'daki **Tekli işlemde onay iste** tekrar açar); toplu işlem her zaman sorar. Nadirlik, Steam'in genel açılma yüzdesine göre beş basamaklıdır: %1 altı Efsanevi, %5 altı Ultra nadir, %10 altı Nadir, %25 altı Sıra dışı, kalanı Yaygın. Aralık seçenekleri 15, 30 ve 45 saniye, 1, 2, 5, 10 ve 30 dakika ile 1 saattir. Kart düşürürken **Başarım Kilitlerini Aç** en sık dakikada bir çalışır, bu yüzden daha kısa değerler orada 1 dakika gibi davranır.
 
 ### Gerçekçi Mod
 
@@ -309,9 +311,9 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 
 ### Saat yükseltici
 
-| Anahtar | Varsayılan | Ne yapar |
+| `boostMaxGames` | `32` | Aynı anda açık oyun sayısı. Saat eşitleme çalışırken kullanılmaz: o kendisi 32'ye kadar açar |
 |---|---|---|
-| `boostMaxGames` | `32` | Aynı anda açık oyun |
+| `boostSync` | `true` | Seçimi ortak bir toplama çek. `highest` hedefi yalnızca iki ya da daha çok oyun seçiliyken geçerlidir |
 | `boostDurationSec` | `3600` | Oturum süresi |
 | `boostSync` | `false` | Seçimi ortak bir toplama çek |
 | `boostSyncMode` | `highest` | Hedef: seçililerin en yükseği, elle girilen saat ya da kütüphanenin en yükseği |

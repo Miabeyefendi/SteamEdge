@@ -346,7 +346,7 @@ const DEFAULT_SETTINGS = {
   shuffleBoost: false,      // only in sequential idling: the game order is shuffled every round
   // The Behaviour/Privacy switches on the Hour Booster page and the preset
   // Hour sync - brings the total times of the selected games to the same point (default OFF)
-  boostSync: false,
+  boostSync: true,              // equalise the selected games; only applies when two or more are selected
   boostSyncMode: 'highest',     // highest | manual | library
   boostSyncTargetHours: 100,    // target hours when 'manual' is selected
   boostSyncLibraryMaxMin: 0,    // the library's highest time last computed for 'library' (min)
@@ -381,7 +381,7 @@ const DEFAULT_SETTINGS = {
   grFinishedRatio: 50,          // if the game is finished the schedule drops to this ratio (percent)
   grShowNoAch: false,       // games without achievements show up in the game list
   grLevel: 'simple',        // right panel: simple | advanced
-  achDelay: '1',
+  achDelay: '15',               // seconds between two unlocks: 15, 30, 45, 60, 120, 300, 600, 1800 or 3600
   achOrder: 'default',
   achSafeMode: true,
   achSpread: false,
@@ -390,7 +390,7 @@ const DEFAULT_SETTINGS = {
   sessionTimeout: 'never',  // idle time (min), does not apply while a job runs - 'never' = off
   hideGameName: false,      // become invisible while playing (so the game name does not show on the profile)
   logLevel: 'error',        // log file: off | error | warn | info | debug
-  settingsVersion: 2,            // format of the settings file; migrations are in migrateSettings
+  settingsVersion: 3,            // format of the settings file; migrations are in migrateSettings
 };
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -454,6 +454,11 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 // Removed and merged settings are carried over from the old file to here: the user's old choice
 // is not lost, and no dead key is left in the file. settingsVersion is raised once.
 const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs'];
+const ACH_DELAY_CHOICES = [15, 30, 45, 60, 120, 300, 600, 1800, 3600];
+function nearestAchDelay(sec) {
+  if (!(sec > 0)) return ACH_DELAY_CHOICES[0];
+  return ACH_DELAY_CHOICES.reduce((best, c) => (Math.abs(c - sec) < Math.abs(best - sec) ? c : best));
+}
 function migrateSettings(v) {
   if (!v || typeof v !== 'object') return false;
   let hasChanged = false;
@@ -470,6 +475,12 @@ function migrateSettings(v) {
     if (v.saleMode === 'lowest') v.saleMode = 'match';
     // "Keep debug logs" was removed: the chosen level is now also written to the file.
     v.settingsVersion = 2;
+    hasChanged = true;
+  }
+  // The unlock interval choices were cut down (no 1 second, no odd minutes): move an old value to the nearest new one
+  if ((+v.settingsVersion || 1) < 3) {
+    if (v.achDelay != null) v.achDelay = String(nearestAchDelay(+v.achDelay));
+    v.settingsVersion = 3;
     hasChanged = true;
   }
   // Values renamed from Turkish: 'sinirsiz' -> 'unlimited', 'kapali' -> 'off'.
@@ -2493,6 +2504,8 @@ function scheduleSync(steamID) {
   b.syncTimer = setTimeout(() => scheduleSync(steamID), Math.max(1000, shortest));
 }
 
+// Steam's limit of games open at once; the parallel hour sync always uses all of it
+const SYNC_MAX_GAMES = 32;
 function buildSyncSteps(games, targetMin) {
   // games: [{appid, playtimeMin}] - those that are already past the target count as "ready" from the start
   const sorted = games.slice().sort((a, b) => (a.playtimeMin || 0) - (b.playtimeMin || 0));
@@ -2617,8 +2630,10 @@ function boostStart(steamID, request) {
   // If sync is on, work toward the target. There are two strategies:
   //   parallel (default) - all together, drop the one that reaches the target from the list. The fastest.
   //   staged             - step by step, keeps the games level along the way. Slow but gradual.
-  if (settings.boostSync && games && games.length) {
-    const mode = settings.boostSyncMode || 'highest';
+  // "Highest of the selected" with a single game has nothing to equalise: it runs like a normal boost with the chosen duration
+  const syncMode = settings.boostSyncMode || 'highest';
+  if (settings.boostSync && games && games.length && (games.length > 1 || syncMode !== 'highest')) {
+    const mode = syncMode;
     let targetMin;
     if (mode === 'manual') targetMin = Math.max(0, Math.round((+settings.boostSyncTargetHours || 0) * 60));
     else if (mode === 'library') targetMin = Math.max(0, +settings.boostSyncLibraryMaxMin || 0);
@@ -2648,8 +2663,9 @@ function boostStart(steamID, request) {
         return { ok: true };
       }
     } else {
-      // Sync computes its own duration; the "boost duration" setting is invalid here.
-      const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+      // Sync computes its own duration. The "Max games at once" choice does not apply either: the page locks it while
+      // sync runs, and a leftover small value used to open the games in groups of that size
+      const limit = SYNC_MAX_GAMES;
       b.sync = {
         strategyName: 'parallel', targetMin, limit, gameEntries: ledger.setupLedger(behind, targetMin),
         activeIds: [], startPoint: Date.now(), lastAccount: Date.now(),
@@ -3329,7 +3345,7 @@ ipcMain.handle('engine:boostSyncPlan', async (_e, { games, mode, targetHours }) 
   const strategy = settings.boostSyncStrategy || 'parallel';
 
   if (strategy === 'parallel') {
-    const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+    const limit = SYNC_MAX_GAMES;
     const sim = simulateSync(games, targetMin, limit);
     // Also give when each game will finish: the user will see the plan and confirm it.
     const finishes = [];
@@ -3644,12 +3660,8 @@ function applySettingsToJobs(changed) {
     }
     const b = s.boost;
     if (b && b.runningFlag && d.has('boostMaxGames')) {
-      if (b.sync && b.sync.strategyName === 'parallel') {
-        b.sync.limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
-        if (b.syncTimer) { clearTimeout(b.syncTimer); b.syncTimer = null; }
-        scheduleSync(steamID);
-        summary.push({ steamID, accountRef: accountRef, is: 'hours', how: 'instant' });
-      } else if (applyAndContinueBoost(steamID)) {
+      // a running sync ignores this setting (see SYNC_MAX_GAMES)
+      if (b.sync) { /* nothing to apply */ } else if (applyAndContinueBoost(steamID)) {
         summary.push({ steamID, accountRef: accountRef, is: 'hours', how: 'paused' });
       }
     }

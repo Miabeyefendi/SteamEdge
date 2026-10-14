@@ -442,12 +442,11 @@
                        + String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'));
     }
 
-    // Unlock interval. The value in the settings is in seconds (fastest 1 s, above that minute
-    // based). So that it does not look rhythmic a random deviation is applied on every unlock: normally
+    // Unlock interval. The value in the settings is in seconds (15 s to 1 hour, see the choice list in the settings). So that it does not look rhythmic a random deviation is applied on every unlock: normally
     // ±40%, much wider (40%-160%) when "Spread unlocks over time" is on.
     function acBaseDelaySec(){
       const v = +((appSettings||{}).achDelay);
-      return Number.isFinite(v) && v > 0 ? v : 1;
+      return Number.isFinite(v) && v > 0 ? v : 15;
     }
     function fmtDelay(pick){
       if (pick < 60) return durationUnit(pick, 'saniye');

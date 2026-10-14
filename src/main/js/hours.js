@@ -112,13 +112,20 @@
       renderHoursSelected();
     };
 
-    function renderHoursSelected(){ renderActiveBox(); }
+    function renderHoursSelected(){ renderActiveBox(); renderSyncSettings(); }
 
     // ---- ITEM 4: hour sync settings (in the page) ----
     // While sync is on "eszamanli limit" and "yukseltme suresi" are meaningless: the sync
     // algorithm decides both. So they are visually locked and the reason is written.
+    // "Highest of the selected" equalises the selected games with each other, so with one game it means nothing and
+    // the duration and the limit stay in the user's hands. A manual or library target still makes sense for one game.
+    const syncWanted = () => !!(appSettings && appSettings.boostSync) && !boostFlags.seqIdle;
+    const syncSingleGame = () => syncWanted() && selectedHours.length < 2 && ((appSettings && appSettings.boostSyncMode) || 'highest') === 'highest';
+    const syncActive = () => syncWanted() && !syncSingleGame();
     function renderSyncSettings(){
-      const isOpen = !!(appSettings && appSettings.boostSync) && !boostFlags.seqIdle;
+      const isOpen = syncWanted();
+      const singleNote = document.getElementById('hoursSyncNote');
+      if (singleNote) singleNote.style.display = syncSingleGame() ? '' : 'none';
       const opts = document.getElementById('hoursSyncOpts');
       if (opts) opts.style.display = isOpen ? 'flex' : 'none';
 
@@ -133,9 +140,9 @@
       const st = (appSettings && appSettings.boostSyncStrategy) || 'parallel';
       if (stSel && stSel.value !== st) stSel.value = st;
 
-      lock(document.getElementById('hoursConcBlock'), isOpen,
+      lock(document.getElementById('hoursConcBlock'), syncActive(),
               'Eşitleme açık: oyunları eşitleme çalıştırır (en fazla 32 eşzamanlı).');
-      lock(document.getElementById('hoursDurBlock'), isOpen,
+      lock(document.getElementById('hoursDurBlock'), syncActive(),
               'Eşitleme açık: süreyi hedef saat belirler.');
     }
     function lock(block, locked, cause){
@@ -460,14 +467,15 @@
     // ---- start / stop ----
     async function startBoost(){
       if (!selectedHours.length) return;
-      // In sequential idling mode the whole queue cycles in turn; when off the first `maxConcurrent` games run together.
-      const pool = boostFlags.seqIdle ? selectedHours : selectedHours.slice(0, maxConcurrent);
+      // If hour sync is on, every selected game takes part (it opens up to 32 at once itself); otherwise the first
+      // `maxConcurrent` games run together, and sequential idling cycles the whole queue in turn.
+      const syncOn = syncActive();
+      const pool = (boostFlags.seqIdle || syncOn) ? selectedHours : selectedHours.slice(0, maxConcurrent);
       // playtimeMin is needed for hour sync (ownedGames gives it in minutes)
       const games = pool.map(g=>({ appid:g.appid, name:g.name, playtimeMin: g.playtimeForever || 0 }));
 
       // If hour sync is on show what will happen BEFORE starting - the steps and total time
       // can take hours, it would not be right to start without the user confirming.
-      const syncOn = appSettings && appSettings.boostSync && !boostFlags.seqIdle;
       if (syncOn){
         const plan = await E.boostSyncPlan(games, appSettings.boostSyncMode || 'highest',
                                            appSettings.boostSyncTargetHours).catch(e=>({ ok:false, error:(e&&e.message) }));
