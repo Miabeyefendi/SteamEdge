@@ -1437,5 +1437,13 @@
  "Dosya yazılamadı.": "無法寫入檔案。",
  "Zamanlayıcı aralığı bitti": "排程時段已結束",
  "Zamanlayıcı için kayıtlı bir Gerçekçi Mod ayarı yok; bir kez elle başlat.": "排程尚無已儲存的擬真模式設定；請先手動啟動一次。",
- "Zamanlayıcı Gerçekçi Modu başlattı.": "排程已啟動擬真模式。"
+ "Zamanlayıcı Gerçekçi Modu başlattı.": "排程已啟動擬真模式。",
+ "Sahip olunan anahtarı ilet": "轉送已擁有的序號",
+ "Hesap oyuna zaten sahipse anahtar, bağlı sıradaki hesapta denenir": "若帳號已擁有該遊戲，序號會改在下一個已連線的帳號上嘗試",
+ "Anahtarları buraya yapıştır. Her satırda bir anahtar, oyun adı ve anahtar ya da ücretsiz bir oyunun Steam mağaza bağlantısı.": "在此貼上序號。每行一個序號、遊戲名稱加序號，或免費遊戲的 Steam 商店連結。",
+ "Giriş için vekil sunucu": "登入用代理伺服器",
+ "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "新增帳號與登入時使用的代理。帳號自己的代理要登入後才知道，所以登入需要另外的位址。格式：http://主機:連接埠、https://主機:連接埠 或 socks5://主機:連接埠。位址會以純文字存放在這台電腦的設定檔中。留空則直接登入。",
+ "# hesabında denenecek.": "將在帳號 # 上嘗試。",
+ "Hesaba eklendi": "已加入帳號",
+ "Lisans verilmedi": "未授予授權"
 }

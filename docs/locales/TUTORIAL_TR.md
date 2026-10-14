@@ -235,6 +235,8 @@ Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk
 
 Anahtarlar hesaba özel, arka planda çalışan bir kuyruğa girer. Anahtar, tire ile ayrılmış üç ila altı grup, her grup dört ila altı büyük harf ya da rakamdan oluşan olağan biçimde kabul edilir; satırda anahtardan önce bir oyun adı da olabilir. Kuyrukta ya da sonuçlarda zaten bulunan anahtarlar atlanır. Her cevaptan sonra kısa bir ara verilir ve Steam çok fazla anahtar denendiğini bildirirse tüm kuyruk bir saat bekler. Steam'in reddettiği anahtar yeniden denenmez; cevabı hiç gelmeyen (bağlantı yok, zaman aşımı) anahtar kuyrukta kalır ve kısa süre sonra yeniden denenir. En yeni 1000 sonuç saklanır. Zaten sahip olunan anahtarlar diğer hesaplarına yönlendirilmez.
 
+**Sahip olunan anahtarı ilet.** **Sahip olunan anahtarı ilet** açıkken (Anahtarlar sayfası), hesabın zaten sahip olduğu bir anahtar, onu görmemiş sıradaki bağlı hesapta denenir, böyle sürer; yedek bir anahtar boşa gitmez, sonuç nereye gittiğini gösterir. **Ücretsiz oyunlar:** ayrı bir satıra yazılan ücretsiz bir oyunun Steam mağaza bağlantısı (ya da `app/123`) Steam'den o uygulamanın ücretsiz lisansını ister; sonuç hesaba eklendiğini ya da lisans verilmediğini (zaten sahip ya da ücretsiz değil) söyler.
+
 ### Aile Görünümü
 
 Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayfalarını vermez; envanter, pazar ve rozet sayfaları açılmaz. PIN'i Ayarlar > Gizlilik & Güvenlik > **Aile Görünümü PIN'i** altına gir; SteamEdge her yeni web oturumunu bununla açar. PIN, hesabın `settings/accounts/` altındaki dosyasında düz metin olarak durur ve dışa aktarılan yedeklere girmez. **Giriş anahtarlarını şifrele** açıkken şifrelenir.
@@ -255,7 +257,7 @@ Bedeli: klasörü başka bir bilgisayara ya da Windows kullanıcısına taşırs
 
 Her hesabın kendi vekili olabilir: Ayarlar > Gizlilik & Güvenlik > **Vekil sunucu (proxy)**. Biçim `http://sunucu:port`, `https://sunucu:port` ya da `socks5://sunucu:port`; giriş gerekiyorsa sunucunun önüne `kullanıcı:parola@` yazılır. Hesabın Steam bağlantısı ile pazar, envanter ve anahtar istekleri bundan geçer; SOCKS5'te sunucu adlarını vekil çözer. Vekil kapalıysa hesap bağlanmaz, doğrudan bağlantıya asla düşülmez. Değişiklik hesap yeniden bağlanınca geçerli olur.
 
-Kapsam dışı: girişin kendisi (hesap ekleme), güncelleme denetimi, ücret betiğinin indirilmesi ve öğe görselleri; bunlar doğrudan yüklenir.
+Hesap ekranda iken sayfa görselleri, ücret betiğinin indirilmesi ve güncelleme denetimi de bundan geçer; bunu, giriş bilgisiyle birlikte senin vekiline ileten 127.0.0.1 üzerindeki küçük bir vekil yapar (görseller için SOCKS5 girişi de böylece çalışır). Girişin kendi **Giriş için vekil sunucu** ayarı vardır, çünkü bir hesabın kendi vekili hesap giriş yapınca bilinir; bu adres `settings/settings.json` içinde düz metin saklanır ve ayar dışa aktarımına girmez.
 
 ### Favori oyunlar
 
@@ -296,6 +298,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
 | `farmSkipUnplayed` | `false` | Hiç oynanma süresi kayıtlı olmayan oyunları kuyruğa almaz |
+| `keyForwardOwned` | `false` | Hesabın zaten sahip olduğu anahtarı sıradaki bağlı hesapta dene |
 | `farmSkipRecent` | `false` | Son 14 günde alınıp 2 saatten az oynanan oyunları dışarıda bırak |
 | `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır. Ya da hesabın hatırlanan saat yükseltme listesini başlatan `boost`. |
 | `farmScheduleEnabled` | `false` | Kart düşürmeyi aşağıdaki saat aralığında kendiliğinden başlat |
@@ -361,6 +364,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `parentalPin` | boş | Web sayfalarının kilidini açmak için hesabın Steam Aile Görünümü PIN'i. Hesaba özel saklanır, dışa aktarılmaz |
 | `protectTokens` | `false` | Kayıtlı giriş anahtarlarını Windows DPAPI ile şifreli sakla. Bu Windows kullanıcısına ve bilgisayara özeldir, dışa aktarılmaz |
 | `proxyUrl` | boş | Hesabın vekili: `http://`, `https://` ya da `socks5://`, isteğe bağlı `kullanıcı:parola@` ile. Parola hesabın dosyasında saklanır; **Giriş anahtarlarını şifrele** açıkken şifrelenir. Hesap başına saklanır, dışa aktarılmaz |
+| `loginProxyUrl` | boş | Girişin geçtiği vekil (`http://`, `https://` ya da `socks5://`). Ayar dosyasında düz metin, dışa aktarılmaz |
 
 > Çevrimdışı görünmek arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
 

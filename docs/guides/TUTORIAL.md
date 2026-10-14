@@ -235,6 +235,8 @@ Price and sale average are fetched **per item, together**, then the queue moves 
 
 Keys go into a per-account queue that runs in the background. A key is accepted in the usual form of three to six groups of four to six capital letters or digits, separated by hyphens; a line can also carry a game name before the key. Keys that are already in the queue or in the results are skipped. After each answer there is a short pause, and when Steam reports that too many keys were tried the whole queue waits an hour before continuing. A key that Steam refuses is not retried; a key whose answer did not arrive (no connection, timeout) stays in the queue and is tried again shortly. The newest 1000 results are kept. Keys that are already owned are not forwarded to your other accounts.
 
+**Pass on owned keys.** With **Pass on owned keys** on (Keys page), a key the account already owns is tried on the next connected account that has not seen it, and so on, so a spare key is not wasted; the result shows where it went. **Free games:** a Steam store link of a free game (or `app/123`) on a line of its own asks Steam for that app's free license; the result says whether it was added to the account or no license was granted (already owned, or not free).
+
 ### Family View
 
 If the Steam account uses Family View, Steam does not serve web pages until the PIN is entered, so the inventory, the market and the badge pages fail to load. Enter the PIN at Settings > Privacy & security > **Family View PIN** and SteamEdge unlocks every new web session with it. The PIN is kept as plain text in the account's file under `settings/accounts/` and is not part of exported backups. It is sealed when **Encrypt login tokens** is on.
@@ -255,7 +257,7 @@ The catch: if you move the folder to another computer or Windows user, or reinst
 
 Each account can have its own proxy under Settings > Privacy & security > **Proxy server**: `http://host:port`, `https://host:port` or `socks5://host:port`, with `user:password@` in front of the host when it needs a login. The account's Steam connection and its market, inventory and key requests go through it, and with SOCKS5 the proxy resolves host names. If the proxy is down the account does not connect; it never falls back to a direct connection. A change applies when the account reconnects.
 
-Not covered: the sign-in itself (adding an account), update checks, the fee script download and the item images, which load directly.
+While the account is on screen, the page images, the fee script download and the update check go through it too, by way of a small proxy on 127.0.0.1 that carries on to your proxy with its login (this also makes a SOCKS5 login work for the images). The sign-in has its own **Proxy server for sign-in** setting, because an account's own proxy is only known once it is signed in; that address is stored as plain text in `settings/settings.json` and is not part of the settings export.
 
 ### Favorite games
 
@@ -296,6 +298,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `autoNextGame` | `true` | Move to the next game when one finishes. Off: farming stops after the current game |
 | `farmSkipUnplayed` | `false` | Leave games with no recorded playtime out of the queue |
+| `keyForwardOwned` | `false` | Try a key the account already owns on the next connected account |
 | `farmSkipRecent` | `false` | Leave games out that were bought in the last 14 days and played under 2 hours |
 | `farmFinishedAction` | `none` | `none`, `exit` or `boost`: close the app 20 seconds after every card is collected, if no other job is running, or start the account's remembered hour boosting list |
 | `farmScheduleEnabled` | `false` | Start card farming by itself inside the time range below |
@@ -361,6 +364,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `parentalPin` | empty | Steam Family View PIN of the account, used to unlock web pages. Stored per account, never exported |
 | `protectTokens` | `false` | Store the saved sign-in tokens encrypted with Windows DPAPI. Specific to this Windows user and computer, never exported |
 | `proxyUrl` | empty | Proxy of the account: `http://`, `https://` or `socks5://`, with an optional `user:password@`. The password is stored in the account's file, sealed when **Encrypt login tokens** is on. Stored per account, never exported |
+| `loginProxyUrl` | empty | Proxy the sign-in goes through (`http://`, `https://` or `socks5://`). Plain text in the settings file, never exported |
 
 > Appearing offline changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
 

@@ -39,10 +39,11 @@
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
 - **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches. Active listings can be taken back, and booster packs opened, from the same page.
-- **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time. When Steam's hourly limit is reached the queue waits and carries on by itself.
+- **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time. When Steam's hourly limit is reached the queue waits and carries on by itself. A key an account already owns can be tried on your other accounts, and a free game is added from its store link.
 - **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
-- **Schedule, proxy and token protection** - Card farming can run by itself inside a time range, each account can use its own HTTP or SOCKS5 proxy, and saved sign-in tokens can be encrypted with Windows DPAPI.
+- **Schedule, proxy and token protection** - Card farming and Realistic Mode can run by themselves inside a time range, each account can use its own HTTP or SOCKS5 proxy (the sign-in has one too), and saved sign-in tokens can be encrypted with Windows DPAPI.
+- **Lists and filters** - A permanent blacklist and a whitelist for card farming, a filter that leaves out games still in their refund window, favorite games that sit at the top of the lists, and a CSV export of the inventory.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
@@ -107,10 +108,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.4.7-win-x64.rar`:
-`ab40188b70189e4bc179aaa2cefb9a878a3b36d302b00a737341bdb4a4ad04cc`
+SHA-256 of `SteamEdge-v1.4.8-win-x64.rar`:
+`9c749c51b822475b52c33e68b594b30e54fc61e83e794baeee5fece86bc2fd0d`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.7-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.8-win-x64.rar`.
 
 </details>
 

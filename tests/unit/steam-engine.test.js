@@ -50,6 +50,12 @@ global.fetch = async (url, opts = {}) => {
   check('a good key reports the package', redeemed.ok === true && redeemed.detail === 0 && redeemed.packages[1] === 'Game');
   const refused = await e.redeemKey('AAAAA-BBBBB-CCCCC');
   check('a refused key carries the Steam detail code', refused.ok === false && refused.detail === 9);
+  // free license of an app
+  e.user.requestFreeLicense = (ids, cb) => setImmediate(() => { if (ids[0] === 1) cb(null, [101], [1]); else if (ids[0] === 2) cb(null, [], []); else { const er = new Error('Fail'); er.eresult = 15; cb(er); } });
+  const granted = await e.claimFreeApp(1), nothing = await e.claimFreeApp(2), refusedFree = await e.claimFreeApp(3);
+  check('a free app is granted', granted.ok && granted.granted && granted.packages[0] === 101);
+  check('an answer without a grant says so (already owned or not free)', nothing.ok && !nothing.granted);
+  check('a Steam refusal carries the EResult', !refusedFree.ok && refusedFree.detail === 15);
   // recent purchases (refund window): only licenses from the last 14 days are looked up
   const now = Math.floor(Date.now() / 1000);
   let asked = null;

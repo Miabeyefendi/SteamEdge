@@ -1437,5 +1437,13 @@
  "Dosya yazılamadı.": "Die Datei konnte nicht geschrieben werden.",
  "Zamanlayıcı aralığı bitti": "Der Zeitraum des Zeitplans ist zu Ende",
  "Zamanlayıcı için kayıtlı bir Gerçekçi Mod ayarı yok; bir kez elle başlat.": "Für den Zeitplan gibt es noch keinen gespeicherten Realistic-Lauf; starte einmal einen von Hand.",
- "Zamanlayıcı Gerçekçi Modu başlattı.": "Der Zeitplan hat den Realistischen Modus gestartet."
+ "Zamanlayıcı Gerçekçi Modu başlattı.": "Der Zeitplan hat den Realistischen Modus gestartet.",
+ "Sahip olunan anahtarı ilet": "Vorhandene Schlüssel weitergeben",
+ "Hesap oyuna zaten sahipse anahtar, bağlı sıradaki hesapta denenir": "Besitzt das Konto das Spiel schon, wird der Schlüssel beim nächsten verbundenen Konto versucht",
+ "Anahtarları buraya yapıştır. Her satırda bir anahtar, oyun adı ve anahtar ya da ücretsiz bir oyunun Steam mağaza bağlantısı.": "Füge die Schlüssel hier ein. Pro Zeile ein Schlüssel, ein Spielname mit Schlüssel oder der Steam-Shop-Link eines kostenlosen Spiels.",
+ "Giriş için vekil sunucu": "Proxyserver für die Anmeldung",
+ "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "Der Proxy beim Hinzufügen eines Kontos und beim Anmelden. Der eigene Proxy eines Kontos ist erst nach der Anmeldung bekannt, deshalb braucht die Anmeldung eine eigene Adresse. Format: http://Host:Port, https://Host:Port oder socks5://Host:Port. Die Adresse wird im Klartext in der Einstellungsdatei dieses Computers gespeichert. Leer lassen, um direkt anzumelden.",
+ "# hesabında denenecek.": "Wird beim Konto # versucht.",
+ "Hesaba eklendi": "Zum Konto hinzugefügt",
+ "Lisans verilmedi": "Keine Lizenz erteilt"
 }

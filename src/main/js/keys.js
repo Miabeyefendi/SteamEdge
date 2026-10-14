@@ -6,6 +6,8 @@
 
     const KY_STATUS = {
       used:      { label: 'Etkinleştirildi',        color: '#5FB324' },
+      claimed:   { label: 'Hesaba eklendi',         color: '#5FB324' },
+      notGranted:{ label: 'Lisans verilmedi',       color: '#B37E24' },
       owned:     { label: 'Zaten sahip',            color: '#B37E24' },
       region:    { label: 'Bölge kilitli',          color: '#B32453' },
       invalid:   { label: 'Geçersiz anahtar',       color: '#B32453' },
@@ -26,7 +28,15 @@
       const st = await window.imu.keys.state().catch(()=>null);
       if (st) keyState = st;
       renderKeys();
+      const s = await window.imu.settings.get().catch(()=>null);
+      if (s) document.querySelectorAll('#tab-keys .e-toggle[data-set]').forEach(el=>el.classList.toggle('on', !!s[el.getAttribute('data-set')]));
     }
+    document.querySelectorAll('#tab-keys .e-toggle[data-set]').forEach(el=>el.addEventListener('click', async ()=>{
+      const val = !el.classList.contains('on');
+      el.classList.toggle('on', val);
+      const next = await window.imu.settings.set({ [el.getAttribute('data-set')]: val }).catch(()=>null);
+      if (next && typeof appSettings !== 'undefined') appSettings = next;
+    }));
 
     function renderKeys(){
       if (!kyEl('kyQueue')) return;
@@ -76,6 +86,7 @@
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(games || r.key) + '</span>'
             + '<span style="font-family:Geist Mono,monospace;font-size:10.5px;color:#656D80">' + esc(r.key) + '</span>'
+            + (r.forwardedTo ? '<span style="font-size:10.5px;color:#24AEB3">' + esc(tf('# hesabında denenecek.', r.forwardedTo)) + '</span>' : '')
           + '</div>'
           + '<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:' + st.color + ';border:1px solid ' + st.color + ';border-radius:12px;padding:2px 8px;flex-shrink:0">' + esc(label) + '</span>'
           + '<span style="width:84px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:10.5px;color:#8B8F9E">' + new Date(r.ts).toLocaleTimeString(localCode()) + '</span>'

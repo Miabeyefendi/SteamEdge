@@ -10,6 +10,7 @@
 // ourselves is both more predictable and a single request.
 
 const https = require('https');
+const { activeAgent } = require('../core/proxyFetch');
 
 const STORE = 'Miabeyefendi/steamedge';
 const LIST_URL = 'https://api.github.com/repos/' + STORE + '/releases?per_page=10';
@@ -51,6 +52,7 @@ function request(url) {
         'User-Agent': 'SteamEdge',
         Accept: 'application/vnd.github+json',
       },
+      agent: activeAgent(true),
     }, (reply) => {
       // Unauthenticated requests get 60 per hour. Past that a 403 comes; it has to be described not as an "error"
       // but as "could not check right now", otherwise the user thought it was broken.

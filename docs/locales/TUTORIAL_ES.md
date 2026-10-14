@@ -235,6 +235,8 @@ El precio y la media de ventas se obtienen **por artículo, juntos**, y después
 
 Las claves entran en una cola por cuenta que funciona en segundo plano. Se acepta una clave con la forma habitual de tres a seis grupos de cuatro a seis letras mayúsculas o cifras separados por guiones; la línea puede llevar un nombre de juego antes de la clave. Las claves que ya están en la cola o en los resultados se omiten. Tras cada respuesta hay una breve pausa, y cuando Steam indica que se probaron demasiadas claves, toda la cola espera una hora. Una clave que Steam rechaza no se reintenta; una clave cuya respuesta no llegó (sin conexión, tiempo agotado) se queda en la cola y se prueba de nuevo enseguida. Se guardan los 1000 resultados más recientes. Las claves ya poseídas no se reenvían a tus otras cuentas.
 
+**Reenviar claves ya poseídas.** Con **Reenviar claves ya poseídas** activado (página Claves), una clave que la cuenta ya tiene se prueba en la siguiente cuenta conectada que no la haya visto, y así sucesivamente, para no desperdiciar una clave de sobra; el resultado muestra adónde fue. **Juegos gratuitos:** un enlace de la tienda de Steam de un juego gratuito (o `app/123`) en una línea propia pide a Steam la licencia gratuita de esa aplicación; el resultado indica si se añadió a la cuenta o no se concedió licencia (ya la tenía o no es gratuito).
+
 ### Vista familiar
 
 Si la cuenta de Steam usa la Vista familiar, Steam no sirve páginas web hasta que se introduce el PIN, y las páginas de inventario, mercado e insignias no cargan. Introduce el PIN en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y SteamEdge desbloquea con él cada nueva sesión web. El PIN se guarda como texto plano en el archivo de la cuenta bajo `settings/accounts/` y no entra en las copias exportadas. Se cifra si **Cifrar los tokens de inicio de sesión** está activado.
@@ -255,7 +257,7 @@ La contrapartida: si mueves la carpeta a otro equipo o usuario de Windows, o rei
 
 Cada cuenta puede tener su propio proxy en Ajustes > Privacidad y seguridad > **Servidor proxy**: `http://host:puerto`, `https://host:puerto` o `socks5://host:puerto`, con `usuario:contraseña@` delante del host si pide credenciales. La conexión de Steam de la cuenta y sus solicitudes de mercado, inventario y claves pasan por él, y con SOCKS5 el proxy resuelve los nombres de host. Si el proxy no responde, la cuenta no se conecta; nunca recurre a una conexión directa. Un cambio se aplica cuando la cuenta se vuelve a conectar.
 
-No cubre: el inicio de sesión en sí (añadir una cuenta), la comprobación de actualizaciones, la descarga del script de comisiones y las imágenes de los objetos, que se cargan directamente.
+Mientras la cuenta está en pantalla, también pasan por él las imágenes de las páginas, la descarga del script de comisiones y la comprobación de actualizaciones, mediante un pequeño proxy en 127.0.0.1 que sigue hacia tu proxy con su inicio de sesión (así un inicio de sesión SOCKS5 también sirve para las imágenes). El inicio de sesión tiene su propio ajuste **Servidor proxy para iniciar sesión**, porque el proxy de una cuenta solo se conoce cuando ya ha iniciado sesión; esa dirección se guarda como texto plano en `settings/settings.json` y no entra en la exportación de ajustes.
 
 ### Juegos favoritos
 
@@ -296,6 +298,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 |---|---|---|
 | `autoNextGame` | `true` | Pasa al siguiente juego cuando uno termina. Desactivado: el farmeo se detiene tras el juego actual |
 | `farmSkipUnplayed` | `false` | Deja fuera de la cola los juegos sin tiempo de juego registrado |
+| `keyForwardOwned` | `false` | Probar una clave que la cuenta ya tiene en la siguiente cuenta conectada |
 | `farmSkipRecent` | `false` | Dejar fuera los juegos comprados en los últimos 14 días y jugados menos de 2 horas |
 | `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha. O `boost`: iniciar la lista de impulso de horas recordada de la cuenta. |
 | `farmScheduleEnabled` | `false` | Iniciar la recolección de cartas sola dentro del horario de abajo |
@@ -361,6 +364,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `parentalPin` | vacío | PIN de la Vista familiar de Steam de la cuenta, para desbloquear las páginas web. Se guarda por cuenta y nunca se exporta |
 | `protectTokens` | `false` | Guardar los tokens de inicio de sesión cifrados con Windows DPAPI. Es propio de este usuario de Windows y equipo, no se exporta |
 | `proxyUrl` | vacío | Proxy de la cuenta: `http://`, `https://` o `socks5://`, con `usuario:contraseña@` opcional. La contraseña se guarda en el archivo de la cuenta, cifrada si **Cifrar los tokens de inicio de sesión** está activado. Se guarda por cuenta, no se exporta |
+| `loginProxyUrl` | vacío | Proxy por el que pasa el inicio de sesión (`http://`, `https://` o `socks5://`). Texto plano en el archivo de ajustes, no se exporta |
 
 > Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 

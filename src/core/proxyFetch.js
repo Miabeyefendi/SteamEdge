@@ -117,4 +117,11 @@ async function proxyFetch(urlText, options, proxy) {
   throw new Error('Too many redirects');
 }
 
-module.exports = { parseProxy, proxyFetch, PROXY_ERROR };
+// The proxy of the account on screen, for the requests that are not tied to an engine (the fee script, the update check).
+// main.js sets it whenever the account on screen or its proxy changes.
+let activeProxy = null;
+function setActiveProxy(parsed) { activeProxy = (parsed && parsed.ok && !parsed.empty) ? parsed : null; }
+// An https/http agent for the active proxy, or undefined (a direct connection) when there is none.
+function activeAgent(secure) { return activeProxy ? makeAgent(activeProxy, secure !== false) : undefined; }
+
+module.exports = { parseProxy, proxyFetch, PROXY_ERROR, setActiveProxy, activeAgent };

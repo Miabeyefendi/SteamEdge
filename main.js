@@ -18,7 +18,8 @@ const update = require('./src/services/updater');
 // notifications and the error messages returned to the interface (the dictionary is shared with the interface).
 const translation = require('./src/core/translation');
 const { migrateKeys } = require('./src/core/keyMigration');
-const { parseProxy } = require('./src/core/proxyFetch');
+const { parseProxy, setActiveProxy } = require('./src/core/proxyFetch');
+const { startLocalProxy } = require('./src/core/localProxy');
 const { toCsv } = require('./src/utils/csv');
 const ct = translation.t;
 // The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
@@ -122,7 +123,7 @@ let addingAccountMode = false;
 function getAuthSlot(slotId) {
   const id = String(slotId == null ? '0' : slotId);
   if (!authSlots.has(id)) {
-    const inst = new (steamAuthClass())(CONFIG_DIR, makeAuthSend(id));
+    const inst = new (steamAuthClass())(CONFIG_DIR, makeAuthSend(id), { proxyUrl: settings.loginProxyUrl });
     inst.addingAccount = addingAccountMode || id !== '0';
     authSlots.set(id, inst);
   }
@@ -255,6 +256,8 @@ const DEFAULT_SETTINGS = {
   farmScheduleEnabled: false, // card farming runs by itself inside the time window below
   farmScheduleFrom: '22:00',
   farmScheduleTo: '07:00',
+  keyForwardOwned: false,     // a key the account already owns is tried on the next connected account
+  loginProxyUrl: '',          // proxy the sign-in goes through (an account's own proxy is only known after it is signed in)
   protectTokens: false,       // seal the saved login tokens with Windows DPAPI (safeStorage)
   cardPriorityMode: 'sequential',
   farmSkipUnplayed: false,    // leave games with no recorded playtime out of the queue
@@ -1510,7 +1513,35 @@ function accountDataMigration() {
   if (moved.length) log('info', 'account data moved (' + activeSteamID + '): ' + moved.join(', '));
 }
 // Binds the module level shortcuts to the active account.
+// What is not tied to an engine goes through the proxy of the account on screen: the images of the pages (the app window's session),
+// the fee script and the update check. The window talks to a local proxy (localProxy.js) that carries on to the account's proxy with
+// its login; with no proxy the session goes back to the system setting it had before.
+let localProxy = null;
+let appliedProxyKey = null;
+function applyActiveProxy() {
+  const text = activeSteamID ? accountData(activeSteamID).proxyUrl : '';
+  const p = parseProxy(text);
+  const key = p.ok && !p.empty ? p.url : '';
+  if (key === appliedProxyKey) return Promise.resolve();
+  appliedProxyKey = key;
+  setActiveProxy(p);
+  const old = localProxy;
+  localProxy = null;
+  const closeOld = old ? old.close() : Promise.resolve();
+  if (!key) {
+    try { session.defaultSession.setProxy({ mode: 'system' }); log('info', 'app window traffic is direct (system setting)'); }
+    catch (e) { log('warn', 'could not set the window proxy: ' + (e && e.message)); }
+    return closeOld;
+  }
+  return closeOld.then(() => startLocalProxy(p)).then((lp) => {
+    if (appliedProxyKey !== key) { lp.close(); return; }       // the account on screen changed while this one started
+    localProxy = lp;
+    return session.defaultSession.setProxy({ proxyRules: 'http://127.0.0.1:' + lp.port, proxyBypassRules: '<local>' })
+      .then(() => log('info', 'app window traffic goes through the proxy of the account on screen'));
+  }).catch((e) => log('warn', 'could not set the window proxy: ' + (e && e.message)));
+}
 function syncActive() {
+  applyActiveProxy();
   const s = activeSteamID ? accounts.get(activeSteamID) : null;
   engine = s ? s.engine : null;
   engineReady = !!(s && s.ready);
@@ -2237,7 +2268,7 @@ function keyState(steamID) {
     queue: d.keyQueue.map((x) => ({ key: x.key, name: x.name || '' })),
     results: d.keyResults.slice(0, 300),
     resultCount: d.keyResults.length,
-    usedCount: d.keyResults.filter((x) => x.status === 'used').length,
+    usedCount: d.keyResults.filter((x) => x.status === 'used' || x.status === 'claimed').length,
     running: !!k.running,
     pausedUntil: k.pausedUntil || 0,
     error: k.error || null,
@@ -2257,6 +2288,9 @@ function parseKeyText(text) {
     if (!t) return;
     const candidate = /^[A-Za-z0-9-]+$/.test(t) ? t.toUpperCase() : t;
     const m = candidate.match(KEY_PATTERN) || [];
+    // a Steam store link (or "app/123") is a request for the free license of that app
+    const free = !m.length && t.match(/(?:store\.steampowered\.com\/app\/|\bapp[\/: ])(\d{1,9})\b/i);
+    if (free) { found.push({ key: 'APP:' + free[1], name: '', appid: +free[1] }); return; }
     if (!m.length) { invalid++; return; }
     if (m.length > 1) { m.forEach((k) => found.push({ key: k, name: '' })); return; }
     const name = candidate.slice(0, candidate.lastIndexOf(m[0])).replace(/[\s:;,|-]+$/, '').trim().slice(0, 80);
@@ -2283,6 +2317,19 @@ function sleepKeys(k, ms) {
     k.cancelSleep = () => { clearTimeout(t); k.cancelSleep = null; resolve(); };
   });
 }
+// The next connected account that has not seen this key (not in its queue, not in its results, not in the key's own trail), or null.
+function forwardOwnedKey(fromSteamID, item) {
+  const tried = new Set([...(item.tried || []), fromSteamID]);
+  for (const [id, a] of accounts) {
+    if (tried.has(id) || !a || !a.ready || !a.engine) continue;
+    const nd = accountData(id);
+    if (nd.keyQueue.some((x) => x.key === item.key) || nd.keyResults.some((x) => x.key === item.key)) continue;
+    nd.keyQueue.push({ key: item.key, name: item.name || '', tried: [...tried] });
+    nd.keyActive = true;
+    return id;
+  }
+  return null;
+}
 async function processKeys(steamID) {
   const s = accounts.get(steamID);
   const k = keyRun(steamID);
@@ -2298,7 +2345,8 @@ async function processKeys(steamID) {
       if (!s.engine || !s.ready) { k.error = 'Bağlı değil.'; keyChanged(steamID); await sleepKeys(k, 30000); continue; }
       const item = d.keyQueue[0];
       let r;
-      try { r = await s.engine.redeemKey(item.key); k.error = null; }
+      const isFree = !!item.appid;
+      try { r = isFree ? await s.engine.claimFreeApp(item.appid) : await s.engine.redeemKey(item.key); k.error = null; }
       catch (e) {
         // no answer from Steam: the key stays in the queue and is tried again shortly
         k.error = (e && e.message) || 'Steam yanıt vermedi.';
@@ -2314,12 +2362,16 @@ async function processKeys(steamID) {
         continue;
       }
       d.keyQueue.shift();
-      const status = r.ok ? 'used' : (KEY_REFUSALS[r.detail] || 'other');
-      if (r.ok) used++; else refused++;
-      d.keyResults.unshift({ key: item.key, name: item.name || '', status, detail: r.detail, packages: Object.values(r.packages || {}).slice(0, 5), ts: Date.now() });
+      const status = isFree ? (r.ok ? (r.granted ? 'claimed' : 'notGranted') : 'other') : (r.ok ? 'used' : (KEY_REFUSALS[r.detail] || 'other'));
+      if (r.ok && (!isFree || r.granted)) used++; else refused++;
+      // "already owned": with the setting on the same key goes to the next connected account that has not seen it, so a spare
+      // key is not wasted. `tried` carries the accounts it has been through, so it cannot go round in a circle.
+      const forward = (status === 'owned' && settings.keyForwardOwned) ? forwardOwnedKey(steamID, item) : null;
+      d.keyResults.unshift({ key: item.key, name: item.name || (isFree ? 'App ' + item.appid : ''), status, detail: r.detail, packages: Object.values(r.packages || {}).slice(0, 5), ts: Date.now(), forwardedTo: forward ? accountName(forward) : '' });
       if (d.keyResults.length > KEY_RESULT_LIMIT) d.keyResults.length = KEY_RESULT_LIMIT;
-      log('info', `[${accountName(steamID)}] key redeem: ${status} (${r.detail})`);
+      log('info', `[${accountName(steamID)}] key redeem: ${status} (${r.detail})${forward ? ', forwarded to ' + accountName(forward) : ''}`);
       keyChanged(steamID);
+      if (forward) { keyChanged(forward); processKeys(forward); }
       if (d.keyQueue.length && !k.stop) await sleepKeys(k, KEY_GAP_MS);
     }
   } finally {
@@ -3564,11 +3616,13 @@ function applySettingPatch(patch) {
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
   ['farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
   if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
-  if ('proxyUrl' in received) {
-    const p = parseProxy(received.proxyUrl);
-    if (!p.ok) return { ok: false, changedOne: [], appliedOne: [], error: p.error };
-    received.proxyUrl = p.empty ? '' : String(received.proxyUrl).trim();
-  }
+  ['proxyUrl', 'loginProxyUrl'].forEach((k) => {
+    if (!(k in received) || received.__proxyError) return;
+    const p = parseProxy(received[k]);
+    if (!p.ok) { received.__proxyError = p.error; return; }
+    received[k] = p.empty ? '' : String(received[k]).trim();
+  });
+  if (received.__proxyError) return { ok: false, changedOne: [], appliedOne: [], error: received.__proxyError };
   let writtenToAccount = false;
   let pinChanged = false;
   ACCOUNT_SETTING_KEYS.forEach((k) => {
@@ -3581,6 +3635,7 @@ function applySettingPatch(patch) {
   });
   if (writtenToAccount) writeAccountData(activeSteamID);
   if (pinChanged) applyParentalPin(activeSteamID);
+  if (writtenToAccount) applyActiveProxy();      // no-op unless the proxy of the account on screen changed
   const changed = Object.keys(received).filter((k) => JSON.stringify(settings[k]) !== JSON.stringify(received[k]));
   if (!changed.length) return { ok: true, changedOne: changed, appliedOne: [] };
   const old = settings;
@@ -3745,7 +3800,7 @@ ipcMain.handle('settings:openConfigFolder', () => { shell.openPath(DATA_ROOT); r
 // into someone else's hands it must not give access to the account. The backup used to hold the old shared statistics
 // file detached from the account; the real statistics counted per account were never backed up.
 // protectTokens belongs to this Windows user and computer; a backup must not switch it on somewhere else.
-const EXPORT_SKIP = ['persona', 'steamID', 'accountCurrency', 'protectTokens'];
+const EXPORT_SKIP = ['persona', 'steamID', 'accountCurrency', 'protectTokens', 'loginProxyUrl'];
 const BACKUP_ACCOUNT_FIELDS = ['boostGameIds', 'grQueue', 'grPresets'];
 function exportPayload() {
   const out = {};
