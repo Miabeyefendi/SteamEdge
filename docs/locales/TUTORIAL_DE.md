@@ -49,6 +49,7 @@ SteamEdge/
     settings.json              allgemeine Einstellungen
     accounts.json              gespeicherte Konten
     session.json               aktives Sitzungstoken
+    window.json                Fenstergröße, -position und Maximierung
     accounts/<steamID>.json    pro Konto: Statistik, Warteschlangen, Schlüssel-Warteschlange, Voreinstellungen, Errungenschaftsprotokoll
     stats.json, state.json     nur von älteren Versionen: einmal gelesen, nie wieder geschrieben
     *.bak, *.bozuk             automatische Sicherungskopie und beiseitegelegte defekte Datei
@@ -132,6 +133,8 @@ Alles, was man der App sagen kann, gruppiert: Allgemein, Karten farmen, Markt, I
 Änderungen bleiben auf der Seite, bis du **Speichern** drückst. Vorher wird nichts geschrieben, und wer die Seite mit ungespeicherten Änderungen verlässt, wird gefragt. Nach dem Speichern pausiert ein laufendes Kartenfarmen oder Stunden-Boosten, das von den geänderten Einstellungen betroffen ist, etwa fünf Sekunden und macht mit denselben Spielen und den neuen Werten weiter; Einstellungen, die einen laufenden Auftrag nicht berühren, gelten sofort. **Zurücksetzen** lädt die Standardwerte in die Seite und wartet ebenfalls auf Speichern; die App-Sprache bleibt.
 
 Das Farbschema (Dunkel, Mitternachtslila, Weiß) steht unter Allgemein und gilt auch für den Anmeldebildschirm.
+
+Die Oberflächendichte steht standardmäßig auf Automatisch: Sie wird kompakt, solange das Fenster niedrig ist (unter etwa 720 Pixel), und wird wieder geräumig, wenn das Fenster höher wird. Das Seitenmenü schließt sich von selbst, wenn das Fenster schmaler als 1000 Pixel ist, und das Fenster merkt sich Größe, Position und ob es maximiert war.
 
 ### Chat
 
@@ -290,6 +293,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `language` | `en` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Mit Windows starten |
 | `theme` | `dark` | Farbschema: `dark`, `midnight` (Mitternachtslila), `white` |
+| `density` | `auto` | Abstände und Zeilenhöhe: `auto` (kompakt, solange das Fenster niedrig ist), `comfortable`, `compact` |
 | `preventSleep` | `false` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |
 
 ### Kartenfarming

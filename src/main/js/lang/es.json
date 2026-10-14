@@ -291,7 +291,7 @@
  "Aktif kart toplama ve saat yükseltme işlemleri durur": "Se detendrán el farmeo y el impulso de horas activos",
  "Menüler, etiketler ve bildirim metinleri seçilen dilde gösterilir. Değişiklik kaydedince hemen uygulanır.": "Los menús, etiquetas y textos de notificación se muestran en el idioma elegido. El cambio se aplica al guardar.",
  "Uygulama her açılışta bu sekmeyle başlar. Çoğunlukla kullandığın ekranı seçmen zaman kazandırır.": "La app se abre siempre en esta pestaña. Elegir la pantalla que más usas ahorra tiempo.",
- "Satır yüksekliği ve kart boşluklarını belirler. Sıkışık modda aynı ekrana yaklaşık üçte bir daha fazla satır sığar.": "Define la altura de fila y el espaciado. El modo compacto muestra alrededor de un tercio más de filas.",
+ "Satır yüksekliği ve kart boşluklarını belirler. Sıkışık modda aynı ekrana yaklaşık üçte bir daha fazla satır sığar. Otomatik: pencere kısaysa sıkışık, yeterince uzunsa ferah olur.": "Define la altura de fila y el espaciado. El modo compacto muestra alrededor de un tercio más de filas. Automático: compacto si la ventana es baja, cómodo si es lo bastante alta.",
  "Satır yüksekliği # pikselden # piksele düşer, tek ekranda yaklaşık üçte bir daha fazla öğe görürsün.": "La altura de fila baja de # a # píxeles, verás alrededor de un tercio más de objetos.",
  "Oturum süreleri, kayıt zamanları ve sessiz saat aralığı bu biçimde gösterilir.": "Las duraciones de sesión, las marcas de tiempo y las horas de silencio se muestran en este formato.",
  "Sol menü sadece ikonlarla açılır, içerik alanı # piksel genişler. Menüyü her an oktan açabilirsin.": "La barra lateral se abre solo con iconos y el contenido gana # píxeles. Puedes expandirla con la flecha.",

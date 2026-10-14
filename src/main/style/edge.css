@@ -31,8 +31,11 @@
 /* The .toast .tspin in common.css wants this keyframe sequence but it was not defined in any file: the spinner did not rotate and stayed as a fixed half circle. */
 @keyframes spin{to{transform:rotate(360deg)}}
 .edge [data-tip]{position:relative}
-.edge [data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);width:264px;padding:9px 11px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 12px 30px rgba(3,3,5,.7);color:var(--e-body);font-size:11px;font-weight:400;line-height:1.5;text-align:left;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;z-index:60;transition:opacity .12s}
-.edge [data-tip]:hover::after{opacity:1;visibility:visible}
+/* Tooltips: one floating bubble on <body> (common.js initTips) instead of an ::after box inside the element. The box inside a scrolling panel was clipped by it,
+   and near a window edge it ran out of the window. The bubble stays inside the window and turns below when there is no room above. */
+.edge [data-tip]::after{display:none}
+.e-tipbox{position:fixed;left:0;top:0;z-index:9999;width:264px;padding:9px 11px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 12px 30px rgba(3,3,5,.7);color:var(--e-body);font-size:11px;font-weight:400;line-height:1.5;text-align:left;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s}
+.e-tipbox.on{opacity:1;visibility:visible}
 
 /* ---- titlebar (Electron frameless window controls) ---- */
 .e-titlebar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--e-bgAlt);border-bottom:1px solid var(--e-bdPassive);-webkit-app-region:drag}
@@ -66,7 +69,7 @@
 
 /* ---- topbar (header) ---- */
 .e-header{height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 20px 0 18px;background:var(--e-bgAlt);border-bottom:1px solid var(--e-bdPassive)}
-.e-search{position:relative;display:flex;align-items:center;width:300px}
+.e-search{position:relative;display:flex;align-items:center;flex:0 1 300px;min-width:110px}   /* gives way first when the window narrows */
 .e-search svg{position:absolute;left:12px;pointer-events:none}
 .e-search input{width:100%;height:36px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);color:var(--e-title);font-size:12px;padding:0 12px 0 36px;outline:none}
 .e-search input:focus{border-color:var(--e-bdFocus)}
@@ -78,8 +81,8 @@
 .e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:10px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
 /* The Steam avatar arrives at 184x184 - it must not overflow the box (this was the cause of the broken profile icon). */
 .e-acct-avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
-.e-acct-name{font-size:12px;font-weight:600;color:var(--e-title);line-height:1}
-.e-acct-lvl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted);line-height:1;margin-top:2px}
+.e-acct-name{font-size:12px;font-weight:600;color:var(--e-title);line-height:1;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
+.e-acct-lvl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted);line-height:1;margin-top:2px;white-space:nowrap}
 .e-acct-caret{transition:transform .14s ease;color:var(--e-muted)}
 .e-acct.open .e-acct-caret{transform:rotate(180deg)}
 
@@ -131,7 +134,7 @@
 .notif-item .t{font-size:10.5px;color:var(--e-off);margin-top:4px}
 
 /* ---- content shell ---- */
-.e-main{flex:1 1 0;min-width:1180px;display:flex;flex-direction:column;background:var(--e-bg);min-height:0}
+.e-main{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:var(--e-bg);min-height:0}
 /* Tab sections behave like direct children of <main>: they stretch vertically and scroll inside themselves. Without being flex containers the flex:1 boxes inside did not stretch and a gap was left at the bottom of the page. Defined separately so as not to override .hidden. */
 .e-main > section{flex:1;min-height:0;display:flex;flex-direction:column}
 .e-main > section.hidden{display:none}
@@ -219,8 +222,13 @@ body.e-compact [style*="padding:24px 26px 30px 44px"]{padding:14px 18px 18px 30p
 body.e-compact [style*="padding:20px 26px 16px 44px"]{padding:12px 18px 10px 30px!important}
 body.e-compact [style*="padding:18px 22px 18px 44px"]{padding:10px 16px 10px 30px!important}
 body.e-compact [style*="padding:16px 18px"]{padding:10px 12px!important}
+body.e-compact [style*="padding:0 22px 0 44px"]{padding:0 16px 0 30px!important}
 body.e-compact [style*="gap:18px"]{gap:11px!important}
 body.e-compact [style*="gap:14px"]{gap:9px!important}
+/* the page kicker (small caps line above the title) is decoration; a short window keeps the room for the lists */
+body.e-compact span[style*="letter-spacing:0.18em"]{display:none}
+body.e-compact h1{font-size:19px!important}
+body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;padding-bottom:6px!important}
 
 /*
    ================================================================
@@ -282,15 +290,20 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
    ================================================================
 */
 
-/* ---- below 1280px: shrink the left gaps ---- */
+/* ---- below 1280px: shrink the left gaps ----
+   The padding rules start with body.edge on purpose: the compact density rules above have the same weight, and the narrower window must win over them. */
 @media (max-width: 1280px) {
-  .edge [style*="padding:24px 26px 30px 44px"]{padding:18px 20px 22px 24px!important}
-  .edge [style*="padding:20px 26px 16px 44px"]{padding:16px 20px 12px 24px!important}
-  .edge [style*="padding:18px 22px 18px 44px"]{padding:14px 18px 14px 24px!important}
-  .edge [style*="padding:0 22px 0 44px"]{padding:0 18px 0 24px!important}
-  .edge [style*="padding-left:30px"]{padding-left:18px!important}
-  .edge [style*="padding:12px 26px 20px"]{padding:12px 18px 16px!important}
-  .edge [style*="padding:12px 30px"]{padding:12px 18px!important}
+  body.edge [style*="padding:24px 26px 30px 44px"]{padding:18px 20px 22px 24px!important}
+  body.edge [style*="padding:20px 26px 16px 44px"]{padding:16px 20px 12px 24px!important}
+  body.edge [style*="padding:18px 22px 18px 44px"]{padding:14px 18px 14px 24px!important}
+  body.edge [style*="padding:0 22px 0 44px"]{padding:0 18px 0 24px!important}
+  body.edge [style*="padding-left:30px"]{padding-left:18px!important}
+  body.edge [style*="padding:12px 26px 20px"]{padding:12px 18px 16px!important}
+  body.edge [style*="padding:12px 30px"]{padding:12px 18px!important}
+  /* compact density keeps its tighter vertical padding in a narrow window */
+  body.e-compact [style*="padding:24px 26px 30px 44px"]{padding:14px 20px 18px 24px!important}
+  body.e-compact [style*="padding:20px 26px 16px 44px"]{padding:12px 20px 10px 24px!important}
+  body.e-compact [style*="padding:18px 22px 18px 44px"]{padding:10px 18px 10px 24px!important}
   /* Side panels: shrinkable instead of fixed width */
   .edge [style*="width:290px"]{width:230px!important}
   .edge [style*="width:320px"]{width:250px!important}
@@ -302,10 +315,13 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 /* ---- below 1080px: shrink the side panels further, tighten the top bar ---- */
 @media (max-width: 1080px) {
   .edge [style*="width:352px"]{width:240px!important}   /* Realistic Mode left column */
-  .edge [style*="padding:24px 26px 30px 44px"]{padding:14px 14px 18px 16px!important}
-  .edge [style*="padding:20px 26px 16px 44px"]{padding:12px 14px 10px 16px!important}
-  .edge [style*="padding:18px 22px 18px 44px"]{padding:12px 14px 12px 16px!important}
-  .edge [style*="padding:0 22px 0 44px"]{padding:0 14px 0 16px!important}
+  body.edge [style*="padding:24px 26px 30px 44px"]{padding:14px 14px 18px 16px!important}
+  body.edge [style*="padding:20px 26px 16px 44px"]{padding:12px 14px 10px 16px!important}
+  body.edge [style*="padding:18px 22px 18px 44px"]{padding:12px 14px 12px 16px!important}
+  body.edge [style*="padding:0 22px 0 44px"]{padding:0 14px 0 16px!important}
+  body.e-compact [style*="padding:24px 26px 30px 44px"]{padding:12px 14px 14px 16px!important}
+  body.e-compact [style*="padding:20px 26px 16px 44px"]{padding:10px 14px 8px 16px!important}
+  body.e-compact [style*="padding:18px 22px 18px 44px"]{padding:10px 14px 10px 16px!important}
   .edge [style*="width:290px"]{width:200px!important}
   .edge [style*="width:320px"]{width:215px!important}
   .edge [style*="width:280px"]{width:200px!important}
@@ -318,21 +334,98 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 /* ---- below 940px: the side panel moves to the BOTTOM instead of hiding ---- */
 @media (max-width: 940px) {
   .edge [style*="width:352px"]{width:210px!important}   /* Realistic Mode left column */
-  /* Right settings panels slide down, the content takes full width */
-  .edge [style*="border-left:1px solid #1D2432"]{
-    border-left:0!important;border-top:1px solid #1D2432!important;
-    width:100%!important;max-height:none!important;
-  }
-  /* The page body switches to vertical flow */
-  .edge [style*="flex:1;min-height:0;display:flex;gap:0"]{flex-direction:column!important;overflow-y:auto!important}
+  /* The page body switches to vertical flow and scrolls as a whole */
+  .edge [style*="flex:1;min-height:0;display:flex;gap:0"],.edge .e-split{flex-direction:column!important;overflow-y:auto!important}
   .edge [style*="flex:1;min-width:0;min-height:0;display:flex"]{flex-direction:column!important}
   /* The left library list keeps a fixed height so it does not choke the page */
   .edge [style*="width:290px"],.edge [style*="width:320px"]{
     width:100%!important;max-height:320px!important;border-right:0!important;
     border-bottom:1px solid #1D2432!important;
   }
-  .e-header{flex-wrap:wrap;height:auto;padding:8px 12px}
-  .e-search{width:100%!important;order:3}
+  /* The list column keeps a readable height of its own (it scrolls inside), the side panel follows below it.
+     Only .e-side is meant here: the old [style*="border-left..."] selector also caught table cells and sort headers and stretched them to the full width. */
+  .edge .e-split > :not(.e-side){flex:0 0 auto!important;min-height:min(60vh,420px)}
+  .edge .e-split > .e-side{
+    border-left:0!important;border-top:1px solid #1D2432!important;
+    width:100%!important;max-height:none!important;flex:0 0 auto!important;overflow-y:visible!important;
+  }
+  .e-header > div{min-width:0}
+}
+/* The top bar never wraps (the search is what gives way): below these widths the version badge, then the search itself, make room */
+@media (max-width: 760px){ #tbVersion{display:none} }
+@media (max-width: 640px){ .e-search{display:none} }
+
+/* ---- Card Farming: the side panel (340 px) shrinks together with the other panels ---- */
+@media (max-width: 1280px){ .edge .e-side[style*="width:340px"]{width:280px!important} }
+@media (max-width: 1080px){ .edge .e-side[style*="width:340px"]{width:250px!important} }
+
+/* ---- Lists that cannot know their width from the window: container queries ----
+   A list column loses room to the side panel and the rail, so the window width says little about it. The query looks at the
+   column itself. Card Farming queue: the row wraps (the buttons drop to a second line); the column headers turn into plain sort chips. */
+.cq-scroll{container:cq / inline-size}
+@container cq (max-width: 1010px){
+  .cq-row{flex-wrap:wrap;row-gap:10px}
+  .cq-row .cq-name{flex:1 1 120px;width:auto!important;min-width:0}
+  .cq-row .cq-bar{order:1;flex:1 1 90px}
+  .cq-row .cq-acts{order:2;margin-left:auto}
+  .cq-head .cq-thumb-sp,.cq-head .cq-id{display:none}
+  .cq-head .cq-name,.cq-head .cq-remain{width:auto!important}
+}
+/* Blacklist and whitelist rows have no progress bar: only the name has to give way. */
+@container cq (max-width: 620px){
+  .cq-row{padding:10px!important}
+}
+
+/* List sub-headers (title + counters + one button): wrap instead of squeezing the title into three lines */
+.e-subhd{height:auto!important;min-height:46px;flex-wrap:wrap;row-gap:4px}
+.e-subhd > *{margin-block:5px}
+
+/* Controls in a side panel never push the panel wider than it is: fixed-width selects shrink, the row keeps its label */
+.e-side select,.e-side input{min-width:0;max-width:100%}
+.e-side select{flex:0 1 auto}
+/* Hour Booster library: in the narrow column the thumbnail makes way for the game name */
+.hl-col{container:hl / inline-size}
+@container hl (max-width: 240px){ .hl-thumb{display:none!important} }
+
+/* Segmented rows whose last button ("CUSTOM") is wider than its share wrap it onto a second line instead of pushing the panel wider */
+#hoursPresets,#hoursConc{flex-wrap:wrap}
+
+/* Settings: three columns (menu, form, account) need about 900 px; narrower than that the account card goes under the form, and the menu becomes a row of chips when even that does not fit */
+.set-page{container:set / inline-size}
+@container set (max-width: 1000px){
+  .set-grid{grid-template-columns:176px minmax(0,1fr)!important}
+  .set-acct{grid-column:2;position:static!important}
+}
+@container set (max-width: 700px){
+  .set-grid{grid-template-columns:minmax(0,1fr)!important}
+  .set-nav{position:static!important;flex-direction:row!important;flex-wrap:wrap;gap:6px!important}
+  .set-nav > button{flex:0 0 auto!important}
+  .set-acct{grid-column:1}
+}
+
+/* Overview activity list: a half-width panel has no room for the status word (the dot in front of the title already carries its colour). */
+.ov-feed{container:ovf / inline-size}
+@container ovf (max-width: 440px){
+  .ov-feed-row{grid-template-columns:minmax(0,1fr) 84px!important}
+  .ov-feed-row > :nth-child(2){display:none}
+}
+
+/* Inventory: the header is tall (stats, buttons, filters). On a short window the page scrolls as a whole, so the list keeps a workable height,
+   and the sale bar stays in view at the bottom. Stacked (narrow window): the list gets a height of its own and the item panel follows below it. */
+#tab-inventory > div{overflow-y:auto}
+#tab-inventory .e-split{flex:1 1 300px!important;min-height:300px!important}
+#tab-inventory .inv-bulk{position:sticky;bottom:0;z-index:3}
+@media (max-width: 940px){
+  #tab-inventory .e-split{flex:0 0 auto!important;overflow:visible!important}
+  #tab-inventory .e-split > .inv-list{flex:0 0 auto!important;height:max(340px,56vh);min-height:0!important}
+}
+
+/* Inventory list: when the column is narrow the Game column goes (the item panel and the filter still name the game). */
+.inv-list{container:inv / inline-size}
+@container inv (max-width: 760px){ .inv-leg{display:none!important} }
+@container inv (max-width: 700px){
+  .inv-row{grid-template-columns:34px 14px 44px minmax(0,1fr) 70px 96px 96px!important}
+  .inv-row > :nth-child(5){display:none}
 }
 
 /* The page body NEVER scrolls horizontally - overflowing content scrolls in its own box. */
@@ -344,11 +437,6 @@ body.e-compact [style*="gap:14px"]{gap:9px!important}
 #tab-realistic div:has(> .gr-toggle) > span,
 #tab-realistic div:has(> .gr-toggle) > div,
 #tab-realistic div:has(> .gr-toggle) > div > span{min-width:0;overflow-wrap:break-word}
-/* The tooltip box is 264 px and centred with left:50%. In the narrow 352 px panel it overflowed on the right and produced a horizontal scrollbar in the body row (overflow-x:auto); being hidden does not matter, absolutely positioned items count toward scrollWidth. In narrow panels it is pushed to the right, so the 264 px opens toward the left and stays inside the panel. */
-/* The tooltip bubble is 264 pixels and absolutely positioned. When centred (left:50%) in a narrow column more than 130 pixels spill to the right; since an absolutely positioned box is COUNTED in the scrollWidth of its scrollable ancestor, a horizontal scrollbar appeared in the panel. In all narrow panels the bubble is pushed to the right, i.e. it opens toward the left: 264 pixels fit into the 290 pixel column and no overflow remains. */
-#tab-realistic [data-tip]::after,
-#tab-hours [data-tip]::after,
-#acSortDir[data-tip]::after{left:auto;right:0;transform:none}
 
 /* In a box given overflow-y:auto, overflow-x becomes `auto` by itself (visible turns into auto when the other axis is scrollable). So every panel that wants vertical scrolling unintentionally gains horizontal scrolling too. These columns have a fixed width; there is no horizontal scrolling in the design, it is clipped. `clip` was chosen because, unlike `hidden`, it does not create a new scroll context. */
 #tab-realistic .gr-yan{overflow-x:clip}

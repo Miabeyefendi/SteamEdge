@@ -49,6 +49,7 @@ SteamEdge/
     settings.json              ajustes generales
     accounts.json              cuentas guardadas
     session.json               token de sesión activa
+    window.json                tamaño, posición y estado maximizado de la ventana
     accounts/<steamID>.json    datos por cuenta: estadísticas, colas, cola de claves, presets, registro de logros
     stats.json, state.json     solo de versiones antiguas: se leen una vez y no se vuelven a escribir
     *.bak, *.bozuk             copia de seguridad automática y archivo dañado apartado
@@ -132,6 +133,8 @@ Todo lo que se le puede pedir a la aplicación, agrupado: General, Farmeo de cro
 Los cambios esperan en la página hasta que pulses **Guardar**. Antes no se escribe nada, y salir de la página con cambios sin guardar pregunta primero. Tras guardar, el farmeo o el impulso de horas en marcha a los que afecten los ajustes cambiados se pausan unos cinco segundos y siguen desde el mismo juego con los nuevos valores; los ajustes que no afectan a una tarea en marcha se aplican al instante. **Restablecer** carga los valores predeterminados en la página y también espera a Guardar; mantiene el idioma de la aplicación.
 
 El tema (Oscuro, Púrpura medianoche, Blanco) está en General y se aplica también a la pantalla de inicio de sesión.
+
+La densidad de la interfaz es Automática por defecto: pasa a compacta mientras la ventana es baja (menos de unos 720 píxeles) y vuelve a ser cómoda cuando la haces más alta. El menú lateral se cierra solo en una ventana de menos de 1000 píxeles de ancho, y la ventana recuerda su tamaño, su posición y si estaba maximizada.
 
 ### Chat
 
@@ -290,6 +293,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `language` | `en` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Arrancar con Windows |
 | `theme` | `dark` | Tema de color: `dark`, `midnight` (Púrpura medianoche), `white` |
+| `density` | `auto` | Espaciado y altura de fila: `auto` (compacto mientras la ventana es baja), `comfortable`, `compact` |
 | `preventSleep` | `false` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
 
 ### Farmeo de cromos

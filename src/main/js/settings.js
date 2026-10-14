@@ -134,12 +134,12 @@
       paintSettingGates();
       if (typeof applyDensity === 'function') applyDensity();
       // Start with the sidebar collapsed
-      if (first && typeof sideNav !== 'undefined' && sideNav && appSettings.sidebarCollapsed) {
+      if (first && typeof sideNav !== 'undefined' && sideNav && (appSettings.sidebarCollapsed || (typeof railNarrowNow === 'function' && railNarrowNow()))) {
         sideNav.classList.add('collapsed');
         if (typeof setRailChevron === 'function') setRailChevron();
       }
       if (changed && changed.includes('sidebarCollapsed') && typeof sideNav !== 'undefined' && sideNav){
-        sideNav.classList.toggle('collapsed', !!appSettings.sidebarCollapsed);
+        sideNav.classList.toggle('collapsed', !!appSettings.sidebarCollapsed || (typeof railNarrowNow === 'function' && railNarrowNow()));
         try { localStorage.setItem('imu_side_collapsed', appSettings.sidebarCollapsed ? '1' : '0'); } catch(_){}
         if (typeof setRailChevron === 'function') setRailChevron();
       }

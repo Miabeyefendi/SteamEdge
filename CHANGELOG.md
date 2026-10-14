@@ -7,6 +7,31 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.9)
+
+First of a short series about the interface. The layout now follows the size of the window, so the app looks right on a small laptop screen as well as on a large monitor.
+
+### Fixed
+
+- **Pages were cut off on small screens.** The content area could not get narrower than 1180 pixels, so on a 1366x768 laptop (and on any screen scaled to 125 % or 150 %) the right side of the pages was out of view. It now shrinks with the window, down to 900 x 560.
+- **The window can no longer start bigger than the screen.** The default size fits the work area, the smallest size is cut to the screen, and a taskbar on the top or the left side is taken into account.
+- **Tooltips stay inside the window.** The little `?` boxes were clipped by scrolling panels and ran out of the window near its edges. They are now one floating box that stays in view and turns below the sign when there is no room above it.
+- The tab on the edge of the side menu stays beside the active item in compact density (it drifted away before).
+- On a narrow window the side panels of Card Farming and Inventory & Market moved under the list but squeezed the list and stretched its column headers. They are laid out correctly now.
+
+### Changed
+
+- **Card Farming:** a queue row that does not fit wraps its buttons onto a second line, and the filter chips wrap too. The column headers line up with the rows.
+- **Inventory & Market:** the columns share the width, the Game column leaves a narrow list, the statistics and the buttons wrap, and on a short window the page scrolls as a whole while the sale bar stays in view.
+- **Overview, Hour Booster, Settings:** the activity list drops the status word in a narrow panel, the Hour Booster library hides the thumbnails in a narrow column, and Settings puts the account card under the form (and turns its menu into a row of chips) when the window is narrow.
+- **Top bar:** the search box gives way first; below 760 pixels the version badge goes, below 640 pixels the search box goes.
+- **The side menu closes by itself** on a window narrower than 1000 pixels. The `<` button still works, and your saved choice comes back on a wide window.
+- **Interface density has a new choice, Automatic, and it is the default.** It turns compact while the window is short (under about 720 pixels) and relaxes again when the window is taller. A settings file that still holds the old default (Comfortable) moves to Automatic.
+- **The window remembers its size, its place and whether it was maximized** (`settings/window.json`). A place on a screen that is no longer connected is not used.
+- `npm test` runs 26 tests (new: the layout of every page at five window sizes, and the window place).
+
+SHA-256 (`SteamEdge-v1.4.9-win-x64.rar`): `3dc0a6dd4ed0be199c88fc5e82642386caaa794b729085f82bb710fcfe2ab499`
+
 ## [1.4.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.8)
 
 Follow-up release: the fonts ship with the app, the proxy covers the rest of the traffic, and the Keys page learns two new tricks.

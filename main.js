@@ -321,7 +321,7 @@ const DEFAULT_SETTINGS = {
   chatReplyCooldown: 60,    // an automatic reply to the same person at most once in this many minutes
   startPage: 'overview',
   theme: 'dark',            // dark | midnight | white (see src/main/js/theme.js)
-  density: 'comfortable',   // (*)
+  density: 'auto',          // auto | comfortable | compact (*)
   timeFormat: '24',
   sidebarCollapsed: false,
   queueSort: 'default',
@@ -398,7 +398,7 @@ const DEFAULT_SETTINGS = {
   sessionTimeout: 'never',  // idle time (min), does not apply while a job runs - 'never' = off
   hideGameName: false,      // become invisible while playing (so the game name does not show on the profile)
   logLevel: 'error',        // log file: off | error | warn | info | debug
-  settingsVersion: 3,            // format of the settings file; migrations are in migrateSettings
+  settingsVersion: 4,            // format of the settings file; migrations are in migrateSettings
 };
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -489,6 +489,12 @@ function migrateSettings(v) {
   if ((+v.settingsVersion || 1) < 3) {
     if (v.achDelay != null) v.achDelay = String(nearestAchDelay(+v.achDelay));
     v.settingsVersion = 3;
+    hasChanged = true;
+  }
+  // Interface density got an automatic choice and it became the default: a file that still holds the old default follows it.
+  if ((+v.settingsVersion || 1) < 4) {
+    if (v.density === 'comfortable') v.density = 'auto';
+    v.settingsVersion = 4;
     hasChanged = true;
   }
   // Values renamed from Turkish: 'sinirsiz' -> 'unlimited', 'kapali' -> 'off'.
@@ -714,28 +720,106 @@ function makeActiveSession(entry) {
   }, true);
 }
 
-// Fixed startup size - the same for login and the panel (3:2 ratio). Every place that centres/resizes the window
-// (logout, moving to the dashboard, deleting an account, deleting data) uses these constants so it
-// changes from a single place.
+// Fixed startup size - the same for login and the panel (3:2 ratio) on a big screen; a small screen gets the work area minus a margin.
+// Every place that centres/resizes the window (logout, moving to the dashboard, deleting an account, deleting data) uses these
+// helpers so it changes from a single place.
 const WIN_W = 1716;
 const WIN_H = 1144;
+// The smallest the window may get. The layout is fluid down to 900 x 560; the login screen needs a little more height.
+const MIN_DASH = { w: 900, h: 560 };
+const MIN_LOGIN = { w: 900, h: 640 };
+const WINDOW_FILE = path.join(CONFIG_DIR, 'window.json');   // { x, y, width, height, maximized } of the panel window
+// The work area (screen minus the taskbar) of the display a rectangle is mostly on. Its x and y are not 0 when the taskbar is
+// on the left or top, or when the display is not the first one.
+function workAreaOf(rect) { return screen.getDisplayMatching(rect).workArea; }
+function defaultBounds() {
+  const wa = screen.getPrimaryDisplay().workArea;
+  const width = Math.min(WIN_W, wa.width - 24);
+  const height = Math.min(WIN_H, wa.height - 24);
+  return { x: wa.x + Math.round((wa.width - width) / 2), y: wa.y + Math.round((wa.height - height) / 2), width, height };
+}
+// A minimum bigger than the screen would leave a window that cannot be fitted on it.
+function minimumFor(base, rect) {
+  const wa = workAreaOf(rect);
+  return { w: Math.min(base.w, wa.width), h: Math.min(base.h, wa.height) };
+}
+function applyMinimumSize(base) {
+  if (!win) return;
+  const m = minimumFor(base, win.getBounds());
+  win.setMinimumSize(m.w, m.h);
+}
+// While the app itself moves the window (centring, fitting) the position must not be remembered as the user's choice.
+let windowSaveBlockedUntil = 0;
 // Centres the window on screen and makes it WIN_W x WIN_H. If the screen is small it fits it to the work area.
 function centerDefaultSize() {
   if (!win) return;
-  const { workAreaSize } = screen.getPrimaryDisplay();
-  const width = Math.min(WIN_W, workAreaSize.width - 24);
-  const height = Math.min(WIN_H, workAreaSize.height - 24);
-  win.setBounds({ width, height, x: Math.round((workAreaSize.width - width) / 2), y: Math.round((workAreaSize.height - height) / 2) });
+  windowSaveBlockedUntil = Date.now() + 1500;
+  if (win.isMaximized()) win.unmaximize();
+  win.setBounds(defaultBounds());
+}
+// What was kept in window.json, fitted to a screen that exists now. null when there is nothing usable: first start, a damaged file,
+// or the screen it was on is gone (an unplugged monitor must not leave the window out of reach).
+function loadWindowState() {
+  // A plain read on purpose: readJson would mark a damaged file as protected and never let it be rewritten, and a window position is not worth that.
+  let v = null;
+  try { v = JSON.parse(fs.readFileSync(WINDOW_FILE, 'utf8')); } catch (_) { return null; }
+  if (!v || ![v.x, v.y, v.width, v.height].every(Number.isFinite)) return null;
+  const want = { x: Math.round(v.x), y: Math.round(v.y), width: Math.round(v.width), height: Math.round(v.height) };
+  const wa = workAreaOf(want);
+  const overlapW = Math.min(want.x + want.width, wa.x + wa.width) - Math.max(want.x, wa.x);
+  const overlapH = Math.min(want.y + want.height, wa.y + wa.height) - Math.max(want.y, wa.y);
+  if (overlapW < 200 || overlapH < 120) return null;
+  const min = minimumFor(MIN_DASH, want);
+  const width = Math.max(min.w, Math.min(want.width, wa.width));
+  const height = Math.max(min.h, Math.min(want.height, wa.height));
+  const x = Math.min(Math.max(want.x, wa.x), wa.x + wa.width - width);
+  const y = Math.min(Math.max(want.y, wa.y), wa.y + wa.height - height);
+  return { bounds: { x, y, width, height }, maximized: v.maximized === true };
+}
+function onPanelPage() {
+  try { return !!win && !win.isDestroyed() && win.webContents.getURL().endsWith('/src/main/main.html'); } catch (_) { return false; }
+}
+let windowSaveTimer = null;
+function saveWindowState() {
+  clearTimeout(windowSaveTimer);
+  windowSaveTimer = null;
+  if (!win || win.isDestroyed() || !onPanelPage() || Date.now() < windowSaveBlockedUntil) return;
+  if (win.isMinimized() || win.isFullScreen()) return;
+  const b = win.getNormalBounds();
+  try {
+    fs.writeFileSync(WINDOW_FILE + '.tmp', JSON.stringify({ x: b.x, y: b.y, width: b.width, height: b.height, maximized: win.isMaximized() }, null, 2), 'utf8');
+    fs.renameSync(WINDOW_FILE + '.tmp', WINDOW_FILE);
+  } catch (_) {}
+}
+function saveWindowStateSoon() {
+  clearTimeout(windowSaveTimer);
+  windowSaveTimer = setTimeout(saveWindowState, 800);
+}
+// Login -> panel: the saved place if there is one, the default otherwise.
+function enterPanelWindow() {
+  if (!win) return;
+  applyMinimumSize(MIN_DASH);
+  const st = loadWindowState();
+  if (!st) { centerDefaultSize(); return; }
+  windowSaveBlockedUntil = Date.now() + 1500;
+  win.setBounds(st.bounds);
+  if (st.maximized) win.maximize();
+}
+function enterLoginWindow() {
+  if (!win) return;
+  applyMinimumSize(MIN_LOGIN);
+  centerDefaultSize();
 }
 
 function createWindow() {
   const sess = hasSession();               // saved refresh token → auto-login straight to dashboard
-  const size = sess
-    ? { w: WIN_W, h: WIN_H, minW: 1120, minH: 700 }
-    : { w: WIN_W, h: WIN_H, minW: 900, minH: 700 };
+  const saved = sess ? loadWindowState() : null;
+  const start = saved ? saved.bounds : defaultBounds();
+  const min = minimumFor(sess ? MIN_DASH : MIN_LOGIN, start);
+  windowSaveBlockedUntil = Infinity;   // until the window has been shown (see ready-to-show below)
 
   win = new BrowserWindow({
-    width: size.w, height: size.h, minWidth: size.minW, minHeight: size.minH,
+    x: start.x, y: start.y, width: start.width, height: start.height, minWidth: min.w, minHeight: min.h,
     frame: false, backgroundColor: '#0f1720', show: false,
     icon: path.join(__dirname, 'src', 'assets', 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: false },
@@ -746,8 +830,16 @@ function createWindow() {
   win.webContents.on('will-navigate', (e, url) => { if (!url.startsWith('file://')) e.preventDefault(); });
   win.loadFile(path.join(__dirname, ...(sess ? ['src', 'main', 'main.html'] : ['src', 'login', 'login.html'])));
   // After the window shows, wait one frame and then allow the engine to be set up (see windowOpened).
-  win.once('ready-to-show', () => { win.center(); win.show(); setTimeout(() => resolveWindowOpened(), 50); });
+  win.once('ready-to-show', () => {
+    // Showing and maximizing fire move and resize events too; they are the app's own doing, not a choice of the user.
+    windowSaveBlockedUntil = Date.now() + 1500;
+    if (saved && saved.maximized) win.maximize();
+    win.show();
+    setTimeout(() => resolveWindowOpened(), 50);
+  });
+  ['resize', 'move', 'maximize', 'unmaximize'].forEach((ev) => win.on(ev, saveWindowStateSoon));
   win.on('close', (e) => {
+    saveWindowState();
     if (!isQuitting && settings.closeToTray) { e.preventDefault(); win.hide(); }
   });
   win.on('closed', () => { win = null; });
@@ -759,18 +851,20 @@ ipcMain.on('win:maximize', () => { if (win) win.isMaximized() ? win.unmaximize()
 ipcMain.on('win:close', () => win && win.close());
 ipcMain.on('win:fit', (_e, h) => {
   if (!win || win.isMaximized()) return;
-  const { workAreaSize } = screen.getPrimaryDisplay();
-  const width = win.getBounds().width;
-  const height = Math.min(Math.ceil(h), workAreaSize.height - 24);
-  win.setBounds({ x: Math.round((workAreaSize.width - width) / 2), y: Math.round((workAreaSize.height - height) / 2), width, height });
+  const cur = win.getBounds();
+  const wa = workAreaOf(cur);
+  const height = Math.min(Math.ceil(h), wa.height - 24);
+  windowSaveBlockedUntil = Date.now() + 1500;
+  win.setBounds({ x: wa.x + Math.round((wa.width - cur.width) / 2), y: wa.y + Math.round((wa.height - height) / 2), width: cur.width, height });
 });
 // Widens the window as (+) adds a new account box on the login screen (so they fit side by side).
 ipcMain.on('win:setWidth', (_e, w) => {
   if (!win || win.isMaximized()) return;
-  const { workAreaSize } = screen.getPrimaryDisplay();
-  const width = Math.min(Math.ceil(w), workAreaSize.width - 24);
-  const height = win.getBounds().height;
-  win.setBounds({ x: Math.round((workAreaSize.width - width) / 2), y: Math.round((workAreaSize.height - height) / 2), width, height });
+  const cur = win.getBounds();
+  const wa = workAreaOf(cur);
+  const width = Math.min(Math.ceil(w), wa.width - 24);
+  windowSaveBlockedUntil = Date.now() + 1500;
+  win.setBounds({ x: wa.x + Math.round((wa.width - width) / 2), y: wa.y + Math.round((wa.height - cur.height) / 2), width, height: cur.height });
 });
 
 // auth - every call carries {slotId, ...}; each (+) box in login.html uses its own independent
@@ -791,8 +885,7 @@ ipcMain.on('auth:logout', () => {
   try { fs.unlinkSync(path.join(CONFIG_DIR, 'web-session.json')); } catch (_) {}
   authSlots.clear(); addingAccountMode = false;
   if (!win) return;
-  win.setMinimumSize(900, 700);
-  centerDefaultSize();
+  enterLoginWindow();
   win.loadFile(path.join(__dirname, 'src', 'login', 'login.html'));
 });
 
@@ -800,8 +893,7 @@ ipcMain.on('auth:logout', () => {
 ipcMain.on('go:dashboard', () => {
   if (!win) return;
   authSlots.clear(); addingAccountMode = false; // if the "Add Account" flow is over reset the flag
-  win.setMinimumSize(900, 640);
-  centerDefaultSize();
+  enterPanelWindow();
   win.loadFile(path.join(__dirname, 'src', 'main', 'main.html'));
 });
 
@@ -904,8 +996,7 @@ ipcMain.handle('accounts:remove', async (_e, steamID) => {
   }
   try { fs.unlinkSync(path.join(CONFIG_DIR, 'session.json')); } catch (_) {}
   if (win) {
-    win.setMinimumSize(900, 700);
-    centerDefaultSize();
+    enterLoginWindow();
     win.loadFile(path.join(__dirname, 'src', 'login', 'login.html'));
   }
   return { ok: true, loggedOut: true };
@@ -3574,8 +3665,7 @@ function armIdleTimer() {
     disconnectAll();
     try { fs.unlinkSync(path.join(CONFIG_DIR, 'session.json')); } catch (_) {}
     if (win) {
-      win.setMinimumSize(900, 700);
-      centerDefaultSize();
+      enterLoginWindow();
       win.loadFile(path.join(__dirname, 'src', 'login', 'login.html'));
     }
   }, mins * 60 * 1000);
@@ -3920,8 +4010,7 @@ ipcMain.handle('settings:wipeAll', () => {
   activeSteamID = null;
   authSlots.clear(); addingAccountMode = false;
   if (win) {
-    win.setMinimumSize(900, 700);
-    centerDefaultSize();
+    enterLoginWindow();
     win.loadFile(path.join(__dirname, 'src', 'login', 'login.html'));
   }
   return { ok: true };

@@ -13,7 +13,7 @@
         <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Birleşik Hub</span>
         <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#DCE2FA">Envanter &amp; Pazar</h1>
       </div>
-      <div style="display:flex;align-items:center;gap:26px">
+      <div style="display:flex;align-items:center;gap:12px 26px;flex-wrap:wrap;min-width:0;margin-left:auto">
         <div style="display:flex;flex-direction:column;gap:4px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Toplam Öğe</span>
           <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA" id="invStatTotal">-</span>
@@ -30,6 +30,8 @@
           <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Envanter Değeri</span>
           <span style="font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#5624B3" id="invStatValue">-</span>
         </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0">
         <button id="invMyListings" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">İlanlarım</button>
         <button id="invExportCsv" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">CSV Aktar</button>
       <!-- G8: bulk fetch of the average (realised sale median). A separate button because it needs a separate request for every item and is far more expensive than fetching prices. -->
@@ -87,9 +89,9 @@
     </div>
   </div>
 
-  <div style="flex:1;min-height:0;display:flex">
-    <div style="flex:1;min-width:0;display:flex;flex-direction:column">
-      <div id="invHead" style="flex-shrink:0;display:grid;grid-template-columns:34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px;gap:0;align-items:center;height:34px;padding:0 22px 0 44px;border-bottom:1px solid #1D2432">
+  <div class="e-split" style="flex:1;min-height:0;display:flex">
+    <div class="inv-list" style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <div id="invHead" class="inv-row" style="flex-shrink:0;display:grid;grid-template-columns:34px 14px 44px minmax(130px,1.6fr) minmax(90px,1.1fr) 76px 104px 104px;gap:0;align-items:center;height:34px;padding:0 22px 0 44px;border-bottom:1px solid #1D2432">
         <span><span id="selAll" style="width:16px;height:16px;border-radius:12px;border:1px solid #2B3345;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"></span></span>
         <span id="invSortStatus" title="Duruma göre sırala" style="display:flex;align-items:center;justify-content:flex-start;height:34px;margin:0 -6px;padding:0 6px;cursor:pointer"><span style="width:7px;height:7px;border-radius:12px;background:#656D80;flex-shrink:0"></span></span>
         <span></span>
@@ -100,13 +102,13 @@
         <span id="invSortMed" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Ortalama<span style="color:#C2AAEE" id="arrMed"></span></span>
       </div>
 
-      <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 22px 8px 44px;border-bottom:1px solid #1D2432">
-        <div style="display:flex;align-items:center;gap:14px">
+      <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;padding:8px 22px 8px 44px;border-bottom:1px solid #1D2432">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
           <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="invCount">-</span>
-          <span style="width:1px;height:11px;background:#2B3345"></span>
-          <div style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#5FB324"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılabilir</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#24AEB3"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Takas</span></div>
-          <div style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#B32453"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılamaz</span></div>
+          <span class="inv-leg" style="width:1px;height:11px;background:#2B3345"></span>
+          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#5FB324"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılabilir</span></div>
+          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#24AEB3"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Takas</span></div>
+          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#B32453"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılamaz</span></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
           <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80">Fiyatlar · <span id="invPriceProg">-</span></span>
@@ -120,12 +122,12 @@
       </div>
     </div>
 
-    <aside style="width:320px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;display:flex;flex-direction:column">
+    <aside class="e-side" style="width:320px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;display:flex;flex-direction:column">
       <div id="invDetail" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px"></div>
     </aside>
   </div>
 
-  <div style="flex-shrink:0;height:76px;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 26px 0 44px;background:#0D1118;border-top:1px solid #2B3345">
+  <div class="inv-bulk" style="flex-shrink:0;min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:10px 24px;flex-wrap:wrap;padding:8px 26px 8px 44px;background:#0D1118;border-top:1px solid #2B3345">
     <div style="display:flex;align-items:center;gap:28px">
       <div style="display:flex;flex-direction:column;gap:4px">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">Seçili Öğe</span>

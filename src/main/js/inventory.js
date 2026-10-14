@@ -460,7 +460,7 @@
     }
 
     const ROW_H = () => (appSettings && appSettings.compactRows) ? 34 : 46;
-    const GRID_COLS = '34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px';
+    const GRID_COLS = '34px 14px 44px minmax(130px,1.6fr) minmax(90px,1.1fr) 76px 104px 104px';
 
     // G9: the "half the rows stay grey" complaint. This is not a bug: items below Ayarlar > Envanter >
     // Low-value threshold are shown dimmed. Since it was written nowhere the user
@@ -485,7 +485,7 @@
       const dropEvent = priceDrop(it);
       const med = p === undefined ? '…' : (medValRaw(it)!=null ? fmtLira(medValRaw(it)) : '-');
       const foil = isFoil(it);
-      return '<div data-k="'+esc(it.dedupKey)+'" class="h-row" style="display:grid;grid-template-columns:'+GRID_COLS+';gap:0;align-items:center;height:'+ROW_H()+'px;padding:0 22px 0 44px;border-bottom:1px solid #101621;cursor:pointer;background:'+(on?'#101621':'transparent')+';opacity:'+(isLowValue(it)?0.55:1)+'">'
+      return '<div data-k="'+esc(it.dedupKey)+'" class="h-row inv-row" style="display:grid;grid-template-columns:'+GRID_COLS+';gap:0;align-items:center;height:'+ROW_H()+'px;padding:0 22px 0 44px;border-bottom:1px solid #101621;cursor:pointer;background:'+(on?'#101621':'transparent')+';opacity:'+(isLowValue(it)?0.55:1)+'">'
         + '<div data-a="check" style="width:16px;height:16px;border-radius:12px;border:1px solid '+(on?EC.brand:EC.bd)+';background:'+(on?EC.brand:'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer">'
           + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#030305" stroke-width="3.4" style="opacity:'+(on?1:0)+'"><path d="M5 13l4 4L19 7"></path></svg></div>'
         + '<div title="'+st.label+'" style="width:7px;height:7px;border-radius:12px;background:'+st.fg+';flex-shrink:0"></div>'

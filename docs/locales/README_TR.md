@@ -45,6 +45,7 @@
 - **Zamanlayıcı, vekil ve anahtar koruması** - Kart düşürme ve Gerçekçi Mod bir saat aralığında kendiliğinden çalışabilir, her hesap kendi HTTP ya da SOCKS5 vekilini kullanabilir (girişin de bir vekili vardır) ve kayıtlı giriş anahtarları Windows DPAPI ile şifrelenebilir.
 - **Listeler ve süzgeçler** - Kart düşürme için kalıcı kara liste ve beyaz liste, iade süresindeki oyunları dışarıda bırakan bir süzgeç, listelerin başında duran favori oyunlar ve envanterin CSV olarak dışa aktarımı.
 - **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
+- **Ekrana uyar** - Yerleşim 900 x 560'a kadar akışkandır: listeler kenardan taşmak yerine alt satıra geçer, dar pencerede yan menü kendiliğinden kapanır, kısa pencerede arayüz sıkışık moda geçer. Pencere kaldığı yerde, hâlâ var olan bir ekranda açılır.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
 
@@ -165,6 +166,7 @@ Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel ve
 - [x] Electron 41 (1.3.2)
 - [x] Varsayılan dil İngilizce, kalan arayüz metinleri çevrildi (1.3.3)
 - [x] Tüm kod tabanı İngilizce: tanımlayıcılar, yorumlar, eleman id'leri, IPC kanalları, ayar anahtarları ve dosya adları (1.4.0)
+- [x] Küçük ekranlar için akışkan yerleşim ve yerini hatırlayan pencere (1.4.9)
 - [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa
 
 Buradakilerin hiçbiri söz değil. Bu kişisel bir proje ve öncelikler değişince liste de değişir.

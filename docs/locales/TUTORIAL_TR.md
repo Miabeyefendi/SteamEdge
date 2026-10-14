@@ -49,6 +49,7 @@ SteamEdge/
     settings.json              genel ayarlar
     accounts.json              kayıtlı hesaplar
     session.json               aktif oturum anahtarı
+    window.json                pencere boyutu, yeri ve büyütülmüş durumu
     accounts/<steamID>.json    hesaba özel: istatistikler, kuyruklar, anahtar kuyruğu, presetler, başarım günlüğü
     stats.json, state.json     yalnızca eski sürümlerden: bir kez okunur, bir daha yazılmaz
     *.bak, *.bozuk             otomatik yedek kopya ve kenara alınmış bozuk dosya
@@ -132,6 +133,8 @@ Uygulamaya söylenebilecek her şey, gruplanmış hâlde: Genel, Kart Düşürme
 Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra, değişen ayarlardan etkilenen bir kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder; çalışan bir işe dokunmayan ayarlar hemen uygulanır. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
 
 Tema (Koyu, Gece Moru, Beyaz) Genel bölümündedir, giriş ekranına da uygulanır.
+
+Arayüz yoğunluğu varsayılan olarak Otomatiktir: pencere kısayken (yaklaşık 720 pikselin altı) sıkışık olur, pencereyi uzatınca yeniden ferah olur. Yan menü 1000 pikselden dar pencerede kendiliğinden kapanır, pencere boyutunu, yerini ve büyütülmüş olup olmadığını hatırlar.
 
 ### Sohbet
 
@@ -290,6 +293,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
 | `theme` | `dark` | Renk teması: `dark`, `midnight` (Gece Moru), `white` |
+| `density` | `auto` | Boşluk ve satır yüksekliği: `auto` (pencere kısayken sıkışık), `comfortable`, `compact` |
 | `preventSleep` | `false` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
 
 ### Kart düşürme
