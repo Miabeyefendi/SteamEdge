@@ -134,6 +134,10 @@ contextBridge.exposeInMainWorld('imu', {
     myListings: () => ipcRenderer.invoke('market:myListings'),
     removeListing: (listingId) => ipcRenderer.invoke('market:removeListing', listingId),
   },
+  // Writes the inventory rows the page built into a CSV file the user picks
+  inventory: {
+    exportCsv: (rows) => ipcRenderer.invoke('inventory:exportCsv', rows),
+  },
   // Product key queue of the account on screen, worked off in the main process
   keys: {
     state: () => ipcRenderer.invoke('keys:state'),

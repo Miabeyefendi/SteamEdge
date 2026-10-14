@@ -97,7 +97,7 @@
         acGameListEl.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:#656D80">Eşleşen oyun yok</div>';
         return;
       }
-      acGameListEl.innerHTML = match.slice(0, 200).map(g=>{
+      acGameListEl.innerHTML = favoritesFirst(match).slice(0, 200).map(g=>{
         const on = g.appid === acAppid;
         return '<div class="h-s3" data-gid="'+g.appid+'" style="display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:12px;cursor:pointer;'
           + 'background:'+(on?'#151C28':'transparent')+'">'
@@ -106,6 +106,7 @@
           + gameThumb(g.appid) + '</div>'
           + '<span style="flex:1;min-width:0;font-size:12px;font-weight:600;color:'+(on?'#DCE2FA':'#B9C0D6')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
           + (on?'<span style="font-family:Geist Mono,monospace;font-size:11px;color:#5FB324;flex-shrink:0">✓</span>':'')
+          + favStar(g.appid)
           + '</div>';
       }).join('') + (match.length > 200
         ? '<div style="padding:8px 10px;font-size:11px;color:#656D80">'+esc(tf('# oyun daha var; aramayı daralt.', match.length-200))+'</div>' : '');
@@ -124,7 +125,15 @@
         if (first) first.click();
       }
     });
-    acGameListEl.addEventListener('click', (e)=>{
+    acGameListEl.addEventListener('click', async (e)=>{
+      const star = e.target.closest('[data-fav]');
+      if (star){
+        e.stopPropagation();
+        const top = acGameListEl.scrollTop;
+        await toggleFavorite(+star.getAttribute('data-fav'));
+        renderGameList(); acGameListEl.scrollTop = top;
+        return;
+      }
       const row = e.target.closest('[data-gid]'); if (!row) return;
       const id = +row.getAttribute('data-gid');
       const g = acGames.find(x=>x.appid===id);

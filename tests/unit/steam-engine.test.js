@@ -50,6 +50,18 @@ global.fetch = async (url, opts = {}) => {
   check('a good key reports the package', redeemed.ok === true && redeemed.detail === 0 && redeemed.packages[1] === 'Game');
   const refused = await e.redeemKey('AAAAA-BBBBB-CCCCC');
   check('a refused key carries the Steam detail code', refused.ok === false && refused.detail === 9);
+  // recent purchases (refund window): only licenses from the last 14 days are looked up
+  const now = Math.floor(Date.now() / 1000);
+  let asked = null;
+  e.user.licenses = [{ package_id: 11, time_created: now - 3 * 86400 }, { package_id: 12, time_created: now - 40 * 86400 }, { package_id: 13, time_created: now - 86400 }];
+  e.user.getProductInfo = async (apps, packages) => { asked = packages.slice(); return { packages: { 11: { packageinfo: { appids: [440, 441] } }, 13: { packageinfo: { appids: [730] } } } }; };
+  const recent = await e.getRecentAppIds(14);
+  check('recent purchases: only the two recent packages are asked for', asked && asked.join() === '11,13');
+  check('recent purchases: their apps come back', recent.size === 3 && recent.has(440) && recent.has(441) && recent.has(730));
+  e.user.licenses = [{ package_id: 12, time_created: now - 40 * 86400 }]; asked = null;
+  check('no recent license: nothing is looked up', (await e.getRecentAppIds(14)).size === 0 && asked === null);
+  e.user.licenses = [{ package_id: 11, time_created: now }]; e.user.getProductInfo = async () => { throw new Error('no answer'); };
+  threw = null; try { await e.getRecentAppIds(14); } catch (x) { threw = x; } check('a failed lookup throws (the caller then skips nothing)', !!threw);
   threw = null; try { await e.redeemKey('TIMEOUT'); } catch (x) { threw = x; } check('a request with no Steam answer throws', !!threw);
   process.exit(failures ? 1 : 0);
 })();

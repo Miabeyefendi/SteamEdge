@@ -64,7 +64,7 @@
       const q = document.getElementById('hoursSearch').value.trim().toLowerCase();
       const body = document.getElementById('hoursListBody');
       const selIds = new Set(selectedHours.map(g=>g.appid));
-      const filtered = (q ? ownedGames.filter(g=>g.name.toLowerCase().includes(q)) : ownedGames).slice(0,300);
+      const filtered = favoritesFirst(q ? ownedGames.filter(g=>g.name.toLowerCase().includes(q)) : ownedGames).slice(0,300);
       document.getElementById('hoursFound').textContent = (q?filtered.length:ownedGames.length) + ' bulundu';
       if (!filtered.length){ body.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Sonuç yok.</div>'; return; }
       body.innerHTML = filtered.map(g=>{
@@ -77,11 +77,19 @@
             + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
             + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(durationUnit(hrsOf(g), 'sa'))+'</span>'
           + '</div>'
+          + favStar(g.appid)
           + '<span style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+(on?'✓':'+')+'</span>'
           + '</div>';
       }).join('');
     }
-    document.getElementById('hoursListBody').addEventListener('click', (e)=>{
+    document.getElementById('hoursListBody').addEventListener('click', async (e)=>{
+      const star = e.target.closest('[data-fav]');
+      if (star){
+        const sc = document.getElementById('hoursListBody'), top = sc.scrollTop;
+        await toggleFavorite(+star.getAttribute('data-fav'));
+        renderHoursList(); sc.scrollTop = top;
+        return;
+      }
       const row = e.target.closest('[data-appid]'); if (!row) return;
       toggleHoursGame(+row.getAttribute('data-appid'));
     });

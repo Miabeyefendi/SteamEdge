@@ -92,6 +92,22 @@ class SteamEngine {
     return this._proxy ? proxyFetch(url, options, this._proxy) : fetch(url, options);
   }
 
+  // The apps of the licenses this account got in the last `days` days. A game bought that recently can still be refunded
+  // (14 days and under 2 hours of play), and farming it past 2 hours ends that. Steam gives the purchase time on the
+  // license and the apps on the package, so only the few recent packages are looked up. Throws when Steam does not answer.
+  async getRecentAppIds(days) {
+    const licenses = (this.user.licenses || []);
+    const cutoff = Math.floor(Date.now() / 1000) - days * 86400;
+    const packages = licenses.filter((l) => (+l.time_created || 0) >= cutoff).map((l) => l.package_id);
+    const ids = new Set();
+    if (!packages.length) return ids;
+    const info = await this.user.getProductInfo([], packages, false);
+    Object.values((info && info.packages) || {}).forEach((p) => {
+      ((p && p.packageinfo && p.packageinfo.appids) || []).forEach((a) => ids.add(+a));
+    });
+    return ids;
+  }
+
   cookieHeader() {
     const c = this.cookies ? this.cookies.slice() : [];
     c.push('Steam_Language=english');

@@ -144,9 +144,10 @@
     function grPaintSearch(){
       const q = grEl('grSearch').value.trim().toLowerCase();
       const box = grEl('grResultsBox');
-      if (!q){ box.style.display = 'none'; return; }
+      // With nothing typed the starred games are offered; without any the box stays closed
+      if (!q && !grSearchable().some(g=>isFavorite(g.appid))){ box.style.display = 'none'; return; }
       const chosen = new Set(grQueue.map(g=>g.appid));
-      const found = grSearchable().filter(g=>g.name.toLowerCase().includes(q)).slice(0, 40);
+      const found = favoritesFirst(grSearchable().filter(g=>q ? g.name.toLowerCase().includes(q) : isFavorite(g.appid))).slice(0, 40);
       box.style.display = 'flex';
       grEl('grNoResults').style.display = found.length ? 'none' : 'block';
       grEl('grResults').innerHTML = found.map(g=>{
@@ -157,6 +158,7 @@
           + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
           + esc(grWriteHours(g.playtimeMin) + ' · ' + t(g.hasStats ? 'başarım var' : 'başarım yok'))+'</span>'
           + '</div>'
+          + favStar(g.appid)
           + '<button class="h-brand" style="width:24px;height:24px;flex-shrink:0;border-radius:12px;border:1px solid '
           + (inside?GRC.brand:'#2B3345')+';background:'+(inside?'#151C28':'#090C12')+';color:'+(inside?GRC.sub:'#8B8F9E')
           + ';font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">'
@@ -188,6 +190,8 @@
       return false;
     }
     grEl('grResults').addEventListener('click', async (e)=>{
+      const star = e.target.closest('[data-fav]');
+      if (star){ await toggleFavorite(+star.getAttribute('data-fav')); grPaintSearch(); return; }
       const row = e.target.closest('[data-gradd]'); if (!row) return;
       const id = +row.getAttribute('data-gradd');
       const g = grGames.find(x=>x.appid===id);

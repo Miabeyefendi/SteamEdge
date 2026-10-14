@@ -167,6 +167,8 @@ Kartlar bir programa göre gelmez ve Steam "kart düştü" diye bir olay yollama
 
 **Tüm kartlar bitince** seçeneği **Saat yükseltmeyi başlat** da olabilir: hesabın hatırlanan saat yükseltme listesi çalışmaya başlar, **Aynı anda en fazla oyun** ile sınırlıdır. Liste boşsa hiçbir şey başlamaz ve etkinlik akışı bunu söyler.
 
+**İade süresi.** **İade süresindeki oyunları atla** açıkken (Kart Düşür sayfası ya da Ayarlar > Kart düşürme), son 14 günde alınıp 2 saatten az oynanan oyunlar kuyruğa girmez: Steam bu oyunlarda iade hakkını o saat sınırına kadar korur, kart toplamak onu bitirir. Satın alma tarihi Steam'in lisans kayıtlarından okunur; okunamazsa hiçbir oyun atlanmaz. Zamanlayıcı da aynı süzgeci kullanır.
+
 ### Saat yükseltici
 
 Aynı anda 32 oyuna kadar çalıştırır. Steam süreyi açık olan her oyuna ayrı ayrı işler, yani 32 oyun bir saat açık kalırsa 32 saat oynanma süresi olur. **Sıralı bekletme modu** (sayfadaki bir anahtar) bunun yerine kuyruğu her seferinde bir oyunla döndürür; ayarlanan süre her oyun için geçerlidir, bu yüzden orada ∞ seçilemez ve saat eşitleme kullanılmaz.
@@ -209,6 +211,8 @@ Tek oyunu açık tutar ve başarımlarını oturum boyunca, en yaygından en nad
 
 **Rastgele aralık** açıkken açılış aralıkları iki yöne en fazla %40 sapar ve asla üç saniyeden kısa olmaz. Kuyrukta birden fazla oyun varsa kalan süre başarım sayısına göre paylaştırılır ve **Sırayı otomatik başlat** açıkken kuyruk kendiliğinden ilerler. Süre dolduğunda başarım kalmışsa çalışma durur ve kalanları zorlamak yerine kaç tanesinin açılmadığını söyler; onun için duraklatılmış bir kart düşürme sonra sürer.
 
+**Zamanlayıcı.** **Gerçekçi Mod zamanlayıcısı** açıkken (Ayarlar > Başarımlar) Gerçekçi Mod, kendi saat aralığında bağlı her hesapta, o hesabın elle yaptığın son başlatmasını (oyunlar, süre, seçenekler) tekrarlayarak kendiliğinden başlar. Çalışma aralığın kalanına göre kısalır ve aralık bitince durur. Başka bir işi çalışan hesaba dokunulmaz, elle başlatılan bir çalışma asla durdurulmaz, kayıtlı başlatması olmayan hesap için etkinlik akışına not düşülür.
+
 ### Envanter ve pazar
 
 Eşya değeri, en düşük aktif ilan değil, **gerçekleşen satışların miktar ağırlıklı medyanıdır**. Tek bir kişinin bir kartı 999.999'a listelemesi değeri kaydırmaz.
@@ -224,6 +228,8 @@ Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk
 **İlanlarım.** Sayfanın üstündeki düğme aktif pazar ilanlarını, onay bekleyenleri ve bekletmedekileri, alıcının ödeyeceği ve senin eline geçecek tutarla listeler. Aktif ilanları seçip geri alabilirsin; eşyalar envanterine döner ve envanter yeniden okunur. Onay bekleyen ilanlar Steam uygulamasında onaylanır ya da iptal edilir, bekletmedekiler bekleme bitince kendiliğinden döner.
 
 **Booster paketleri ve gemler** kendi türlerine sahip. Booster paketi detay panelinden açılabilir; çıkan kartlar envantere eklenir. Paket açmak kalıcıdır.
+
+**CSV aktar.** Sayfanın üstündeki düğme, sayfanın gösterdiği eşyaları (geçerli süzgeç ya da hepsi) seçtiğin bir CSV dosyasına yazar: ad, oyun, tür, adet, pazarda satılabilir, takas edilebilir, çekilmiş en düşük ve medyan fiyat, birim değer ve yığının değeri. Fiyatlar aktarım için çekilmez; dosyada olsun istiyorsan önce çek. Sütun adları her zaman İngilizcedir ve formül gibi başlayan bir ad, tablo programı çalıştırmasın diye kesme işaretiyle işaretlenir.
 
 ### Ürün anahtarları
 
@@ -250,6 +256,10 @@ Bedeli: klasörü başka bir bilgisayara ya da Windows kullanıcısına taşırs
 Her hesabın kendi vekili olabilir: Ayarlar > Gizlilik & Güvenlik > **Vekil sunucu (proxy)**. Biçim `http://sunucu:port`, `https://sunucu:port` ya da `socks5://sunucu:port`; giriş gerekiyorsa sunucunun önüne `kullanıcı:parola@` yazılır. Hesabın Steam bağlantısı ile pazar, envanter ve anahtar istekleri bundan geçer; SOCKS5'te sunucu adlarını vekil çözer. Vekil kapalıysa hesap bağlanmaz, doğrudan bağlantıya asla düşülmez. Değişiklik hesap yeniden bağlanınca geçerli olur.
 
 Kapsam dışı: girişin kendisi (hesap ekleme), güncelleme denetimi, ücret betiğinin indirilmesi ve öğe görselleri; bunlar doğrudan yüklenir.
+
+### Favori oyunlar
+
+Saat Yükseltici kütüphanesindeki, Başarımlar oyun listesindeki ve Gerçekçi Mod aramasındaki bir oyunun yıldızı onu o listelerin en üstüne koyar; Gerçekçi Modda boş arama yıldızlı oyunlarını gösterir. Favoriler hesaba aittir.
 
 ### Sohbet
 
@@ -286,6 +296,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `autoNextGame` | `true` | Bir oyun bitince sıradakine geçer. Kapalı: kart düşürme mevcut oyundan sonra durur |
 | `farmSkipUnplayed` | `false` | Hiç oynanma süresi kayıtlı olmayan oyunları kuyruğa almaz |
+| `farmSkipRecent` | `false` | Son 14 günde alınıp 2 saatten az oynanan oyunları dışarıda bırak |
 | `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır. Ya da hesabın hatırlanan saat yükseltme listesini başlatan `boost`. |
 | `farmScheduleEnabled` | `false` | Kart düşürmeyi aşağıdaki saat aralığında kendiliğinden başlat |
 | `farmScheduleFrom` | `22:00` | Aralığın başlangıcı |
@@ -321,6 +332,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `boostAutoRestart` | `false` | Süre dolunca kuyruğu yeniden başlat |
 | `rememberBoostList` | `true` | Seçimi oturumlar arasında koru |
 | `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır, sonra kaldığı yerden sürdürür |
+| `favoriteGames` | boş | Hesabın yıldızlı oyunları; Saat Yükseltici, Başarımlar ve Gerçekçi Mod listelerinde önce gösterilir. Hesap başına saklanır, dışa aktarılmaz |
 
 ### Gerçekçi Mod
 
@@ -336,6 +348,9 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `grFinishedRatio` | `50` | Bitmiş oyunda çizelge hangi orana iner |
 | `grKeepHours` | `true` | Başarımlar bitince saat toplamayı sürdür |
 | `grSkipUltraRare` | `false` | %5 altındaki başarımları tamamen atla |
+| `grScheduleEnabled` | `false` | Gerçekçi Modu aşağıdaki saat aralığında, hesabın son başlatmasını tekrarlayarak kendiliğinden başlat |
+| `grScheduleFrom` | `22:00` | Aralığın başlangıcı |
+| `grScheduleTo` | `07:00` | Aralığın sonu. Bitiş başlangıçtan önceyse aralık geceyi aşar |
 
 ### Gizlilik
 

@@ -109,6 +109,32 @@
     const ESC_CHAR = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
     function esc(s){ return (s||'').replace(/[&<>"']/g, c => ESC_CHAR[c]); }
 
+    // ================= FAVORITE GAMES =================
+    // A star on a game in the Hour Booster, Realistic Mode and Achievements lists puts it at the top of those lists. The list
+    // is an account setting (main.js: favoriteGames); the Set is rebuilt whenever appSettings carries a new array.
+    let favSource = null, favSet = new Set();
+    function favoriteSet(){
+      const a = (typeof appSettings === 'object' && appSettings && appSettings.favoriteGames) || [];
+      if (a !== favSource){ favSource = a; favSet = new Set(a.map(Number)); }
+      return favSet;
+    }
+    const isFavorite = (appid) => favoriteSet().has(+appid);
+    function favoritesFirst(list){
+      return favoriteSet().size ? list.slice().sort((a, b) => (isFavorite(b.appid) ? 1 : 0) - (isFavorite(a.appid) ? 1 : 0)) : list;
+    }
+    function favStar(appid){
+      const on = isFavorite(appid);
+      return '<button data-fav="' + (+appid) + '" title="' + esc(t(on ? 'Favorilerden Çıkar' : 'Favorilere Ekle')) + '" style="width:24px;height:24px;flex-shrink:0;border-radius:999px;background:transparent;border:none;color:'
+        + (on ? '#B37E24' : '#656D80') + ';cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (on ? 'currentColor' : 'none')
+        + '" stroke="currentColor" stroke-width="2"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>';
+    }
+    async function toggleFavorite(appid){
+      const next = new Set(favoriteSet());
+      if (next.has(+appid)) next.delete(+appid); else next.add(+appid);
+      const s = await window.imu.settings.set({ favoriteGames: [...next] }).catch(() => null);
+      if (s && typeof appSettings !== 'undefined') appSettings = s;
+    }
+
     // ================= THEMED CONFIRM MODAL =================
     // The native confirm() box opened Windows' grey window (outside the theme). This is the theme matching
     // counterpart that does the same job. It returns a Promise: true if confirmed.

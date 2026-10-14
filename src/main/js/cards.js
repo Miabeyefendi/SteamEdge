@@ -11,6 +11,7 @@
     let priorityOrder = [];          // array of appids - the source of the "Priority" mode and of manual ordering
     const removedIds = new Set();    // the blacklist: never sent to farm (kept in the account file, see main.js farmExcluded)
     const whitelistIds = new Set();  // the whitelist: the only games that farm while "farmWhitelistOnly" is on
+    let refundIds = new Set();       // games that can still be refunded (the "farmSkipRecent" filter leaves them out)
     const recentDrops = [];          // {appid,name,count,ts} - from overview.js's real drop measurement
 
     const modeLabels = { sequential:'Sıralı', most:'Çok Kart', least:'Az Kart', priority:'Öncelik', leastPlayed:'En az oynanan önce', mostPlayed:'En çok oynanan önce', fast:'Hızlı' };
@@ -65,6 +66,7 @@
       const res = await E.dropGames();
       if (!res.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
       dropGames = res.games; cardsLoaded = true;
+      refundIds = new Set(res.refundIds || []);
       priorityOrder = dropGames.map(g=>g.appid);
       await restoreCardState();
       renderCards();
@@ -113,7 +115,8 @@
     function orderedForMode(){
       const skipUnplayed = typeof appSettings === 'object' && !!(appSettings && appSettings.farmSkipUnplayed);
       const only = whitelistOnly();
-      const list = dropGames.filter(g=>!removedIds.has(g.appid) && (!only || whitelistIds.has(g.appid)) && !(skipUnplayed && !(g.playtimeMin > 0)));
+      const skipRecent = typeof appSettings === 'object' && !!(appSettings && appSettings.farmSkipRecent);
+      const list = dropGames.filter(g=>!removedIds.has(g.appid) && (!only || whitelistIds.has(g.appid)) && !(skipUnplayed && !(g.playtimeMin > 0)) && !(skipRecent && refundIds.has(g.appid)));
       if (selectedMode === 'most') return list.slice().sort((a,b)=>b.remaining-a.remaining);
       if (selectedMode === 'least') return list.slice().sort((a,b)=>a.remaining-b.remaining);
       if (selectedMode === 'leastPlayed') return list.slice().sort((a,b)=>(a.playtimeMin||0)-(b.playtimeMin||0));
@@ -330,6 +333,7 @@
         const next = await window.imu.settings.set({ [key]: val }).catch(()=>null);
         if (next && typeof appSettings !== 'undefined') appSettings = next;
         if (key === 'farmWhitelistOnly' && cardsLoaded) renderCards();
+        if (key === 'farmSkipRecent' && cardsLoaded){ cardsLoaded = false; loadCards(); }   // the refund list is read with the games
       });
     });
 
