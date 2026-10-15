@@ -412,7 +412,7 @@
                     (grStatus.gameCount > 1 ? ('oyun ' + ((grStatus.gameIndex||0)+1) + ' / ' + grStatus.gameCount) : 'tek oyun')],
           columns:[['Açılan', opened + ' / ' + sumTotal, GC.ok],
                     ['Kalan Süre', monoTime(fmtSessionDur(remainingTime))],
-                    ['Sıradaki', grStatus.upNext ? shorten(grStatus.upNext, 16) : '-']],
+                    ['Sıradaki', grStatus.upNext ? esc(shorten(grStatus.upNext, 16)) : '-']],
           percentValue: sumTotal ? (opened/sumTotal*100) : 0,
           started: grStatus.startPoint || null,
           colorValue:'#C2AAEE', haltJob: ()=>pressPageButton('grStop'),
@@ -570,7 +570,7 @@
       const sessionPercent = (grStatus.startPoint && grStatus.finishTime)
         ? ((Date.now() - grStatus.startPoint) / Math.max(1, grStatus.finishTime - grStatus.startPoint) * 100)
         : null;
-      return detailRow('next', 'Sıradaki', shorten(remainingName, 20) + '  ' + following, null, null, true)
+      return detailRow('next', 'Sıradaki', esc(shorten(remainingName, 20)) + '  ' + following, null, null, true)
         + detailRow('counter', 'Açılan başarım', opened + ' / ' + sumTotal, sumTotal ? (opened/sumTotal*100) : 0, '#C2AAEE', true)
         + detailRow('duration', 'Oturumun sonuna', monoTime(fmtSessionDur(remainingTime)), sessionPercent, '#C2AAEE', true);
     }
@@ -586,7 +586,7 @@
       if (typeof acBaseDelaySec === 'function' && top > perform){
         remainingTime = monoTime(fmtSessionDur((top - perform) * acBaseDelaySec() * 1000));
       }
-      return detailRow('next', 'Gönderiliyor', shorten(not.replace(/^gönderiliyor:\s*/i, ''), 22), null, null, true)
+      return detailRow('next', 'Gönderiliyor', esc(shorten(not.replace(/^gönderiliyor:\s*/i, ''), 22)), null, null, true)
         + detailRow('counter', 'İşlenen', perform + ' / ' + top, top ? (perform/top*100) : 0, GC.ok, true)
         + detailRow('duration', 'Tahmini kalan', remainingTime, null, null, true);
     }

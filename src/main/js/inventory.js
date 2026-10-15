@@ -92,63 +92,24 @@
         Object.entries(hres.history).forEach(([h,x]) => { if (x){ historyMap.set(h,x); added++; } });
         if (added){ renderInventory(); }
       }
-      paintAvgBtn();
+      paintFetchBtn();
     }
 
     // ---- G8: BULK FETCH of the AVERAGE (realised sale median) ----
-    // Why a separate button: the list price (priceoverview) cannot come in multiples in one request but it is cheap;
-    // the sale history (pricehistory) needs a separate request for EVERY ITEM. Steam's limit is
-    // ~20 requests / 30 seconds per account. For a 200 item inventory this takes minutes, so
-    // it does not start unless the user explicitly asks and they can cancel whenever they want.
+    // It has no button of its own any more: "Fiyatları Getir" gets the list prices first and then the averages of the same items.
+    // The list price (priceoverview) is cheap, the sale history (pricehistory) needs a separate request for EVERY ITEM and Steam
+    // allows ~20 requests / 30 seconds per account, so for a big inventory this part takes minutes. The same button shows the progress
+    // and cancels it.
     let avgFetching = false, avgDone = 0, avgTotal = 0;
-    function paintAvgBtn(){
-      const b = document.getElementById('invFetchAvg');
-      if (!b) return;
-      const everything = hashesForView();
-      const lacking = everything.filter(h => !historyMap.has(h)).length;
-      if (avgFetching){
-        b.disabled = false;                       // so it can be cancelled
-        b.textContent = tf('İptal Et · # / #', avgDone, avgTotal);
-        b.style.borderColor = '#B37E24'; b.style.color = '#B37E24';
-        b.style.cursor = 'pointer';
-        return;
-      }
-      b.disabled = false;
-      b.style.cursor = 'pointer';
-      if (!everything.length){ b.textContent = t('Ortalamaları Getir'); b.style.borderColor = '#2B3345'; b.style.color = '#656D80'; return; }
-      if (!lacking){
-        b.textContent = tf('Ortalamalar Güncel · #', everything.length);
-        b.style.borderColor = '#5FB324'; b.style.color = '#5FB324';
-      } else {
-        b.textContent = tf('Ortalamaları Getir · #', lacking);
-        b.style.borderColor = '#5624B3'; b.style.color = '#C2AAEE';
-      }
-    }
-
     async function fetchAvgForView(){
-      if (avgFetching){ E.historyCancel(); return; }
-      const everything = hashesForView();
-      const lacking = everything.filter(h => !historyMap.has(h));
-      if (!lacking.length){
-        if (typeof toast === 'function') toast('Ortalama').done('Bu filtredeki tüm ortalamalar zaten var.');
-        return;
-      }
-      // It can take long because of Steam's limit - tell the user the duration BEFOREHAND.
-      const estimateSec = Math.ceil(lacking.length * 1.6);
-      const ok = await edgeConfirm({
-        tag:'Ortalama Fiyatlar',
-        title: tf('# öğe için gerçekleşen satış geçmişi çekilecek', lacking.length),
-        body: t('Ortalama (medyan) değer, Steam pazarında gerçekleşen satışlardan hesaplanır. Liste fiyatının aksine her öğe için ayrı istek gerekir.')
-              + '\n\n' + t('Tahmini süre:') + ' ' + (estimateSec > 90 ? durationUnit(Math.ceil(estimateSec/60), 'dakika') : durationUnit(estimateSec, 'saniye')),
-        warn: 'Steam hesap başına yaklaşık 30 saniyede 20 istek sınırı uygular. İşlem sürerken uygulamayı kullanmaya devam edebilir, istediğin an iptal edebilirsin.',
-        confirmText:'Başlat', cancelText:'Vazgeç',
-      });
-      if (!ok) return;
+      if (avgFetching) return;
+      const lacking = hashesForView().filter(h => !historyMap.has(h));
+      if (!lacking.length) return;
       avgFetching = true; avgDone = 0; avgTotal = lacking.length;
-      paintAvgBtn();
+      paintFetchBtn();
       const res = await E.historyFor(lacking).catch(()=>null);
       if (!res || !res.ok){
-        avgFetching = false; paintAvgBtn();
+        avgFetching = false; paintFetchBtn();
         if (typeof toast === 'function') toast('Ortalama').fail((res && res.error) || 'İstek başarısız.');
       }
     }
@@ -165,14 +126,14 @@
         avgDone = d.doneOnes || 0; avgTotal = d.totalSum || avgTotal;
         if (d.isFinished){
           avgFetching = false;
-          renderInventory(); paintAvgBtn();
+          renderInventory(); paintFetchBtn();
           if (typeof toast === 'function'){
             if (d.abandon) toast('Ortalama').done(tf('İptal edildi · # öğe alındı.', avgDone));
             else toast('Ortalama').done(tf('# öğenin ortalaması güncellendi.', avgDone));
           }
           return;
         }
-        paintAvgBtn();
+        paintFetchBtn();
         // Refresh the list every 10 items - so progress is visible without drawing constantly
         if (avgDone % 10 === 0) renderInventory();
       });
@@ -254,16 +215,18 @@
       const list = (viewRows && viewRows.length) ? viewRows : (invMerged || []);
       return [...new Set(list.filter(i=>i.marketable && i.marketHashName).map(i=>i.marketHashName))];
     }
-    (function bindAvgBtn(){
-      const b = document.getElementById('invFetchAvg');
-      if (b) b.onclick = fetchAvgForView;
-    })();
-
     function paintFetchBtn(){
       const b = document.getElementById('invFetchPrices');
       if (!b) return;
       const total = hashesForView().length;
       const done  = hashesForView().filter(h=>priceMap.has(h)).length;
+      if (avgFetching){
+        b.disabled = false;                       // so it can be cancelled
+        b.textContent = tf('İptal Et · # / #', avgDone, avgTotal);
+        b.style.opacity = '1'; b.style.cursor = 'pointer';
+        b.style.borderColor = '#B37E24'; b.style.color = '#B37E24';
+        return;
+      }
       if (priceFetching){
         b.disabled = true;
         b.textContent = tf('Getiriliyor # / #', done, total);
@@ -273,12 +236,13 @@
       }
       b.disabled = false;
       b.style.opacity = '1'; b.style.cursor = 'pointer';
-      const current = (fetchedSig === viewSignature()) && done >= total && total > 0;
+      const current = (fetchedSig === viewSignature()) && done >= total && total > 0 && hashesForView().every(h => historyMap.has(h));
       b.textContent = current ? tf('Fiyatlar Güncel · #', total) : tf('Fiyatları Getir · #', total);
       b.style.borderColor = current ? '#5FB324' : '#24AEB3';
       b.style.color       = current ? '#5FB324' : '#24AEB3';
     }
     async function fetchPricesForView(){
+      if (avgFetching){ E.historyCancel(); return; }   // the same button cancels the average part
       if (priceFetching || !invMerged) return;
       const hashes = hashesForView();
       if (!hashes.length){
@@ -291,7 +255,7 @@
       if (res && res.ok && res.prices){ Object.entries(res.prices).forEach(([h,p]) => priceMap.set(h,p)); }
       // The queue may be running on the main side; it is released when price:progress says remaining=0.
       // In the case that returns instantly (all from the cache) it is closed here.
-      if (!res || !res.queued){ priceFetching = false; }
+      if (!res || !res.queued){ priceFetching = false; fetchAvgForView(); }
       renderInventory(); paintFetchBtn();
     }
     // First entering the page: ask the user. But ONLY if there are items that are not in the cache.
@@ -345,7 +309,9 @@
         ? (tf('# kaldı', remaining) + (cooldown ? (' · ' + t('Steam sınırı')) : ''))
         : new Date().toLocaleTimeString(localCode());
       if (remaining === 0){
+        const wasFetching = priceFetching;
         priceFetching = false;
+        if (wasFetching) fetchAvgForView();   // prices are in: the averages of the same items follow
         if (invMerged) renderInventory();
         if (typeof renderOverviewStats==='function') renderOverviewStats();
       }
@@ -532,7 +498,6 @@
       renderStats(); arrows();
       viewRows = applyFilters();
       setTimeout(drawThresholdBadge, 0);   // so the count is right after the rows are drawn
-      setTimeout(paintAvgBtn, 0);     // when the filter changes the missing count changes too
       paintFetchBtn();   // when the filter changes "Fetch prices" becomes active again
       const scroll = document.getElementById('invScroll');
       const rows = document.getElementById('invRows');

@@ -7,6 +7,20 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.4.10](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.10)
+
+Small follow-up to 1.4.9: one price button on the inventory page, and an escaping fix found in a security review.
+
+### Changed
+
+- **Inventory & Market has one price button.** "Fetch prices" now gets the market prices and then, by itself, the sale averages of the same items. The separate "Fetch averages" button and its question are gone. While the averages come, the same button shows the progress and cancels them. It says "Prices up to date" only when both the prices and the averages are in.
+
+### Fixed
+
+- **Achievement names are escaped on the Overview page.** The name of the next achievement (Realistic Mode) and of the one being sent (bulk unlock) came from the game's own data and was put into the page as HTML. A crafted name could run script inside the app window. It is plain text now.
+
+SHA-256 (`SteamEdge-v1.4.10-win-x64.rar`): `af8a437a8e3fbbb4c677d88b26598d4e111066d9632836fd79c13e8909992555`
+
 ## [1.4.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.9)
 
 First of a short series about the interface. The layout now follows the size of the window, so the app looks right on a small laptop screen as well as on a large monitor.

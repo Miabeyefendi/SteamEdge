@@ -1812,7 +1812,7 @@ ipcMain.handle('engine:inventory', async () => {
 const PRICE_FILE = path.join(CACHE_DIR, 'prices.json');   // price cache
 // G8: realised sale history cache (the average/median comes from here).
 // Kept SEPARATE from the price: the pricehistory endpoint needs a separate request for every item and is much
-// more expensive. It is never filled until the user says "Fetch averages".
+// more expensive. It is filled by the "Fetch prices" button, after the prices.
 const HISTORY_FILE = path.join(CACHE_DIR, 'history.json');
 const BATCH_SIZE = 18;
 const BATCH_COOLDOWN_MS = 32000;
