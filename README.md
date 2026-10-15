@@ -110,7 +110,7 @@ npm install
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
 SHA-256 of `SteamEdge-v1.4.10-win-x64.rar`:
-`af8a437a8e3fbbb4c677d88b26598d4e111066d9632836fd79c13e8909992555`
+`b2e1bf8b421c35061e505cb1d59ab2f0ac8e4e644f5b1cc87dbdefbe34304570`
 
 Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.10-win-x64.rar`.
 

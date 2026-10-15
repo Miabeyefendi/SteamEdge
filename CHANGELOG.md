@@ -9,17 +9,21 @@ archives deleted on purpose. Their notes are not reproduced here.
 
 ## [1.4.10](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.10)
 
-Small follow-up to 1.4.9: one price button on the inventory page, and an escaping fix found in a security review.
+Follow-up to 1.4.9: one price button and a rebuilt sell flow on the inventory page, and an escaping fix found in a security review.
 
 ### Changed
 
 - **Inventory & Market has one price button.** "Fetch prices" now gets the market prices and then, by itself, the sale averages of the same items. The separate "Fetch averages" button and its question are gone. While the averages come, the same button shows the progress and cancels them. It says "Prices up to date" only when both the prices and the averages are in.
+- **Selling is rebuilt around one rule: Sell sells.** The amounts ("You pay" and "You receive") are worked out on the spot from the wallet's fee rule, so they are on screen the moment prices are in and change at once when you pick another strategy (average, undercut, match lowest, instant, manual). A "~" in front of a figure means it is the estimate; Steam's own exact numbers replace it as soon as they arrive. The "Calculating Steam fees" step on the Sell button is gone: it opens the one question ("N items will be listed") straight away and starts listing when you confirm. If Steam's fee calculation cannot be reached, the question says the amounts are estimates.
+- **The sale has a live progress panel.** One row for every item with its state (queued, sending, listed, awaiting Steam Guard confirmation, skipped, refused), the reason Steam gave when a request is refused, a progress bar and the counters (listed, failed, left). It follows the request that is going out and stays on screen after the job ends until you close it.
 
 ### Fixed
 
+- **Sell no longer hangs on "Calculating".** The fee calculation had no time limit and could wait for Steam forever, and no listing could start. Every step has a limit now and the estimate takes over.
+- **Pressing Sell again and again can no longer send extra requests.** The button locks while a sale runs. In the main process every listing goes through the market gate (one at a time, at least 1.5 seconds apart, in line with the price requests) and an item that is being listed, or was listed in the last 10 minutes, is refused a second time instead of being sent to Steam again.
 - **Achievement names are escaped on the Overview page.** The name of the next achievement (Realistic Mode) and of the one being sent (bulk unlock) came from the game's own data and was put into the page as HTML. A crafted name could run script inside the app window. It is plain text now.
 
-SHA-256 (`SteamEdge-v1.4.10-win-x64.rar`): `af8a437a8e3fbbb4c677d88b26598d4e111066d9632836fd79c13e8909992555`
+SHA-256 (`SteamEdge-v1.4.10-win-x64.rar`): `b2e1bf8b421c35061e505cb1d59ab2f0ac8e4e644f5b1cc87dbdefbe34304570`
 
 ## [1.4.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.9)
 

@@ -1445,5 +1445,11 @@
  "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "Прокси, который используется при добавлении аккаунта и входе. Собственный прокси аккаунта становится известен только после входа, поэтому для входа нужен отдельный адрес. Формат: http://хост:порт, https://хост:порт или socks5://хост:порт. Адрес хранится открытым текстом в файле настроек этого компьютера. Оставьте пустым, чтобы входить напрямую.",
  "# hesabında denenecek.": "Будет проверен на аккаунте #.",
  "Hesaba eklendi": "Добавлено в аккаунт",
- "Lisans verilmedi": "Лицензия не выдана"
+ "Lisans verilmedi": "Лицензия не выдана",
+ "Satışa sunuldu": "Выставлено",
+ "Onay bekliyor": "Ждёт подтверждения",
+ "Atlandı": "Пропущено",
+ "# satışta · # hata · # kaldı": "выставлено: # · ошибок: # · осталось: #",
+ "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "Расчёт комиссии Steam недоступен: суммы приблизительные, точную сумму определяет Steam.",
+ "Bu öğe için istek zaten gönderildi.": "Запрос для этого предмета уже отправлен."
 }

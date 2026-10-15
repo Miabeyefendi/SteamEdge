@@ -118,11 +118,11 @@
           units+=i.count;
           if(i.marketable && i.marketHashName){
             const v=priceVal(i);
-            if(v!=null){ value += v*i.count; const sn = sellerAmount(v); if (sn==null) lacking.push(v); else net += sn*i.count; }
+            if(v!=null){ value += v*i.count; net += sellerAmount(v)*i.count; if (!feeCache.has(subunit(v))) lacking.push(v); }
           }
         });
         set('gStatValue', fmtLira(value));
-        set('gStatValueSub', lacking.length ? tf('# öğe', localNumber(units)) : tf('# öğe · net #', localNumber(units), fmtLira(net)));
+        set('gStatValueSub', tf('# öğe · net #', localNumber(units), (lacking.length ? '~' : '') + fmtLira(net)));
         if (lacking.length) prepareNet(lacking);
       } else {
         set('gStatValue', '-');

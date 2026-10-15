@@ -2017,11 +2017,17 @@ function cachedPrice(h) {
 // queue, the sale history and the order book share the SAME limit; when they sent requests
 // unaware of each other all of them got 429 and "could not be fetched" boxes appeared. All market requests
 // pass through here in order and spaced out.
+// A step that may hang never holds the screen: after ms it gives up with an error.
+function withTimeout(promise, ms, message) {
+  let timer;
+  const limit = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); });
+  return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
+}
 let marketChain = Promise.resolve();
 let lastMarketAt = 0;
-function marketGate(fn) {
+function marketGate(fn, minGap) {
   const run = async () => {
-    const gap = (settings.apiRequestDelayMs || 350);
+    const gap = Math.max(settings.apiRequestDelayMs || 350, minGap || 0);
     const wait = Math.max(0, lastMarketAt + gap - Date.now());
     if (wait) await new Promise((r) => setTimeout(r, wait));
     lastMarketAt = Date.now();
@@ -2271,13 +2277,27 @@ ipcMain.handle('engine:setAchievements', async (_e, { appid, changes }) => {
 // will appear on the market.
 ipcMain.handle('engine:saleFee', async (_e, totals) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  let wallet = null;
   try {
-    const wallet = await engine.walletInfo();
-    const outcome = await steamFee().compute(wallet, Array.isArray(totals) ? totals.slice(0, 5000) : []);
-    return { ok: true, outcomeData: outcome, rate: engine.currencyCode() };
+    // Through the market gate, so it does not race the price queue, and with a limit so a slow Steam cannot hold the sale screen.
+    wallet = await withTimeout(marketGate(() => engine.walletInfo()), 25000, 'zaman aşımı');
+  } catch (e) {
+    log('warn', 'could not read the wallet fee fields: ' + (e && e.message));
+    return { ok: false, error: ct('Steam ücret hesabı yüklenemedi:') + ' ' + ct((e && e.message) || '') };
+  }
+  // The fee fields also go to the page: with them it can work the amounts out at once while Steam's own script is not answering.
+  const fee = {
+    pct: parseFloat(wallet.wallet_fee_percent != null ? wallet.wallet_fee_percent : 0.05),
+    pubPct: parseFloat(wallet.wallet_publisher_fee_percent_default != null ? wallet.wallet_publisher_fee_percent_default : 0.10),
+    min: parseInt(wallet.wallet_fee_minimum != null ? wallet.wallet_fee_minimum : 1, 10),
+    base: parseInt(wallet.wallet_fee_base != null ? wallet.wallet_fee_base : 0, 10),
+  };
+  try {
+    const outcome = await withTimeout(steamFee().compute(wallet, Array.isArray(totals) ? totals.slice(0, 5000) : []), 25000, 'zaman aşımı');
+    return { ok: true, outcomeData: outcome, rate: engine.currencyCode(), fee };
   } catch (e) {
     log('warn', 'could not calculate the sale fee: ' + (e && e.message));
-    return { ok: false, error: ct('Steam ücret hesabı yüklenemedi:') + ' ' + ct((e && e.message) || '') };
+    return { ok: false, error: ct('Steam ücret hesabı yüklenemedi:') + ' ' + ct((e && e.message) || ''), fee };
   }
 });
 
@@ -2296,11 +2316,25 @@ function saleErrorType(e) {
       || /too many|pending confirmation|previous action|wallet|maximum|exceed|rate limit|try again later/i.test(m)) return 'limit';
   return 'general';
 }
+// Listing is the most sensitive request an account makes. Every listing goes through the market gate (one at a time, with the
+// price queue, at least SELL_GAP_MS apart), and an asset that is being listed or was listed a moment ago is not sent again:
+// pressing Sell twice, or two screens asking for the same item, cannot send the same request twice.
+const SELL_GAP_MS = 1500;
+const SELL_REPEAT_MS = 10 * 60 * 1000;
+const sellInFlight = new Set();
+const sellDone = new Map();
 ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.', typeName: 'limit' };
   const steamID = activeSteamID;
+  const key = steamID + ':' + String(assetId);
+  const earlier = sellDone.get(key);
+  if (sellInFlight.has(key) || (earlier && Date.now() - earlier < SELL_REPEAT_MS)) {
+    return { ok: false, error: ct('Bu öğe için istek zaten gönderildi.'), typeName: 'skip' };
+  }
+  sellInFlight.add(key);
   try {
-    const result = await engine.sellItem(assetId, priceCents, amount || 1);
+    const result = await marketGate(() => engine.sellItem(assetId, priceCents, amount || 1), SELL_GAP_MS);
+    sellDone.set(key, Date.now());
     // The statistic is the number of items "put on sale": a listing was made, whether it sold is not known. The amount is
     // what the seller will keep (Steam's cut deducted); "Average sale" is computed from it.
     const count = amount || 1;
@@ -2308,6 +2342,8 @@ ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) =>
     return { ok: true, result };
   } catch (e) {
     return { ok: false, error: (e && e.message) || 'Listeleme reddedildi', typeName: saleErrorType(e), http: (e && e.httpStatus) || null };
+  } finally {
+    sellInFlight.delete(key);
   }
 });
 
