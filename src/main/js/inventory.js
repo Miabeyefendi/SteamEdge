@@ -8,6 +8,7 @@
     const historyMap = new Map();
     const ordersMap  = new Map();
     const selected = new Set();               // dedupKey
+    let lastTicked = null;                    // the row ticked last: the anchor of a Shift + click range
     let inventoryView = 'list';
     let fType = 'all', fState = 'all', fPrice = 'all', fGame = 'all';
     let invSort = 'value', invSortDir = 'desc';
@@ -569,16 +570,31 @@
       const host = e.target.closest('[data-k]');
       if (!host) return;
       const key = host.getAttribute('data-k');
+      // Shift + click: every row between the last ticked one and this one gets the state this click gives (the usual list behaviour).
+      if (e.shiftKey && lastTicked && lastTicked !== key){
+        const a = viewRows.findIndex(i=>i.dedupKey===lastTicked), b = viewRows.findIndex(i=>i.dedupKey===key);
+        if (a >= 0 && b >= 0){
+          const on = !selected.has(key);
+          viewRows.slice(Math.min(a,b), Math.max(a,b)+1).forEach(i=>{ on ? selected.add(i.dedupKey) : selected.delete(i.dedupKey); });
+          document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, selected.has(h.getAttribute('data-k'))));
+          lastTicked = key;
+          renderBulk();
+          return;
+        }
+      }
       if (e.target.closest('[data-a="check"]')){
         const on = !selected.has(key);
         on ? selected.add(key) : selected.delete(key);
         paintRowSelection(host, on);
+        lastTicked = key;
         renderBulk();
         return;
       }
       detailKey = key;
       renderDetail();
     });
+    // Shift + click would also start a text selection across the rows
+    document.getElementById('invRows').addEventListener('mousedown', (e)=>{ if (e.shiftKey) e.preventDefault(); });
     document.getElementById('invRows').addEventListener('dblclick', (e)=>{
       const host = e.target.closest('[data-k]'); if (!host) return;
       const it = invMerged.find(x=>x.dedupKey===host.getAttribute('data-k')); if (!it) return;
@@ -591,18 +607,13 @@
 
     document.getElementById('selAll').onclick = ()=>{
       const all = viewRows.length && viewRows.every(i=>selected.has(i.dedupKey));
-      viewRows.forEach(i => { if (all) selected.delete(i.dedupKey); else if (!isLowValue(i)) selected.add(i.dedupKey); });
-      const box = document.getElementById('selAll');
-      box.style.background = all ? 'transparent' : EC.brand;
-      box.style.borderColor = all ? EC.bd : EC.brand;
+      viewRows.forEach(i => { if (all) selected.delete(i.dedupKey); else selected.add(i.dedupKey); });
       document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, selected.has(h.getAttribute('data-k'))));
       renderBulk();
     };
     document.getElementById('bulkClear').onclick = ()=>{
       selected.clear();
       document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, false));
-      const box = document.getElementById('selAll');
-      box.style.background = 'transparent'; box.style.borderColor = EC.bd;
       renderBulk();
     };
 
@@ -644,7 +655,16 @@
       return rv.value != null ? { value: rv.value, src: rv.src === 'sales' ? 'avg' : rv.src } : { value: null, src: null };
     }
 
+    // The box in the header follows the selection: filled when every row in view is ticked, outlined in the brand colour when only some are
+    function syncSelAll(){
+      const box = document.getElementById('selAll'); if (!box) return;
+      const n = viewRows.filter(i=>selected.has(i.dedupKey)).length;
+      const all = viewRows.length > 0 && n === viewRows.length;
+      box.style.background = all ? EC.brand : 'transparent';
+      box.style.borderColor = n ? EC.brand : EC.bd;
+    }
     function renderBulk(){
+      syncSelAll();
       const items = invMerged.filter(i=>selected.has(i.dedupKey));
       const gross = items.reduce((s,i)=>{ const v=strategyPrice(i, bulkStrategy); return s + (v!=null ? v*i.count : 0); },0);
       const units = items.reduce((s,i)=>s+i.count,0);

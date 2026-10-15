@@ -17,6 +17,8 @@ First of a short series about the interface. The layout now follows the size of 
 - **The window can no longer start bigger than the screen.** The default size fits the work area, the smallest size is cut to the screen, and a taskbar on the top or the left side is taken into account.
 - **Tooltips stay inside the window.** The little `?` boxes were clipped by scrolling panels and ran out of the window near its edges. They are now one floating box that stays in view and turns below the sign when there is no room above it.
 - The tab on the edge of the side menu stays beside the active item in compact density (it drifted away before).
+- **Inventory & Market: the box at the top of the list now ticks every row in view.** It used to skip the dimmed (low value) rows, so with the default threshold it picked almost nothing. The box also shows all, some or none.
+- **Inventory & Market: Shift + click ticks a range.** Click a row, then Shift + click another one, and everything between them is ticked (or cleared when that row was already ticked).
 - On a narrow window the side panels of Card Farming and Inventory & Market moved under the list but squeezed the list and stretched its column headers. They are laid out correctly now.
 
 ### Changed
@@ -28,9 +30,9 @@ First of a short series about the interface. The layout now follows the size of 
 - **The side menu closes by itself** on a window narrower than 1000 pixels. The `<` button still works, and your saved choice comes back on a wide window.
 - **Interface density has a new choice, Automatic, and it is the default.** It turns compact while the window is short (under about 720 pixels) and relaxes again when the window is taller. A settings file that still holds the old default (Comfortable) moves to Automatic.
 - **The window remembers its size, its place and whether it was maximized** (`settings/window.json`). A place on a screen that is no longer connected is not used.
-- `npm test` runs 26 tests (new: the layout of every page at five window sizes, and the window place).
+- `npm test` runs 27 tests (new: the layout of every page at five window sizes, the window place, and the inventory selection).
 
-SHA-256 (`SteamEdge-v1.4.9-win-x64.rar`): `3dc0a6dd4ed0be199c88fc5e82642386caaa794b729085f82bb710fcfe2ab499`
+SHA-256 (`SteamEdge-v1.4.9-win-x64.rar`): `b4ba2a0c439f761f4bf6ef757495bd3489c7a3f4c7dea1a109c7b539c751e1ff`
 
 ## [1.4.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.8)
 
