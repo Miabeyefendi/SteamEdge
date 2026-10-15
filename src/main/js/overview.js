@@ -58,7 +58,7 @@
       el.innerHTML = activityFeed.map(f=>{
         const s = FEED_STATUS[f.status] || FEED_STATUS['Başarılı'];
         const t = new Date(f.ts).toLocaleTimeString(localCode());
-        return '<div class="h-row" style="display:grid;grid-template-columns:minmax(240px,1fr) 130px 100px;gap:0;padding:0 18px;height:60px;align-items:center;border-bottom:1px solid #101621">'
+        return '<div class="h-row ov-feed-row" style="display:grid;grid-template-columns:minmax(0,1fr) 120px 92px;gap:0;padding:0 18px;height:60px;align-items:center;border-bottom:1px solid #101621">'
           + '<div style="display:flex;align-items:center;gap:12px;min-width:0">'
             + '<div style="width:30px;height:30px;flex-shrink:0;border-radius:12px;border:1px solid '+s.bd+';background:#101621;display:flex;align-items:center;justify-content:center">'
               + '<span style="width:8px;height:8px;border-radius:12px;background:'+s.color+'"></span>'

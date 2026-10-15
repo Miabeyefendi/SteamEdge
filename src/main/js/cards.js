@@ -191,18 +191,18 @@
         // Every game that is open is "Running": in fast mode all the games in the pool are open,
         // they all used to say "1st in line".
         const state = on ? 'Çalışıyor' : 'Bekliyor';
-        return '<div class="h-bd" data-row="'+g.appid+'" style="border:1px solid '+bd+';border-radius:12px;background:'+(on?'#0D1118':'#090C12')+';padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;opacity:'+(on?1:0.5)+'">'
-          + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?'#B37E24':'#8B8F9E')+';border:1px solid '+bd+';border-radius:12px;padding:4px 0;width:34px;box-sizing:border-box;text-align:center;flex-shrink:0">#'+g.rank+'</span>'
+        return '<div class="h-bd cq-row" data-row="'+g.appid+'" style="border:1px solid '+bd+';border-radius:12px;background:'+(on?'#0D1118':'#090C12')+';padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;opacity:'+(on?1:0.5)+'">'
+          + '<span class="cq-rank" style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?'#B37E24':'#8B8F9E')+';border:1px solid '+bd+';border-radius:12px;padding:4px 0;width:34px;box-sizing:border-box;text-align:center;flex-shrink:0">#'+g.rank+'</span>'
           // The box ratio is 920x430 (~2.14:1) - the Steam Library Header standard.
-          + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
+          + '<div class="cq-thumb" style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
             + gameThumb(g.appid)
           + '</div>'
-          + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:150px;flex-shrink:0">'+esc(g.name)+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+esc(tf('# kalan', g.remaining))+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px;border-left:1px solid #1D2432;padding-left:8px">'+g.appid+'</span>'
-          + '<div style="flex:1;min-width:60px;height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
+          + '<span class="cq-name" style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:150px;flex-shrink:0">'+esc(g.name)+'</span>'
+          + '<span class="cq-remain" style="font-size:11px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+esc(tf('# kalan', g.remaining))+'</span>'
+          + '<span class="cq-id" style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px;border-left:1px solid #1D2432;padding-left:8px">'+g.appid+'</span>'
+          + '<div class="cq-bar" style="flex:1;min-width:60px;height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
             + '<div data-ilerleme style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
-          + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+          + '<div class="cq-acts" style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
             + '<span style="height:26px;display:flex;align-items:center;padding:0 10px;border-radius:12px;border:1px solid '+bd+';color:'+(on?'#C2AAEE':'#8B8F9E')+';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">'+state+'</span>'
             + '<div style="display:flex;gap:4px;padding:3px;border-radius:12px;background:#090C12;border:1px solid #1D2432">'
               + '<button data-act="up" title="Yukarı" class="h-s3" style="width:26px;height:26px;border-radius:999px;background:transparent;border:none;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 14l6-6 6 6"></path></svg></button>'
@@ -220,8 +220,8 @@
     // A row of the blacklist / whitelist tab: the game and the one button that takes it out of the list
     function listRow(g){
       const ex = g._list === 'excl';
-      return '<div class="h-bd" data-row="'+g.appid+'" style="border:1px solid #2B3345;border-radius:12px;background:#090C12;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">'
-        + '<div style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'+gameThumb(g.appid)+'</div>'
+      return '<div class="h-bd cq-row" data-row="'+g.appid+'" style="border:1px solid #2B3345;border-radius:12px;background:#090C12;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">'
+        + '<div class="cq-thumb" style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'+gameThumb(g.appid)+'</div>'
         + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">'+esc(g.name)+'</span>'
         + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0">'+esc(tf('# kalan', g.remaining))+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px">'+g.appid+'</span>'

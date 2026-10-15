@@ -291,7 +291,7 @@
  "Aktif kart toplama ve saat yükseltme işlemleri durur": "Active card farming and hour boosting will stop",
  "Menüler, etiketler ve bildirim metinleri seçilen dilde gösterilir. Değişiklik kaydedince hemen uygulanır.": "Menus, labels and notification texts are shown in the selected language. The change applies as soon as it is saved.",
  "Uygulama her açılışta bu sekmeyle başlar. Çoğunlukla kullandığın ekranı seçmen zaman kazandırır.": "The app opens on this tab every time. Choosing the screen you use most saves time.",
- "Satır yüksekliği ve kart boşluklarını belirler. Sıkışık modda aynı ekrana yaklaşık üçte bir daha fazla satır sığar.": "Sets row height and card spacing. Compact mode fits about a third more rows on the same screen.",
+ "Satır yüksekliği ve kart boşluklarını belirler. Sıkışık modda aynı ekrana yaklaşık üçte bir daha fazla satır sığar. Otomatik: pencere kısaysa sıkışık, yeterince uzunsa ferah olur.": "Sets row height and card spacing. Compact mode fits about a third more rows on the same screen. Automatic: compact while the window is short, comfortable when it is tall enough.",
  "Satır yüksekliği # pikselden # piksele düşer, tek ekranda yaklaşık üçte bir daha fazla öğe görürsün.": "Row height drops from # to # pixels, so you see about a third more items per screen.",
  "Oturum süreleri, kayıt zamanları ve sessiz saat aralığı bu biçimde gösterilir.": "Session durations, log timestamps and quiet hours are shown in this format.",
  "Sol menü sadece ikonlarla açılır, içerik alanı # piksel genişler. Menüyü her an oktan açabilirsin.": "The sidebar opens icon-only and the content area gains # pixels. You can expand it any time with the arrow.",

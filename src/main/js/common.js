@@ -264,12 +264,21 @@
     }
     function fmtDateShort(d){ return new Date(d).toLocaleDateString(localCode()); }
 
-    // "Interface density" - in compact mode row heights and inner spacing shrink
+    // "Interface density" - in compact mode row heights and inner spacing shrink.
+    // Automatic: compact while the window is short. A 768 line laptop at 125 % scaling leaves about 600 px, and the lists get squeezed to a few rows there.
+    const DENSITY_AUTO_H = 720;
     function applyDensity(){
-      const compact = (typeof appSettings==='object' && appSettings && appSettings.density==='compact');
+      const mode = (typeof appSettings==='object' && appSettings && appSettings.density) || 'auto';
+      const compact = mode === 'compact' || (mode === 'auto' && window.innerHeight < DENSITY_AUTO_H);
       document.body.classList.toggle('e-compact', !!compact);
       if (typeof applyTheme === 'function' && appSettings) applyTheme(appSettings.theme || 'dark');
+      if (typeof setRailTop === 'function') setRailTop(railTab);
     }
+    // Resizing the window flips automatic density at the limit; the colours are only repainted when it really flips.
+    window.addEventListener('resize', () => {
+      if (!(typeof appSettings==='object' && appSettings && appSettings.density==='auto')) return;
+      if (document.body.classList.contains('e-compact') !== (window.innerHeight < DENSITY_AUTO_H)) applyDensity();
+    });
 
     // ================= NOTIFICATION SOUNDS =================
     // The sounds are PRODUCED with Web Audio, no file is downloaded: we cannot verify the
@@ -546,26 +555,83 @@
     // ---- sidebar expand/collapse (< / > ) ----
     const sideNav = document.getElementById('sideNav');
     const SIDE_COLLAPSE_KEY = 'imu_side_collapsed';
-    // The rail tab stays aligned with the active nav item: top = 17 + 44*index
-    // (nav item 40px + 4px gap = 44px step). Since Ayarlar is not in the sidebar the index is 5.
+    // The rail tab stays aligned with the active nav item. The step between two items is measured instead of assumed
+    // (40 px + 4 px gap in comfortable density, 34 + 4 in compact), so it also follows a density change.
+    // Settings is not in the sidebar: its slot is the one after Keys.
     const RAIL_ORDER = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'keys', 'settings'];
+    let railTab = 'overview';
     function setRailTop(tab) {
       const btn = document.getElementById('sideCollapseBtn');
       const i = RAIL_ORDER.indexOf(tab);
-      if (btn && i >= 0) btn.style.top = (17 + 44 * i) + 'px';
+      if (!btn || i < 0) return;
+      railTab = tab;
+      const a = document.querySelector('.nav a[data-tab="' + RAIL_ORDER[0] + '"]');
+      const b = document.querySelector('.nav a[data-tab="' + RAIL_ORDER[1] + '"]');
+      if (!a || !b) return;
+      const step = b.offsetTop - a.offsetTop;
+      btn.style.top = (a.offsetTop + (a.offsetHeight - btn.offsetHeight) / 2 + step * i) + 'px';
     }
     // railChevronPath: to the right when closed (open), to the left when open (close)
     function setRailChevron() {
       const p = document.getElementById('railChev');
       if (p) p.setAttribute('d', sideNav.classList.contains('collapsed') ? 'M10 8l4 4-4 4' : 'M14 8l-4 4 4 4');
     }
-    if (localStorage.getItem(SIDE_COLLAPSE_KEY) === '1') sideNav.classList.add('collapsed');
-    setRailChevron();
+    // Below this width the rail closes by itself (a 1366x768 laptop at 150 % scaling has 911 px). It acts only when the width crosses the limit,
+    // so the < button still wins until then, and the choice saved by the button (or the setting) is what comes back on a wide window.
+    const RAIL_AUTO_W = 1000;
+    let railNarrow = null;
+    function railNarrowNow(){ return window.innerWidth < RAIL_AUTO_W; }
+    function syncRailToWidth(){
+      const narrow = railNarrowNow();
+      if (narrow === railNarrow) return;
+      railNarrow = narrow;
+      sideNav.classList.toggle('collapsed', narrow || localStorage.getItem(SIDE_COLLAPSE_KEY) === '1');
+      setRailChevron();
+    }
+    syncRailToWidth();
+    window.addEventListener('resize', syncRailToWidth);
     document.getElementById('sideCollapseBtn').onclick = () => {
       const on = sideNav.classList.toggle('collapsed');
       localStorage.setItem(SIDE_COLLAPSE_KEY, on ? '1' : '0');
       setRailChevron();
     };
+
+    // ---- tooltips ----
+    // One floating bubble for every [data-tip] (the text is translated by i18n like any other attribute). It lives on <body>, so a scrolling panel
+    // cannot clip it; it stays inside the window and turns below the element when there is no room above.
+    (function initTips(){
+      const bubble = document.createElement('div');
+      bubble.className = 'e-tipbox';
+      bubble.setAttribute('role', 'tooltip');
+      document.body.appendChild(bubble);
+      let host = null;
+      function place(){
+        if (!host) return;
+        const r = host.getBoundingClientRect();
+        const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+        const w = Math.min(264, vw - 16);
+        bubble.style.width = w + 'px';
+        const h = bubble.offsetHeight;
+        const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, vw - w - 8));
+        let top = r.top - h - 7;
+        if (top < 8) top = Math.min(r.bottom + 7, vh - h - 8);
+        bubble.style.left = left + 'px';
+        bubble.style.top = Math.max(8, top) + 'px';
+      }
+      function hide(){ host = null; bubble.classList.remove('on'); }
+      document.addEventListener('mouseover', (e) => {
+        const el = e.target.closest ? e.target.closest('[data-tip]') : null;
+        if (el === host) return;
+        if (!el) { hide(); return; }
+        host = el;
+        bubble.textContent = el.getAttribute('data-tip') || '';
+        bubble.classList.add('on');
+        place();
+      });
+      document.addEventListener('scroll', hide, true);
+      window.addEventListener('blur', hide);
+      window.addEventListener('resize', hide);
+    })();
 
     // ---- top bar: Ayarlar (gear) ----
     document.getElementById('tbSettings').onclick = () => {

@@ -49,6 +49,7 @@ SteamEdge/
     settings.json              general settings
     accounts.json              saved accounts
     session.json               active session token
+    window.json                window size, position, maximized state
     accounts/<steamID>.json    per-account data: statistics, queues, key queue, presets, achievement log
     stats.json, state.json     older versions only: read once, never written again
     *.bak, *.bozuk             automatic backup copy and set-aside damaged file
@@ -132,6 +133,8 @@ Everything the app can be told to do, grouped: General, Card farming, Market, In
 Changes stay in the page until you press **Save**. Nothing is written before that, and leaving the page with unsaved changes asks first. After Save, a running card farm or hours booster that the changed settings affect pauses for about five seconds and continues from the same game with the new values; settings that do not touch a running job apply at once. **Reset** loads the defaults into the page and also waits for Save; it keeps the app language.
 
 The theme (Dark, Midnight Purple, White) is under General and applies to the login screen as well.
+
+The interface density is Automatic by default: it turns compact while the window is short (under about 720 pixels) and relaxes again when you make the window taller. The side menu closes by itself on a window narrower than 1000 pixels, and the window remembers its size, its place and whether it was maximized.
 
 ### Chat
 
@@ -290,6 +293,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
 | `theme` | `dark` | Colour theme: `dark`, `midnight` (Midnight Purple), `white` |
+| `density` | `auto` | Spacing and row height: `auto` (compact while the window is short), `comfortable`, `compact` |
 | `preventSleep` | `false` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |
 
 ### Card farming

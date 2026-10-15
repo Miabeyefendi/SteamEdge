@@ -8,6 +8,7 @@
     const historyMap = new Map();
     const ordersMap  = new Map();
     const selected = new Set();               // dedupKey
+    let lastTicked = null;                    // the row ticked last: the anchor of a Shift + click range
     let inventoryView = 'list';
     let fType = 'all', fState = 'all', fPrice = 'all', fGame = 'all';
     let invSort = 'value', invSortDir = 'desc';
@@ -460,7 +461,7 @@
     }
 
     const ROW_H = () => (appSettings && appSettings.compactRows) ? 34 : 46;
-    const GRID_COLS = '34px 14px 44px minmax(220px,1.6fr) minmax(150px,1.1fr) 92px 116px 116px';
+    const GRID_COLS = '34px 14px 44px minmax(130px,1.6fr) minmax(90px,1.1fr) 76px 104px 104px';
 
     // G9: the "half the rows stay grey" complaint. This is not a bug: items below Ayarlar > Envanter >
     // Low-value threshold are shown dimmed. Since it was written nowhere the user
@@ -485,7 +486,7 @@
       const dropEvent = priceDrop(it);
       const med = p === undefined ? '…' : (medValRaw(it)!=null ? fmtLira(medValRaw(it)) : '-');
       const foil = isFoil(it);
-      return '<div data-k="'+esc(it.dedupKey)+'" class="h-row" style="display:grid;grid-template-columns:'+GRID_COLS+';gap:0;align-items:center;height:'+ROW_H()+'px;padding:0 22px 0 44px;border-bottom:1px solid #101621;cursor:pointer;background:'+(on?'#101621':'transparent')+';opacity:'+(isLowValue(it)?0.55:1)+'">'
+      return '<div data-k="'+esc(it.dedupKey)+'" class="h-row inv-row" style="display:grid;grid-template-columns:'+GRID_COLS+';gap:0;align-items:center;height:'+ROW_H()+'px;padding:0 22px 0 44px;border-bottom:1px solid #101621;cursor:pointer;background:'+(on?'#101621':'transparent')+';opacity:'+(isLowValue(it)?0.55:1)+'">'
         + '<div data-a="check" style="width:16px;height:16px;border-radius:12px;border:1px solid '+(on?EC.brand:EC.bd)+';background:'+(on?EC.brand:'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer">'
           + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#030305" stroke-width="3.4" style="opacity:'+(on?1:0)+'"><path d="M5 13l4 4L19 7"></path></svg></div>'
         + '<div title="'+st.label+'" style="width:7px;height:7px;border-radius:12px;background:'+st.fg+';flex-shrink:0"></div>'
@@ -569,16 +570,31 @@
       const host = e.target.closest('[data-k]');
       if (!host) return;
       const key = host.getAttribute('data-k');
+      // Shift + click: every row between the last ticked one and this one gets the state this click gives (the usual list behaviour).
+      if (e.shiftKey && lastTicked && lastTicked !== key){
+        const a = viewRows.findIndex(i=>i.dedupKey===lastTicked), b = viewRows.findIndex(i=>i.dedupKey===key);
+        if (a >= 0 && b >= 0){
+          const on = !selected.has(key);
+          viewRows.slice(Math.min(a,b), Math.max(a,b)+1).forEach(i=>{ on ? selected.add(i.dedupKey) : selected.delete(i.dedupKey); });
+          document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, selected.has(h.getAttribute('data-k'))));
+          lastTicked = key;
+          renderBulk();
+          return;
+        }
+      }
       if (e.target.closest('[data-a="check"]')){
         const on = !selected.has(key);
         on ? selected.add(key) : selected.delete(key);
         paintRowSelection(host, on);
+        lastTicked = key;
         renderBulk();
         return;
       }
       detailKey = key;
       renderDetail();
     });
+    // Shift + click would also start a text selection across the rows
+    document.getElementById('invRows').addEventListener('mousedown', (e)=>{ if (e.shiftKey) e.preventDefault(); });
     document.getElementById('invRows').addEventListener('dblclick', (e)=>{
       const host = e.target.closest('[data-k]'); if (!host) return;
       const it = invMerged.find(x=>x.dedupKey===host.getAttribute('data-k')); if (!it) return;
@@ -591,18 +607,13 @@
 
     document.getElementById('selAll').onclick = ()=>{
       const all = viewRows.length && viewRows.every(i=>selected.has(i.dedupKey));
-      viewRows.forEach(i => { if (all) selected.delete(i.dedupKey); else if (!isLowValue(i)) selected.add(i.dedupKey); });
-      const box = document.getElementById('selAll');
-      box.style.background = all ? 'transparent' : EC.brand;
-      box.style.borderColor = all ? EC.bd : EC.brand;
+      viewRows.forEach(i => { if (all) selected.delete(i.dedupKey); else selected.add(i.dedupKey); });
       document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, selected.has(h.getAttribute('data-k'))));
       renderBulk();
     };
     document.getElementById('bulkClear').onclick = ()=>{
       selected.clear();
       document.querySelectorAll('#invRows [data-k]').forEach(h=>paintRowSelection(h, false));
-      const box = document.getElementById('selAll');
-      box.style.background = 'transparent'; box.style.borderColor = EC.bd;
       renderBulk();
     };
 
@@ -644,7 +655,16 @@
       return rv.value != null ? { value: rv.value, src: rv.src === 'sales' ? 'avg' : rv.src } : { value: null, src: null };
     }
 
+    // The box in the header follows the selection: filled when every row in view is ticked, outlined in the brand colour when only some are
+    function syncSelAll(){
+      const box = document.getElementById('selAll'); if (!box) return;
+      const n = viewRows.filter(i=>selected.has(i.dedupKey)).length;
+      const all = viewRows.length > 0 && n === viewRows.length;
+      box.style.background = all ? EC.brand : 'transparent';
+      box.style.borderColor = n ? EC.brand : EC.bd;
+    }
     function renderBulk(){
+      syncSelAll();
       const items = invMerged.filter(i=>selected.has(i.dedupKey));
       const gross = items.reduce((s,i)=>{ const v=strategyPrice(i, bulkStrategy); return s + (v!=null ? v*i.count : 0); },0);
       const units = items.reduce((s,i)=>s+i.count,0);

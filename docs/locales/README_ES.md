@@ -45,6 +45,7 @@
 - **Programación, proxy y protección de tokens** - La recolección de cartas y el Modo realista pueden ejecutarse solos dentro de un horario, cada cuenta puede usar su propio proxy HTTP o SOCKS5 (el inicio de sesión también tiene uno) y los tokens de inicio de sesión guardados pueden cifrarse con Windows DPAPI.
 - **Listas y filtros** - Una lista negra permanente y una lista blanca para el farmeo de cromos, un filtro que deja fuera los juegos aún en plazo de reembolso, juegos favoritos que quedan al principio de las listas y una exportación del inventario a CSV.
 - **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso. Las instalaciones nuevas empiezan en inglés.
+- **Se adapta a tu pantalla** - El diseño es fluido hasta 900 x 560: las listas pasan a otra línea en vez de salirse por el borde, el menú lateral se cierra solo en una ventana estrecha y la interfaz pasa a modo compacto en una ventana baja. La ventana vuelve donde la dejaste, en una pantalla que siga existiendo.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
 
@@ -165,6 +166,7 @@ La [referencia de configuración](./TUTORIAL_ES.md#️-referencia-de-configuraci
 - [x] Electron 41 (1.3.2)
 - [x] Inglés por defecto y el resto del texto de la interfaz traducido (1.3.3)
 - [x] Todo el código en inglés: identificadores, comentarios, ids de elementos, canales IPC, claves de ajustes y nombres de archivo (1.4.0)
+- [x] Diseño fluido para pantallas pequeñas y una ventana que recuerda su lugar (1.4.9)
 - [ ] Las páginas restantes rehechas según el diseño, una por versión
 
 Nada de esto es una promesa. Es un proyecto personal y la lista se mueve cuando cambian mis prioridades.

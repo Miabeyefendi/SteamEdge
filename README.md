@@ -45,6 +45,7 @@
 - **Schedule, proxy and token protection** - Card farming and Realistic Mode can run by themselves inside a time range, each account can use its own HTTP or SOCKS5 proxy (the sign-in has one too), and saved sign-in tokens can be encrypted with Windows DPAPI.
 - **Lists and filters** - A permanent blacklist and a whitelist for card farming, a filter that leaves out games still in their refund window, favorite games that sit at the top of the lists, and a CSV export of the inventory.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
+- **Fits your screen** - The layout is fluid down to 900 x 560: lists wrap instead of running off the edge, the side menu closes by itself on a narrow window and the interface turns compact on a short one. The window comes back where you left it, on a screen that still exists.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
 
@@ -108,10 +109,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.4.8-win-x64.rar`:
-`9c749c51b822475b52c33e68b594b30e54fc61e83e794baeee5fece86bc2fd0d`
+SHA-256 of `SteamEdge-v1.4.9-win-x64.rar`:
+`b4ba2a0c439f761f4bf6ef757495bd3489c7a3f4c7dea1a109c7b539c751e1ff`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.8-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.9-win-x64.rar`.
 
 </details>
 
@@ -172,6 +173,7 @@ The [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-refere
 - [x] Electron 41 (1.3.2)
 - [x] English by default, with the remaining interface text translated (1.3.3)
 - [x] The whole code base in English: identifiers, comments, ids, IPC channels, setting keys and file names (1.4.0)
+- [x] A fluid layout for small screens and a window that remembers its place (1.4.9)
 - [ ] The remaining pages rebuilt to the design spec, one release at a time
 
 Nothing here is a promise. This is a personal project and the list moves when my priorities move.

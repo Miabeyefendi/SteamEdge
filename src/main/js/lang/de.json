@@ -291,7 +291,7 @@
  "Aktif kart toplama ve saat yükseltme işlemleri durur": "Aktives Kartenfarmen und Stunden-Boosting werden gestoppt",
  "Menüler, etiketler ve bildirim metinleri seçilen dilde gösterilir. Değişiklik kaydedince hemen uygulanır.": "Menüs, Beschriftungen und Benachrichtigungstexte erscheinen in der gewählten Sprache. Die Änderung wird beim Speichern übernommen.",
  "Uygulama her açılışta bu sekmeyle başlar. Çoğunlukla kullandığın ekranı seçmen zaman kazandırır.": "Die App startet immer mit diesem Tab. Wähle den Bildschirm, den du am häufigsten nutzt.",
- "Satır yüksekliği ve kart boşluklarını belirler. Sıkışık modda aynı ekrana yaklaşık üçte bir daha fazla satır sığar.": "Legt Zeilenhöhe und Kartenabstände fest. Im kompakten Modus passt rund ein Drittel mehr auf den Bildschirm.",
+ "Satır yüksekliği ve kart boşluklarını belirler. Sıkışık modda aynı ekrana yaklaşık üçte bir daha fazla satır sığar. Otomatik: pencere kısaysa sıkışık, yeterince uzunsa ferah olur.": "Legt Zeilenhöhe und Kartenabstände fest. Im kompakten Modus passt rund ein Drittel mehr auf den Bildschirm. Automatisch: kompakt, solange das Fenster niedrig ist, sonst komfortabel.",
  "Satır yüksekliği # pikselden # piksele düşer, tek ekranda yaklaşık üçte bir daha fazla öğe görürsün.": "Die Zeilenhöhe sinkt von # auf # Pixel, du siehst etwa ein Drittel mehr Objekte.",
  "Oturum süreleri, kayıt zamanları ve sessiz saat aralığı bu biçimde gösterilir.": "Sitzungsdauern, Protokollzeiten und Ruhezeiten werden in diesem Format angezeigt.",
  "Sol menü sadece ikonlarla açılır, içerik alanı # piksel genişler. Menüyü her an oktan açabilirsin.": "Die Seitenleiste startet nur mit Symbolen, der Inhalt gewinnt # Pixel. Mit dem Pfeil jederzeit ausklappbar.",
