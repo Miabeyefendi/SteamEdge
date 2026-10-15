@@ -108,7 +108,7 @@ Rozet sayfalarından okunan, kartı kalmış oyunların kuyruğu; 1-2 ya da 3+ k
 
 ### Envanter & Pazar
 
-Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; **Ortalamaları getir** yalnızca eksik ortalamaları doldurur, önce tahmini süreyi söyler ve iptal edilebilir. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim). **İlanlarım** (sağ üstte) aktif ilanlarını açar; booster paketleri ve gemler tür süzgecinde kendi türleriyle durur.
+Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; ortalamalar fiyatların hemen ardından aynı düğmeyle gelir; düğme ilerlemeyi gösterir ve iptal eder. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim). **İlanlarım** (sağ üstte) aktif ilanlarını açar; booster paketleri ve gemler tür süzgecinde kendi türleriyle durur.
 
 ### Saat Yükseltici
 

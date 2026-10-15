@@ -1445,5 +1445,11 @@
  "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "El proxy que se usa al añadir una cuenta e iniciar sesión. El proxy propio de una cuenta solo se conoce cuando ya ha iniciado sesión, por eso el inicio de sesión necesita su propia dirección. Formato: http://host:puerto, https://host:puerto o socks5://host:puerto. La dirección se guarda como texto plano en el archivo de ajustes de este equipo. Déjalo vacío para iniciar sesión directamente.",
  "# hesabında denenecek.": "Se probará en la cuenta #.",
  "Hesaba eklendi": "Añadido a la cuenta",
- "Lisans verilmedi": "No se concedió licencia"
+ "Lisans verilmedi": "No se concedió licencia",
+ "Satışa sunuldu": "En venta",
+ "Onay bekliyor": "Pendiente de confirmar",
+ "Atlandı": "Omitido",
+ "# satışta · # hata · # kaldı": "# en venta · # con error · # restantes",
+ "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "No se pudo acceder al cálculo de comisiones de Steam: los importes son estimados, Steam fija el importe real.",
+ "Bu öğe için istek zaten gönderildi.": "Ya se envió una solicitud para este artículo."
 }

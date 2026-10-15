@@ -108,7 +108,7 @@ The queue of games with cards still to drop, scraped from your badge pages, with
 
 ### Inventory & Market
 
-Your Steam inventory, merged so duplicates count as one row, filterable by game, name, type, state and price, optionally grouped by game. **Fetch prices** loads the market prices of what the current filter shows, by default together with each item's sale average; **Fetch averages** fills in only the missing averages, tells you the estimated time first and can be cancelled. The detail panel shows current listings, the price you can sell for instantly and completed sales. The bar at the bottom totals the selection, gross and what you receive, and offers the sale modes (from the average, undercut, match the lowest, sell instantly, your own price) before **Sell**. **My listings** (top right) opens your active listings, and booster packs and gems have their own types in the type filter.
+Your Steam inventory, merged so duplicates count as one row, filterable by game, name, type, state and price, optionally grouped by game. **Fetch prices** loads the market prices of what the current filter shows, by default together with each item's sale average; the averages come right after the prices, from the same button, which shows their progress and cancels them. The detail panel shows current listings, the price you can sell for instantly and completed sales. The bar at the bottom totals the selection, gross and what you receive, and offers the sale modes (from the average, undercut, match the lowest, sell instantly, your own price) before **Sell**. **My listings** (top right) opens your active listings, and booster packs and gems have their own types in the type filter.
 
 ### Hours Booster
 

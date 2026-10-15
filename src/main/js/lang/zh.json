@@ -1445,5 +1445,11 @@
  "Hesap eklerken ve giriş yaparken kullanılan vekil. Bir hesabın kendi vekili, hesap giriş yaptıktan sonra bilinir; bu yüzden giriş için ayrı bir adres gerekir. Biçim: http://sunucu:port, https://sunucu:port ya da socks5://sunucu:port. Adres bu bilgisayarın ayar dosyasında düz metin saklanır. Boş bırakırsan giriş doğrudan yapılır.": "新增帳號與登入時使用的代理。帳號自己的代理要登入後才知道，所以登入需要另外的位址。格式：http://主機:連接埠、https://主機:連接埠 或 socks5://主機:連接埠。位址會以純文字存放在這台電腦的設定檔中。留空則直接登入。",
  "# hesabında denenecek.": "將在帳號 # 上嘗試。",
  "Hesaba eklendi": "已加入帳號",
- "Lisans verilmedi": "未授予授權"
+ "Lisans verilmedi": "未授予授權",
+ "Satışa sunuldu": "已上架",
+ "Onay bekliyor": "等待確認",
+ "Atlandı": "已略過",
+ "# satışta · # hata · # kaldı": "已上架 # · 失敗 # · 剩餘 #",
+ "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "無法取得 Steam 的手續費計算：金額為估算值，實際金額由 Steam 決定。",
+ "Bu öğe için istek zaten gönderildi.": "此物品的請求已送出。"
 }

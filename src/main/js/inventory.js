@@ -92,63 +92,24 @@
         Object.entries(hres.history).forEach(([h,x]) => { if (x){ historyMap.set(h,x); added++; } });
         if (added){ renderInventory(); }
       }
-      paintAvgBtn();
+      paintFetchBtn();
     }
 
     // ---- G8: BULK FETCH of the AVERAGE (realised sale median) ----
-    // Why a separate button: the list price (priceoverview) cannot come in multiples in one request but it is cheap;
-    // the sale history (pricehistory) needs a separate request for EVERY ITEM. Steam's limit is
-    // ~20 requests / 30 seconds per account. For a 200 item inventory this takes minutes, so
-    // it does not start unless the user explicitly asks and they can cancel whenever they want.
+    // It has no button of its own any more: "Fiyatları Getir" gets the list prices first and then the averages of the same items.
+    // The list price (priceoverview) is cheap, the sale history (pricehistory) needs a separate request for EVERY ITEM and Steam
+    // allows ~20 requests / 30 seconds per account, so for a big inventory this part takes minutes. The same button shows the progress
+    // and cancels it.
     let avgFetching = false, avgDone = 0, avgTotal = 0;
-    function paintAvgBtn(){
-      const b = document.getElementById('invFetchAvg');
-      if (!b) return;
-      const everything = hashesForView();
-      const lacking = everything.filter(h => !historyMap.has(h)).length;
-      if (avgFetching){
-        b.disabled = false;                       // so it can be cancelled
-        b.textContent = tf('İptal Et · # / #', avgDone, avgTotal);
-        b.style.borderColor = '#B37E24'; b.style.color = '#B37E24';
-        b.style.cursor = 'pointer';
-        return;
-      }
-      b.disabled = false;
-      b.style.cursor = 'pointer';
-      if (!everything.length){ b.textContent = t('Ortalamaları Getir'); b.style.borderColor = '#2B3345'; b.style.color = '#656D80'; return; }
-      if (!lacking){
-        b.textContent = tf('Ortalamalar Güncel · #', everything.length);
-        b.style.borderColor = '#5FB324'; b.style.color = '#5FB324';
-      } else {
-        b.textContent = tf('Ortalamaları Getir · #', lacking);
-        b.style.borderColor = '#5624B3'; b.style.color = '#C2AAEE';
-      }
-    }
-
     async function fetchAvgForView(){
-      if (avgFetching){ E.historyCancel(); return; }
-      const everything = hashesForView();
-      const lacking = everything.filter(h => !historyMap.has(h));
-      if (!lacking.length){
-        if (typeof toast === 'function') toast('Ortalama').done('Bu filtredeki tüm ortalamalar zaten var.');
-        return;
-      }
-      // It can take long because of Steam's limit - tell the user the duration BEFOREHAND.
-      const estimateSec = Math.ceil(lacking.length * 1.6);
-      const ok = await edgeConfirm({
-        tag:'Ortalama Fiyatlar',
-        title: tf('# öğe için gerçekleşen satış geçmişi çekilecek', lacking.length),
-        body: t('Ortalama (medyan) değer, Steam pazarında gerçekleşen satışlardan hesaplanır. Liste fiyatının aksine her öğe için ayrı istek gerekir.')
-              + '\n\n' + t('Tahmini süre:') + ' ' + (estimateSec > 90 ? durationUnit(Math.ceil(estimateSec/60), 'dakika') : durationUnit(estimateSec, 'saniye')),
-        warn: 'Steam hesap başına yaklaşık 30 saniyede 20 istek sınırı uygular. İşlem sürerken uygulamayı kullanmaya devam edebilir, istediğin an iptal edebilirsin.',
-        confirmText:'Başlat', cancelText:'Vazgeç',
-      });
-      if (!ok) return;
+      if (avgFetching) return;
+      const lacking = hashesForView().filter(h => !historyMap.has(h));
+      if (!lacking.length) return;
       avgFetching = true; avgDone = 0; avgTotal = lacking.length;
-      paintAvgBtn();
+      paintFetchBtn();
       const res = await E.historyFor(lacking).catch(()=>null);
       if (!res || !res.ok){
-        avgFetching = false; paintAvgBtn();
+        avgFetching = false; paintFetchBtn();
         if (typeof toast === 'function') toast('Ortalama').fail((res && res.error) || 'İstek başarısız.');
       }
     }
@@ -165,14 +126,14 @@
         avgDone = d.doneOnes || 0; avgTotal = d.totalSum || avgTotal;
         if (d.isFinished){
           avgFetching = false;
-          renderInventory(); paintAvgBtn();
+          renderInventory(); paintFetchBtn();
           if (typeof toast === 'function'){
             if (d.abandon) toast('Ortalama').done(tf('İptal edildi · # öğe alındı.', avgDone));
             else toast('Ortalama').done(tf('# öğenin ortalaması güncellendi.', avgDone));
           }
           return;
         }
-        paintAvgBtn();
+        paintFetchBtn();
         // Refresh the list every 10 items - so progress is visible without drawing constantly
         if (avgDone % 10 === 0) renderInventory();
       });
@@ -254,16 +215,18 @@
       const list = (viewRows && viewRows.length) ? viewRows : (invMerged || []);
       return [...new Set(list.filter(i=>i.marketable && i.marketHashName).map(i=>i.marketHashName))];
     }
-    (function bindAvgBtn(){
-      const b = document.getElementById('invFetchAvg');
-      if (b) b.onclick = fetchAvgForView;
-    })();
-
     function paintFetchBtn(){
       const b = document.getElementById('invFetchPrices');
       if (!b) return;
       const total = hashesForView().length;
       const done  = hashesForView().filter(h=>priceMap.has(h)).length;
+      if (avgFetching){
+        b.disabled = false;                       // so it can be cancelled
+        b.textContent = tf('İptal Et · # / #', avgDone, avgTotal);
+        b.style.opacity = '1'; b.style.cursor = 'pointer';
+        b.style.borderColor = '#B37E24'; b.style.color = '#B37E24';
+        return;
+      }
       if (priceFetching){
         b.disabled = true;
         b.textContent = tf('Getiriliyor # / #', done, total);
@@ -273,12 +236,13 @@
       }
       b.disabled = false;
       b.style.opacity = '1'; b.style.cursor = 'pointer';
-      const current = (fetchedSig === viewSignature()) && done >= total && total > 0;
+      const current = (fetchedSig === viewSignature()) && done >= total && total > 0 && hashesForView().every(h => historyMap.has(h));
       b.textContent = current ? tf('Fiyatlar Güncel · #', total) : tf('Fiyatları Getir · #', total);
       b.style.borderColor = current ? '#5FB324' : '#24AEB3';
       b.style.color       = current ? '#5FB324' : '#24AEB3';
     }
     async function fetchPricesForView(){
+      if (avgFetching){ E.historyCancel(); return; }   // the same button cancels the average part
       if (priceFetching || !invMerged) return;
       const hashes = hashesForView();
       if (!hashes.length){
@@ -291,7 +255,7 @@
       if (res && res.ok && res.prices){ Object.entries(res.prices).forEach(([h,p]) => priceMap.set(h,p)); }
       // The queue may be running on the main side; it is released when price:progress says remaining=0.
       // In the case that returns instantly (all from the cache) it is closed here.
-      if (!res || !res.queued){ priceFetching = false; }
+      if (!res || !res.queued){ priceFetching = false; fetchAvgForView(); }
       renderInventory(); paintFetchBtn();
     }
     // First entering the page: ask the user. But ONLY if there are items that are not in the cache.
@@ -345,7 +309,9 @@
         ? (tf('# kaldı', remaining) + (cooldown ? (' · ' + t('Steam sınırı')) : ''))
         : new Date().toLocaleTimeString(localCode());
       if (remaining === 0){
+        const wasFetching = priceFetching;
         priceFetching = false;
+        if (wasFetching) fetchAvgForView();   // prices are in: the averages of the same items follow
         if (invMerged) renderInventory();
         if (typeof renderOverviewStats==='function') renderOverviewStats();
       }
@@ -529,10 +495,10 @@
     function renderInventory(){
       applyCurrencyLabels();
       if (!invMerged) return;
+      warmFees();
       renderStats(); arrows();
       viewRows = applyFilters();
       setTimeout(drawThresholdBadge, 0);   // so the count is right after the rows are drawn
-      setTimeout(paintAvgBtn, 0);     // when the filter changes the missing count changes too
       paintFetchBtn();   // when the filter changes "Fetch prices" becomes active again
       const scroll = document.getElementById('invScroll');
       const rows = document.getElementById('invRows');
@@ -672,15 +638,15 @@
       set('bulkCount', units); set('bulkCount2', units);
       set('bulkGross', fmtLira(gross));
       // What you will get: Steam's own fee calculation per item. "…" if it has not arrived yet.
-      let net = 0, missingNet = false;
+      let net = 0, estimated = false;
       const needed = [];
       items.forEach(i=>{
         const v = strategyPrice(i, bulkStrategy);
         if (v == null) return;
-        const sn = sellerAmount(v);
-        if (sn == null){ missingNet = true; needed.push(v); } else net += sn * i.count;
+        if (!feeCache.has(subunit(v))){ estimated = true; needed.push(v); }
+        net += sellerAmount(v) * i.count;
       });
-      set('bulkNet', missingNet ? '…' : fmtLira(net));
+      set('bulkNet', (estimated ? '~' : '') + fmtLira(net));
       if (needed.length) prepareNet(needed);
       document.querySelectorAll('#bulkStrat button[data-bs]').forEach(b=>{
         const on = b.getAttribute('data-bs')===bulkStrategy;
@@ -969,33 +935,54 @@
     // on cheap cards the listing deviated 10-67% from the chosen price ($0.05 when $0.03 was chosen).
     //
     // The computed amounts are kept in memory in cents: buyer price -> { satici, alici }.
-    const feeCache = new Map();
+    const feeCache = new Map();          // buyer subunits -> { seller, buyer }: exact, from Steam's own script
+    // The fee fields of the wallet (Steam's usual values until the real ones arrive). With them the amounts are worked out HERE, at once:
+    // nothing waits for the network when a strategy is chosen or the price changes. The exact numbers from Steam's script replace
+    // the estimate as soon as they arrive (and are what the sale uses when they are there).
+    let feeParams = { pct: 0.05, pubPct: 0.10, min: 1, base: 0 };
     let feeRequest = null;
     const subunit = (v) => Math.max(0, Math.round((+v || 0) * 100));
+    // total: what the buyer pays (subunits). Largest seller amount whose total with fees does not pass it.
+    function estimateFee(total){
+      const f = feeParams;
+      const feesOf = (x) => Math.floor(Math.max(x * f.pct, f.min) + f.base) + (f.pubPct > 0 ? Math.floor(Math.max(x * f.pubPct, 1)) : 0);
+      let x = Math.max(0, Math.floor((total - f.base) / (1 + f.pct + f.pubPct)));
+      while (x > 0 && x + feesOf(x) > total) x--;
+      while (x + 1 + feesOf(x + 1) <= total) x++;
+      return { seller: x, buyer: x + feesOf(x), estimated: true };
+    }
+    const feeFor = (buyerSub) => feeCache.get(buyerSub) || estimateFee(buyerSub);
     async function prepareFees(buyerSubunits){
       const lacking = [...new Set(buyerSubunits.filter(k => k > 0 && !feeCache.has(k)))];
       if (!lacking.length) return true;
       const r = await E.saleFee(lacking).catch(e => ({ ok:false, error:(e && e.message) }));
+      if (r && r.fee && Number.isFinite(r.fee.pct) && Number.isFinite(r.fee.pubPct)) feeParams = r.fee;
       if (!r || !r.ok || !Array.isArray(r.outcomeData)) return (r && r.error) || 'Steam ücret hesabı yüklenemedi.';
       r.outcomeData.forEach(x => feeCache.set(x.totalSum, { seller: x.seller, buyer: x.buyer }));
       return true;
     }
-    // The amount you will get (in currency units). null if the account has not arrived yet.
-    function sellerAmount(buyerValue){
-      const u = feeCache.get(subunit(buyerValue));
-      return u ? u.seller / 100 : null;
-    }
-    // "You receive" in the bottom bar: if the fee calculation has not arrived it is requested in the background and drawn when it arrives.
-    // If the calculation failed (could not reach Steam) it is not tried again for a minute; otherwise every
-    // draw would send a new request.
+    // The amount you will get (in currency units): Steam's exact number if it is there, the estimate otherwise.
+    function sellerAmount(buyerValue){ return feeFor(subunit(buyerValue)).seller / 100; }
+    // The exact numbers are asked for in the background and drawn when they arrive. If Steam could not be reached it is not tried
+    // again for a minute; otherwise every draw would send a new request.
     let feeErrorTime = 0;
-    function prepareNet(degerler){
+    function prepareNet(values){
       if (Date.now() - feeErrorTime < 60000) return;
-      const needed = degerler.map(subunit).filter(k => k > 0 && !feeCache.has(k));
+      const needed = values.map(subunit).filter(k => k > 0 && !feeCache.has(k));
       if (!needed.length || feeRequest) return;
       feeRequest = prepareFees(needed)
         .then((r)=>{ if (r !== true) feeErrorTime = Date.now(); })
         .finally(()=>{ feeRequest = null; if (invMerged) renderBulk(); if (typeof renderOverviewStats === 'function') renderOverviewStats(); });
+    }
+    // Once per page: learn the wallet's fee fields and wake Steam's script while the user is still choosing.
+    let feesWarmed = false;
+    function warmFees(){
+      if (feesWarmed) return;
+      feesWarmed = true;
+      E.saleFee([]).then((r)=>{
+        if (r && r.fee && Number.isFinite(r.fee.pct) && Number.isFinite(r.fee.pubPct)){ feeParams = r.fee; if (invMerged) renderBulk(); }
+        else feesWarmed = false;
+      }).catch(()=>{ feesWarmed = false; });
     }
 
     // ---- price drop ----
@@ -1036,6 +1023,8 @@
     // are waiting for confirmation. The two step "type SAT" confirmation was removed: prompt() never
     // worked in Electron and the real second step is already Steam Guard.
     let saleTask = null;
+    let salePanel = null;               // the task whose progress is on screen (stays after the job ends until it is closed)
+    let saleBusy = false;               // from the click on Sell until the job ends: a second click cannot start a second flow
     const listedAssets = new Set();     // the assetIds put on sale in this session
     // The batch settings are read live while the job runs: the new value saved in Ayarlar takes effect
     // at the next batch limit. 0 = do not split into batches, list until Steam stops it.
@@ -1045,62 +1034,115 @@
       const latest = Date.now() + ms;
       const t = setInterval(()=>{ if (g.abandon || g.continueNow || Date.now() >= latest){ clearInterval(t); solve(); } else drawSaleStatus(); }, 1000);
     });
+    function setSellBusy(on){
+      saleBusy = on;
+      const b = document.getElementById('bulkSellNow');
+      if (b){ b.disabled = on; b.style.opacity = on ? '0.5' : '1'; b.style.cursor = on ? 'not-allowed' : 'pointer'; }
+    }
 
+    // ---- the progress panel: every item of the job, one row each, updated as the requests go out ----
+    const SG_BTN = 'height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;flex-shrink:0;white-space:nowrap';
+    const SP_STATE = { wait:['Sırada','#656D80'], send:['Gönderiliyor','#C2AAEE'], ok:['Satışa sunuldu','#5FB324'], conf:['Onay bekliyor','#B37E24'], skip:['Atlandı','#B37E24'], fail:['Reddedildi','#B32453'] };
+    function paintSaleRow(g, i){
+      const p = g.plan[i];
+      const row = document.querySelector('#salePanel [data-r="'+i+'"]');
+      if (!row) return;
+      const key = p.st + '|' + (p.msg || '');
+      if (row._k === key) return;
+      row._k = key;
+      const st = SP_STATE[p.st] || SP_STATE.wait;
+      row.style.background = p.st === 'send' ? '#151C28' : 'transparent';
+      row.querySelector('[data-c="dot"]').style.background = st[1];
+      const label = row.querySelector('[data-c="st"]');
+      label.textContent = t(st[0]); label.style.color = st[1];
+      const msg = row.querySelector('[data-c="msg"]');
+      msg.textContent = p.msg || ''; msg.style.display = p.msg ? 'block' : 'none';
+      if (p.st === 'send'){ const list = document.getElementById('salePanelList'); if (list) list.scrollTop = Math.max(0, row.offsetTop - 70); }
+    }
     function drawSaleStatus(){
-      let el = document.getElementById('saleTask');
-      const g = saleTask;
+      let el = document.getElementById('salePanel');
+      const g = salePanel;
       if (!g){ if (el) el.remove(); return; }
-      if (!el){
+      if (!el || el._g !== g){
+        if (el) el.remove();
         el = document.createElement('div');
-        el.id = 'saleTask';
-        el.style.cssText = 'position:absolute;right:26px;bottom:88px;z-index:20;display:flex;align-items:center;gap:12px;'
-          + 'padding:12px 14px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;box-shadow:0 8px 28px rgba(0,0,0,.45);max-width:560px';
-        const container = document.getElementById('tab-inventory');
-        if (container){ if (getComputedStyle(container).position === 'static') container.style.position = 'relative'; container.appendChild(el); }
+        el.id = 'salePanel'; el._g = g;
+        el.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:150;width:440px;max-width:calc(100vw - 48px);display:flex;flex-direction:column;gap:10px;'
+          + 'padding:14px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;box-shadow:0 8px 28px rgba(0,0,0,.55)';
+        el.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+            + '<span data-sp="dot" style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
+            + '<span data-sp="title" style="flex:1;min-width:0;font-size:12px;font-weight:600;color:#DCE2FA;line-height:1.4"></span>'
+            + '<span data-sp="btns" style="display:flex;gap:6px;flex-shrink:0"></span></div>'
+          + '<div style="height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden"><div data-sp="bar" style="height:100%;width:0;border-radius:999px;background:#5624B3;transition:width .2s"></div></div>'
+          + '<div data-sp="counts" style="font-size:11px;color:#8B8F9E"></div>'
+          + '<div id="salePanelList" style="max-height:240px;overflow-y:auto;border:1px solid #1D2432;border-radius:10px;background:#090C12">'
+          + g.plan.map((p, n) => '<div data-r="'+n+'" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #101621">'
+              + '<span data-c="dot" style="width:6px;height:6px;border-radius:12px;background:#656D80;flex-shrink:0"></span>'
+              + '<span style="flex:1;min-width:0"><span style="display:block;font-size:12px;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.name)+'</span>'
+              + '<span data-c="msg" style="display:none;font-size:10.5px;color:#B37E24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span></span>'
+              + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0">'+esc(fmtLira(p.buyer/100))+'</span>'
+              + '<span data-c="st" style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0;min-width:92px;text-align:right"></span></div>').join('')
+          + '</div>';
+        document.body.appendChild(el);
         el.addEventListener('click', (e)=>{
-          const b = e.target.closest('[data-sg]'); if (!b || !saleTask) return;
+          const b = e.target.closest('[data-sg]'); if (!b || !salePanel) return;
           const a = b.getAttribute('data-sg');
-          if (a === 'stop'){ saleTask.abandon = true; drawSaleStatus(); }
-          else if (a === 'resume'){ saleTask.continueNow = true; }
+          if (a === 'stop'){ salePanel.abandon = true; drawSaleStatus(); }
+          else if (a === 'resume'){ salePanel.continueNow = true; }
+          else if (a === 'close'){ salePanel = null; drawSaleStatus(); }
         });
       }
-      const remaining = g.plan.length - g.i;
-      let text, buttons = '';
-      if (g.waiting){
+      const q = (k) => el.querySelector('[data-sp="'+k+'"]');
+      const remaining = g.plan.filter(p => p.st === 'wait' || p.st === 'send').length;
+      const okN = g.plan.filter(p => p.st === 'ok' || p.st === 'conf').length;
+      const badN = g.plan.filter(p => p.st === 'fail' || p.st === 'skip').length;
+      let title, buttons = '';
+      if (g.done){
+        title = g.successful ? tf('# öğe satışa sunuldu', g.successful) : t('Hiçbir öğe satışa sunulamadı');
+        buttons = '<button data-sg="close" class="h-brand" style="'+SG_BTN+'">'+esc(t('Kapat'))+'</button>';
+      } else if (g.waiting){
         const sn = Math.max(0, Math.round((g.waiting - Date.now()) / 1000));
-        text = tf('Parti tamamlandı · sonraki parti # sonra', fmtDuration(sn)) + ' · ' + tf('# öğe bekliyor', remaining);
+        title = tf('Parti tamamlandı · sonraki parti # sonra', fmtDuration(sn)) + ' · ' + tf('# öğe bekliyor', remaining);
         buttons = '<button data-sg="resume" class="h-brand" style="'+SG_BTN+'">'+esc(t('Şimdi Devam Et'))+'</button>';
       } else if (g.isAsking){
-        text = tf('Parti tamamlandı · # öğe bekliyor', remaining);
+        title = tf('Parti tamamlandı · # öğe bekliyor', remaining);
         buttons = '<button data-sg="resume" class="h-brand" style="'+SG_BTN+'">'+esc(t('Sonraki Partiyi Listele'))+'</button>';
       } else {
-        text = tf('Satışa sunuluyor · # / #', g.i, g.plan.length);
+        title = tf('Satışa sunuluyor · # / #', g.i, g.plan.length);
       }
-      if (g.mobileConfirm) text += ' · ' + tf('# ilan Steam Guard onayı bekliyor', g.mobileConfirm);
-      el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
-        + '<span style="font-size:12px;color:#DCE2FA;line-height:1.5">' + esc(text) + '</span>'
-        + buttons
-        + '<button data-sg="stop" class="h-stop" style="'+SG_BTN.replace('#5624B3','#B32453').replace('#C2AAEE','#B32453')+'">'+esc(t('Durdur'))+'</button>';
+      if (!g.done) buttons += '<button data-sg="stop" class="h-stop" style="'+SG_BTN.replace('#5624B3','#B32453').replace('#C2AAEE','#B32453')+'">'+esc(t('Durdur'))+'</button>';
+      q('title').textContent = title;
+      q('btns').innerHTML = buttons;
+      q('dot').style.animation = g.done ? 'none' : '';
+      q('bar').style.width = (g.plan.length ? Math.round((okN + badN) / g.plan.length * 100) : 0) + '%';
+      q('counts').textContent = tf('# satışta · # hata · # kaldı', okN, badN, remaining)
+        + (g.mobileConfirm ? ' · ' + tf('# ilan Steam Guard onayı bekliyor', g.mobileConfirm) : '');
+      g.plan.forEach((_p, n) => paintSaleRow(g, n));
     }
-    const SG_BTN = 'height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;flex-shrink:0;white-space:nowrap';
     function fmtDuration(sn){ const d = Math.floor(sn/60), s = sn%60; return d ? (d+':'+String(s).padStart(2,'0')) : (s+' sn'); }
 
+    // Sell: no calculation step. The amounts are already on screen (worked out at once, Steam's exact numbers replace them when they are there);
+    // the button asks the one question and starts listing.
     async function sellFlow(items, strat){
-      if (saleTask){ toast('Satış').fail('Önceki satış işlemi sürüyor.'); return; }
+      if (saleBusy || saleTask){ toast('Satış').fail('Önceki satış işlemi sürüyor.'); return; }
+      setSellBusy(true);
+      try { await sellFlowRun(items, strat); } finally { setSellBusy(false); }
+    }
+    async function sellFlowRun(items, strat){
       const sellable = items.filter(i=>i.marketable && i.marketHashName && strategyPrice(i,strat)!=null);
       if (!sellable.length){ toast('Satış').fail('Seçilen öğelerin fiyatı henüz yüklenmedi veya satılabilir değil.'); return; }
-      const t0 = toast('Steam ücretleri hesaplanıyor…');
-      const ready = await prepareFees(sellable.map(i => subunit(strategyPrice(i, strat))));
-      if (ready !== true){ t0.fail(t(ready)); return; }
-      t0.done('Steam ücretleri hesaplandı.');
+      // Steam's exact numbers, if they are not in yet: a short silent wait, then the estimate is used and the question says so.
+      const subs = sellable.map(i => subunit(strategyPrice(i, strat)));
+      if (subs.some(k => k > 0 && !feeCache.has(k))) await Promise.race([prepareFees(subs).catch(()=>null), new Promise(r => setTimeout(r, 2500))]);
       const plan = [], rowsList = [], dropList = [];
-      let totalBuyer = 0, totalSeller = 0;
+      let totalBuyer = 0, totalSeller = 0, estimatedN = 0;
       sellable.forEach(i=>{
-        const u = feeCache.get(subunit(strategyPrice(i, strat)));
+        const u = feeFor(subunit(strategyPrice(i, strat)));
         if (!u || !(u.seller > 0)) return;
         const assets = i.assetIds.filter(a => !listedAssets.has(a));
         if (!assets.length) return;
-        assets.forEach(aid => plan.push({ assetId: aid, seller: u.seller, buyer: u.buyer, name: i.name, dedupKey: i.dedupKey }));
+        if (u.estimated) estimatedN += assets.length;
+        assets.forEach(aid => plan.push({ assetId: aid, seller: u.seller, buyer: u.buyer, name: i.name, dedupKey: i.dedupKey, st: 'wait', msg: '' }));
         totalBuyer += u.buyer * assets.length; totalSeller += u.seller * assets.length;
         rowsList.push('• ' + i.name + ' ×' + assets.length + ' → ' + fmtLira(u.buyer/100) + ' (' + t('eline geçecek') + ' ' + fmtLira(u.seller/100) + ')');
         // Warn if the selected price is clearly below Steam's 24 hour average
@@ -1124,6 +1166,7 @@
           body: rowsList.slice(0,12).join('\n') + (rowsList.length > 12 ? ('\n' + tf('… ve # tane daha', rowsList.length - 12)) : '')
                 + '\n\n' + t('Alıcının ödeyeceği toplam:') + ' ' + fmtLira(totalBuyer/100)
                 + '\n' + t('Steam kesintisi sonrası eline geçecek:') + ' ' + fmtLira(totalSeller/100)
+                + (estimatedN ? ('\n\n' + t('Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.')) : '')
                 + batchNote,
           warningRed: dropList.length
             ? (t('Dikkat: bu öğelerin fiyatı Steam\'in 24 saatlik ortalamasının belirgin şekilde altında. Acele etme, fiyatı kontrol et.') + '\n' + dropList.slice(0,6).join('\n'))
@@ -1134,7 +1177,8 @@
         if (!ok) return;
       }
       saleTask = { plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
-                      failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, isAsking: false, continueNow: false };
+                      failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, isAsking: false, continueNow: false, done: false };
+      salePanel = saleTask;
       drawSaleStatus();
       await runSaleTask(saleTask);
     }
@@ -1143,20 +1187,25 @@
       let perBatch = g.i;
       while (g.i < g.plan.length && !g.abandon){
         const p = g.plan[g.i];
+        p.st = 'send'; drawSaleStatus();
+        // The main process spaces the requests (market gate, 1.5 s apart) and refuses to send the same asset twice.
         const r = await E.sellItem(p.assetId, p.seller, 1).catch(e=>({ ok:false, error:(e && e.message), typeName:'general' }));
         g.i++;
         if (r && r.ok){
           g.successful++; g.consecutive = 0;
           listedAssets.add(p.assetId);
           const s = r.result || {};
-          if (s.needs_mobile_confirmation || s.requires_confirmation) g.mobileConfirm++;
-          if (s.needs_email_confirmation){ g.emailConfirm++; g.emailAddr = s.email_domain || g.emailAddr; }
+          p.st = 'ok';
+          if (s.needs_mobile_confirmation || s.requires_confirmation){ g.mobileConfirm++; p.st = 'conf'; }
+          if (s.needs_email_confirmation){ g.emailConfirm++; g.emailAddr = s.email_domain || g.emailAddr; p.st = 'conf'; }
         } else {
           const category = (r && r.typeName) || 'general';
-          if (category === 'skip'){ g.skipped++; g.failures.push(p.name + ': ' + (r.error || '')); }
+          p.msg = (r && r.error) || '';
+          if (category === 'skip'){ g.skipped++; g.failures.push(p.name + ': ' + (r.error || '')); p.st = 'skip'; }
           else {
             g.consecutive++;
             g.failures.push(p.name + ': ' + ((r && r.error) || ''));
+            p.st = 'fail';
             // If Steam stopped there is no point sending the remaining requests: it only piles up errors
             // and narrows the account's limit even more.
             if (category === 'limit' || g.consecutive >= 2){ g.limit = (r && r.error) || t('Steam listelemeyi durdurdu.'); g.i--; g.failedAsset = p.assetId; break; }
@@ -1180,9 +1229,9 @@
             }
             if (g.abandon) break;
           }
-          await new Promise(r2=>setTimeout(r2, 400));
         }
       }
+      g.done = true;
       saleTask = null;
       drawSaleStatus();
       saleResult(g);
