@@ -1451,5 +1451,21 @@
  "Atlandı": "Übersprungen",
  "# satışta · # hata · # kaldı": "# eingestellt · # Fehler · # übrig",
  "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "Die Gebührenberechnung von Steam war nicht erreichbar: die Beträge sind Schätzungen, Steam legt den echten Betrag fest.",
- "Bu öğe için istek zaten gönderildi.": "Für diesen Gegenstand wurde bereits eine Anfrage gesendet."
+ "Bu öğe için istek zaten gönderildi.": "Für diesen Gegenstand wurde bereits eine Anfrage gesendet.",
+ "Modüller": "Module",
+ "Kullanmadığın sayfaları kapat: menüden ve genel bakıştan kalkar, o sayfa için Steam'e istek atılmaz. Zamanlanmış işler ayarlarına göre arka planda sürer. Okla menü sırasını değiştir.": "Schalte Seiten aus, die du nicht nutzt: Sie verschwinden aus Menü und Übersicht, und für sie wird nichts bei Steam angefragt. Zeitgesteuerte Aufgaben laufen gemäß ihren Einstellungen im Hintergrund weiter. Mit den Pfeilen änderst du die Reihenfolge im Menü.",
+ "Performans": "Leistung",
+ "Performans modu": "Leistungsmodus",
+ "Tam": "Voll",
+ "Hafif": "Leicht",
+ "Bu bilgisayara göre ayarla": "Für diesen Computer einrichten",
+ "Yukarı taşı": "Nach oben",
+ "Aşağı taşı": "Nach unten",
+ "Hafif mod animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; zayıf bilgisayarlarda daha akıcı çalışır. Otomatik: işletim sisteminin hareketi azalt ayarı açıksa ya da bilgisayar zayıfsa hafif olur.": "Der leichte Modus schaltet Animationen, Übergänge, Unschärfe und Schatten aus und läuft auf schwachen Computern flüssiger. Automatisch: leicht, wenn die Systemeinstellung für weniger Bewegung aktiv ist oder der Computer schwach ist.",
+ "Kurulum": "Einrichtung",
+ "SteamEdge'e hoş geldin": "Willkommen bei SteamEdge",
+ "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Wähle die Seiten, die du nutzen willst. Das lässt sich jederzeit unter Einstellungen > Module ändern.",
+ "Başla": "Los geht's",
+ "# çekirdek · # GB bellek": "# Kerne · # GB Speicher",
+ "Önerilen:": "Empfohlen:"
 }

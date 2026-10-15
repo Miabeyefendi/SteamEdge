@@ -492,6 +492,19 @@
         + '</div>';
     }
 
+    const ROW_CHUNK = 200;
+    let rowFillToken = 0;
+    function fillRowsLater(host, list, from){
+      const token = ++rowFillToken;
+      const step = () => {
+        if (token !== rowFillToken || from >= list.length) return;
+        host.insertAdjacentHTML('beforeend', list.slice(from, from + 300).map(rowHTML).join(''));
+        from += 300;
+        setTimeout(step, 30);
+      };
+      setTimeout(step, 30);
+    }
+
     function renderInventory(){
       applyCurrencyLabels();
       if (!invMerged) return;
@@ -503,6 +516,7 @@
       const scroll = document.getElementById('invScroll');
       const rows = document.getElementById('invRows');
       document.getElementById('invCount').textContent = viewRows.length + ' / ' + invMerged.length + ' öğe';
+      rowFillToken++;                      // a drawing that is still going on is cancelled
       if (!viewRows.length){
         rows.removeAttribute('style');
         rows.innerHTML = '<div style="padding:64px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
@@ -513,7 +527,9 @@
         rows.innerHTML = viewRows.map(gridHTML).join('');
       } else {
         rows.removeAttribute('style');
-        rows.innerHTML = viewRows.map(rowHTML).join('');
+        // The first screenfuls at once, the rest in the background: a 3000 item inventory no longer blocks the page while it is drawn.
+        rows.innerHTML = viewRows.slice(0, ROW_CHUNK).map(rowHTML).join('');
+        fillRowsLater(rows, viewRows, ROW_CHUNK);
       }
       scroll.scrollTop = Math.min(scroll.scrollTop, scroll.scrollHeight);
       renderBulk(); renderDetail();

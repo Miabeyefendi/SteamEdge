@@ -1451,5 +1451,21 @@
  "Atlandı": "Пропущено",
  "# satışta · # hata · # kaldı": "выставлено: # · ошибок: # · осталось: #",
  "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "Расчёт комиссии Steam недоступен: суммы приблизительные, точную сумму определяет Steam.",
- "Bu öğe için istek zaten gönderildi.": "Запрос для этого предмета уже отправлен."
+ "Bu öğe için istek zaten gönderildi.": "Запрос для этого предмета уже отправлен.",
+ "Modüller": "Модули",
+ "Kullanmadığın sayfaları kapat: menüden ve genel bakıştan kalkar, o sayfa için Steam'e istek atılmaz. Zamanlanmış işler ayarlarına göre arka planda sürer. Okla menü sırasını değiştir.": "Отключите страницы, которыми не пользуетесь: они исчезнут из меню и обзора, и для них ничего не запрашивается у Steam. Задания по расписанию продолжают работать в фоне согласно своим настройкам. Стрелками меняется порядок меню.",
+ "Performans": "Производительность",
+ "Performans modu": "Режим производительности",
+ "Tam": "Полный",
+ "Hafif": "Лёгкий",
+ "Bu bilgisayara göre ayarla": "Настроить под этот компьютер",
+ "Yukarı taşı": "Выше",
+ "Aşağı taşı": "Ниже",
+ "Hafif mod animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; zayıf bilgisayarlarda daha akıcı çalışır. Otomatik: işletim sisteminin hareketi azalt ayarı açıksa ya da bilgisayar zayıfsa hafif olur.": "Лёгкий режим отключает анимации, переходы, размытие и тени и работает плавнее на слабых компьютерах. Автоматически: лёгкий, если в системе включено уменьшение движения или компьютер слабый.",
+ "Kurulum": "Настройка",
+ "SteamEdge'e hoş geldin": "Добро пожаловать в SteamEdge",
+ "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Выберите страницы, которыми будете пользоваться. Это можно изменить в любое время в Настройки > Модули.",
+ "Başla": "Начать",
+ "# çekirdek · # GB bellek": "ядер: # · память: # ГБ",
+ "Önerilen:": "Рекомендуется:"
 }

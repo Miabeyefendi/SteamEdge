@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('imu', {
     onStatus: (cb) => ipcRenderer.on('update:status', (_e, d) => cb(d)),
   },
   appInfo: () => ipcRenderer.invoke('app:info'),
+  hardware: () => ipcRenderer.invoke('app:hardware'),
   appMemory: () => ipcRenderer.invoke('app:memory'),
   // Clears the image and network cache. No settings or session are lost.
   appMemoryClear: () => ipcRenderer.invoke('app:memoryClear'),

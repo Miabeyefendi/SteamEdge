@@ -1451,5 +1451,21 @@
  "Atlandı": "已略過",
  "# satışta · # hata · # kaldı": "已上架 # · 失敗 # · 剩餘 #",
  "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "無法取得 Steam 的手續費計算：金額為估算值，實際金額由 Steam 決定。",
- "Bu öğe için istek zaten gönderildi.": "此物品的請求已送出。"
+ "Bu öğe için istek zaten gönderildi.": "此物品的請求已送出。",
+ "Modüller": "模組",
+ "Kullanmadığın sayfaları kapat: menüden ve genel bakıştan kalkar, o sayfa için Steam'e istek atılmaz. Zamanlanmış işler ayarlarına göre arka planda sürer. Okla menü sırasını değiştir.": "關閉你用不到的頁面：它們會從選單和總覽中消失，也不會為它們向 Steam 發出任何請求。排程工作仍依各自的設定在背景執行。用箭頭調整選單順序。",
+ "Performans": "效能",
+ "Performans modu": "效能模式",
+ "Tam": "完整",
+ "Hafif": "輕量",
+ "Bu bilgisayara göre ayarla": "依這台電腦設定",
+ "Yukarı taşı": "上移",
+ "Aşağı taşı": "下移",
+ "Hafif mod animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; zayıf bilgisayarlarda daha akıcı çalışır. Otomatik: işletim sisteminin hareketi azalt ayarı açıksa ya da bilgisayar zayıfsa hafif olur.": "輕量模式會關閉動畫、轉場、模糊與陰影，在效能較弱的電腦上更順暢。自動：系統開啟減少動態效果，或電腦效能較弱時採用輕量。",
+ "Kurulum": "設定",
+ "SteamEdge'e hoş geldin": "歡迎使用 SteamEdge",
+ "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "選擇你會用到的頁面。之後隨時可在 設定 > 模組 中更改。",
+ "Başla": "開始",
+ "# çekirdek · # GB bellek": "# 核心 · # GB 記憶體",
+ "Önerilen:": "建議："
 }

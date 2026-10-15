@@ -10,6 +10,8 @@
     // has no counterpart in the sidebar it was moved to a separate function. The nav links call it too,
     // so there is only one path left.
     async function openTab(tab, sourceConnection) {
+      // A page that is switched off (Settings > Modules) is not opened by any road (menu, overview tile, start page, search): the overview opens instead.
+      if (!moduleOn(tab)) { tab = 'overview'; sourceConnection = document.querySelector('.nav a[data-tab="overview"]'); }
       // If leaving the Ayarlar tab, the unsaved changes warning (settings.js)
       const leavingSettings = !designed.settings.classList.contains('hidden');
       if (leavingSettings && typeof confirmLeaveSettings === 'function') {
@@ -274,6 +276,81 @@
       if (typeof applyTheme === 'function' && appSettings) applyTheme(appSettings.theme || 'dark');
       if (typeof setRailTop === 'function') setRailTop(railTab);
     }
+    // ================= MODULES =================
+    // A page that is switched off leaves the side menu, the overview and the top bar, and is never opened, so it asks Steam for nothing.
+    // The overview and Settings are always there. The side menu order is the setting navOrder.
+    const MODULES = { card:'moduleCard', inventory:'moduleInventory', hours:'moduleHours', realistic:'moduleRealistic', achievements:'moduleAchievements', keys:'moduleKeys', chat:'moduleChat' };
+    const NAV_ITEMS = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'keys'];
+    function moduleOn(tab){
+      const k = MODULES[tab];
+      return !k || !(typeof appSettings === 'object' && appSettings && appSettings[k] === false);
+    }
+    // Saved order first (unknown names dropped), whatever it does not mention follows in the default order.
+    function navOrderList(raw){
+      const saved = String(raw == null ? ((typeof appSettings === 'object' && appSettings && appSettings.navOrder) || '') : raw).split(',').filter(x => NAV_ITEMS.includes(x));
+      return [...new Set([...saved, ...NAV_ITEMS])];
+    }
+    function applyModules(){
+      const nav = document.getElementById('mainNav');
+      if (!nav) return;
+      const sep = nav.querySelector('.e-nav-sep');
+      navOrderList().forEach(tab => { const a = nav.querySelector('a[data-tab="'+tab+'"]'); if (a) nav.insertBefore(a, sep); });
+      Object.keys(MODULES).forEach(tab => {
+        const off = !moduleOn(tab);
+        const a = nav.querySelector('a[data-tab="'+tab+'"]');
+        if (a) a.style.display = off ? 'none' : '';
+        document.body.classList.toggle('mod-off-' + tab, off);
+      });
+      const chat = document.getElementById('tbChat');
+      if (chat) chat.style.display = moduleOn('chat') ? '' : 'none';
+      // switched off while it is on screen: back to the overview
+      const shown = Object.keys(designed).find(k => !designed[k].classList.contains('hidden'));
+      if (shown && !moduleOn(shown)) openTab('overview', nav.querySelector('a[data-tab="overview"]'));
+      setRailTop(railTab);
+    }
+
+    // ================= PERFORMANCE MODE =================
+    // Light: no animations, transitions, blur or shadows (edge.css .e-light). Automatic follows the system's "reduce motion" setting
+    // and switches on for a weak machine (2 cores or 2 GB, or 4 cores and 4 GB at most).
+    function weakMachine(cores, memGB){ return cores <= 2 || memGB <= 2 || (cores <= 4 && memGB <= 4); }
+    function perfLight(){
+      const mode = (typeof appSettings === 'object' && appSettings && appSettings.perfMode) || 'auto';
+      if (mode === 'light') return true;
+      if (mode === 'full') return false;
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches || weakMachine(navigator.hardwareConcurrency || 8, navigator.deviceMemory || 8);
+    }
+    function applyPerf(){ document.body.classList.toggle('e-light', perfLight()); }
+    try { window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPerf); } catch (_) {}
+
+    // ================= WELCOME WINDOW (first start only) =================
+    function showSetup(){
+      if (document.getElementById('setupBack')) return;
+      const names = { card:'Kart Düşür', inventory:'Envanter & Pazar', hours:'Saat Yükseltici', realistic:'Gerçekçi Mod', achievements:'Başarımlar', keys:'Anahtarlar', chat:'Sohbet' };
+      const back = document.createElement('div');
+      back.className = 'e-modal-back'; back.id = 'setupBack';
+      back.innerHTML = '<div class="e-modal" role="dialog" aria-modal="true">'
+        + '<div class="e-modal-hd"><span class="dot" style="background:#5624B3"></span><span class="ttl">'+esc(t('Kurulum'))+'</span></div>'
+        + '<div class="e-modal-body"><span class="h">'+esc(t('SteamEdge\'e hoş geldin'))+'</span>'
+        + '<span class="p">'+esc(t('Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller\'den değiştirebilirsin.'))+'</span></div>'
+        + Object.keys(names).map(k => '<div class="e-modal-ask on" data-sm="'+k+'"><span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DCE2FA" stroke-width="3.4"><path d="M5 13l4 4L19 7"></path></svg></span><span>'+esc(t(names[k]))+'</span></div>').join('')
+        + '<div class="e-modal-ask" style="cursor:default;gap:12px"><span style="flex:1">'+esc(t('Performans modu'))+'</span>'
+        + '<select id="setupPerf" style="height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
+        + '<option value="auto">'+esc(t('Otomatik'))+'</option><option value="full">'+esc(t('Tam'))+'</option><option value="light">'+esc(t('Hafif'))+'</option></select></div>'
+        + '<div class="e-modal-ft"><button class="ok" data-yes>'+esc(t('Başla'))+'</button></div></div>';
+      document.body.appendChild(back);
+      requestAnimationFrame(() => back.classList.add('show'));
+      back.querySelectorAll('[data-sm]').forEach(r => r.addEventListener('click', () => r.classList.toggle('on')));
+      back.querySelector('[data-yes]').onclick = async () => {
+        const patch = { setupDone: true, perfMode: back.querySelector('#setupPerf').value };
+        back.querySelectorAll('[data-sm]').forEach(r => { patch[MODULES[r.getAttribute('data-sm')]] = r.classList.contains('on'); });
+        try { appSettings = await window.imu.settings.set(patch); } catch (_) { Object.assign(appSettings || {}, patch); }
+        back.classList.remove('show');
+        setTimeout(() => back.remove(), 140);
+        applyModules(); applyPerf();
+        if (typeof paintAll === 'function') paintAll();
+      };
+    }
+
     // Resizing the window flips automatic density at the limit; the colours are only repainted when it really flips.
     window.addEventListener('resize', () => {
       if (!(typeof appSettings==='object' && appSettings && appSettings.density==='auto')) return;
@@ -555,21 +632,26 @@
     // ---- sidebar expand/collapse (< / > ) ----
     const sideNav = document.getElementById('sideNav');
     const SIDE_COLLAPSE_KEY = 'imu_side_collapsed';
-    // The rail tab stays aligned with the active nav item. The step between two items is measured instead of assumed
-    // (40 px + 4 px gap in comfortable density, 34 + 4 in compact), so it also follows a density change.
-    // Settings is not in the sidebar: its slot is the one after Keys.
-    const RAIL_ORDER = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'keys', 'settings'];
+    // The rail tab stays aligned with the active nav item, wherever it is now (a page can be switched off or moved). Measured, not assumed.
+    // Settings is not in the sidebar: its slot is the one after the last item.
     let railTab = 'overview';
     function setRailTop(tab) {
       const btn = document.getElementById('sideCollapseBtn');
-      const i = RAIL_ORDER.indexOf(tab);
-      if (!btn || i < 0) return;
+      if (!btn) return;
+      const items = [...document.querySelectorAll('.nav a[data-tab]:not(.e-logout)')].filter(a => a.style.display !== 'none');
+      if (!items.length) return;
+      let at;
+      if (tab === 'settings') {
+        const step = items.length > 1 ? items[1].offsetTop - items[0].offsetTop : 44;
+        at = items[items.length - 1].offsetTop + step;
+        railTab = tab;
+        btn.style.top = (at + (items[0].offsetHeight - btn.offsetHeight) / 2) + 'px';
+        return;
+      }
+      const a = items.find(x => x.getAttribute('data-tab') === tab);
+      if (!a) return;
       railTab = tab;
-      const a = document.querySelector('.nav a[data-tab="' + RAIL_ORDER[0] + '"]');
-      const b = document.querySelector('.nav a[data-tab="' + RAIL_ORDER[1] + '"]');
-      if (!a || !b) return;
-      const step = b.offsetTop - a.offsetTop;
-      btn.style.top = (a.offsetTop + (a.offsetHeight - btn.offsetHeight) / 2 + step * i) + 'px';
+      btn.style.top = (a.offsetTop + (a.offsetHeight - btn.offsetHeight) / 2) + 'px';
     }
     // railChevronPath: to the right when closed (open), to the left when open (close)
     function setRailChevron() {

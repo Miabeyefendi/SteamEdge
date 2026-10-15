@@ -451,3 +451,13 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
 .e-idle *,
 .e-idle *::before,
 .e-idle *::after{animation-play-state:paused!important;transition:none!important}
+
+/* ---- Modules: what belongs to a switched-off page leaves the overview (common.js applyModules sets the body class) ---- */
+.mod-off-card [data-mod="card"],.mod-off-inventory [data-mod="inventory"],.mod-off-hours [data-mod="hours"],.mod-off-achievements [data-mod="achievements"]{display:none!important}
+
+/* ---- Light mode (Settings > Modules > Performance): no animation, transition, blur, filter or shadow anywhere. The toast spinner keeps turning. ---- */
+body.e-light *,body.e-light *::before,body.e-light *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;filter:none!important;box-shadow:none!important;scroll-behavior:auto!important}
+body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
+
+/* Long lists: a row that is off screen is not laid out or painted */
+#invRows .inv-row{content-visibility:auto;contain-intrinsic-size:auto 46px}

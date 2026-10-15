@@ -17,12 +17,12 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"><path d="M4 12a8 8 0 0 1 13.3-6M20 12a8 8 0 0 1-13.3 6"></path><path d="M17 3v3.5h-3.5M7 21v-3.5h3.5"></path></svg>
         Yenile
       </button>
-      <button id="gOpenQueue" class="h-brand" style="height:36px;padding:0 18px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Kuyruğu Aç</button>
+      <button id="gOpenQueue" data-mod="card" class="h-brand" style="height:36px;padding:0 18px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Kuyruğu Aç</button>
     </div>
   </div>
 
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-    <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px">
+    <div data-mod="card" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px">
       <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#151C28;display:flex;align-items:center;justify-content:center">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2AAEE" stroke-width="1.8"><rect x="3" y="7" width="12" height="14" rx="2"></rect><path d="M8 4h9a2 2 0 0 1 2 2v11"></path></svg>
       </div>
@@ -32,7 +32,7 @@
         <span style="font-size:11px;color:#656D80" id="gStatCardsSub">Kart Düşür sekmesinde yenile</span>
       </div>
     </div>
-    <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px">
+    <div data-mod="card" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px">
       <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#151C28;display:flex;align-items:center;justify-content:center">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2AAEE" stroke-width="1.8"><rect x="3" y="4" width="7" height="7" rx="1"></rect><rect x="14" y="4" width="7" height="7" rx="1"></rect><rect x="3" y="15" width="7" height="5" rx="1"></rect><rect x="14" y="15" width="7" height="5" rx="1"></rect></svg>
       </div>
@@ -42,7 +42,7 @@
         <span style="font-size:11px;color:#656D80" id="gStatGamesSub">-</span>
       </div>
     </div>
-    <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px">
+    <div data-mod="card" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px">
       <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#151C28;display:flex;align-items:center;justify-content:center">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2AAEE" stroke-width="1.8"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>
       </div>
@@ -55,7 +55,7 @@
   </div>
 
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-    <div id="gNavHub" class="h-bd" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
+    <div id="gNavHub" data-mod="inventory" class="h-bd" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
       <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#151C28;display:flex;align-items:center;justify-content:center">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2AAEE" stroke-width="1.8"><path d="M4 8h16v12H4z"></path><path d="M4 8l2-4h12l2 4"></path></svg>
       </div>
@@ -65,7 +65,7 @@
         <span style="font-size:11px;color:#656D80" id="gStatValueSub">Envanter sekmesinde yenile</span>
       </div>
     </div>
-    <div id="gNavBoost" class="h-bd" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
+    <div id="gNavBoost" data-mod="hours" class="h-bd" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
       <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#151C28;display:flex;align-items:center;justify-content:center">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2AAEE" stroke-width="1.8"><path d="M13 3 5 14h6l-1 7 8-11h-6z"></path></svg>
       </div>
@@ -75,7 +75,7 @@
         <span style="font-size:11px;color:#656D80" id="gStatBoostSub">Çalışmıyor</span>
       </div>
     </div>
-    <div id="gNavAch" class="h-bd" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
+    <div id="gNavAch" data-mod="achievements" class="h-bd" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
       <div style="width:38px;height:38px;flex-shrink:0;border-radius:12px;background:#151C28;display:flex;align-items:center;justify-content:center">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C2AAEE" stroke-width="1.8"><path d="M8 4h8v5a4 4 0 0 1-8 0z"></path><path d="M12 13v4M9 20h6"></path></svg>
       </div>
@@ -106,7 +106,7 @@
 
     <div style="display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto">
 
-      <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden;display:flex;flex-direction:column;flex:56 1 0;min-height:274px">
+      <div data-mod="card" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden;display:flex;flex-direction:column;flex:56 1 0;min-height:274px">
         <div style="height:48px;flex-shrink:0;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1D2432">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Aktif Görev</span>
           <div id="gRunPill" style="display:flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:12px;background:#101621;border:1px solid #B37E24">

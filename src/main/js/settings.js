@@ -133,6 +133,9 @@
     function applySettingsEverywhere(first, changed){
       paintSettingGates();
       if (typeof applyDensity === 'function') applyDensity();
+      if (typeof applyModules === 'function') applyModules();
+      if (typeof applyPerf === 'function') applyPerf();
+      if (first && appSettings.setupDone === false && typeof showSetup === 'function') showSetup();
       // Start with the sidebar collapsed
       if (first && typeof sideNav !== 'undefined' && sideNav && (appSettings.sidebarCollapsed || (typeof railNarrowNow === 'function' && railNarrowNow()))) {
         sideNav.classList.add('collapsed');
@@ -195,6 +198,7 @@
     function showSetSection(pick){
       currentSetSec = pick;
       if (pick === 'advanced' && typeof readMemory === 'function') readMemory();
+      if (pick === 'modules') readPerfInfo();
       document.querySelectorAll('#tab-settings .setpanel').forEach(p=>{
         p.style.display = (p.getAttribute('data-sec')===pick) ? '' : 'none';
       });
@@ -279,8 +283,62 @@
         }
       });
     }
+    // Modules: the rows of the list follow the (draft) order; the arrows move a row and write the new order to the draft.
+    function paintModRows(){
+      const rows = [...document.querySelectorAll('#tab-settings [data-mod-row]')];
+      if (!rows.length) return;
+      const host = rows[0].parentNode;
+      const chat = host.querySelector('[data-mod-row="chat"]');
+      navOrderList(rawValue('navOrder')).forEach(tab => { const r = host.querySelector('[data-mod-row="'+tab+'"]'); if (r) host.insertBefore(r, chat); });
+      const first = navOrderList(rawValue('navOrder'))[0], last = navOrderList(rawValue('navOrder')).slice(-1)[0];
+      rows.forEach(r => {
+        const tab = r.getAttribute('data-mod-row');
+        const up = r.querySelector('[data-mv="up"]'), down = r.querySelector('[data-mv="down"]');
+        if (up) up.style.visibility = tab === first ? 'hidden' : '';
+        if (down) down.style.visibility = tab === last ? 'hidden' : '';
+      });
+    }
+    document.querySelectorAll('#tab-settings [data-mv]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const tab = b.closest('[data-mod-row]').getAttribute('data-mod-row');
+        const list = navOrderList(rawValue('navOrder'));
+        const i = list.indexOf(tab), j = i + (b.getAttribute('data-mv') === 'up' ? -1 : 1);
+        if (i < 0 || j < 0 || j >= list.length) return;
+        [list[i], list[j]] = [list[j], list[i]];
+        const box = document.querySelector('#tab-settings [data-set="navOrder"]');
+        box.value = list.join(',');
+        box.dispatchEvent(new Event('change'));
+        paintModRows();
+      });
+    });
+
+    // Performance: what the machine has, and the button that picks the mode for it.
+    let perfHardware = null;
+    async function readPerfInfo(){
+      const e = document.getElementById('perfInfo');
+      if (!e) return;
+      try { perfHardware = await window.imu.hardware(); } catch (_) { perfHardware = null; }
+      if (!perfHardware){ e.textContent = '-'; return; }
+      e.textContent = tf('# çekirdek · # GB bellek', perfHardware.cores, perfHardware.memGB);
+    }
+    (function bindPerfDetect(){
+      const b = document.getElementById('perfDetect');
+      if (!b) return;
+      b.addEventListener('click', async ()=>{
+        if (!perfHardware) await readPerfInfo();
+        const h = perfHardware || { cores: navigator.hardwareConcurrency || 8, memGB: navigator.deviceMemory || 8, gpuCompositing: 'unknown' };
+        const light = weakMachine(h.cores, h.memGB) || /^(disabled|unavailable)/.test(String(h.gpuCompositing));
+        const sel = document.querySelector('#tab-settings [data-set="perfMode"]');
+        sel.value = light ? 'light' : 'full';
+        writeToDraft('perfMode', sel.value);
+        const e = document.getElementById('perfInfo');
+        if (e) e.textContent = tf('# çekirdek · # GB bellek', h.cores, h.memGB) + ' · ' + t('Önerilen:') + ' ' + t(light ? 'Hafif' : 'Tam');
+      });
+    })();
+
     function paintAll(){
       paintControls();
+      paintModRows();
       paintSettingGates();
       showChanges();
       paintCurrencySymbols();

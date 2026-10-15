@@ -136,6 +136,8 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 
 界面密度默认为「自动」：窗口较矮时（低于约 720 像素）自动变为紧凑，把窗口拉高后又恢复宽松。窗口窄于 1000 像素时侧边栏会自动收起，窗口还会记住大小、位置以及是否最大化。
 
+在**模块**中可以关闭页面（集卡、时长、库存、拟真模式、成就、密钥、聊天），并上下移动其余页面。关闭的页面会从菜单、总览和顶部栏消失，无法打开，也不会向 Steam 请求任何东西；排程任务仍按各自设置在后台运行。**性能模式**有自动、完整、轻量三种。轻量会关闭动画、过渡、模糊和阴影；自动会在系统要求减少动态效果或电脑较弱时启用它，**依这台电脑设定**则根据找到的核心数和内存选择模式。应用首次启动时会询问你想用哪些页面。很长的库存会在后台绘制，因此 3000 行出现时页面仍可使用。
+
 ### 聊天
 
 从右上角的聊天按钮打开，不在侧边栏。左边是好友，在线的排在前面；右边是对话（打开时会载入最近 50 条消息）。Enter 发送，Shift+Enter 换行。未读数量会显示在好友那一行，也会显示在顶栏按钮上。
@@ -294,6 +296,9 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 | `autoLaunch` | `false` | 随 Windows 启动 |
 | `theme` | `dark` | 配色主题：`dark`、`midnight`（午夜紫）、`white` |
 | `density` | `auto` | 间距与行高：`auto`（窗口较矮时紧凑）、`comfortable`、`compact` |
+| `perfMode` | `auto` | 性能：`auto`、`full`、`light`（无动画、模糊和阴影） |
+| `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | 页面是否在使用。关闭的页面会从菜单消失，也不向 Steam 发请求 |
+| `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | 侧边菜单的顺序 |
 | `preventSleep` | `false` | 卡牌掉落、时数提升或拟真模式运行期间阻止电脑睡眠。屏幕仍可能关闭并锁定 |
 
 ### 卡牌掉落

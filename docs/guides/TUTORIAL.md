@@ -136,6 +136,8 @@ The theme (Dark, Midnight Purple, White) is under General and applies to the log
 
 The interface density is Automatic by default: it turns compact while the window is short (under about 720 pixels) and relaxes again when you make the window taller. The side menu closes by itself on a window narrower than 1000 pixels, and the window remembers its size, its place and whether it was maximized.
 
+Under **Modules** you can switch pages off (cards, hours, inventory, Realistic Mode, achievements, keys, chat) and move the rest up or down. A page that is off leaves the menu, the overview and the top bar, cannot be opened, and asks Steam for nothing; scheduled jobs keep running in the background according to their settings. **Performance mode** is Automatic, Full or Light. Light turns off animations, transitions, blur and shadows; Automatic switches it on when the system asks for less motion or the computer is weak, and **Set up for this computer** picks a mode from the cores and memory it finds. The first time the app starts it asks which pages you want. A long inventory is drawn in the background, so the page stays usable while 3000 rows appear.
+
 ### Chat
 
 Opened from the Chat button at the top right, not the sidebar. Friends on the left with the online ones first, the conversation on the right (the latest 50 messages load when you open it). Enter sends, Shift+Enter starts a new line. Unread counts show on the friend row and on the top bar button.
@@ -294,6 +296,9 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `autoLaunch` | `false` | Start with Windows |
 | `theme` | `dark` | Colour theme: `dark`, `midnight` (Midnight Purple), `white` |
 | `density` | `auto` | Spacing and row height: `auto` (compact while the window is short), `comfortable`, `compact` |
+| `perfMode` | `auto` | Performance: `auto`, `full`, `light` (no animations, blur or shadows) |
+| `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Whether each page is in use. A page that is off leaves the menu and makes no Steam request |
+| `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | The order of the side menu |
 | `preventSleep` | `false` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |
 
 ### Card farming
