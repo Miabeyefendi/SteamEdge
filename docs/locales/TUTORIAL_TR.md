@@ -136,6 +136,8 @@ Tema (Koyu, Gece Moru, Beyaz) Genel bölümündedir, giriş ekranına da uygulan
 
 Arayüz yoğunluğu varsayılan olarak Otomatiktir: pencere kısayken (yaklaşık 720 pikselin altı) sıkışık olur, pencereyi uzatınca yeniden ferah olur. Yan menü 1000 pikselden dar pencerede kendiliğinden kapanır, pencere boyutunu, yerini ve büyütülmüş olup olmadığını hatırlar.
 
+**Modüller** altında sayfaları kapatabilirsin (kart, saat, envanter, Gerçekçi Mod, başarım, anahtar, sohbet) ve kalanları yukarı aşağı taşıyabilirsin. Kapalı sayfa menüden, genel bakıştan ve üst çubuktan kalkar, açılamaz ve Steam'den hiçbir şey istemez; zamanlanmış işler ayarlarına göre arka planda sürer. **Performans modu** Otomatik, Tam ya da Hafif'tir. Hafif animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; Otomatik, sistem daha az hareket istediğinde ya da bilgisayar zayıfsa bunu açar, **Bu bilgisayara göre ayarla** ise bulduğu çekirdek ve belleğe göre bir mod seçer. Uygulama ilk açıldığında hangi sayfaları istediğini sorar. Uzun bir envanter arka planda çizilir, böylece 3000 satır gelirken sayfa kullanılabilir kalır.
+
 ### Sohbet
 
 Sağ üstteki Sohbet düğmesinden açılır, yan menüden değil. Solda arkadaşlar, çevrimiçi olanlar üstte; sağda yazışma (bir yazışma açılınca son 50 mesaj yüklenir). Enter gönderir, Shift+Enter alt satıra geçer. Okunmamış sayısı hem arkadaş satırında hem üst çubuktaki düğmede görünür.
@@ -294,6 +296,9 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `autoLaunch` | `false` | Windows ile başlat |
 | `theme` | `dark` | Renk teması: `dark`, `midnight` (Gece Moru), `white` |
 | `density` | `auto` | Boşluk ve satır yüksekliği: `auto` (pencere kısayken sıkışık), `comfortable`, `compact` |
+| `perfMode` | `auto` | Performans: `auto`, `full`, `light` (animasyon, bulanıklık ve gölge yok) |
+| `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Sayfanın kullanılıp kullanılmadığı. Kapalı sayfa menüden kalkar ve Steam'e istek atmaz |
+| `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Yan menü sırası |
 | `preventSleep` | `false` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
 
 ### Kart düşürme

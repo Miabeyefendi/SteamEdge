@@ -1451,5 +1451,21 @@
  "Atlandı": "Omitido",
  "# satışta · # hata · # kaldı": "# en venta · # con error · # restantes",
  "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "No se pudo acceder al cálculo de comisiones de Steam: los importes son estimados, Steam fija el importe real.",
- "Bu öğe için istek zaten gönderildi.": "Ya se envió una solicitud para este artículo."
+ "Bu öğe için istek zaten gönderildi.": "Ya se envió una solicitud para este artículo.",
+ "Modüller": "Módulos",
+ "Kullanmadığın sayfaları kapat: menüden ve genel bakıştan kalkar, o sayfa için Steam'e istek atılmaz. Zamanlanmış işler ayarlarına göre arka planda sürer. Okla menü sırasını değiştir.": "Desactiva las páginas que no uses: desaparecen del menú y del resumen, y no se pide nada a Steam para ellas. Las tareas programadas siguen en segundo plano según sus ajustes. Usa las flechas para cambiar el orden del menú.",
+ "Performans": "Rendimiento",
+ "Performans modu": "Modo de rendimiento",
+ "Tam": "Completo",
+ "Hafif": "Ligero",
+ "Bu bilgisayara göre ayarla": "Ajustar para este equipo",
+ "Yukarı taşı": "Subir",
+ "Aşağı taşı": "Bajar",
+ "Hafif mod animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; zayıf bilgisayarlarda daha akıcı çalışır. Otomatik: işletim sisteminin hareketi azalt ayarı açıksa ya da bilgisayar zayıfsa hafif olur.": "El modo ligero desactiva animaciones, transiciones, desenfoque y sombras; va más fluido en equipos modestos. Automático: ligero si el ajuste de reducir movimiento del sistema está activo o el equipo es modesto.",
+ "Kurulum": "Configuración",
+ "SteamEdge'e hoş geldin": "Te damos la bienvenida a SteamEdge",
+ "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Elige las páginas que vas a usar. Puedes cambiarlo cuando quieras en Ajustes > Módulos.",
+ "Başla": "Empezar",
+ "# çekirdek · # GB bellek": "# núcleos · # GB de memoria",
+ "Önerilen:": "Recomendado:"
 }

@@ -7,6 +7,23 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.1)
+
+Two things for people who want the app their own way: pages you can switch off, and a light mode for weak computers.
+
+### Added
+
+- **Modules (Settings > Modules).** Switch off the pages you do not use: cards, inventory, hour booster, Realistic Mode, achievements, keys and chat. A page that is off leaves the side menu, the overview tiles and the top bar, cannot be opened by any road (menu, overview, start page), and asks Steam for nothing. The arrows move the pages up and down, so the side menu follows your own order. Scheduled jobs (farming and Realistic Mode schedules) keep running in the background according to their settings. The edge tab of the menu follows the active item wherever it is now.
+- **Welcome window on a first start.** The first time the app starts it asks which pages you want and which performance mode. Existing installs are not asked.
+- **Performance mode (Settings > Modules > Performance): Automatic, Full or Light.** Light turns off animations, transitions, blur, filters and shadows. Automatic switches it on when the system's "reduce motion" setting is on or the computer is weak (2 cores or 2 GB of memory, or 4 cores and 4 GB at most). **Set up for this computer** shows the cores and memory it found and picks a mode for them.
+- **A long inventory is drawn in the background.** The first 200 rows appear at once and the rest follow in small steps, and rows that are off screen are not laid out, so a 3000 item inventory no longer blocks the page.
+
+### Changed
+
+- `npm test` runs 31 tests (new: modules, performance mode, the welcome window and the background drawing of a long inventory, all in one test).
+
+SHA-256 (`SteamEdge-v1.5.1-win-x64.rar`): `5a49eb53277959805d7a2b7c3141bde505d27e767454a9e001ed8585c261ecd5`
+
 ## [1.4.10](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.4.10)
 
 Follow-up to 1.4.9: one price button and a rebuilt sell flow on the inventory page, and an escaping fix found in a security review.

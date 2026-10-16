@@ -91,6 +91,7 @@
 - **Lists and filters** - A permanent blacklist and a whitelist for card farming, a filter that leaves out games still in their refund window, favorite games that sit at the top of the lists, and a CSV export of the inventory.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
 - **Fits your screen** - The layout is fluid down to 900 x 560: lists wrap instead of running off the edge, the side menu closes by itself on a narrow window and the interface turns compact on a short one. The window comes back where you left it, on a screen that still exists.
+- **Modular** - Switch off the pages you do not use (cards, hours, inventory, achievements, keys, chat) and put the rest in your own order. A page that is off asks Steam for nothing. A light mode turns off animations and blur for weak computers, and an automatic setting picks it for you.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
 
@@ -154,10 +155,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.4.10-win-x64.rar`:
-`b2e1bf8b421c35061e505cb1d59ab2f0ac8e4e644f5b1cc87dbdefbe34304570`
+SHA-256 of `SteamEdge-v1.5.1-win-x64.rar`:
+`5a49eb53277959805d7a2b7c3141bde505d27e767454a9e001ed8585c261ecd5`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.4.10-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.5.1-win-x64.rar`.
 
 </details>
 

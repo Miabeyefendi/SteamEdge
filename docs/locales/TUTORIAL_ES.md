@@ -136,6 +136,8 @@ El tema (Oscuro, Púrpura medianoche, Blanco) está en General y se aplica tambi
 
 La densidad de la interfaz es Automática por defecto: pasa a compacta mientras la ventana es baja (menos de unos 720 píxeles) y vuelve a ser cómoda cuando la haces más alta. El menú lateral se cierra solo en una ventana de menos de 1000 píxeles de ancho, y la ventana recuerda su tamaño, su posición y si estaba maximizada.
 
+En **Módulos** puedes desactivar páginas (cartas, horas, inventario, Modo realista, logros, claves, chat) y subir o bajar las demás. Una página desactivada desaparece del menú, del resumen y de la barra superior, no se puede abrir y no pide nada a Steam; las tareas programadas siguen en segundo plano según sus ajustes. El **modo de rendimiento** es Automático, Completo o Ligero. Ligero quita animaciones, transiciones, desenfoque y sombras; Automático lo activa cuando el sistema pide menos movimiento o el equipo es modesto, y **Ajustar para este equipo** elige un modo según los núcleos y la memoria que encuentra. La primera vez que arranca, la app pregunta qué páginas quieres. Un inventario largo se dibuja en segundo plano, así que la página sigue siendo usable mientras aparecen 3000 filas.
+
 ### Chat
 
 Se abre desde el botón Chat de arriba a la derecha, no desde el menú lateral. A la izquierda los amigos, con los conectados primero; a la derecha la conversación (al abrirla se cargan los últimos 50 mensajes). Enter envía, Shift+Enter salta de línea. Los no leídos aparecen en la fila del amigo y en el botón de la barra superior.
@@ -294,6 +296,9 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `autoLaunch` | `false` | Arrancar con Windows |
 | `theme` | `dark` | Tema de color: `dark`, `midnight` (Púrpura medianoche), `white` |
 | `density` | `auto` | Espaciado y altura de fila: `auto` (compacto mientras la ventana es baja), `comfortable`, `compact` |
+| `perfMode` | `auto` | Rendimiento: `auto`, `full`, `light` (sin animaciones, desenfoque ni sombras) |
+| `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Si la página está en uso. Una página desactivada sale del menú y no hace ninguna petición a Steam |
+| `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Orden del menú lateral |
 | `preventSleep` | `false` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
 
 ### Farmeo de cromos

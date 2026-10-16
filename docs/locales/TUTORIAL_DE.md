@@ -136,6 +136,8 @@ Das Farbschema (Dunkel, Mitternachtslila, Weiß) steht unter Allgemein und gilt 
 
 Die Oberflächendichte steht standardmäßig auf Automatisch: Sie wird kompakt, solange das Fenster niedrig ist (unter etwa 720 Pixel), und wird wieder geräumig, wenn das Fenster höher wird. Das Seitenmenü schließt sich von selbst, wenn das Fenster schmaler als 1000 Pixel ist, und das Fenster merkt sich Größe, Position und ob es maximiert war.
 
+Unter **Module** schaltest du Seiten aus (Karten, Stunden, Inventar, Realistischer Modus, Erfolge, Schlüssel, Chat) und verschiebst die übrigen nach oben oder unten. Eine ausgeschaltete Seite verschwindet aus Menü, Übersicht und Kopfleiste, lässt sich nicht öffnen und fragt nichts bei Steam an; zeitgesteuerte Aufgaben laufen gemäß ihren Einstellungen im Hintergrund weiter. Der **Leistungsmodus** ist Automatisch, Voll oder Leicht. Leicht schaltet Animationen, Übergänge, Unschärfe und Schatten aus; Automatisch aktiviert ihn, wenn das System weniger Bewegung wünscht oder der Computer schwach ist, und **Für diesen Computer einrichten** wählt anhand von Kernen und Speicher einen Modus. Beim ersten Start fragt die App, welche Seiten du willst. Ein langes Inventar wird im Hintergrund gezeichnet, die Seite bleibt also bedienbar, während 3000 Zeilen erscheinen.
+
 ### Chat
 
 Wird über die Chat-Schaltfläche oben rechts geöffnet, nicht über die Seitenleiste. Links die Freunde, die Online-Kontakte zuerst, rechts die Unterhaltung (beim Öffnen werden die letzten 50 Nachrichten geladen). Enter sendet, Shift+Enter beginnt eine neue Zeile. Ungelesene Nachrichten erscheinen in der Freundeszeile und auf der Schaltfläche in der oberen Leiste.
@@ -294,6 +296,9 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `autoLaunch` | `false` | Mit Windows starten |
 | `theme` | `dark` | Farbschema: `dark`, `midnight` (Mitternachtslila), `white` |
 | `density` | `auto` | Abstände und Zeilenhöhe: `auto` (kompakt, solange das Fenster niedrig ist), `comfortable`, `compact` |
+| `perfMode` | `auto` | Leistung: `auto`, `full`, `light` (keine Animationen, Unschärfe oder Schatten) |
+| `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Ob die Seite genutzt wird. Eine ausgeschaltete Seite verschwindet aus dem Menü und stellt keine Steam-Anfrage |
+| `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Reihenfolge des Seitenmenüs |
 | `preventSleep` | `false` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |
 
 ### Kartenfarming

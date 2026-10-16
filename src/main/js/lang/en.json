@@ -1451,5 +1451,21 @@
  "Atlandı": "Skipped",
  "# satışta · # hata · # kaldı": "# listed · # failed · # left",
  "Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.": "Steam's fee calculation could not be reached: the amounts are estimates, Steam sets the real amount.",
- "Bu öğe için istek zaten gönderildi.": "A request for this item was already sent."
+ "Bu öğe için istek zaten gönderildi.": "A request for this item was already sent.",
+ "Modüller": "Modules",
+ "Kullanmadığın sayfaları kapat: menüden ve genel bakıştan kalkar, o sayfa için Steam'e istek atılmaz. Zamanlanmış işler ayarlarına göre arka planda sürer. Okla menü sırasını değiştir.": "Switch off the pages you do not use: they leave the menu and the overview, and nothing is asked from Steam for them. Scheduled jobs keep running in the background according to their settings. Use the arrows to change the menu order.",
+ "Performans": "Performance",
+ "Performans modu": "Performance mode",
+ "Tam": "Full",
+ "Hafif": "Light",
+ "Bu bilgisayara göre ayarla": "Set up for this computer",
+ "Yukarı taşı": "Move up",
+ "Aşağı taşı": "Move down",
+ "Hafif mod animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; zayıf bilgisayarlarda daha akıcı çalışır. Otomatik: işletim sisteminin hareketi azalt ayarı açıksa ya da bilgisayar zayıfsa hafif olur.": "Light mode turns off animations, transitions, blur and shadows; it runs smoother on weak computers. Automatic: light when the system's reduce motion setting is on or the computer is weak.",
+ "Kurulum": "Setup",
+ "SteamEdge'e hoş geldin": "Welcome to SteamEdge",
+ "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Pick the pages you will use. You can change this any time in Settings > Modules.",
+ "Başla": "Start",
+ "# çekirdek · # GB bellek": "# cores · # GB memory",
+ "Önerilen:": "Recommended:"
 }

@@ -91,6 +91,7 @@
 - **Listas y filtros** - Una lista negra permanente y una lista blanca para el farmeo de cromos, un filtro que deja fuera los juegos aún en plazo de reembolso, juegos favoritos que quedan al principio de las listas y una exportación del inventario a CSV.
 - **Temas e idiomas** - Temas Oscuro, Púrpura medianoche y Blanco, pantalla de inicio de sesión incluida. Turco, inglés, alemán, español, chino tradicional y ruso. Las instalaciones nuevas empiezan en inglés.
 - **Se adapta a tu pantalla** - El diseño es fluido hasta 900 x 560: las listas pasan a otra línea en vez de salirse por el borde, el menú lateral se cierra solo en una ventana estrecha y la interfaz pasa a modo compacto en una ventana baja. La ventana vuelve donde la dejaste, en una pantalla que siga existiendo.
+- **Modular** - Desactiva las páginas que no uses (cartas, horas, inventario, logros, claves, chat) y ordena el resto como quieras. Una página desactivada no pide nada a Steam. Un modo ligero quita animaciones y desenfoque para equipos modestos, y un ajuste automático lo elige por ti.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
 

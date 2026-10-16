@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session, safeStorage } = require('electron');
+const os = require('os');
 const path = require('path');
 const fs = require('fs');
 const FarmController = require('./src/core/farmController');
@@ -320,6 +321,12 @@ const DEFAULT_SETTINGS = {
   chatReplyText: 'Şu an bilgisayarımın başında değilim, en kısa sürede döneceğim.',
   chatReplyCooldown: 60,    // an automatic reply to the same person at most once in this many minutes
   startPage: 'overview',
+  // Modules: a page that is switched off leaves the side menu and the overview and makes no Steam request of its own.
+  // Settings and the overview are always there. navOrder is the order of the side menu.
+  moduleCard: true, moduleInventory: true, moduleHours: true, moduleRealistic: true, moduleAchievements: true, moduleKeys: true, moduleChat: true,
+  navOrder: 'overview,card,inventory,hours,realistic,achievements,keys',
+  perfMode: 'auto',         // auto | full | light: light turns off animations, transitions, blur and shadows (see edge.css .e-light)
+  setupDone: true,          // false only on a first start: the welcome window asks which pages to use (see common.js showSetup)
   theme: 'dark',            // dark | midnight | white (see src/main/js/theme.js)
   density: 'auto',          // auto | comfortable | compact (*)
   timeFormat: '24',
@@ -516,7 +523,8 @@ function loadSettings() {
     try { settingSaveTime = fs.statSync(SETTINGS_FILE).mtimeMs; } catch (_) {}
   } else {
     settings = { ...DEFAULT_SETTINGS };
-    // none = first run, normal. corrupt = a real problem, tell the user.
+    // none = first run, normal: the welcome window will ask. corrupt = a real problem, tell the user.
+    if (r.none) settings.setupDone = false;
     if (r.corrupt) readErrors.push({ displayName: 'Ayarlar', recoveredFlag: false });
   }
   translation.pickLang(settings.language);
@@ -2275,6 +2283,13 @@ ipcMain.handle('engine:setAchievements', async (_e, { appid, changes }) => {
 // Steam's fee calculation (see src/services/steamFee.js). toplamlar: the amounts the buyer pays,
 // in cents. Returns: for each, the amount that will go to Steam and the real price at which the listing
 // will appear on the market.
+// What the machine has, for Settings > Modules > "Set up for this computer"
+ipcMain.handle('app:hardware', () => {
+  let gpu = 'unknown';
+  try { gpu = (app.getGPUFeatureStatus() || {}).gpu_compositing || 'unknown'; } catch (_) {}
+  return { cores: os.cpus().length || 0, memGB: Math.round(os.totalmem() / (1024 * 1024 * 1024)), gpuCompositing: gpu };
+});
+
 ipcMain.handle('engine:saleFee', async (_e, totals) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   let wallet = null;

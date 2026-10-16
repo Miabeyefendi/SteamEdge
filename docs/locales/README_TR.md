@@ -91,6 +91,7 @@
 - **Listeler ve süzgeçler** - Kart düşürme için kalıcı kara liste ve beyaz liste, iade süresindeki oyunları dışarıda bırakan bir süzgeç, listelerin başında duran favori oyunlar ve envanterin CSV olarak dışa aktarımı.
 - **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
 - **Ekrana uyar** - Yerleşim 900 x 560'a kadar akışkandır: listeler kenardan taşmak yerine alt satıra geçer, dar pencerede yan menü kendiliğinden kapanır, kısa pencerede arayüz sıkışık moda geçer. Pencere kaldığı yerde, hâlâ var olan bir ekranda açılır.
+- **Modüler** - Kullanmadığın sayfaları kapat (kart, saat, envanter, başarım, anahtar, sohbet), kalanları kendi sıranda diz. Kapalı sayfa Steam'den hiçbir şey istemez. Hafif mod zayıf bilgisayarlar için animasyon ve bulanıklığı kapatır, otomatik ayar bunu senin yerine seçer.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
 
