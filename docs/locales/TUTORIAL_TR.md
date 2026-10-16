@@ -108,7 +108,7 @@ Rozet sayfalarından okunan, kartı kalmış oyunların kuyruğu; 1-2 ya da 3+ k
 
 ### Envanter & Pazar
 
-Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; ortalamalar fiyatların hemen ardından aynı düğmeyle gelir; düğme ilerlemeyi gösterir ve iptal eder. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim). **İlanlarım** (sağ üstte) aktif ilanlarını açar; booster paketleri ve gemler tür süzgecinde kendi türleriyle durur.
+Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve fiyata göre süzülür, istenirse oyuna göre gruplanır. **Fiyatları getir**, o an süzülen öğelerin pazar fiyatını (varsayılan olarak her öğenin satış ortalamasıyla birlikte) çeker; ortalamalar fiyatların hemen ardından aynı düğmeyle gelir; düğme ilerlemeyi gösterir ve iptal eder. Detay paneli satıştaki ilanları, anında satılabilecek fiyatı ve gerçekleşen satışları gösterir. Alttaki çubuk seçimi, brüt tutarı ve eline geçecek tutarı toplar; **Sat** öncesi satış modlarını sunar (ortalamadan, altına in, en ucuzla aynı, hemen sat, kendim). **İlanlarım** (sağ üstte) aktif ilanlarını açar; booster paketleri ve gemler tür süzgecinde kendi türleriyle durur. Süzgeç çubuğunun başındaki bir seçici, diğer oyunların eşyalarına (Counter-Strike 2, Dota 2 ve daha fazlası) geçer; bunlar aynı tabloya aynı araçlarla yüklenir.
 
 ### Saat Yükseltici
 
@@ -134,9 +134,9 @@ Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçb
 
 Tema (Koyu, Gece Moru, Beyaz) Genel bölümündedir, giriş ekranına da uygulanır.
 
-Arayüz yoğunluğu varsayılan olarak Otomatiktir: pencere kısayken (yaklaşık 720 pikselin altı) sıkışık olur, pencereyi uzatınca yeniden ferah olur. Yan menü 1000 pikselden dar pencerede kendiliğinden kapanır, pencere boyutunu, yerini ve büyütülmüş olup olmadığını hatırlar.
+Arayüz yoğunluğu varsayılan olarak Otomatiktir: pencere kısayken (yaklaşık 720 pikselin altı) sıkışık olur, pencereyi uzatınca yeniden ferah olur. Yan menü 1000 pikselden dar pencerede kendiliğinden kapanır, pencere boyutunu, yerini ve büyütülmüş olup olmadığını hatırlar. 900 x 560 pikselin altında (giriş ekranı için 900 x 640) düzen daha fazla sıkıştırılmaz: sayfanın tamamı pencereye sığacak şekilde, dörtte üçe kadar küçültülür; böylece 675 x 420'lik bir pencere bile her düğmeyi gösterir.
 
-**Modüller** altında sayfaları kapatabilirsin (kart, saat, envanter, Gerçekçi Mod, başarım, anahtar, sohbet) ve kalanları yukarı aşağı taşıyabilirsin. Kapalı sayfa menüden, genel bakıştan ve üst çubuktan kalkar, açılamaz ve Steam'den hiçbir şey istemez; zamanlanmış işler ayarlarına göre arka planda sürer. **Performans modu** Otomatik, Tam ya da Hafif'tir. Hafif animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; Otomatik, sistem daha az hareket istediğinde ya da bilgisayar zayıfsa bunu açar, **Bu bilgisayara göre ayarla** ise bulduğu çekirdek ve belleğe göre bir mod seçer. Uygulama ilk açıldığında hangi sayfaları istediğini sorar. Uzun bir envanter arka planda çizilir, böylece 3000 satır gelirken sayfa kullanılabilir kalır.
+**Modüller** altında sayfaları kapatabilirsin (kart, saat, envanter, Gerçekçi Mod, başarım, anahtar, sohbet) ve kalanları yukarı aşağı taşıyabilirsin. Kapalı sayfa menüden, genel bakıştan ve üst çubuktan kalkar, açılamaz ve Steam'den hiçbir şey istemez; zamanlanmış işler ayarlarına göre arka planda sürer. **Performans modu** Otomatik, Tam ya da Hafif'tir. Hafif animasyonları, geçişleri, bulanıklığı ve gölgeleri kapatır; Otomatik, sistem daha az hareket istediğinde ya da bilgisayar zayıfsa bunu açar, **Bu bilgisayara göre ayarla** ise bulduğu çekirdek ve belleğe göre bir mod seçer. Uygulama ilk açıldığında hangi sayfaları istediğini sorar. Uzun bir envanter arka planda çizilir, böylece 3000 satır gelirken sayfa kullanılabilir kalır. İki kart daha küçük özellikleri (genel bakıştaki etkinlik kutusu, favori yıldızları, İlanlarım ve CSV aktar düğmeleri, diğer oyunların envanter seçicisi) ve üst çubuk öğelerini (arama kutusu, bildirim ve güncelleme düğmeleri) kapatır; ayarlar ve hesap düğmeleri her zaman kalır.
 
 ### Sohbet
 
@@ -206,7 +206,7 @@ Tek oyunu açık tutar ve başarımlarını oturum boyunca, en yaygından en nad
 
 **%100 bitiş süresi** bütün sayfanın üzerine kurulduğu sayıdır: bu oyunu bütün başarımlarıyla bitirmek kaç saat sürer. Girersen o oyun için hatırlanır. Boş bırakırsan oyun türünden tahmin edilir, ama o tahmin senin oynadığın süreye dayanır ve çok oynadığın oyunlarda şişer.
 
-**Hedef sayı** iki parçadan çıkar: bu kadar oynanmışken açılmış olması gereken sayı eksi gerçekten açılmış olan, artı bu oturumun kendi payı. Panel hesabı yazar, denetleyebilirsin. **Süreyi ayarlara göre belirle** açıkken ve süreyi elle yazmadıysan oturum uzunluğu da hesaplanır: geride kalan başarımlar için gerçek bir oyuncunun harcayacağı süre, 15 dakika ile 12 saat arasında tutulur.
+**Hedef sayı** ile **süre** birlikte, oturumu yürüten aynı kodla planlanır; yani kutulardaki sayılar çalışan sayılardır. **Süreyi ayarlara göre belirle** açıkken ve süreyi elle yazmadıysan hedef geride kalan her şeydir ve oturum, gerçek bir oyuncunun bunun için harcayacağı kadar sürer: %100 bitirme süresi, açılacak başarımların oranı ve zorlukla çarpılır (normal zorluk bitirme süresinin kendisidir), 15 dakika ile 999 saat arasında tutulur. 60 saatte biten bir oyun tüm başarımları için 60 saat alır; kuyrukta birden çok oyun varsa süre oyunların toplamıdır, her birinin kendi bitirme süresiyle. Bir süre yazarsan o kalır ve hedef, gerçek bir oyuncunun o sürede kazanacağı olur: bu kadar oynanmışken açılmış olması gereken sayı eksi gerçekten açılmış olan, artı bu saatlerin payı. Panel hesabı yazar, denetleyebilirsin.
 
 **Dağıtım modeli** aralıkların biçimini belirler. Doğrusal eşit dağıtır, üstel gerçek bir oyuncunun ilk saatleri gibi öne yükler, Pareto çoğunu ilk beşte bire koyar.
 
@@ -235,6 +235,8 @@ Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk
 **Booster paketleri ve gemler** kendi türlerine sahip. Booster paketi detay panelinden açılabilir; çıkan kartlar envantere eklenir. Paket açmak kalıcıdır.
 
 **CSV aktar.** Sayfanın üstündeki düğme, sayfanın gösterdiği eşyaları (geçerli süzgeç ya da hepsi) seçtiğin bir CSV dosyasına yazar: ad, oyun, tür, adet, pazarda satılabilir, takas edilebilir, çekilmiş en düşük ve medyan fiyat, birim değer ve yığının değeri. Fiyatlar aktarım için çekilmez; dosyada olsun istiyorsan önce çek. Sütun adları her zaman İngilizcedir ve formül gibi başlayan bir ad, tablo programı çalıştırmasın diye kesme işaretiyle işaretlenir.
+
+**Diğer oyunların envanterleri.** Süzgeç çubuğunun başındaki seçici, hesabın eşyası olan oyunları listeler (envanter sayfasından okunur). Birini seç, sırt çantası aynı tabloya yüklenir: tür ve oyun süzgeçleri çekilir; fiyatlar, satış geçmişi, emir defteri, satış ve CSV aktarımı Steam eşyalarındaki gibi çalışır; çift tık eşyanın kendi pazar sayfasını açar. Okunanlar sen satana ya da yenileyene kadar saklanır, böylece ileri geri geçmek istek harcamaz. Fiyatlar kendiliğinden değil düğmeyle çekilir, çünkü bir sırt çantasında yüzlerce çeşit eşya olabilir ve Steam 30 saniyede yaklaşık 20 isteğe izin verir. Bir oyunun eşyaları yalnızca adıyla fiyatlanır; aşınma (float), desen ve çıkartma fiyata dahil değildir. Pahalı eşyaların fiyatını Steam'de kontrol et, satış sorusu bunu uyarır. 2000'den büyük bir envanter sayfa sayfa okunur; Steam sonraki bir sayfayı reddederse okunan kısım bir uyarıyla gösterilir. Steam bu eşyaları engellemez; seçici Ayarlar > Modüller altından kapatılabilir.
 
 ### Ürün anahtarları
 
@@ -299,6 +301,8 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `perfMode` | `auto` | Performans: `auto`, `full`, `light` (animasyon, bulanıklık ve gölge yok) |
 | `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Sayfanın kullanılıp kullanılmadığı. Kapalı sayfa menüden kalkar ve Steam'e istek atmaz |
 | `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Yan menü sırası |
+| `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Kapatılabilen küçük özellikler: genel bakış etkinlik kutusu, favori yıldızları, İlanlarım, CSV aktar, diğer oyunların envanterleri |
+| `topSearch`, `topNotif`, `topUpdate` | `true` | Kapatılabilen üst çubuk öğeleri: arama kutusu, bildirim düğmesi, güncelleme düğmesi |
 | `preventSleep` | `false` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
 
 ### Kart düşürme
@@ -409,6 +413,10 @@ Steam bir hesabın kaç ilan açabileceğini sınırlar; sınır hesabın yaşı
 ### "40 kart kaldı" yazıyor ama birkaç tane düştü
 
 Kart düşürmesi kısıtlı hesaplarda kartlar ancak oyun Kart düşme eşiğini (genelde toplam iki saat) geçince düşer ve her oyunun düşecek kart sayısı sınırlıdır. Diğer modlarda, hepsi iki saatin altındaki oyunlarla geçen uzun bir oturum eşik geçilene kadar hiçbir şey üretmez; Hızlı mod önce bu oyunları birlikte eşiğin üstüne çıkarır.
+
+### Counter-Strike 2 ya da Dota 2 eşyaları görünmüyor
+
+Envanter & Pazar sayfasında süzgeç çubuğunun başındaki seçiciden oyunu seç; kendiliğinden yalnızca Steam envanteri açılır. Seçici yoksa Ayarlar > Modüller > Diğer oyunların envanterleri açık mı ve oyunun hesapta eşyası var mı diye bak. Envanterin yalnızca bir bölümünün okunabildiğini söyleyen uyarı, Steam'in sonraki bir sayfayı reddettiği anlamına gelir (istek sınırı): birkaç dakika bekle ve oyunu yeniden seç.
 
 ### Fiyatlar tire gösteriyor ya da çok yavaş doluyor
 

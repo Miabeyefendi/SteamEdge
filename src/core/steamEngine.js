@@ -1,6 +1,7 @@
 const SteamUser = require('steam-user');
 const translation = require('./translation');
 const { parseProxy, proxyFetch } = require('./proxyFetch');
+const inventorySources = require('./inventorySources');
 // steam-user's internal protobufs map doesn't register the user-stats messages, so we encode/decode
 // them ourselves from its generated schema and hand raw buffers to _send.
 const Schema = require('steam-user/protobufs/generated/_load.js');
@@ -574,17 +575,18 @@ class SteamEngine {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  // Real inventory (context 753/6 = Steam Community items: cards, backgrounds, emoticons, gems...).
-  // count=5000 returns HTTP 400 on some accounts; 2000 is the known-working cap (same limit the
-  // old .NET app hit and fixed the same way).
-  async getInventory() {
+  // An inventory: by default the Steam community one (appid 753, context 6: cards, backgrounds, emoticons, gems...), or the backpack of a
+  // game (Counter-Strike 2 is 730/2, Dota 2 570/2). appName is the game's name for the Game column; it is only known for the other games.
+  // count=5000 returns HTTP 400 on some accounts; 2000 is the known-working cap (same limit the old .NET app hit and fixed the same way).
+  // An inventory bigger than a page is read page by page (Steam says so with more_items and last_assetid). If a LATER page is refused
+  // (Steam answers a quick second request with 429) the items read so far are returned and the array says `incomplete`: a part of the
+  // inventory is better than an error, as long as the page tells the user it is a part.
+  async getInventory(appid = inventorySources.COMMUNITY.appid, contextId = inventorySources.COMMUNITY.contextId, appName = null) {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
-    const url = `https://steamcommunity.com/inventory/${this.steamID}/753/6?l=english&count=2000`;
-    const r = await this._requestItem(url, {}, 'Envanter');
-    const j = await r.json();
+    const app = +appid || inventorySources.COMMUNITY.appid;
+    const context = String(contextId || inventorySources.COMMUNITY.contextId);
+    const community = app === inventorySources.COMMUNITY.appid;
     const key = (a) => a.classid + '_' + a.instanceid;
-    const descMap = {};
-    (j.descriptions || []).forEach((d) => { descMap[key(d)] = d; });
 
     // item_class ids confirmed against this account's real inventory dump.
     // NOTE: badges ("Rozet") are NOT inventory items - they're a separate Steam profile feature
@@ -601,31 +603,80 @@ class SteamEngine {
       item_class_17: 'profile',  // Startup Movie
     };
     const items = [];
-    (j.assets || []).forEach((a, idx) => {
-      const d = descMap[key(a)];
-      if (!d) return;
-      const tags = d.tags || [];
-      const classTag = tags.find((t) => t.category === 'item_class');
-      const gameTag = tags.find((t) => t.category === 'Game');
-      items.push({
-        assetId: a.assetid,
-        order: idx,                                // Steam's own inventory order
-        dedupKey: key(a),                          // same classid+instanceid = visually identical item (duplicate)
-        name: d.name,
-        marketHashName: d.market_hash_name || null, // needed for priceoverview; null if not marketable
-        // 96x96 was too small (blurry on a high DPI screen, squashed in a 150px box in the detail panel).
-        // Steam's economy CDN produces the requested size - 330x192 fits the card ratio and is sharp.
-        iconUrl: d.icon_url ? `https://community.cloudflare.steamstatic.com/economy/image/${d.icon_url}/330x192` : null,
-        tradable: !!d.tradable,
-        marketable: !!d.marketable,
-        type: (classTag && TYPE_MAP[classTag.internal_name]) || (/booster pack/i.test(d.type || '') ? 'booster' : /gems?$/i.test(d.type || '') ? 'gems' : 'other'),
-        gameName: gameTag ? gameTag.localized_tag_name : null,
-        // the game an item belongs to; booster packs need it to be opened
-        appid: +d.market_fee_app || ((/^app_(\d+)$/.exec((gameTag && gameTag.internal_name) || '') || [])[1] | 0),
-        amount: parseInt(a.amount || '1', 10),
+    let incomplete = false, startAssetId = null;
+    for (let page = 0; page < SteamEngine.INVENTORY_MAX_PAGES; page++) {
+      const url = `https://steamcommunity.com/inventory/${this.steamID}/${app}/${context}?l=english&count=2000`
+        + (startAssetId ? '&start_assetid=' + encodeURIComponent(startAssetId) : '');
+      let j;
+      try {
+        const r = await this._requestItem(url, {}, 'Envanter');
+        j = await r.json();
+      } catch (e) {
+        if (!page) throw e;
+        incomplete = true;
+        break;
+      }
+      if (!j) break;                                   // an empty inventory can come back as null
+      if (page === 0 && (j.success === false || j.success === 0)) throw new Error(translation.t('Envanter okunamadı.'));
+      const descMap = {};
+      (j.descriptions || []).forEach((d) => { descMap[key(d)] = d; });
+      const base = items.length;
+      (j.assets || []).forEach((a, idx) => {
+        const d = descMap[key(a)];
+        if (!d) return;
+        const tags = d.tags || [];
+        const classTag = tags.find((t) => t.category === 'item_class');
+        const gameTag = tags.find((t) => t.category === 'Game');
+        const common = {
+          assetId: a.assetid,
+          order: base + idx,                         // Steam's own inventory order
+          dedupKey: key(a),                          // same classid+instanceid = visually identical item (duplicate)
+          // 96x96 was too small (blurry on a high DPI screen, squashed in a 150px box in the detail panel).
+          // Steam's economy CDN produces the requested size - 330x192 fits the card ratio and is sharp.
+          iconUrl: d.icon_url ? `https://community.cloudflare.steamstatic.com/economy/image/${d.icon_url}/330x192` : null,
+          tradable: !!d.tradable,
+          marketable: !!d.marketable,
+          amount: parseInt(a.amount || '1', 10),
+          invApp: app, invContext: context,          // where the item lives: the sale needs both
+        };
+        if (community) {
+          items.push(Object.assign(common, {
+            name: d.name,
+            marketHashName: d.market_hash_name || null, // needed for priceoverview; null if not marketable
+            type: (classTag && TYPE_MAP[classTag.internal_name]) || (/booster pack/i.test(d.type || '') ? 'booster' : /gems?$/i.test(d.type || '') ? 'gems' : 'other'),
+            gameName: gameTag ? gameTag.localized_tag_name : null,
+            // the game an item belongs to; booster packs need it to be opened
+            appid: +d.market_fee_app || ((/^app_(\d+)$/.exec((gameTag && gameTag.internal_name) || '') || [])[1] | 0),
+          }));
+        } else {
+          items.push(Object.assign(common, {
+            // market_name is the full name a game's items are sold under ("AK-47 | Redline (Field-Tested)"), name can lack the wear
+            name: d.market_name || d.name,
+            marketHashName: inventorySources.marketKey(app, d.market_hash_name),
+            hashName: d.market_hash_name || null,    // Steam's own name: the market link and the CSV use it
+            type: 'other',
+            typeText: d.type || '',
+            gameName: appName || ('App ' + app),
+            appid: app,
+          }));
+        }
       });
-    });
+      if (!j.more_items || !j.last_assetid) break;
+      startAssetId = String(j.last_assetid);
+      await new Promise((res) => setTimeout(res, SteamEngine.INVENTORY_PAGE_GAP_MS));
+    }
+    if (incomplete) Object.defineProperty(items, 'incomplete', { value: true });
     return items;
+  }
+
+  // The games the account has items in, for the source list of the Inventory page. They are printed in the inventory page itself
+  // (g_rgAppContextData). `found` is false when the page did not have them (Steam changed it): the usual games are offered instead and
+  // the page loads them on request, an empty one just says it is empty.
+  async getInventorySources() {
+    if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
+    const r = await this._requestItem(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
+    const list = inventorySources.parseAppContexts(await r.text());
+    return list ? { found: true, list } : { found: false, list: inventorySources.FALLBACK_SOURCES };
   }
 
   // Steam Community Market price (TRY / "TL", matching the ₺ used elsewhere in the UI).
@@ -639,7 +690,8 @@ class SteamEngine {
     const code = this.currencyCode();
     const cur = code && SteamEngine.CURRENCY[code];
     if (!cur) return { noCurrency: true };
-    const url = `https://steamcommunity.com/market/priceoverview/?appid=753&currency=${cur}&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
+    const item = inventorySources.splitMarketKey(marketHashName);
+    const url = `https://steamcommunity.com/market/priceoverview/?appid=${item.appid}&currency=${cur}&l=english&market_hash_name=${encodeURIComponent(item.name)}`;
     const r = await this._fetch(url);
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
@@ -662,7 +714,8 @@ class SteamEngine {
   // parameter, it replies according to the session).
   async getPriceHistory(marketHashName) {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
-    const url = `https://steamcommunity.com/market/pricehistory/?appid=753&l=english&market_hash_name=${encodeURIComponent(marketHashName)}`;
+    const item = inventorySources.splitMarketKey(marketHashName);
+    const url = `https://steamcommunity.com/market/pricehistory/?appid=${item.appid}&l=english&market_hash_name=${encodeURIComponent(item.name)}`;
     const r = await this._fetch(url, { headers: { Cookie: this.cookieHeader() } });
     if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
@@ -741,7 +794,8 @@ class SteamEngine {
   async getItemOrders(marketHashName) {
     const code = this.currencyCode();
     if (!code) return { noCurrency: true };
-    const url = `https://steamcommunity.com/market/listings/753/${encodeURIComponent(marketHashName)}?l=english`;
+    const item = inventorySources.splitMarketKey(marketHashName);
+    const url = `https://steamcommunity.com/market/listings/${item.appid}/${encodeURIComponent(item.name)}?l=english`;
     const r = await this._fetch(url, {
       headers: {
         Cookie: this.cookieHeader(),
@@ -815,13 +869,13 @@ class SteamEngine {
   // Lists an item on the Community Market. `priceCents` is what the SELLER receives (Steam adds
   // its fee on top for the buyer). If the account has a mobile authenticator, Steam still requires
   // the user to approve each listing in the Steam app - we do not auto-confirm.
-  async sellItem(assetId, priceCents, amount = 1) {
+  async sellItem(assetId, priceCents, amount = 1, appid = inventorySources.COMMUNITY.appid, contextId = inventorySources.COMMUNITY.contextId) {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
     if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
     const sessionid = sidCookie.split('=')[1];
     const body = new URLSearchParams({
-      sessionid, appid: '753', contextid: '6',
+      sessionid, appid: String(+appid || inventorySources.COMMUNITY.appid), contextid: String(contextId || inventorySources.COMMUNITY.contextId),
       assetid: String(assetId), amount: String(amount), price: String(Math.round(priceCents)),
     });
     const r = await this._fetch('https://steamcommunity.com/market/sellitem/', {
@@ -1417,6 +1471,9 @@ class SteamEngine {
   }
 }
 
+// A bigger inventory is read page by page: at most this many pages (2000 items each), a pause in between (Steam answers a quick second request with 429)
+SteamEngine.INVENTORY_MAX_PAGES = 25;
+SteamEngine.INVENTORY_PAGE_GAP_MS = 1500;
 // Steam's own ECurrencyCode enum (it comes inside steam-user) - code<->name conversion
 // is done from there, we keep no hand-written list.
 // Steam's new SSR market page expects a browser-like User-Agent.

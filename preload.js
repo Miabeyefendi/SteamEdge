@@ -120,7 +120,7 @@ contextBridge.exposeInMainWorld('imu', {
   realistic: {
     // G11: duration in milliseconds, options = { hedef, model, rastgeleAralik, ultraNadirAtla,
     // otoSira, saatiSurdur, gecikmisHizlandir }. oyunlar = array of appids (the queue).
-    plan: (appid, durationMs, options) => ipcRenderer.invoke('realistic:plan', { appid, spanMs: durationMs, optionList: options }),
+    plan: (appid, durationMs, options, queueIds) => ipcRenderer.invoke('realistic:plan', { appid, spanMs: durationMs, optionList: options, queueIds }),
     start: (gameList, durationMs, options) => ipcRenderer.invoke('realistic:start', { gameEntries: gameList, spanMs: durationMs, optionList: options }),
     stop: () => ipcRenderer.send('realistic:stop'),
     // Games found to have no achievements. Learned once, written to disk, and that game
@@ -162,7 +162,10 @@ contextBridge.exposeInMainWorld('imu', {
     dropGames: () => ipcRenderer.invoke('engine:dropGames'),
     // Last fetched card/library lists - makes no request to Steam, reads from disk.
     lastLists: () => ipcRenderer.invoke('engine:lastLists'),
-    inventory: () => ipcRenderer.invoke('engine:inventory'),
+    // source (optional): { appid, contextId, appName } - a game's backpack instead of the Steam community inventory
+    inventory: (source) => ipcRenderer.invoke('engine:inventory', source),
+    // The games the account has items in
+    inventorySources: () => ipcRenderer.invoke('engine:inventorySources'),
     pricesFor: (hashNames) => ipcRenderer.invoke('engine:pricesFor', hashNames),
     // Makes no request to Steam, only reads the cache on disk (used when the inventory opens)
     pricesForCached: (hashNames) => ipcRenderer.invoke('engine:pricesFor', { hashNames, cacheOnly: true }),
@@ -177,7 +180,7 @@ contextBridge.exposeInMainWorld('imu', {
     onHistoryOne: (cb) => ipcRenderer.on('history:one', (_e, d) => cb(d)),
     onHistoryProgress: (cb) => ipcRenderer.on('history:progress', (_e, d) => cb(d)),
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
-    sellItem: (assetId, priceCents, amount) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount }),
+    sellItem: (assetId, priceCents, amount, appid, contextId) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount, appid, contextId }),
     unpackBooster: (assetId, appid) => ipcRenderer.invoke('engine:unpackBooster', { assetId, appid }),
     // Steam's own fee calculation: the amounts the buyer pays (cents) -> what the seller keeps
     saleFee: (totals) => ipcRenderer.invoke('engine:saleFee', totals),

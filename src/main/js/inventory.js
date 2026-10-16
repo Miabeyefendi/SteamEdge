@@ -20,6 +20,27 @@
     let bulkStrategy = 'median';
     let manualPrice = null;                   // the amount entered when "Kendim" is selected
 
+    // ---- which inventory is on screen ----
+    // The Steam community inventory (cards, backgrounds, emoticons, gems: 753/6) is the default. The games the account has items in
+    // (Counter-Strike 2, Dota 2...) are listed in a select next to the filters; one is on screen at a time. What was read is kept per
+    // source, so going back and forth costs no request, and the Overview keeps its numbers from the community inventory.
+    const COMMUNITY_ID = '753:6';
+    let invSource = COMMUNITY_ID;
+    let invSources = null;                    // the games with items (engine:inventorySources), null until known
+    let sourcesAsked = false;
+    const sourceState = new Map();            // source id -> { items, merged }
+    const onCommunity = () => invSource === COMMUNITY_ID;
+    function communityMerged(){ const k = sourceState.get(COMMUNITY_ID); return k ? k.merged : null; }
+    const sourceOf = (it) => ((it && it.invApp) || 753) + ':' + ((it && it.invContext) || '6');
+    // an asset number is only unique inside its game: the ones of other games carry the game in front
+    const assetTag = (it, assetId) => ((((it && it.invApp) || 753) === 753) ? '' : it.invApp + ':') + assetId;
+    function marketUrl(it){ return 'https://steamcommunity.com/market/listings/' + ((it && it.invApp) || 753) + '/' + encodeURIComponent((it && (it.hashName || it.marketHashName)) || ''); }
+    function sourceRequest(){
+      const m = /^(\d+):(\d+)$/.exec(invSource) || [];
+      const game = (invSources || []).find(g => String(g.appid) === m[1]);
+      return { appid: +m[1], contextId: m[2], appName: game ? game.name : null };
+    }
+
     const EC = { ok:'#5FB324', teal:'#24AEB3', bad:'#B32453', brand:'#5624B3', sub:'#C2AAEE',
                  title:'#DCE2FA', muted:'#8B8F9E', off:'#656D80', bd:'#2B3345', s1:'#0D1118' };
 
@@ -56,20 +77,105 @@
 
     async function loadInventory(){
       if (inventoryLoaded) return;
+      const source = invSource;
       document.getElementById('invRows').innerHTML = '<div style="padding:20px;color:#8B8F9E;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
+      if (source !== invSource) return;        // another inventory was chosen meanwhile: its own load puts it on screen
       if (!con.ok){ document.getElementById('invRows').innerHTML = '<div style="padding:20px;color:#B32453;font-size:12px">'+esc(con.error)+'</div>'; return; }
-      const res = await E.inventory().catch(e=>({ ok:false, error:(e&&e.message)||'Envanter okunamadı.' }));
+      const res = await E.inventory(onCommunity() ? undefined : sourceRequest()).catch(e=>({ ok:false, error:(e&&e.message)||'Envanter okunamadı.' }));
+      if (source !== invSource) return;
       if (!res.ok){ document.getElementById('invRows').innerHTML = '<div style="padding:20px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
       invItems = res.items;
       invMerged = mergeDuplicates(invItems);
+      sourceState.set(source, { items: invItems, merged: invMerged });
       inventoryLoaded = true;
       applyInvSettings();
       buildGameSelect();
       renderInventory();
+      if (res.incomplete && typeof toast === 'function') toast('Envanter').fail('Envanterin yalnızca bir bölümü okunabildi (Steam istek sınırı). Birkaç dakika sonra yeniden dene.');
+      loadSources();
       await fillFromCache();
-      askFetchPrices();
+      if (onCommunity()) askFetchPrices();     // the prices of a game's items are fetched with the button: there can be hundreds of kinds
     }
+
+    // The games the account has items in, once per account: they fill the select next to the filters.
+    async function loadSources(){
+      if (sourcesAsked || !E.inventorySources || !featureOn('games')) return;
+      sourcesAsked = true;
+      const res = await E.inventorySources().catch(()=>null);
+      if (!res || !res.ok || !Array.isArray(res.list)){ sourcesAsked = false; return; }
+      invSources = res.list;
+      buildSourceSelect();
+    }
+    function buildSourceSelect(){
+      const sel = document.getElementById('efSource');
+      if (!sel) return;
+      const rows = [];
+      (invSources || []).forEach(g => (g.contexts || []).forEach(c => rows.push({
+        id: g.appid + ':' + c.id,
+        label: g.name + ((g.contexts.length > 1 && c.name) ? ' · ' + c.name : '') + (c.assetCount ? ' (' + c.assetCount + ')' : ''),
+      })));
+      if (!rows.length || !featureOn('games')){ sel.style.display = 'none'; return; }
+      sel.innerHTML = '<option value="' + COMMUNITY_ID + '">' + esc(t('Steam (kartlar, arka planlar, ifadeler)')) + '</option>'
+        + rows.map(r => '<option value="' + esc(r.id) + '">' + esc(r.label) + '</option>').join('');
+      if (![...sel.options].some(o => o.value === invSource)) invSource = COMMUNITY_ID;
+      sel.value = invSource;
+      sel.style.display = '';
+    }
+    // The type and game filters and the grouping belong to the Steam inventory (one game, many kinds of item): a game's backpack has neither.
+    function paintSourceUI(){
+      ['efType', 'efGame', 'invGroup'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.dataset.shown === undefined) el.dataset.shown = el.style.display;
+        el.style.display = onCommunity() ? el.dataset.shown : 'none';
+      });
+    }
+    // Puts another inventory on screen. One that was read before comes back at once; a new one is loaded. quiet: the caller loads it itself.
+    function switchSource(id, quiet){
+      if (!/^\d+:\d+$/.test(String(id)) || id === invSource) return;
+      if (!quiet && (saleBusy || saleTask)){
+        toast('Satış').fail('Önceki satış işlemi sürüyor.');
+        const back = document.getElementById('efSource'); if (back) back.value = invSource;
+        return;
+      }
+      invSource = id;
+      selected.clear(); lastTicked = null; detailKey = null;
+      fType = 'all'; fGame = 'all'; fPrice = 'all'; fState = (appSettings && appSettings.hideUnsellable) ? 'marketable' : 'all';
+      ['efType', 'efGame', 'efPrice'].forEach(k => { const el = document.getElementById(k); if (el) el.value = 'all'; });
+      const stateSel = document.getElementById('efState'); if (stateSel) stateSel.value = fState;
+      const search = document.getElementById('invSearch'); if (search) search.value = '';
+      const picker = document.getElementById('efSource'); if (picker) picker.value = id;
+      const kept = sourceState.get(id);
+      invItems = kept ? kept.items : null;
+      invMerged = kept ? kept.merged : null;
+      inventoryLoaded = !!kept;
+      paintSourceUI();
+      if (kept){ buildGameSelect(); renderInventory(); return; }
+      ['invStatTotal', 'invStatSellable', 'invStatTradable', 'invStatValue', 'invCount'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = '-'; });
+      if (!quiet) loadInventory();
+    }
+    // Settings > Modules > "Diğer oyunların envanterleri": switched off, the select goes and the Steam inventory comes back; on again, the games are read.
+    function syncOtherGames(){
+      const sel = document.getElementById('efSource');
+      if (!sel) return;
+      if (!featureOn('games')){
+        sel.style.display = 'none';
+        if (!onCommunity()) switchSource(COMMUNITY_ID);
+      } else if (invSources) buildSourceSelect();
+      else if (inventoryLoaded) loadSources();
+    }
+    // The Overview and its quick actions are about the Steam inventory: they put it back on screen first.
+    function useCommunitySource(){ if (!onCommunity()) switchSource(COMMUNITY_ID, true); }
+    // A new account starts with the community inventory and its own list of games.
+    function resetInventorySources(){
+      sourceState.clear(); invSource = COMMUNITY_ID; invSources = null; sourcesAsked = false;
+      const sel = document.getElementById('efSource'); if (sel){ sel.style.display = 'none'; sel.innerHTML = ''; }
+      paintSourceUI();
+    }
+    // Something changed in more than one inventory (a listing came back): what was kept is stale.
+    function dropKeptSources(){ sourceState.clear(); }
+    document.getElementById('efSource').addEventListener('change', e => switchSource(e.target.value));
 
     // When the page opens first read the cache ON DISK. No request goes to Steam, it returns instantly.
     // If there is a cache the prices are already on screen and the user is asked nothing;
@@ -373,7 +479,7 @@
       let out = invMerged.filter(i=>{
         // "Hide sold items from the inventory": the copies put on sale in this session are subtracted;
         // if all were put on sale the row is hidden. The Steam inventory is sometimes updated late.
-        if (appSettings && appSettings.hideAfterSell && i.assetIds.every(a=>listedAssets.has(a))) return false;
+        if (appSettings && appSettings.hideAfterSell && i.assetIds.every(a=>listedAssets.has(assetTag(i, a)))) return false;
         if (fType !== 'all' && i.type !== fType) return false;
         if (fGame !== 'all' && i.gameName !== fGame) return false;
         if (fState === 'marketable' && !i.marketable) return false;
@@ -581,7 +687,7 @@
       const host = e.target.closest('[data-k]'); if (!host) return;
       const it = invMerged.find(x=>x.dedupKey===host.getAttribute('data-k')); if (!it) return;
       const action = (appSettings && appSettings.dblAction) || 'open';
-      if (action==='steam' || action==='open') window.imu.openExternal('https://steamcommunity.com/market/listings/753/'+encodeURIComponent(it.marketHashName||''));
+      if (action==='steam' || action==='open') window.imu.openExternal(marketUrl(it));
       else if (action==='detail'){ detailKey = it.dedupKey; renderInventory(); }
       else if (action==='sell' || action==='now') sellFlow([it], bulkStrategy);
       else if (action==='copy') navigator.clipboard.writeText(it.name);
@@ -886,7 +992,7 @@
           + (it.iconUrl?'<img src="'+esc(it.iconUrl)+'" style="max-width:100%;max-height:100%;object-fit:contain">':'') + '</div>'
         + '<div style="display:flex;flex-direction:column;gap:6px">'
           + '<span style="font-size:16px;font-weight:700;color:#DCE2FA">'+esc(it.name)+'</span>'
-          + '<span style="font-size:12px;color:#8B8F9E">'+esc(it.gameName||'-')+' · '+esc(t(TYPE_LABEL[it.type]||'Diğer'))+' · ×'+it.count+'</span>'
+          + '<span style="font-size:12px;color:#8B8F9E">'+esc(it.gameName||'-')+' · '+(it.typeText ? esc(it.typeText) : esc(t(TYPE_LABEL[it.type]||'Diğer')))+' · ×'+it.count+'</span>'
         + '</div>'
         // A booster pack can be opened right here (only when the game it belongs to is known)
         + (it.type === 'booster' && it.appid
@@ -934,7 +1040,7 @@
         (i.count > (prev.get(i.dedupKey) || 0)));
       if (!fresh.length) return;
       // fetch the prices, then sell from the median
-      invMerged = merged;
+      if (onCommunity()) invMerged = merged;
       await E.pricesFor(fresh.map(i=>i.marketHashName)).then(r=>{
         if (r && r.ok) Object.entries(r.prices).forEach(([h,p]) => priceMap.set(h,p));
       }).catch(()=>{});
@@ -1155,10 +1261,10 @@
       sellable.forEach(i=>{
         const u = feeFor(subunit(strategyPrice(i, strat)));
         if (!u || !(u.seller > 0)) return;
-        const assets = i.assetIds.filter(a => !listedAssets.has(a));
+        const assets = i.assetIds.filter(a => !listedAssets.has(assetTag(i, a)));
         if (!assets.length) return;
         if (u.estimated) estimatedN += assets.length;
-        assets.forEach(aid => plan.push({ assetId: aid, seller: u.seller, buyer: u.buyer, name: i.name, dedupKey: i.dedupKey, st: 'wait', msg: '' }));
+        assets.forEach(aid => plan.push({ assetId: aid, tag: assetTag(i, aid), app: i.invApp || 753, ctx: i.invContext || '6', seller: u.seller, buyer: u.buyer, name: i.name, dedupKey: i.dedupKey, st: 'wait', msg: '' }));
         totalBuyer += u.buyer * assets.length; totalSeller += u.seller * assets.length;
         rowsList.push('• ' + i.name + ' ×' + assets.length + ' → ' + fmtLira(u.buyer/100) + ' (' + t('eline geçecek') + ' ' + fmtLira(u.seller/100) + ')');
         // Warn if the selected price is clearly below Steam's 24 hour average
@@ -1184,15 +1290,21 @@
                 + '\n' + t('Steam kesintisi sonrası eline geçecek:') + ' ' + fmtLira(totalSeller/100)
                 + (estimatedN ? ('\n\n' + t('Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.')) : '')
                 + batchNote,
-          warningRed: dropList.length
-            ? (t('Dikkat: bu öğelerin fiyatı Steam\'in 24 saatlik ortalamasının belirgin şekilde altında. Acele etme, fiyatı kontrol et.') + '\n' + dropList.slice(0,6).join('\n'))
-            : '',
+          warningRed: [
+            // items of a game are priced by name only: wear, pattern and stickers can make one copy worth many times another
+            sellable.some(i => (i.invApp || 753) !== 753)
+              ? t('Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam\'de kontrol et.')
+              : '',
+            dropList.length
+              ? (t('Dikkat: bu öğelerin fiyatı Steam\'in 24 saatlik ortalamasının belirgin şekilde altında. Acele etme, fiyatı kontrol et.') + '\n' + dropList.slice(0,6).join('\n'))
+              : '',
+          ].filter(Boolean).join('\n\n'),
           warn: 'Satışa sunulan öğe geri alınamaz; ilanı iptal etmek için Steam\'e girmen gerekir. Mobil doğrulayıcı açıksa her ilanı Steam uygulamasından onaylaman gerekir.',
           confirmText: 'Satışa Sun', cancelText: 'Vazgeç',
         });
         if (!ok) return;
       }
-      saleTask = { plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
+      saleTask = { source: sourceOf(sellable[0]), plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
                       failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, isAsking: false, continueNow: false, done: false };
       salePanel = saleTask;
       drawSaleStatus();
@@ -1205,11 +1317,11 @@
         const p = g.plan[g.i];
         p.st = 'send'; drawSaleStatus();
         // The main process spaces the requests (market gate, 1.5 s apart) and refuses to send the same asset twice.
-        const r = await E.sellItem(p.assetId, p.seller, 1).catch(e=>({ ok:false, error:(e && e.message), typeName:'general' }));
+        const r = await E.sellItem(p.assetId, p.seller, 1, p.app, p.ctx).catch(e=>({ ok:false, error:(e && e.message), typeName:'general' }));
         g.i++;
         if (r && r.ok){
           g.successful++; g.consecutive = 0;
-          listedAssets.add(p.assetId);
+          listedAssets.add(p.tag);
           const s = r.result || {};
           p.st = 'ok';
           if (s.needs_mobile_confirmation || s.requires_confirmation){ g.mobileConfirm++; p.st = 'conf'; }
@@ -1251,8 +1363,12 @@
       saleTask = null;
       drawSaleStatus();
       saleResult(g);
-      selected.clear(); inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null;
-      loadInventory();
+      // The inventory the items came from is read again (the sold ones are gone). If another one is on screen only the kept copy is dropped.
+      sourceState.delete(g.source);
+      if (g.source === invSource){
+        selected.clear(); inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null;
+        loadInventory();
+      }
     }
 
     function saleResult(g){
