@@ -455,6 +455,13 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
 /* ---- Modules: what belongs to a switched-off page leaves the overview (common.js applyModules sets the body class) ---- */
 .mod-off-card [data-mod="card"],.mod-off-inventory [data-mod="inventory"],.mod-off-hours [data-mod="hours"],.mod-off-achievements [data-mod="achievements"]{display:none!important}
 
+/* ---- Small features and top bar items switched off (Settings > Modules; common.js applyModules sets the body classes). The stars only turn invisible: a list that keeps a column for them stays aligned. ---- */
+.opt-off-feed .ov-left{display:none!important}
+.opt-off-feed .ov-grid{grid-template-columns:minmax(0,1fr)!important}
+.opt-off-favorites [data-fav]{visibility:hidden!important;pointer-events:none!important}
+.opt-off-listings #invMyListings,.opt-off-csv #invExportCsv{display:none!important}
+.opt-off-search .e-search,.opt-off-notif #tbNotif,.opt-off-update #tbUpdate{display:none!important}
+
 /* ---- Light mode (Settings > Modules > Performance): no animation, transition, blur, filter or shadow anywhere. The toast spinner keeps turning. ---- */
 body.e-light *,body.e-light *::before,body.e-light *::after{animation:none!important;transition:none!important;backdrop-filter:none!important;filter:none!important;box-shadow:none!important;scroll-behavior:auto!important}
 body.e-light .toast .tspin{animation:spin .8s linear infinite!important}

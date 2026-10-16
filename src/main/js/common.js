@@ -122,7 +122,7 @@
     }
     const isFavorite = (appid) => favoriteSet().has(+appid);
     function favoritesFirst(list){
-      return favoriteSet().size ? list.slice().sort((a, b) => (isFavorite(b.appid) ? 1 : 0) - (isFavorite(a.appid) ? 1 : 0)) : list;
+      return (featureOn('favorites') && favoriteSet().size) ? list.slice().sort((a, b) => (isFavorite(b.appid) ? 1 : 0) - (isFavorite(a.appid) ? 1 : 0)) : list;
     }
     function favStar(appid){
       const on = isFavorite(appid);
@@ -285,6 +285,12 @@
       const k = MODULES[tab];
       return !k || !(typeof appSettings === 'object' && appSettings && appSettings[k] === false);
     }
+    // Small features and top bar items that can be switched off too. The side menu, Settings and the account button are not on the list:
+    // without them the app could not be steered. A switched-off one is hidden by a body class (edge.css .opt-off-*), nothing else changes.
+    const FEATURES = { feed:'featFeed', favorites:'featFavorites', listings:'featListings', csv:'featCsv', games:'featOtherGames', search:'topSearch', notif:'topNotif', update:'topUpdate' };
+    function featureOn(name){
+      return !(typeof appSettings === 'object' && appSettings && appSettings[FEATURES[name]] === false);
+    }
     // Saved order first (unknown names dropped), whatever it does not mention follows in the default order.
     function navOrderList(raw){
       const saved = String(raw == null ? ((typeof appSettings === 'object' && appSettings && appSettings.navOrder) || '') : raw).split(',').filter(x => NAV_ITEMS.includes(x));
@@ -303,6 +309,8 @@
       });
       const chat = document.getElementById('tbChat');
       if (chat) chat.style.display = moduleOn('chat') ? '' : 'none';
+      Object.keys(FEATURES).forEach(name => document.body.classList.toggle('opt-off-' + name, !featureOn(name)));
+      if (typeof syncOtherGames === 'function') syncOtherGames();
       // switched off while it is on screen: back to the overview
       const shown = Object.keys(designed).find(k => !designed[k].classList.contains('hidden'));
       if (shown && !moduleOn(shown)) openTab('overview', nav.querySelector('a[data-tab="overview"]'));

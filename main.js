@@ -329,6 +329,9 @@ const DEFAULT_SETTINGS = {
   navOrder: 'overview,card,inventory,hours,realistic,achievements,keys',
   perfMode: 'auto',         // auto | full | light: light turns off animations, transitions, blur and shadows (see edge.css .e-light)
   setupDone: true,          // false only on a first start: the welcome window asks which pages to use (see common.js showSetup)
+  // Small features and top bar items that can be switched off (Settings > Modules, common.js FEATURES); everything is on until the setting says false
+  featFeed: true, featFavorites: true, featListings: true, featCsv: true, featOtherGames: true,
+  topSearch: true, topNotif: true, topUpdate: true,
   theme: 'dark',            // dark | midnight | white (see src/main/js/theme.js)
   density: 'auto',          // auto | comfortable | compact (*)
   timeFormat: '24',

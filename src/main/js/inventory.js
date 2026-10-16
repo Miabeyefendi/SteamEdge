@@ -100,7 +100,7 @@
 
     // The games the account has items in, once per account: they fill the select next to the filters.
     async function loadSources(){
-      if (sourcesAsked || !E.inventorySources) return;
+      if (sourcesAsked || !E.inventorySources || !featureOn('games')) return;
       sourcesAsked = true;
       const res = await E.inventorySources().catch(()=>null);
       if (!res || !res.ok || !Array.isArray(res.list)){ sourcesAsked = false; return; }
@@ -115,7 +115,7 @@
         id: g.appid + ':' + c.id,
         label: g.name + ((g.contexts.length > 1 && c.name) ? ' · ' + c.name : '') + (c.assetCount ? ' (' + c.assetCount + ')' : ''),
       })));
-      if (!rows.length){ sel.style.display = 'none'; return; }
+      if (!rows.length || !featureOn('games')){ sel.style.display = 'none'; return; }
       sel.innerHTML = '<option value="' + COMMUNITY_ID + '">' + esc(t('Steam (kartlar, arka planlar, ifadeler)')) + '</option>'
         + rows.map(r => '<option value="' + esc(r.id) + '">' + esc(r.label) + '</option>').join('');
       if (![...sel.options].some(o => o.value === invSource)) invSource = COMMUNITY_ID;
@@ -154,6 +154,16 @@
       if (kept){ buildGameSelect(); renderInventory(); return; }
       ['invStatTotal', 'invStatSellable', 'invStatTradable', 'invStatValue', 'invCount'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = '-'; });
       if (!quiet) loadInventory();
+    }
+    // Settings > Modules > "Diğer oyunların envanterleri": switched off, the select goes and the Steam inventory comes back; on again, the games are read.
+    function syncOtherGames(){
+      const sel = document.getElementById('efSource');
+      if (!sel) return;
+      if (!featureOn('games')){
+        sel.style.display = 'none';
+        if (!onCommunity()) switchSource(COMMUNITY_ID);
+      } else if (invSources) buildSourceSelect();
+      else if (inventoryLoaded) loadSources();
     }
     // The Overview and its quick actions are about the Steam inventory: they put it back on screen first.
     function useCommunitySource(){ if (!onCommunity()) switchSource(COMMUNITY_ID, true); }
