@@ -87,4 +87,10 @@ check('hours for a count', near(hoursForCount(10, 50, 60, 1), 12, 1e-9) && hours
 // difficulty scales the whole way (the page sends it relative to "normal")
 plan = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, base, { difficultyValue: 2 }), 2 * HOUR, true);
 check('twice as hard: twice the time', plan.spanMs === 120 * HOUR);
+// ---- a run resumed after a restart: what was left of the target of each game (src/core/resumeJobs.js) ----
+plan = planGames([{ appid: 1, h: game(50, 20) }, { appid: 2, h: game(40, 0) }], Object.assign({}, base, { goalAuto: false, autoSpan: false, goalByGame: { 1: 7, 2: 12 } }), 3 * HOUR, false);
+check('a resumed run unlocks exactly what was left of each game, over the time that is left', plan.games[0].goal === 7 && plan.games[1].goal === 12 && plan.spanMs === 3 * HOUR && !plan.auto, plan.games.map((g) => g.goal).join());
+check('and never more than is left in the game', planGames([{ appid: 1, h: game(50, 45) }], Object.assign({}, base, { goalByGame: { 1: 30 } }), 2 * HOUR, false).games[0].goal === 5);
+check('a game with nothing left of its target gets no list', planGames([{ appid: 1, h: game(10, 0) }], Object.assign({}, base, { goalByGame: { 1: 0 } }), HOUR, false).games[0].queueList.length === 0);
+check('a game that is not named follows the usual target', planGames([{ appid: 1, h: game(50, 0) }, { appid: 2, h: game(20, 0) }], Object.assign({}, base, { goalAuto: false, goalValue: 0, autoSpan: false, goalByGame: { 2: 3 } }), HOUR, false).games.map((g) => g.goal).join() === '50,3');
 process.exit(failures ? 1 : 0);

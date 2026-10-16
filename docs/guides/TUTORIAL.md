@@ -50,6 +50,7 @@ SteamEdge/
     accounts.json              saved accounts
     session.json               active session token
     window.json                window size, position, maximized state
+    resume.json                jobs that were running when the app ended, written again every half minute while one runs
     accounts/<steamID>.json    per-account data: statistics, queues, key queue, presets, achievement log
     stats.json, state.json     older versions only: read once, never written again
     *.bak, *.bozuk             automatic backup copy and set-aside damaged file
@@ -254,6 +255,12 @@ With **Card farming schedule** on (Settings > Card farming), card farming starts
 
 A farm you started by hand is never stopped by the schedule, and an account is started at most once per range: if you stop it by hand inside the range it stays stopped until the next range. Only accounts that are connected are started; the schedule does not sign anyone in.
 
+### Resuming unfinished jobs
+
+A job that is running when the app ends (the PC shuts down, the app is closed, it crashes) is written to `settings/resume.json`, and when the account connects at the next start it continues where it left off: a card farm at its game and its minute, an hour boost (all at once or one by one) with the time it had left, a Realistic Mode run with what was left of its target over the time that was left. The time the app was not running does not count: a boost with three hours left has three hours left again. A boost that synchronises hours reads the playtimes again, because they moved while it ran. The file is written when a job starts or ends and every half minute while one runs, so a power cut loses at most half a minute.
+
+Jobs you stopped by hand or that finished are not resumed. Jobs the schedule started are left to the schedule (it starts them itself inside its time range), and an entry older than a week is dropped. If you start something on the account yourself before the page is up, the old entry is dropped. The activity feed and a notification say how many jobs came back. Switch it off under Settings > General > **Resume unfinished jobs at startup**; the file is then removed.
+
 ### Login token protection
 
 The saved sign-in tokens in `settings/accounts.json` and `settings/session.json` are plain text by default. With **Encrypt login tokens** on (Settings > Privacy & security) they are stored encrypted with Windows DPAPI, so a copy of the folder is useless on another computer or under another Windows user. Switching it on rewrites both files at once and deletes the `.bak` copies that still held the plain text; switching it off writes plain text again. Encrypted tokens are read whatever the setting is, so nothing is lost either way.
@@ -304,6 +311,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Small features that can be switched off: the overview activity box, the favorite stars, My listings, Export CSV, the other games' inventories |
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Top bar items that can be switched off: the search box, the notification button, the update button |
 | `preventSleep` | `false` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |
+| `resumeJobs` | `true` | Jobs that were running when the app ended start again where they left off (card farming, hour boosting, Realistic Mode) |
 
 ### Card farming
 

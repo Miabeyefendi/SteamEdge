@@ -237,6 +237,8 @@
       cardStarted:     (o)=>['farm',  'Kart Düşürme Başladı', o.feedEntry ? o.feedEntry.text : ''],
       boostStarted:    (o)=>['boost', 'Saat Yükseltme Başladı', o.feedEntry ? o.feedEntry.text : ''],
       realisticStarted:(o)=>['ach',   'Gerçekçi Mod Başladı', o.feedEntry ? o.feedEntry.text : ''],
+      // after a restart: the jobs that were running when the app ended (src/core/resumeJobs.js); the text is already in the interface language
+      jobsResumed:     (o)=>['farm',  'İşler Sürdürüldü', o.feedEntry ? o.feedEntry.text : ''],
     };
     window.imu.onAccountEvent((o)=>{
       if (!o || !o.typeName) return;

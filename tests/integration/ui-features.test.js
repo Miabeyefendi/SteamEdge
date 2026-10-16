@@ -135,6 +135,26 @@ app.whenReady().then(async () => {
   await wait(900);
   check('and on again: the select is back with the Steam inventory chosen', (await shown('#efSource')) && (await js("document.getElementById('efSource').value")) === '753:6');
 
+  // Settings > General: jobs that were running when the app ended start again where they left off (src/core/resumeJobs.js)
+  check('resuming unfinished jobs is on by default', settings.resumeJobs === true);
+  await js("openSettingsPage('general')");
+  await wait(500);
+  check('General has the switch for it', (await js("!!document.querySelector('[data-set=resumeJobs]')")) === true);
+  check('and it says what it does', /Resume unfinished jobs/.test(await js("document.querySelector('[data-set=resumeJobs]').closest('[data-setting-row]').textContent")));
+  await js("document.querySelector('[data-set=resumeJobs]').scrollIntoView({ block: 'center' })");
+  await wait(300);
+  await shot('resume-setting');
+  await js("document.querySelector('[data-set=resumeJobs]').click()");
+  await js("document.getElementById('setSave').click()");
+  await wait(800);
+  check('it can be switched off and saved', settings.resumeJobs === false, String(settings.resumeJobs));
+  await js("openSettingsPage('general')");
+  await wait(400);
+  await js("document.querySelector('[data-set=resumeJobs]').click()");
+  await js("document.getElementById('setSave').click()");
+  await wait(800);
+  check('and on again', settings.resumeJobs === true);
+
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;
   app.exit(failures ? 1 : 0);

@@ -1491,5 +1491,11 @@
  "Arama kutusu": "Поле поиска",
  "Bildirim düğmesi": "Кнопка уведомлений",
  "Güncelleme düğmesi": "Кнопка обновления",
- "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "Кнопка ручной проверки обновлений. Приложение по-прежнему проверяет сама при запуске."
+ "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "Кнопка ручной проверки обновлений. Приложение по-прежнему проверяет сама при запуске.",
+ "Yarım kalan işleri açılışta sürdür": "Продолжать незавершённые задания при запуске",
+ "Uygulama kapanırken (bilgisayarın kapanması dahil) çalışan kart düşürme, saat yükseltme ve Gerçekçi Mod işleri, açılışta hesap bağlanınca kaldığı yerden sürer. Uygulamanın kapalı olduğu süre kalan süreden düşmez. Elle durdurduğun ya da biten işler sürdürülmez; zamanlayıcının başlattıkları zamanlayıcıya kalır.": "Фарм карточек, накрутка часов и задания реалистичного режима, которые работали при завершении приложения (в том числе при выключении ПК), продолжаются с того же места, когда аккаунт подключится при следующем запуске. Время, пока приложение было закрыто, из оставшегося времени не вычитается. Остановленные вручную и завершённые задания не возобновляются; запущенные расписанием остаются за расписанием.",
+ "# iş kaldığı yerden sürdürüldü": "Задания продолжены с того же места: #",
+ "Yarım kalan işler": "Незавершённые задания",
+ "Yarım kalan iş sürdürülemedi.": "Не удалось продолжить незавершённое задание.",
+ "İşler Sürdürüldü": "Задания продолжены"
 }
