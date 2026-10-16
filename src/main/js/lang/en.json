@@ -1468,5 +1468,10 @@
  "Başla": "Start",
  "# çekirdek · # GB bellek": "# cores · # GB memory",
  "Önerilen:": "Recommended:",
- "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# counts as finished already (# hours played, completion # hours). The duration comes from the settings, so no compression is applied."
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# counts as finished already (# hours played, completion # hours). The duration comes from the settings, so no compression is applied.",
+ "Steam (kartlar, arka planlar, ifadeler)": "Steam (cards, backgrounds, emoticons)",
+ "Hangi envanter": "Which inventory",
+ "Envanterin yalnızca bir bölümü okunabildi (Steam istek sınırı). Birkaç dakika sonra yeniden dene.": "Only a part of the inventory could be read (Steam request limit). Try again in a few minutes.",
+ "Geçersiz envanter.": "Invalid inventory.",
+ "Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam'de kontrol et.": "These items are not Steam community items, they come from a game's inventory. The market price only matches the name; differences such as wear (float), pattern and stickers can change what an item is worth by a lot. Check the price of expensive items on Steam."
 }

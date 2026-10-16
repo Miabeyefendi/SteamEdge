@@ -1468,5 +1468,10 @@
  "Başla": "Начать",
  "# çekirdek · # GB bellek": "ядер: # · память: # ГБ",
  "Önerilen:": "Рекомендуется:",
- "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# уже считается пройденной (сыграно # ч, прохождение # ч). Длительность берётся из настроек, поэтому сжатие не применяется."
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# уже считается пройденной (сыграно # ч, прохождение # ч). Длительность берётся из настроек, поэтому сжатие не применяется.",
+ "Steam (kartlar, arka planlar, ifadeler)": "Steam (карточки, фоны, смайлики)",
+ "Hangi envanter": "Какой инвентарь",
+ "Envanterin yalnızca bir bölümü okunabildi (Steam istek sınırı). Birkaç dakika sonra yeniden dene.": "Удалось прочитать только часть инвентаря (лимит запросов Steam). Повторите попытку через несколько минут.",
+ "Geçersiz envanter.": "Недопустимый инвентарь.",
+ "Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam'de kontrol et.": "Эти предметы не относятся к предметам сообщества Steam, они из инвентаря игры. Рыночная цена сопоставляется только по названию; износ (float), узор и наклейки могут сильно изменить стоимость предмета. Проверяйте цену дорогих предметов в Steam."
 }

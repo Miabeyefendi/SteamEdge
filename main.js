@@ -22,6 +22,7 @@ const { migrateKeys } = require('./src/core/keyMigration');
 const { parseProxy, setActiveProxy } = require('./src/core/proxyFetch');
 const { startLocalProxy } = require('./src/core/localProxy');
 const windowFit = require('./src/core/windowFit');
+const inventorySources = require('./src/core/inventorySources');
 const { toCsv } = require('./src/utils/csv');
 const ct = translation.t;
 // The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
@@ -1831,10 +1832,29 @@ ipcMain.handle('inventory:exportCsv', async (_e, rows) => {
   } catch (e) { return { ok: false, error: (e && e.message) || 'Dosya yazılamadı.' }; }
 });
 
-ipcMain.handle('engine:inventory', async () => {
+// arg (optional): { appid, contextId, appName } - the backpack of a game instead of the Steam community inventory.
+// `incomplete` says a later page of a big inventory was refused: the items are only a part of it.
+ipcMain.handle('engine:inventory', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  try { return { ok: true, items: await engine.getInventory() }; }
-  catch (e) { return { ok: false, error: e.message }; }
+  const source = inventorySources.validSource(arg);
+  if (!source) return { ok: false, error: ct('Geçersiz envanter.') };
+  try {
+    const items = await engine.getInventory(source.appid, source.contextId, (arg && arg.appName) ? String(arg.appName).slice(0, 80) : null);
+    return { ok: true, items, incomplete: !!items.incomplete };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+// The games the account has items in (the source list of the Inventory page). Steam's inventory page is read once in ten minutes.
+let inventorySourcesCache = null;
+ipcMain.handle('engine:inventorySources', async () => {
+  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  const who = activeSteamID;
+  if (inventorySourcesCache && inventorySourcesCache.steamID === who && Date.now() - inventorySourcesCache.ts < 10 * 60 * 1000) return inventorySourcesCache.value;
+  try {
+    const got = await marketGate(() => engine.getInventorySources());
+    const value = { ok: true, found: got.found, list: got.list };
+    inventorySourcesCache = { steamID: who, ts: Date.now(), value };
+    return value;
+  } catch (e) { return { ok: false, error: e.message }; }
 });
 
 // ---- price cache + throttled fetcher ----
@@ -2362,17 +2382,20 @@ const SELL_GAP_MS = 1500;
 const SELL_REPEAT_MS = 10 * 60 * 1000;
 const sellInFlight = new Set();
 const sellDone = new Map();
-ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount }) => {
+// appid and contextId say where the item lives (a game's backpack); without them it is a Steam community item (753, 6).
+ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount, appid, contextId }) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.', typeName: 'limit' };
+  const source = inventorySources.validSource(appid == null ? null : { appid, contextId });
+  if (!source) return { ok: false, error: ct('Geçersiz envanter.'), typeName: 'skip' };
   const steamID = activeSteamID;
-  const key = steamID + ':' + String(assetId);
+  const key = steamID + ':' + (source.appid === inventorySources.COMMUNITY.appid ? '' : source.appid + ':') + String(assetId);
   const earlier = sellDone.get(key);
   if (sellInFlight.has(key) || (earlier && Date.now() - earlier < SELL_REPEAT_MS)) {
     return { ok: false, error: ct('Bu öğe için istek zaten gönderildi.'), typeName: 'skip' };
   }
   sellInFlight.add(key);
   try {
-    const result = await marketGate(() => engine.sellItem(assetId, priceCents, amount || 1), SELL_GAP_MS);
+    const result = await marketGate(() => engine.sellItem(assetId, priceCents, amount || 1, source.appid, source.contextId), SELL_GAP_MS);
     sellDone.set(key, Date.now());
     // The statistic is the number of items "put on sale": a listing was made, whether it sold is not known. The amount is
     // what the seller will keep (Steam's cut deducted); "Average sale" is computed from it.

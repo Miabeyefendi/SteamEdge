@@ -1468,5 +1468,10 @@
  "Başla": "Los geht's",
  "# çekirdek · # GB bellek": "# Kerne · # GB Speicher",
  "Önerilen:": "Empfohlen:",
- "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# gilt bereits als abgeschlossen (# Stunden gespielt, Abschluss # Stunden). Die Dauer ergibt sich aus den Einstellungen, daher wird nichts gestaucht."
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# gilt bereits als abgeschlossen (# Stunden gespielt, Abschluss # Stunden). Die Dauer ergibt sich aus den Einstellungen, daher wird nichts gestaucht.",
+ "Steam (kartlar, arka planlar, ifadeler)": "Steam (Karten, Hintergründe, Emoticons)",
+ "Hangi envanter": "Welches Inventar",
+ "Envanterin yalnızca bir bölümü okunabildi (Steam istek sınırı). Birkaç dakika sonra yeniden dene.": "Nur ein Teil des Inventars konnte gelesen werden (Steam-Anfragelimit). Versuche es in einigen Minuten erneut.",
+ "Geçersiz envanter.": "Ungültiges Inventar.",
+ "Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam'de kontrol et.": "Diese Gegenstände sind keine Steam-Community-Gegenstände, sondern stammen aus dem Inventar eines Spiels. Der Marktpreis richtet sich nur nach dem Namen; Unterschiede wie Abnutzung (Float), Muster und Sticker können den Wert eines Gegenstands stark verändern. Prüfe den Preis teurer Gegenstände auf Steam."
 }

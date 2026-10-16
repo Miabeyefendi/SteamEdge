@@ -88,6 +88,7 @@
       if (done){
         pushFeed('market', 'Pazar', tf('# ilan iptal edildi.', done), 'Başarılı');
         // the items are back in the inventory
+        if (typeof dropKeptSources === 'function') dropKeptSources();
         selected.clear(); inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null;
         loadInventory();
       }
@@ -140,7 +141,7 @@
         const p = (typeof priceOf === 'function') ? priceOf(it) : null;
         const unit = p ? (p.medianValue != null ? p.medianValue : p.lowestValue) : null;
         const count = it.count || it.amount || 1;
-        return [it.name, it.gameName || '', it.type || '', count, it.marketable ? 'yes' : 'no', it.tradable ? 'yes' : 'no',
+        return [it.name, it.gameName || '', it.typeText || it.type || '', count, it.marketable ? 'yes' : 'no', it.tradable ? 'yes' : 'no',
                 p ? (p.lowest || '') : '', p ? (p.median || '') : '', unit != null ? unit : '', unit != null ? Math.round(unit * count * 100) / 100 : ''];
       }));
       const r = await window.imu.inventory.exportCsv(rows).catch(e => ({ ok: false, error: e && e.message }));

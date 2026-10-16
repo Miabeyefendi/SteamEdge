@@ -19,6 +19,7 @@ const code = src.slice(src.indexOf('const SELL_GAP_MS'), src.indexOf('// =======
     engine: { sellItem: (asset) => { sent.push(asset); return new Promise((r) => { if (asset === 'slow') release = () => r({ success: true }); else r({ success: true }); }); } },
     marketGate: (fn, gap) => { gates.push(gap); return fn(); },
     saleErrorType: () => 'general', addStat: () => {}, ct: (x) => x,
+    inventorySources: require(path.resolve(__dirname, '..', '..', 'src', 'core', 'inventorySources.js')),
   };
   vm.createContext(ctx);
   vm.runInContext(code, ctx);
@@ -43,6 +44,20 @@ const code = src.slice(src.indexOf('const SELL_GAP_MS'), src.indexOf('// =======
   ctx.engine.sellItem = () => { sentAgain++; return Promise.resolve({ success: true }); };
   r = await sell({}, { assetId: 'a2', priceCents: 10, amount: 1 });
   check('a failed asset may be tried again', r.ok && sentAgain === 1);
+
+  // a game's backpack: the sale carries the game and the context, and the same asset number in another game is another item
+  const seen = [];
+  ctx.engine.sellItem = (asset, cents, amount, appid, contextId) => { seen.push([asset, appid, contextId]); return Promise.resolve({ success: true }); };
+  r = await sell({}, { assetId: 'b1', priceCents: 500, amount: 1 });
+  check('without a game the sale is a Steam community item (753, 6)', r.ok && JSON.stringify(seen[0]) === '["b1",753,"6"]', JSON.stringify(seen[0]));
+  r = await sell({}, { assetId: 'b1', priceCents: 500, amount: 1, appid: 730, contextId: '2' });
+  check('the same asset number in Counter-Strike 2 is another item and goes out with its game', r.ok && JSON.stringify(seen[1]) === '["b1",730,"2"]', JSON.stringify(seen[1]));
+  r = await sell({}, { assetId: 'b1', priceCents: 500, amount: 1, appid: 730, contextId: '2' });
+  check('and the same one twice is still refused', !r.ok && r.typeName === 'skip' && seen.length === 2);
+  r = await sell({}, { assetId: 'b2', priceCents: 500, amount: 1, appid: '730; DROP', contextId: '2' });
+  check('a game that is not a plain number is refused before anything is sent', !r.ok && seen.length === 2);
+  r = await sell({}, { assetId: 'b3', priceCents: 500, amount: 1, appid: 730, contextId: '../x' });
+  check('a context that is not a plain number is refused too', !r.ok && seen.length === 2);
 
   ctx.engineReady = false;
   r = await sell({}, { assetId: 'a3', priceCents: 10, amount: 1 });

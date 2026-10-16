@@ -41,6 +41,8 @@
 
     <div style="width:100%;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <!-- Order: GAME first, then search. The same layout as the Achievements page; when the toolbars of the two screens were in different orders the eye searched again on each tab. -->
+      <!-- Which inventory is on screen: the Steam community one, or a game's (Counter-Strike 2, Dota 2...). Shown once the games with items are known. -->
+      <select id="efSource" title="Hangi envanter" style="display:none;height:34px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;color:#DCE2FA;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:210px;flex:0 1 auto"></select>
       <select id="efGame" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:230px;flex:0 1 auto">
         <option value="all">Tüm oyunlar</option>
       </select>

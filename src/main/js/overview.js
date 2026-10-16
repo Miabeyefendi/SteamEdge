@@ -109,12 +109,14 @@
       // Envanter & Pazar - value + net after Steam's cut
       // The fallback branch is REQUIRED: when the account changes resetPageCaches() makes invMerged null but if the
       // box is not written the PREVIOUS ACCOUNT's value stayed on screen.
-      if (invMerged){
+      // The tile is about the Steam inventory, whichever inventory the Inventory page shows
+      const ovMerged = (typeof communityMerged === 'function') ? communityMerged() : invMerged;
+      if (ovMerged){
         // Net: with Steam's own fee calculation (inventory.js > sellerAmount). A fixed 13% used to be
         // deducted; on cheap cards this rate does not hold because of Steam's base fee.
         let value=0, units=0, net=0;
         const lacking = [];
-        invMerged.forEach(i=>{
+        ovMerged.forEach(i=>{
           units+=i.count;
           if(i.marketable && i.marketHashName){
             const v=priceVal(i);
@@ -741,6 +743,7 @@
 
     quickAction('qaInv', 'Envanter yenileniyor…', async ()=>{
       if (typeof loadInventory !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
+      if (typeof useCommunitySource === 'function') useCommunitySource();
       inventoryLoaded = false;
       await loadInventory();
       // loadInventory silently returns on error; check whether data really arrived,
@@ -753,6 +756,7 @@
 
     // "Refresh market" - refreshes the market PRICES, not the inventory (skips the cache).
     quickAction('qaMarket', 'Pazar fiyatları yenileniyor…', async ()=>{
+      if (typeof useCommunitySource === 'function') useCommunitySource();
       if (!invMerged || !invMerged.length) return { failure: 'Önce envanteri yükle.' };
       if (typeof fetchPricesForView !== 'function') return { failure: 'Envanter sayfası hazır değil.' };
       await window.imu.settings.clearPriceCache();

@@ -1468,5 +1468,10 @@
  "Başla": "Empezar",
  "# çekirdek · # GB bellek": "# núcleos · # GB de memoria",
  "Önerilen:": "Recomendado:",
- "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# ya cuenta como terminado (# horas jugadas, finalización # horas). La duración sale de los ajustes, así que no se aplica compresión."
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# ya cuenta como terminado (# horas jugadas, finalización # horas). La duración sale de los ajustes, así que no se aplica compresión.",
+ "Steam (kartlar, arka planlar, ifadeler)": "Steam (cartas, fondos, emoticonos)",
+ "Hangi envanter": "Qué inventario",
+ "Envanterin yalnızca bir bölümü okunabildi (Steam istek sınırı). Birkaç dakika sonra yeniden dene.": "Solo se pudo leer una parte del inventario (límite de solicitudes de Steam). Inténtalo de nuevo en unos minutos.",
+ "Geçersiz envanter.": "Inventario no válido.",
+ "Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam'de kontrol et.": "Estos objetos no son objetos de la comunidad de Steam, sino del inventario de un juego. El precio de mercado solo coincide con el nombre; diferencias como el desgaste (float), el patrón y las pegatinas pueden cambiar mucho lo que vale un objeto. Comprueba en Steam el precio de los objetos caros."
 }

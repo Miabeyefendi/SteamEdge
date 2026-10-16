@@ -1064,6 +1064,7 @@
       if (typeof cardsLoaded !== 'undefined'){ cardsLoaded = false; dropGames = []; }
       if (typeof hoursLoaded !== 'undefined'){ hoursLoaded = false; ownedGames = []; selectedHours = []; }
       if (typeof inventoryLoaded !== 'undefined'){ inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null; }
+      if (typeof resetInventorySources === 'function') resetInventorySources();
       if (typeof priceMap !== 'undefined') priceMap.clear();
       if (typeof selected !== 'undefined') selected.clear();
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
