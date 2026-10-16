@@ -21,6 +21,7 @@ const translation = require('./src/core/translation');
 const { migrateKeys } = require('./src/core/keyMigration');
 const { parseProxy, setActiveProxy } = require('./src/core/proxyFetch');
 const { startLocalProxy } = require('./src/core/localProxy');
+const windowFit = require('./src/core/windowFit');
 const { toCsv } = require('./src/utils/csv');
 const ct = translation.t;
 // The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
@@ -733,9 +734,11 @@ function makeActiveSession(entry) {
 // helpers so it changes from a single place.
 const WIN_W = 1716;
 const WIN_H = 1144;
-// The smallest the window may get. The layout is fluid down to 900 x 560; the login screen needs a little more height.
-const MIN_DASH = { w: 900, h: 560 };
-const MIN_LOGIN = { w: 900, h: 640 };
+// The smallest the window may get. The layout is fluid down to 900 x 560 (the login screen needs a little more height); a smaller window
+// zooms the page out as a whole (applyFitZoom) instead of squeezing it, so the buttons shrink with the window and nothing runs off the edge.
+const MIN_DASH = windowFit.minWindow(windowFit.DESIGN.dash);
+const MIN_LOGIN = windowFit.minWindow(windowFit.DESIGN.login);
+let fitDesign = windowFit.DESIGN.login;      // the design size of the page that is (about to be) shown
 const WINDOW_FILE = path.join(CONFIG_DIR, 'window.json');   // { x, y, width, height, maximized } of the panel window
 // The work area (screen minus the taskbar) of the display a rectangle is mostly on. Its x and y are not 0 when the taskbar is
 // on the left or top, or when the display is not the first one.
@@ -755,6 +758,14 @@ function applyMinimumSize(base) {
   if (!win) return;
   const m = minimumFor(base, win.getBounds());
   win.setMinimumSize(m.w, m.h);
+}
+// Zooms the page so the design size always fits the window: 1 while the window is at least that big, smaller below it. The content size
+// is what the page gets (a frameless window has no frame to subtract).
+function applyFitZoom() {
+  if (!win || win.isDestroyed() || win.isMinimized()) return;
+  const [width, height] = win.getContentSize();
+  const zoom = windowFit.fitZoom(width, height, fitDesign);
+  if (Math.abs(win.webContents.getZoomFactor() - zoom) > 0.001) win.webContents.setZoomFactor(zoom);
 }
 // While the app itself moves the window (centring, fitting) the position must not be remembered as the user's choice.
 let windowSaveBlockedUntil = 0;
@@ -806,17 +817,21 @@ function saveWindowStateSoon() {
 // Login -> panel: the saved place if there is one, the default otherwise.
 function enterPanelWindow() {
   if (!win) return;
+  fitDesign = windowFit.DESIGN.dash;
   applyMinimumSize(MIN_DASH);
   const st = loadWindowState();
-  if (!st) { centerDefaultSize(); return; }
+  if (!st) { centerDefaultSize(); applyFitZoom(); return; }
   windowSaveBlockedUntil = Date.now() + 1500;
   win.setBounds(st.bounds);
   if (st.maximized) win.maximize();
+  applyFitZoom();
 }
 function enterLoginWindow() {
   if (!win) return;
+  fitDesign = windowFit.DESIGN.login;
   applyMinimumSize(MIN_LOGIN);
   centerDefaultSize();
+  applyFitZoom();
 }
 
 function createWindow() {
@@ -824,6 +839,7 @@ function createWindow() {
   const saved = sess ? loadWindowState() : null;
   const start = saved ? saved.bounds : defaultBounds();
   const min = minimumFor(sess ? MIN_DASH : MIN_LOGIN, start);
+  fitDesign = sess ? windowFit.DESIGN.dash : windowFit.DESIGN.login;
   windowSaveBlockedUntil = Infinity;   // until the window has been shown (see ready-to-show below)
 
   win = new BrowserWindow({
@@ -842,10 +858,18 @@ function createWindow() {
     // Showing and maximizing fire move and resize events too; they are the app's own doing, not a choice of the user.
     windowSaveBlockedUntil = Date.now() + 1500;
     if (saved && saved.maximized) win.maximize();
+    applyFitZoom();      // before the window shows: a zoom left over from an earlier session must not flash on screen
     win.show();
     setTimeout(() => resolveWindowOpened(), 50);
   });
   ['resize', 'move', 'maximize', 'unmaximize'].forEach((ev) => win.on(ev, saveWindowStateSoon));
+  // The page follows the window: every size change, and every page that loads (login -> panel changes the design size)
+  ['resize', 'maximize', 'unmaximize', 'restore', 'enter-full-screen', 'leave-full-screen'].forEach((ev) => win.on(ev, applyFitZoom));
+  win.webContents.on('did-finish-load', applyFitZoom);
+  // Ctrl + / - / 0 would change the zoom the window sets for itself, and the next resize would snap it back
+  win.webContents.on('before-input-event', (e, input) => {
+    if (input.type === 'keyDown' && (input.control || input.meta) && ['+', '=', '-', '_', '0'].includes(input.key)) e.preventDefault();
+  });
   win.on('close', (e) => {
     saveWindowState();
     if (!isQuitting && settings.closeToTray) { e.preventDefault(); win.hide(); }

@@ -1,9 +1,12 @@
 // Every page fits every window size we support: nothing runs off the right edge, nothing is clipped by its own panel, no horizontal scrollbar
 // appears, the Start and Stop buttons stay in view, the rail and the density follow the window, and a tooltip near the edge stays inside the window.
+// Windows smaller than the layout was drawn for (900x560) get the zoom the app gives them (src/core/windowFit.js): the page then still has the whole
+// design size, so everything fits and keeps its shape.
 // Needs Electron: run with `npm test` (tests/run.js) or `electron <file> --user-data-dir=<temp folder>`.
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs'), vm = require('vm');
 const ROOT = require('path').resolve(__dirname, '..', '..');
+const windowFit = require(ROOT + '/src/core/windowFit.js');
 const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
 const DEFAULTS = vm.runInNewContext('(' + src.match(/const DEFAULT_SETTINGS = (\{[\s\S]*?\n\});/)[1] + ')');
 const settings = { ...DEFAULTS, language: process.env.LANGX || 'en', accountCurrency: 'USD', steamID: '76561198000000000', persona: 'tester', parentalPin: '' };
@@ -72,14 +75,20 @@ app.whenReady().then(async () => {
       docX: document.documentElement.scrollWidth > iw + 1, startStop: !ids || ids.every(inView) });
   })()`;
 
-  const SIZES = [[900, 560], [1093, 614], [1280, 680], [1366, 700], [1920, 1040]];
+  const SIZES = [[900, 560], [1093, 614], [1280, 680], [1366, 700], [1920, 1040], [675, 420], [720, 450], [1000, 540]];
   const TABS = ['overview', 'card', 'inventory', 'hours', 'realistic', 'achievements', 'keys', 'chat', 'settings'];
   for (const [W, H] of SIZES) {
+    const zoom = windowFit.fitZoom(W, H, windowFit.DESIGN.dash);
+    const cssW = Math.round(W / zoom), cssH = Math.round(H / zoom);      // what the page sees
     w.setContentSize(W, H);
+    w.webContents.setZoomFactor(zoom);
+    for (let i = 0; i < 20 && Math.abs((await js('innerWidth')) - cssW) > 1; i++) await wait(150);
     await wait(500);
+    const label = W + 'x' + H + (zoom < 1 ? ' (zoom ' + zoom + ')' : '');
+    if (zoom < 1) check(label + ': the page has the whole design size', (await js('innerWidth')) >= 900 - 1 && (await js('innerHeight')) >= 560 - 1, (await js('innerWidth')) + 'x' + (await js('innerHeight')));
     const rail = await js(`document.getElementById('sideNav').getBoundingClientRect().width`);
-    check(W + 'x' + H + ': the rail is ' + (W < 1000 ? 'closed by itself' : 'open'), W < 1000 ? rail < 100 : rail > 150, 'width ' + rail);
-    check(W + 'x' + H + ': density is ' + (H < 720 ? 'compact' : 'comfortable') + ' on automatic', (await js(`document.body.classList.contains('e-compact')`)) === (H < 720));
+    check(label + ': the rail is ' + (cssW < 1000 ? 'closed by itself' : 'open'), cssW < 1000 ? rail < 100 : rail > 150, 'width ' + rail);
+    check(label + ': density is ' + (cssH < 720 ? 'compact' : 'comfortable') + ' on automatic', (await js(`document.body.classList.contains('e-compact')`)) === (cssH < 720));
     for (const tab of TABS) {
       if (tab === 'settings') await js("openSettingsPage('general')");
       else if (tab === 'chat') await js("document.getElementById('tbChat').click()");
@@ -87,16 +96,16 @@ app.whenReady().then(async () => {
       await wait(800);
       const m = JSON.parse(await js(MEASURE));
       const problems = [].concat(m.cut.map((x) => 'cut ' + x), m.clipped.map((x) => 'clipped ' + x), m.bars.map((x) => 'bar ' + x), m.docX ? ['page scrolls sideways'] : []);
-      check(W + 'x' + H + ' ' + tab + ': fits the window', problems.length === 0, problems.join(' | '));
-      check(W + 'x' + H + ' ' + tab + ': the top bar stays on one row', m.headerH > 0 && m.headerH <= 64, 'height ' + m.headerH);
-      check(W + 'x' + H + ' ' + tab + ': round buttons are round and no button is squeezed flat', m.deformed.length === 0, m.deformed.join(' | '));
-      if (tab === 'card' || tab === 'hours' || tab === 'realistic') check(W + 'x' + H + ' ' + tab + ': Start and Stop are in view', m.startStop === true);
+      check(label + ' ' + tab + ': fits the window', problems.length === 0, problems.join(' | '));
+      check(label + ' ' + tab + ': the top bar stays on one row', m.headerH > 0 && m.headerH <= 64, 'height ' + m.headerH);
+      check(label + ' ' + tab + ': round buttons are round and no button is squeezed flat', m.deformed.length === 0, m.deformed.join(' | '));
+      if (tab === 'card' || tab === 'hours' || tab === 'realistic') check(label + ' ' + tab + ': Start and Stop are in view', m.startStop === true);
       if (process.env.SHOTS) await shot('layout-' + W + 'x' + H + '-' + tab);
     }
   }
 
   // A tooltip next to the right edge and next to the left edge stays inside the window
-  w.setContentSize(1280, 700); await wait(500);
+  w.setContentSize(1280, 700); w.webContents.setZoomFactor(1); await wait(500);
   await js("document.querySelector('.nav a[data-tab=card]').click()"); await wait(800);
   const tip = await js(`(() => {
     const out = [];
