@@ -71,8 +71,37 @@
       return name ? name.textContent.trim() : k;
     }
 
+    // ---- marks on the sections: a dot while a section has changes that are not saved, a tick for a few seconds after a save ----
+    const SEC_MARK_MS = 3500;
+    function sectionOfKey(k){
+      const el = document.querySelector('#tab-settings [data-set="'+k+'"]');
+      const panel = el && el.closest('.setpanel');
+      return panel ? panel.getAttribute('data-sec') : null;
+    }
+    function secButton(sec){ return document.querySelector('#tab-settings [data-secbtn="'+sec+'"]'); }
+    function secLabel(sec){
+      const b = secButton(sec);
+      return b ? [...b.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : sec;
+    }
+    function paintSectionMarks(){
+      const dirty = new Set(changes().map(sectionOfKey).filter(Boolean));
+      document.querySelectorAll('#tab-settings [data-secbtn]').forEach(b => {
+        const m = b.querySelector('.e-secmark');
+        if (m && !m.classList.contains('saved')) m.classList.toggle('dirty', dirty.has(b.getAttribute('data-secbtn')));
+      });
+    }
+    function flashSaved(sections){
+      sections.forEach(sec => {
+        const b = secButton(sec), m = b && b.querySelector('.e-secmark');
+        if (!m) return;
+        m.classList.remove('dirty'); m.classList.add('saved'); m.textContent = '✓';
+        setTimeout(() => { m.classList.remove('saved'); m.textContent = ''; paintSectionMarks(); }, SEC_MARK_MS);
+      });
+    }
+
     function showChanges(){
       const n = changes().length;
+      paintSectionMarks();
       const d = document.getElementById('setDirty');
       if (d) d.textContent = n ? tf('# değişiklik', n) : t('yok');
       const save = document.getElementById('setSave');
@@ -210,6 +239,9 @@
       });
     }
     document.querySelectorAll('#tab-settings [data-secbtn]').forEach(b=>{
+      const mark = document.createElement('span');
+      mark.className = 'e-secmark';
+      b.appendChild(mark);
       b.addEventListener('click', ()=>showSetSection(b.getAttribute('data-secbtn')));
     });
 
@@ -588,9 +620,11 @@
       appSettings = r.settings || appSettings;
       if (r.saveTime) settingSaveTime = r.saveTime;
       const langChanged = listing.includes('language');
+      const savedSections = [...new Set(listing.map(sectionOfKey).filter(Boolean))];
       startDraft();
       paintAll();
       applySettingsEverywhere(false, listing);
+      flashSaved(savedSections);
       // The language changed: since translated text cannot be translated back the page is reloaded; it returns to
       // the same section of Ayarlar (see i18n.js > setUiLang).
       if (langChanged && typeof setUiLang === 'function'){ setUiLang(appSettings.language); return true; }
@@ -612,6 +646,8 @@
         + (multi ? (' (' + u.accountRef + ')') : '') + ': ' + t('kaldığı yerden sürüyor.')));
       if (listing.some(k => RESTART.includes(k))) rowsList.push(t('Grafik ayarları SteamEdge yeniden başlatılınca etkili olur.'));
       if (listing.includes('proxyUrl')) rowsList.push(t('Vekil, hesap yeniden bağlanınca etkili olur.'));
+      const sections = [...new Set(listing.map(sectionOfKey).filter(Boolean))].map(secLabel);
+      if (sections.length) rowsList.unshift(t('Kaydedilen bölümler:') + ' ' + sections.join(', ') + '.');
       const title = tf('# ayar kaydedildi.', listing.length);
       if (typeof toast === 'function') toast('Ayarlar').done(rowsList.length ? (t(title) + ' ' + rowsList.join(' ')) : title);
     }

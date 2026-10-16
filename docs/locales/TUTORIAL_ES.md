@@ -257,6 +257,12 @@ Con **Programación de cartas** activada (Ajustes > Farmeo de cromos), la recole
 
 La programación nunca detiene una tarea que iniciaste a mano, y una cuenta se inicia como máximo una vez por horario: si la detienes a mano dentro del horario, sigue detenida hasta el siguiente. Solo se inician las cuentas conectadas; la programación no inicia sesión por nadie.
 
+### Navegación rápida
+
+**Ctrl+K** abre la paleta de comandos: escribe para encontrar una página, una sección de los ajustes, un ajuste concreto, otra cuenta o una acción de la página abierta (Iniciar o Detener, por ejemplo) y pulsa Enter. Las flechas recorren la lista y Esc la cierra. **Ctrl+1** a **Ctrl+7** abren las páginas del menú lateral en el orden en que se muestran (una página desactivada cierra los números), **Ctrl+8** abre el chat si está activado y **Ctrl+9** abre los ajustes. **?** o **Ctrl+/** lista los atajos con los números actuales. Los atajos esperan mientras haya una ventana de pregunta abierta.
+
+En los ajustes, el cuadro **Buscar en los ajustes** sobre las secciones encuentra un ajuste concreto por su nombre o por lo que dice su ayuda, abre su sección e ilumina la fila. Una sección con cambios sin guardar lleva un punto; tras Guardar, las secciones guardadas muestran una marca unos segundos y se nombran en el mensaje.
+
 ### Reanudar tareas sin terminar
 
 Una tarea que está en marcha cuando la app termina (el PC se apaga, la app se cierra, falla) se guarda en `settings/resume.json`, y cuando la cuenta se conecta en el siguiente inicio continúa donde lo dejó: una recolección de cartas en su juego y su minuto, un impulso de horas (todos a la vez o uno a uno) con el tiempo que le quedaba, una ejecución del Modo realista con lo que quedaba de su objetivo durante el tiempo restante. El tiempo con la app parada no cuenta: un impulso al que le quedaban tres horas vuelve a tener tres horas. Un impulso que sincroniza horas vuelve a leer los tiempos de juego, porque se movieron mientras corría. El archivo se escribe al empezar o terminar una tarea y cada medio minuto mientras haya una en marcha, así que un corte de luz pierde como mucho medio minuto.

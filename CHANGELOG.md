@@ -7,6 +7,24 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.5)
+
+Finding things is quicker: a command palette, number shortcuts for the pages, a search box in Settings, and marks on the sections you changed.
+
+### Added
+
+- **Command palette (Ctrl+K).** Type to find a page, a section of Settings, a single setting, another account or an action of the open page (Start or Stop, for example) and press Enter. The arrows move through the list, Esc or Ctrl+K again closes it. The search ignores case, accents and the Turkish dotted and dotless i, every word you type has to be found, and a name that starts with what you typed comes before one that only contains it. An empty palette shows the short list people open most; single settings appear once you type.
+- **Ctrl+1 to Ctrl+9.** Ctrl+1 to Ctrl+7 open the pages of the side menu in the order they are shown (a page you switched off closes up the numbers), Ctrl+8 opens the chat when it is on, Ctrl+9 opens Settings. They wait while a question window is open, so a shortcut never answers a question by accident.
+- **Shortcut list.** `?` (when you are not typing in a box) or Ctrl+/ shows the shortcuts with the numbers as they are now.
+- **Search box in Settings.** It sits above the sections, finds a single setting by its name or by what its help text says, opens its section, scrolls to the row and lights it for a moment.
+- **Marks on the sections.** A section of Settings with changes you have not saved carries a dot. After Save the sections that were saved show a tick for a few seconds, and the message names them.
+
+### Changed
+
+- `npm test` runs 43 tests (new: the ranking and the shortcut numbering, and the palette, the shortcuts, the search box and the section marks in the page).
+
+SHA-256 (`SteamEdge-v1.5.5-win-x64.rar`): `d8c0dd38d5783859ef67c0df720829da2eda7f8c6285cc69416d31db83fb48ea`
+
 ## [1.5.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.4)
 
 The interface is easier to read and to use: its size can be chosen, a high contrast theme is added, dim text is brighter and the keyboard reaches everything it should.

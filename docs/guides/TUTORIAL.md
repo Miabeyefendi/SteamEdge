@@ -257,6 +257,12 @@ With **Card farming schedule** on (Settings > Card farming), card farming starts
 
 A farm you started by hand is never stopped by the schedule, and an account is started at most once per range: if you stop it by hand inside the range it stays stopped until the next range. Only accounts that are connected are started; the schedule does not sign anyone in.
 
+### Quick navigation
+
+**Ctrl+K** opens the command palette: type to find a page, a section of Settings, a single setting, another account or an action of the open page (Start or Stop, for example) and press Enter. The arrows move through the list and Esc closes it. **Ctrl+1** to **Ctrl+7** open the pages of the side menu in the order they are shown (a page that is switched off closes up the numbers), **Ctrl+8** opens the chat when it is on and **Ctrl+9** opens Settings. **?** or **Ctrl+/** lists the shortcuts, with the numbers as they are now. The shortcuts wait while a question window is open.
+
+In Settings the **Search settings** box above the sections finds a single setting by its name or by what its help text says, opens its section and lights the row. A section with changes you have not saved carries a dot; after Save the sections that were saved show a tick for a few seconds and are named in the message.
+
 ### Resuming unfinished jobs
 
 A job that is running when the app ends (the PC shuts down, the app is closed, it crashes) is written to `settings/resume.json`, and when the account connects at the next start it continues where it left off: a card farm at its game and its minute, an hour boost (all at once or one by one) with the time it had left, a Realistic Mode run with what was left of its target over the time that was left. The time the app was not running does not count: a boost with three hours left has three hours left again. A boost that synchronises hours reads the playtimes again, because they moved while it ran. The file is written when a job starts or ends and every half minute while one runs, so a power cut loses at most half a minute.

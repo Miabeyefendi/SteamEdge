@@ -94,6 +94,7 @@
 - **Modüler** - Kullanmadığın sayfaları kapat (kart, saat, envanter, başarım, anahtar, sohbet), kalanları kendi sıranda diz. Kapalı sayfa Steam'den hiçbir şey istemez. Hafif mod zayıf bilgisayarlar için animasyon ve bulanıklığı kapatır, otomatik ayar bunu senin yerine seçer. Küçük özellikler (etkinlik kutusu, favori yıldızları, İlanlarım ve CSV düğmeleri) ve üst çubuk öğeleri (arama, bildirimler, güncellemeler) de kapatılabilir.
 - **Kaldığı yerden sürer** - Uygulama kapanırken, bilgisayar kapanırken ya da uygulama çökerken sürmekte olan bir kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışması, hesap yeniden bağlanınca kaldığı yerden başlar. Uygulamanın çalışmadığı süre sayılmaz: üç saati kalan bir yükseltme yine üç saat sürer.
 - **Okunaklı ve klavye dostu** - Yüzde 80 ile 150 arası arayüz ölçeği (Ctrl + / - / 0 ile de), sistemin karşıtlık ayarını izleyen Yüksek karşıtlık teması, 4,5 : 1 ya da daha iyi okunan ve 11 pikselden küçük olmayan metin, klavyeyle ve ekran okuyucuyla çalışan anahtarlar ile yan menü.
+- **Hızlı gezinme** - Ctrl+K, yazdıkça sayfaları, ayarları, hesapları ve açık sayfanın işlemlerini bulan bir komut paleti açar; Ctrl+1 ile Ctrl+9 sayfaları numarayla açar, ? kısayolları listeler, Ayarlar'ın kendi arama kutusu vardır ve değiştirip kaydettiğin bölümleri işaretler.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
 

@@ -257,6 +257,12 @@ Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayf
 
 Elle başlattığın bir işi zamanlayıcı asla durdurmaz ve bir hesap aralık başına en fazla bir kez başlatılır: aralık içinde elle durdurursan sonraki aralığa kadar durur. Yalnızca bağlı hesaplar başlatılır; zamanlayıcı kimseye giriş yapmaz.
 
+### Hızlı gezinme
+
+**Ctrl+K** komut paletini açar: bir sayfayı, Ayarlar'ın bir bölümünü, tek bir ayarı, başka bir hesabı ya da açık sayfanın bir işlemini (örneğin Başlat ya da Durdur) bulmak için yaz ve Enter'a bas. Oklar listede gezinir, Esc kapatır. **Ctrl+1** ile **Ctrl+7** yan menünün sayfalarını gösterilen sırayla açar (kapalı bir sayfa numaraları kaydırır), **Ctrl+8** açıksa sohbeti, **Ctrl+9** Ayarlar'ı açar. **?** ya da **Ctrl+/** kısayolları şu anki numaralarla listeler. Bir soru penceresi açıkken kısayollar beklemede kalır.
+
+Ayarlar'da bölümlerin üstündeki **Ayarlarda ara** kutusu tek bir ayarı adından ya da yardım metninden bulur, bölümünü açar ve satırı yakar. Kaydedilmemiş değişikliği olan bölümde nokta durur; Kaydet'ten sonra kaydedilen bölümler birkaç saniye onay işareti gösterir ve mesajda adlarıyla anılır.
+
 ### Yarım kalan işleri sürdürme
 
 Uygulama kapanırken çalışan bir iş (bilgisayarın kapanması, uygulamanın kapatılması, çökmesi) `settings/resume.json` dosyasına yazılır; sonraki açılışta hesap bağlanınca kaldığı yerden sürer: kart düşürme kendi oyununda ve kendi dakikasında, saat yükseltme (hepsi birden ya da sırayla) kalan süresiyle, Gerçekçi Mod hedefinden kalanla ve kalan süreyle. Uygulamanın çalışmadığı süre sayılmaz: üç saati kalan bir yükseltme yine üç saat sürer. Saatleri eşitleyen bir yükseltme, oyun süreleri çalışırken kaydığı için onları yeniden okur. Dosya bir iş başlayınca, bitince ve iş sürdükçe yarım dakikada bir yazılır; elektrik kesilirse en fazla yarım dakika kaybolur.
