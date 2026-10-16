@@ -68,7 +68,7 @@
       <div style="flex-shrink:0;padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun</span>
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="grLibCount">0 oyun</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B" id="grLibCount">0 oyun</span>
         </div>
         <div style="position:relative;display:flex;align-items:center">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
@@ -76,7 +76,7 @@
         </div>
         <div id="grResultsBox" style="display:none;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:6px;flex-direction:column;gap:2px">
           <div id="grResults" style="display:flex;flex-direction:column;gap:2px"></div>
-          <span id="grNoResults" style="display:none;font-size:11px;color:#656D80;padding:6px 8px">Sonuç yok</span>
+          <span id="grNoResults" style="display:none;font-size:11px;color:#7F879B;padding:6px 8px">Sonuç yok</span>
         </div>
       </div>
       <div style="flex:1;min-height:0;overflow-y:auto;padding:10px" id="grLibrary"></div>
@@ -84,29 +84,29 @@
         <div style="display:flex;align-items:flex-end;gap:10px">
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:9px">
             <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Süre</span>
-            <div style="display:flex;align-items:center;justify-content:center;gap:6px;height:44px;padding:0 10px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
+            <div style="display:flex;align-items:center;justify-content:center;gap:6px;height:48px;padding:0 10px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
               <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-                <input id="grRH" value="02" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SA</span>
+                <input id="grRH" value="02" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SA</span>
               </div>
               <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
               <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-                <input id="grRM" value="00" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">DK</span>
+                <input id="grRM" value="00" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">DK</span>
               </div>
               <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
               <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-                <input id="grRS" value="00" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SN</span>
+                <input id="grRS" value="00" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+                <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SN</span>
               </div>
             </div>
           </div>
           <div style="width:86px;flex-shrink:0;display:flex;flex-direction:column;gap:9px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
               <span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B8F9E">Hedef</span>
-              <button id="grAutoTarget" style="height:16px;padding:0 6px;border-radius:999px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:8px;font-weight:700;letter-spacing:0.08em;cursor:pointer">OTO</button>
+              <button id="grAutoTarget" style="height:16px;padding:0 6px;border-radius:999px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;letter-spacing:0.08em;cursor:pointer">OTO</button>
             </div>
-            <div id="grTargetBox" style="height:44px;display:flex;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
+            <div id="grTargetBox" style="height:48px;display:flex;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
               <input id="grTarget" value="0" style="width:32px;height:22px;background:transparent;border:none;outline:none;text-align:right;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;color:#DCE2FA">
               <span id="grTargetSep" style="font-family:Geist Mono,monospace;font-size:14px;font-weight:700;color:#DCE2FA">/</span>
               <span id="grTargetTotal" style="font-family:Geist Mono,monospace;font-size:14px;font-weight:700;color:#DCE2FA">0</span>
@@ -141,14 +141,14 @@
               <span style="font-size:15px;font-weight:700;color:#DCE2FA" id="grNextName">-</span>
               <span style="font-size:11px;color:#8B8F9E" id="grNextMeta">-</span>
             </div>
-            <span style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C2AAEE;border:1px solid #C2AAEE;border-radius:12px;padding:2px 8px;flex-shrink:0" id="grNextPct">-</span>
+            <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C2AAEE;border:1px solid #C2AAEE;border-radius:12px;padding:2px 8px;flex-shrink:0" id="grNextPct">-</span>
           </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:2px">
           <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #1D2432;margin-bottom:4px">
             <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Açılma Sırası</span>
-            <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="grOpenedCount">0 / 0</span>
+            <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B" id="grOpenedCount">0 / 0</span>
           </div>
           <div id="grList"></div>
         </div>
@@ -175,8 +175,8 @@
     <!-- RIGHT: simple / advanced settings -->
     <div class="gr-yan e-side" style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
       <div style="display:flex;gap:4px;padding:3px;border-radius:999px;background:#0D1118;border:1px solid #2B3345">
-        <button id="grLvlSimple" style="flex:1;height:28px;border-radius:999px;border:1px solid #5624B3;background:#151C28;color:#DCE2FA;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Basit</button>
-        <button id="grLvlAdv" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Gelişmiş</button>
+        <button id="grLvlSimple" style="flex:1;height:28px;border-radius:999px;border:1px solid #5624B3;background:#151C28;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Basit</button>
+        <button id="grLvlAdv" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Gelişmiş</button>
       </div>
 
       <div id="grSimpleBox" style="display:flex;flex-direction:column;gap:18px">
@@ -188,7 +188,7 @@
           <!-- The box must be the SAME width as the dropdowns under it. The row used to be two flex children, "input + hours"; it stayed as narrow as the "hours" label and a single box sat tucked in the panel. The unit is now inside the field, positioned; the outer container is full width. -->
           <div style="position:relative;width:100%">
             <input id="grTcMain" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
-            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#656D80;pointer-events:none">saat</span>
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#7F879B;pointer-events:none">saat</span>
           </div>
         </div>
 
@@ -221,15 +221,15 @@
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <span style="font-size:12px;color:#B9C0D6">Sırayı otomatik başlat</span>
-            <div class="gr-toggle" data-grset="grAuto" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grAuto" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <span style="font-size:12px;color:#B9C0D6">Rastgele aralık</span>
-            <div class="gr-toggle" data-grset="grRandomGap" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grRandomGap" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <span style="font-size:12px;color:#B9C0D6">Ultra Nadir Başarımları Atla</span>
-            <div class="gr-toggle" data-grset="grSkipUltraRare" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grSkipUltraRare" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
         </div>
       </div>
@@ -238,10 +238,10 @@
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Hız</span>
           <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:2px 14px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Hız çarpanı</span><span style="font-size:10px;color:#656D80;line-height:1.5">Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grSpeed" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#656D80;width:16px">×</span></div></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Ultra nadir bekleme</span><span style="font-size:10px;color:#656D80;line-height:1.5">%5 altı başarımlar bu oranda daha uzun bekler.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grUltraMultiplier" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#656D80;width:16px">×</span></div></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Telafi payı</span><span style="font-size:10px;color:#656D80;line-height:1.5">Geride kalanlar sürenin ilk yüzde kaçında açılır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grCatchUpShare" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#656D80;width:16px">%</span></div></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Bitmiş oyunda sıkıştır</span><span style="font-size:10px;color:#656D80;line-height:1.5">Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grFinishedRatio" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#656D80;width:16px">%</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Hız çarpanı</span><span style="font-size:11px;color:#7F879B;line-height:1.5">Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grSpeed" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#7F879B;width:16px">×</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Ultra nadir bekleme</span><span style="font-size:11px;color:#7F879B;line-height:1.5">%5 altı başarımlar bu oranda daha uzun bekler.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grUltraMultiplier" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#7F879B;width:16px">×</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Telafi payı</span><span style="font-size:11px;color:#7F879B;line-height:1.5">Geride kalanlar sürenin ilk yüzde kaçında açılır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grCatchUpShare" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#7F879B;width:16px">%</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Bitmiş oyunda sıkıştır</span><span style="font-size:11px;color:#7F879B;line-height:1.5">Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grFinishedRatio" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:11px;color:#7F879B;width:16px">%</span></div></div>
           </div>
           <span style="font-size:11px;color:#8B8F9E;line-height:1.6;text-wrap:pretty" id="grSpeedNote">-</span>
         </div>
@@ -312,11 +312,11 @@
         <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:4px 14px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <span style="font-size:12px;color:#B9C0D6">Başarımlar bitince saati sürdür</span>
-            <div class="gr-toggle" data-grset="grKeepHours" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grKeepHours" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <span style="font-size:12px;color:#B9C0D6">Başarımsız oyunları listede göster</span>
-            <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <!-- When the "Set the duration from the settings" row was added in 1.1.5, it had fallen INSIDE the OPEN <div> of the next row. Because of this three flex children came side by side on a single row and the labels dropped down letter by letter, and the panel got a horizontal scroll. The two rows are now siblings. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
@@ -324,14 +324,14 @@
               <span style="font-size:12px;color:#B9C0D6">Süreyi ayarlara göre belirle</span>
               <span data-tip="Açıkken oturum süresi ayarlardan hesaplanır: açılacak başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. On beş dakika ile 999 saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
             </div>
-            <div class="gr-toggle" data-grset="grAutoDuration" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grAutoDuration" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0">
             <div style="display:flex;align-items:center;gap:7px;min-width:0">
               <span style="font-size:12px;color:#B9C0D6">Gecikmiş başarımları hızlandır</span>
               <span data-tip="Oyun saatlerce oynanmış ama başarım açılmamışsa arada bir birikim vardır. Açıkken bu birikim oturumun ilk beşte birinde hızlıca kapatılır, sonra ritim normale döner. Birikimin büyüklüğü oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
             </div>
-            <div class="gr-toggle" data-grset="grCatchUp" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#656D80;margin-left:0px;transition:margin-left .15s ease"></div></div>
+            <div class="gr-toggle" data-grset="grCatchUp" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <div id="grCatchUpNote" style="display:none;padding:0 0 12px;font-size:11px;color:#8B8F9E;line-height:1.5"></div>
         </div>

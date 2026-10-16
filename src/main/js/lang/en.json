@@ -1497,5 +1497,8 @@
  "# iş kaldığı yerden sürdürüldü": "Jobs resumed where they left off: #",
  "Yarım kalan işler": "Unfinished jobs",
  "Yarım kalan iş sürdürülemedi.": "An unfinished job could not be resumed.",
- "İşler Sürdürüldü": "Jobs resumed"
+ "İşler Sürdürüldü": "Jobs resumed",
+ "Arayüz ölçeği": "Interface scale",
+ "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Enlarges or shrinks the whole interface. If the window is too small for the layout at the chosen scale, the scale shrinks to fit the window. Ctrl + / - / 0 change it too.",
+ "Yüksek karşıtlık": "High contrast"
 }

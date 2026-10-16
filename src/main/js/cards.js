@@ -62,9 +62,9 @@
       const q = document.getElementById('cardQueue');
       q.innerHTML = '<div style="padding:16px;color:#8B8F9E;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect();
-      if (!con.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(t('Bağlantı hatası:') + ' ' + (con.error || ''))+'</div>'; return; }
+      if (!con.ok){ q.innerHTML = '<div style="padding:16px;color:#E45A86;font-size:12px">'+esc(t('Bağlantı hatası:') + ' ' + (con.error || ''))+'</div>'; return; }
       const res = await E.dropGames();
-      if (!res.ok){ q.innerHTML = '<div style="padding:16px;color:#B32453;font-size:12px">'+esc(res.error)+'</div>'; return; }
+      if (!res.ok){ q.innerHTML = '<div style="padding:16px;color:#E45A86;font-size:12px">'+esc(res.error)+'</div>'; return; }
       dropGames = res.games; cardsLoaded = true;
       refundIds = new Set(res.refundIds || []);
       priorityOrder = dropGames.map(g=>g.appid);
@@ -203,15 +203,15 @@
           + '<div class="cq-bar" style="flex:1;min-width:60px;height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
             + '<div data-ilerleme style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
           + '<div class="cq-acts" style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
-            + '<span style="height:26px;display:flex;align-items:center;padding:0 10px;border-radius:12px;border:1px solid '+bd+';color:'+(on?'#C2AAEE':'#8B8F9E')+';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">'+state+'</span>'
+            + '<span style="height:26px;display:flex;align-items:center;padding:0 10px;border-radius:12px;border:1px solid '+bd+';color:'+(on?'#C2AAEE':'#8B8F9E')+';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">'+state+'</span>'
             + '<div style="display:flex;gap:4px;padding:3px;border-radius:12px;background:#090C12;border:1px solid #1D2432">'
               + '<button data-act="up" title="Yukarı" class="h-s3" style="width:26px;height:26px;border-radius:999px;background:transparent;border:none;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 14l6-6 6 6"></path></svg></button>'
               + '<button data-act="down" title="Aşağı" class="h-s3" style="width:26px;height:26px;border-radius:999px;background:transparent;border:none;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 10l6 6 6-6"></path></svg></button>'
             + '</div>'
-            + '<button data-act="top" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap">'
+            + '<button data-act="top" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap">'
               + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M5 5h14M6 16l6-6 6 6"></path></svg>En Öne Al</button>'
             + '<button data-act="wl" title="'+esc(t(whitelistIds.has(g.appid) ? 'Beyaz Listeden Çıkar' : 'Beyaz Listeye Ekle'))+'" style="width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid '+(whitelistIds.has(g.appid)?'#B37E24':'#333D4D')+';color:'+(whitelistIds.has(g.appid)?'#B37E24':'#8B8F9E')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="'+(whitelistIds.has(g.appid)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>'
-            + '<button data-act="remove" title="Kara Listeye Al" style="width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#B32453;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>'
+            + '<button data-act="remove" title="Kara Listeye Al" style="width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#E45A86;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>'
           + '</div></div>';
       }).join('');
       renderDrops();
@@ -225,7 +225,7 @@
         + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">'+esc(g.name)+'</span>'
         + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0">'+esc(tf('# kalan', g.remaining))+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px">'+g.appid+'</span>'
-        + '<button data-act="'+(ex ? 'unexclude' : 'unwl')+'" class="h-brand" style="height:28px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'
+        + '<button data-act="'+(ex ? 'unexclude' : 'unwl')+'" class="h-brand" style="height:28px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'
         + esc(t(ex ? 'Kara Listeden Çıkar' : 'Beyaz Listeden Çıkar')) + '</button></div>';
     }
 
@@ -347,7 +347,7 @@
       const box = document.getElementById('dropList');
       if (!box) return;
       if (!recentDrops.length){
-        box.innerHTML = '<div style="padding:14px 16px;font-size:11px;color:#656D80">Bu oturumda henüz kart düşmedi.</div>';
+        box.innerHTML = '<div style="padding:14px 16px;font-size:11px;color:#7F879B">Bu oturumda henüz kart düşmedi.</div>';
         return;
       }
       box.innerHTML = recentDrops.map(d=>
@@ -357,7 +357,7 @@
             + '<span style="width:8px;height:8px;border-radius:999px;background:#5FB324"></span></div>'
           + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
             + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(tf('# kart düştü', d.count))+'</span>'
-            + '<span style="font-size:10.5px;color:#656D80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(localCode())+'</span></span>'
+            + '<span style="font-size:11px;color:#7F879B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(localCode())+'</span></span>'
           + '</div></div>'
         + '<button class="h-brand" data-godrop="'+d.appid+'" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Envanter</button>'
         + '</div>').join('');

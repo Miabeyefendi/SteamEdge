@@ -19,7 +19,7 @@
 
     const chEl = (id) => document.getElementById(id);
     const CHC = { brand:'#5624B3', ok:'#5FB324', title:'#DCE2FA', muted:'#8B8F9E',
-                  off:'#656D80', bd:'#2B3345', s1:'#0D1118', sub:'#C2AAEE' };
+                  off:'#7F879B', bd:'#2B3345', s1:'#0D1118', sub:'#C2AAEE' };
 
     function chTime(ts){
       const d = new Date(ts || 0);
@@ -42,7 +42,7 @@
       const listing = chEl('chList');
       listing.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Arkadaş listesi alınıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
-      if (!con.ok){ listing.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
+      if (!con.ok){ listing.innerHTML = '<div style="color:#E45A86;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
       await chFetchFriends();
       chLoaded = true;
     }
@@ -51,7 +51,7 @@
       const listing = chEl('chList');
       const r = await window.imu.chat.friends().catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
-        listing.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc((r&&r.error)||'Arkadaş listesi alınamadı.')+'</div>';
+        listing.innerHTML = '<div style="color:#E45A86;padding:14px;font-size:12px">'+esc((r&&r.error)||'Arkadaş listesi alınamadı.')+'</div>';
         return;
       }
       chFriends = r.friends || [];
@@ -70,7 +70,7 @@
       chEl('chCount').textContent = tf('# kişi', refined.length);
       chEl('chOnline').textContent = String(chFriends.filter(a=>a.condition > 0).length);
       if (!refined.length){
-        listing.innerHTML = '<div style="color:#656D80;padding:14px;font-size:12px">'
+        listing.innerHTML = '<div style="color:#7F879B;padding:14px;font-size:12px">'
           + (chFriends.length ? 'Sonuç yok.' : 'Arkadaş bulunamadı.') + '</div>';
         return;
       }
@@ -87,10 +87,10 @@
           + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12px;font-weight:600;color:'+(a.condition>0?CHC.title:CHC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.persona)+'</span>'
-            + '<span style="font-size:10px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(chStatusName(a))+'</span>'
+            + '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(chStatusName(a))+'</span>'
           + '</div>'
           + (unread
-              ? '<span style="flex-shrink:0;min-width:18px;height:18px;padding:0 5px;border-radius:12px;background:'+CHC.brand+';color:#DCE2FA;font-family:Geist Mono,monospace;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">'+unread+'</span>'
+              ? '<span style="flex-shrink:0;min-width:18px;height:18px;padding:0 5px;border-radius:12px;background:'+CHC.brand+';color:#DCE2FA;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">'+unread+'</span>'
               : '')
           + '</div>';
       }).join('');
@@ -121,7 +121,7 @@
       const r = await window.imu.chat.history(steamid, 50).catch(e=>({ ok:false, error:(e&&e.message) }));
       if (request !== chRequest) return;                 // the user moved to another person
       if (!r || !r.ok){
-        chEl('chMessages').innerHTML = '<div style="color:#B32453;font-size:12px">'+esc((r&&r.error)||'Yazışma alınamadı.')+'</div>';
+        chEl('chMessages').innerHTML = '<div style="color:#E45A86;font-size:12px">'+esc((r&&r.error)||'Yazışma alınamadı.')+'</div>';
         return;
       }
       chMessages.set(steamid, r.messageList || []);
@@ -133,7 +133,7 @@
       const container = chEl('chMessages');
       const m = chMessages.get(chSelected) || [];
       if (!m.length){
-        container.innerHTML = '<div style="color:#656D80;font-size:12px">Henüz mesaj yok. İlk mesajı sen yaz.</div>';
+        container.innerHTML = '<div style="color:#7F879B;font-size:12px">Henüz mesaj yok. İlk mesajı sen yaz.</div>';
         return;
       }
       container.innerHTML = m.map(x=>
@@ -142,7 +142,7 @@
           + (x.me ? 'background:#2A1B47;border:1px solid #5624B3;color:#DCE2FA'
                    : 'background:#0D1118;border:1px solid #2B3345;color:#B9C0D6') + '">'
           + esc(x.textValue) + '</div>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80;align-self:'+(x.me?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'
+        + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B;align-self:'+(x.me?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'
         + '</div>').join('');
       container.scrollTop = container.scrollHeight;
     }

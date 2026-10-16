@@ -25,15 +25,15 @@
           + '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l.name) + '</span>'
           + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">'
             + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA">' + esc(fmtMoney(l.buyerCents / 100)) + '</span>'
-            + '<span style="font-size:10.5px;color:#8B8F9E">' + esc(t('eline geçecek') + ' ' + fmtMoney(l.sellerCents / 100)) + '</span>'
+            + '<span style="font-size:11px;color:#8B8F9E">' + esc(t('eline geçecek') + ' ' + fmtMoney(l.sellerCents / 100)) + '</span>'
           + '</div>'
-          + '<span style="width:74px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:10.5px;color:#656D80">' + (l.created ? new Date(l.created).toLocaleDateString(localCode()) : '') + '</span>'
+          + '<span style="width:74px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">' + (l.created ? new Date(l.created).toLocaleDateString(localCode()) : '') + '</span>'
           + '</div>';
       }).join('');
     }
     function mlGroup(title, list, withBox){
       if (!list.length) return '';
-      return '<div style="padding:12px 4px 4px;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#656D80">' + esc(t(title)) + ' · ' + list.length + '</div>' + mlRows(list, withBox);
+      return '<div style="padding:12px 4px 4px;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#7F879B">' + esc(t(title)) + ' · ' + list.length + '</div>' + mlRows(list, withBox);
     }
 
     function mlPaint(){
@@ -41,12 +41,12 @@
       const body = mlBack.querySelector('[data-mlbody]');
       const cancelBtn = mlBack.querySelector('[data-mlcancel]');
       if (!mlData){ body.innerHTML = '<div style="padding:40px 0;text-align:center;font-size:12px;color:#8B8F9E">' + esc(t('Pazardaki ilanların yükleniyor…')) + '</div>'; }
-      else if (mlData.error){ body.innerHTML = '<div style="padding:40px 12px;text-align:center;font-size:12px;color:#B32453">' + esc(t(mlData.error)) + '</div>'; }
+      else if (mlData.error){ body.innerHTML = '<div style="padding:40px 12px;text-align:center;font-size:12px;color:#E45A86">' + esc(t(mlData.error)) + '</div>'; }
       else {
         const d = mlData;
         body.innerHTML = (d.listings.length || d.toConfirm.length || d.onHold.length)
           ? mlGroup('Satıştaki ilanlar', d.listings, true) + mlGroup('Onay bekleyenler', d.toConfirm, false) + mlGroup('Bekletmedeki ilanlar', d.onHold, false)
-          : '<div style="padding:40px 0;text-align:center;font-size:12px;color:#656D80">' + esc(t('Aktif ilan yok.')) + '</div>';
+          : '<div style="padding:40px 0;text-align:center;font-size:12px;color:#7F879B">' + esc(t('Aktif ilan yok.')) + '</div>';
       }
       const n = mlSelected.size;
       cancelBtn.disabled = !n || mlBusy;

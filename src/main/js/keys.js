@@ -9,11 +9,11 @@
       claimed:   { label: 'Hesaba eklendi',         color: '#5FB324' },
       notGranted:{ label: 'Lisans verilmedi',       color: '#B37E24' },
       owned:     { label: 'Zaten sahip',            color: '#B37E24' },
-      region:    { label: 'Bölge kilitli',          color: '#B32453' },
-      invalid:   { label: 'Geçersiz anahtar',       color: '#B32453' },
+      region:    { label: 'Bölge kilitli',          color: '#E45A86' },
+      invalid:   { label: 'Geçersiz anahtar',       color: '#E45A86' },
       duplicate: { label: 'Daha önce kullanılmış',  color: '#B37E24' },
       needsBase: { label: 'Ana oyun gerekli',       color: '#B37E24' },
-      other:     { label: 'Reddedildi',             color: '#B32453' },
+      other:     { label: 'Reddedildi',             color: '#E45A86' },
     };
     const kyEl = (id) => document.getElementById(id);
 
@@ -59,7 +59,7 @@
       if (paused){
         banner.style.display = 'flex';
         banner.innerHTML = '<span>' + esc(tf('Steam hız sınırına takıldı; # sonra devam edilecek.', kyWait(waitingMs))) + '</span>'
-          + '<button id="kyTryNow" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B37E24;color:#B37E24;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">' + esc(t('Şimdi Dene')) + '</button>';
+          + '<button id="kyTryNow" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B37E24;color:#B37E24;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">' + esc(t('Şimdi Dene')) + '</button>';
         kyEl('kyTryNow').onclick = () => window.imu.keys.start(true);
       } else if (keyState.error){
         banner.style.display = 'flex';
@@ -70,12 +70,12 @@
 
       kyEl('kyQueue').innerHTML = keyState.queue.length ? keyState.queue.map((q, i) =>
         '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #101621">'
-        + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:10px;color:#656D80">#' + (i + 1) + '</span>'
+        + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">#' + (i + 1) + '</span>'
         + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:600;color:#DCE2FA">' + esc(q.key) + '</span>'
           + (q.name ? '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(q.name) + '</span>' : '')
         + '</div></div>').join('')
-        : '<div style="padding:28px 0;text-align:center;font-size:12px;color:#656D80">' + esc(t('Kuyruk boş.')) + '</div>';
+        : '<div style="padding:28px 0;text-align:center;font-size:12px;color:#7F879B">' + esc(t('Kuyruk boş.')) + '</div>';
 
       kyEl('kyResults').innerHTML = keyState.results.length ? keyState.results.map((r) => {
         const st = KY_STATUS[r.status] || KY_STATUS.other;
@@ -85,14 +85,14 @@
           + '<span style="width:7px;height:7px;border-radius:12px;background:' + st.color + ';flex-shrink:0"></span>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(games || r.key) + '</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10.5px;color:#656D80">' + esc(r.key) + '</span>'
-            + (r.forwardedTo ? '<span style="font-size:10.5px;color:#24AEB3">' + esc(tf('# hesabında denenecek.', r.forwardedTo)) + '</span>' : '')
+            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">' + esc(r.key) + '</span>'
+            + (r.forwardedTo ? '<span style="font-size:11px;color:#24AEB3">' + esc(tf('# hesabında denenecek.', r.forwardedTo)) + '</span>' : '')
           + '</div>'
-          + '<span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:' + st.color + ';border:1px solid ' + st.color + ';border-radius:12px;padding:2px 8px;flex-shrink:0">' + esc(label) + '</span>'
-          + '<span style="width:84px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:10.5px;color:#8B8F9E">' + new Date(r.ts).toLocaleTimeString(localCode()) + '</span>'
+          + '<span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:' + st.color + ';border:1px solid ' + st.color + ';border-radius:12px;padding:2px 8px;flex-shrink:0">' + esc(label) + '</span>'
+          + '<span style="width:84px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">' + new Date(r.ts).toLocaleTimeString(localCode()) + '</span>'
           + '</div>';
       }).join('')
-        : '<div style="padding:48px 0;text-align:center;font-size:12px;color:#656D80">' + esc(t('Henüz sonuç yok.')) + '</div>';
+        : '<div style="padding:48px 0;text-align:center;font-size:12px;color:#7F879B">' + esc(t('Henüz sonuç yok.')) + '</div>';
 
       // the countdown ticks once a second while the page is open and the queue waits for Steam
       if (paused && !keyTicker) keyTicker = setInterval(() => { if (kyIsVisible()) renderKeys(); }, 1000);

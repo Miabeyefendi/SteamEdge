@@ -133,7 +133,9 @@ Uygulamaya söylenebilecek her şey, gruplanmış hâlde: Genel, Kart Düşürme
 
 Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra, değişen ayarlardan etkilenen bir kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder; çalışan bir işe dokunmayan ayarlar hemen uygulanır. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
 
-Tema (Koyu, Gece Moru, Beyaz) Genel bölümündedir, giriş ekranına da uygulanır.
+Tema (Otomatik, Koyu, Gece Moru, Beyaz, Yüksek karşıtlık) Genel bölümündedir, giriş ekranına da uygulanır. Otomatik, sistem daha fazla karşıtlık isterse Yüksek karşıtlığı, istemezse Koyuyu kullanır. **Arayüz ölçeği** (yüzde 80 ile 150 arası, varsayılan 100) bütün arayüzü büyütür ya da küçültür; Ctrl + / - / 0 tuşları da onu değiştirir ve ilk açılışta çıkan pencere de bunu sorar. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek, sığan değere küçülür. Soluk metin her temada zeminine karşı 4,5 : 1 ya da daha iyi okunur (Yüksek karşıtlıkta 7 : 1), hiçbir metin 11 pikselden küçük değildir ve Windows'un karşıtlık temaları (zorunlu renkler) izlenir.
+
+Anahtarlar ve yan menü klavyeyle kullanılır: Tab aralarında gezdirir, Enter ya da Boşluk birine basar, ekran okuyucu onları anahtar ve düğme olarak, açık sayfayı da geçerli sayfa olarak duyurur.
 
 Arayüz yoğunluğu varsayılan olarak Otomatiktir: pencere kısayken (yaklaşık 720 pikselin altı) sıkışık olur, pencereyi uzatınca yeniden ferah olur. Yan menü 1000 pikselden dar pencerede kendiliğinden kapanır, pencere boyutunu, yerini ve büyütülmüş olup olmadığını hatırlar. 900 x 560 pikselin altında (giriş ekranı için 900 x 640) düzen daha fazla sıkıştırılmaz: sayfanın tamamı pencereye sığacak şekilde, dörtte üçe kadar küçültülür; böylece 675 x 420'lik bir pencere bile her düğmeyi gösterir.
 
@@ -303,8 +305,9 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
-| `theme` | `dark` | Renk teması: `dark`, `midnight` (Gece Moru), `white` |
+| `theme` | `auto` | Renk teması: `auto` (sistem isterse yüksek karşıtlık, yoksa koyu), `dark`, `midnight` (Gece Moru), `white`, `contrast` (Yüksek karşıtlık) |
 | `density` | `auto` | Boşluk ve satır yüksekliği: `auto` (pencere kısayken sıkışık), `comfortable`, `compact` |
+| `uiScale` | `100` | Yüzde olarak arayüz ölçeği: `80`, `90`, `100`, `110`, `125`, `150`. O ölçekte yerleşime yetmeyen pencere ölçeği sığan değere küçültür |
 | `perfMode` | `auto` | Performans: `auto`, `full`, `light` (animasyon, bulanıklık ve gölge yok) |
 | `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Sayfanın kullanılıp kullanılmadığı. Kapalı sayfa menüden kalkar ve Steam'e istek atmaz |
 | `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Yan menü sırası |

@@ -1497,5 +1497,8 @@
  "# iş kaldığı yerden sürdürüldü": "已從中斷處繼續的工作：#",
  "Yarım kalan işler": "未完成的工作",
  "Yarım kalan iş sürdürülemedi.": "無法繼續未完成的工作。",
- "İşler Sürdürüldü": "工作已繼續"
+ "İşler Sürdürüldü": "工作已繼續",
+ "Arayüz ölçeği": "介面縮放",
+ "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "放大或縮小整個介面。若視窗在所選縮放下容納不下版面，縮放會隨視窗縮小。也可用 Ctrl + / - / 0 調整。",
+ "Yüksek karşıtlık": "高對比"
 }

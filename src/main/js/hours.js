@@ -13,7 +13,7 @@
     let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, offlineMode:false, boostSync:false };
 
     const BC = { brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
-                 off:'#656D80', bd:'#2B3345', s1:'#0D1118', bgAlt:'#090C12', sub:'#C2AAEE' };
+                 off:'#7F879B', bd:'#2B3345', s1:'#0D1118', bgAlt:'#090C12', sub:'#C2AAEE' };
     const BSEG_ON  = { background:BC.brand, borderColor:BC.brand, color:BC.title };
     const BSEG_OFF = { background:'transparent', borderColor:'transparent', color:BC.muted };
 
@@ -27,9 +27,9 @@
       const body = document.getElementById('hoursListBody');
       body.innerHTML = '<div style="color:#8B8F9E;padding:14px;font-size:12px">Steam\'e bağlanılıyor...</div>';
       const con = await E.connect().catch(e=>({ ok:false, error:(e&&e.message)||'bağlantı hatası' }));
-      if (!con.ok){ body.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
+      if (!con.ok){ body.innerHTML = '<div style="color:#E45A86;padding:14px;font-size:12px">'+esc(con.error)+'</div>'; return; }
       const res = await E.ownedGames().catch(e=>({ ok:false, error:(e&&e.message)||'Kütüphane okunamadı.' }));
-      if (!res.ok){ body.innerHTML = '<div style="color:#B32453;padding:14px;font-size:12px">'+esc(res.error)+'</div>'; return; }
+      if (!res.ok){ body.innerHTML = '<div style="color:#E45A86;padding:14px;font-size:12px">'+esc(res.error)+'</div>'; return; }
       ownedGames = res.games; hoursLoaded = true;
       restoreBoostList();
       renderHoursList(); renderHoursSelected();
@@ -75,7 +75,7 @@
             + gameThumb(g.appid) + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+esc(durationUnit(hrsOf(g), 'sa'))+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+esc(durationUnit(hrsOf(g), 'sa'))+'</span>'
           + '</div>'
           + favStar(g.appid)
           + '<span style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+(on?'✓':'+')+'</span>'
@@ -162,7 +162,7 @@
         if (!not){
           not = document.createElement('span');
           not.setAttribute('data-kilit-not','1');
-          not.style.cssText = 'font-size:10.5px;line-height:1.5;color:#B37E24';
+          not.style.cssText = 'font-size:11px;line-height:1.5;color:#B37E24';
           block.appendChild(not);
         }
         not.textContent = cause;
@@ -242,7 +242,7 @@
             + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
               + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
                 + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-                + '<span style="font-family:Geist Mono,monospace;font-size:10px;color:#8B8F9E">'+subRow(g, on, i, elapsed)+'</span>'
+                + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+subRow(g, on, i, elapsed)+'</span>'
               + '</div>'
               + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
                 + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+fmtPercent(p)+'</span>'
