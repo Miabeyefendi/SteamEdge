@@ -108,7 +108,7 @@ La cola de juegos con cromos pendientes, leída de tus páginas de insignias, co
 
 ### Inventario y mercado
 
-Tu inventario de Steam, con los duplicados en una fila, filtrable por juego, nombre, tipo, estado y precio, y agrupable por juego. **Obtener precios** carga los precios de mercado de lo que muestra el filtro actual, por defecto junto con la media de ventas de cada artículo; las medias llegan justo después de los precios, con el mismo botón, que muestra su progreso y permite cancelarlas. El panel de detalle muestra los anuncios en venta, el precio de venta inmediata y las ventas realizadas. La barra inferior suma la selección, el bruto y lo que recibes, y ofrece los modos de venta (desde la media, rebajar, igualar el más bajo, vender al instante, precio propio) antes de **Vender**. **Mis anuncios** (arriba a la derecha) abre tus anuncios activos, y los sobres de refuerzo y las gemas tienen sus propios tipos en el filtro de tipo.
+Tu inventario de Steam, con los duplicados en una fila, filtrable por juego, nombre, tipo, estado y precio, y agrupable por juego. **Obtener precios** carga los precios de mercado de lo que muestra el filtro actual, por defecto junto con la media de ventas de cada artículo; las medias llegan justo después de los precios, con el mismo botón, que muestra su progreso y permite cancelarlas. El panel de detalle muestra los anuncios en venta, el precio de venta inmediata y las ventas realizadas. La barra inferior suma la selección, el bruto y lo que recibes, y ofrece los modos de venta (desde la media, rebajar, igualar el más bajo, vender al instante, precio propio) antes de **Vender**. **Mis anuncios** (arriba a la derecha) abre tus anuncios activos, y los sobres de refuerzo y las gemas tienen sus propios tipos en el filtro de tipo. Un selector al principio de la barra de filtros cambia a los objetos de otros juegos (Counter-Strike 2, Dota 2 y más), que se cargan en la misma tabla con las mismas herramientas.
 
 ### Impulsor de horas
 
@@ -134,9 +134,9 @@ Los cambios esperan en la página hasta que pulses **Guardar**. Antes no se escr
 
 El tema (Oscuro, Púrpura medianoche, Blanco) está en General y se aplica también a la pantalla de inicio de sesión.
 
-La densidad de la interfaz es Automática por defecto: pasa a compacta mientras la ventana es baja (menos de unos 720 píxeles) y vuelve a ser cómoda cuando la haces más alta. El menú lateral se cierra solo en una ventana de menos de 1000 píxeles de ancho, y la ventana recuerda su tamaño, su posición y si estaba maximizada.
+La densidad de la interfaz es Automática por defecto: pasa a compacta mientras la ventana es baja (menos de unos 720 píxeles) y vuelve a ser cómoda cuando la haces más alta. El menú lateral se cierra solo en una ventana de menos de 1000 píxeles de ancho, y la ventana recuerda su tamaño, su posición y si estaba maximizada. Por debajo de 900 x 560 píxeles (la pantalla de inicio de sesión, 900 x 640) el diseño ya no se comprime más: toda la página se escala para caber, hasta tres cuartos, de modo que incluso una ventana de 675 x 420 muestra todos los botones.
 
-En **Módulos** puedes desactivar páginas (cartas, horas, inventario, Modo realista, logros, claves, chat) y subir o bajar las demás. Una página desactivada desaparece del menú, del resumen y de la barra superior, no se puede abrir y no pide nada a Steam; las tareas programadas siguen en segundo plano según sus ajustes. El **modo de rendimiento** es Automático, Completo o Ligero. Ligero quita animaciones, transiciones, desenfoque y sombras; Automático lo activa cuando el sistema pide menos movimiento o el equipo es modesto, y **Ajustar para este equipo** elige un modo según los núcleos y la memoria que encuentra. La primera vez que arranca, la app pregunta qué páginas quieres. Un inventario largo se dibuja en segundo plano, así que la página sigue siendo usable mientras aparecen 3000 filas.
+En **Módulos** puedes desactivar páginas (cartas, horas, inventario, Modo realista, logros, claves, chat) y subir o bajar las demás. Una página desactivada desaparece del menú, del resumen y de la barra superior, no se puede abrir y no pide nada a Steam; las tareas programadas siguen en segundo plano según sus ajustes. El **modo de rendimiento** es Automático, Completo o Ligero. Ligero quita animaciones, transiciones, desenfoque y sombras; Automático lo activa cuando el sistema pide menos movimiento o el equipo es modesto, y **Ajustar para este equipo** elige un modo según los núcleos y la memoria que encuentra. La primera vez que arranca, la app pregunta qué páginas quieres. Un inventario largo se dibuja en segundo plano, así que la página sigue siendo usable mientras aparecen 3000 filas. Otras dos tarjetas desactivan funciones pequeñas (el cuadro de actividad del resumen, las estrellas de favoritos, los botones Mis anuncios y Exportar CSV, el selector de los inventarios de otros juegos) y elementos de la barra superior (el cuadro de búsqueda y los botones de notificaciones y de actualización); los botones de ajustes y de cuenta siempre se quedan.
 
 ### Chat
 
@@ -206,7 +206,7 @@ Mantiene un juego abierto y va desbloqueando sus logros a lo largo de la sesión
 
 **El tiempo de completado al 100%** es el número sobre el que se construye toda la página: cuántas horas cuesta terminar este juego con todos sus logros. Introdúcelo y queda recordado para ese juego. Déjalo vacío y se estima a partir del tipo de juego, pero esa estimación es tu propio tiempo jugado multiplicado por un factor, así que se infla en juegos que has jugado mucho.
 
-**El número objetivo** se calcula con dos partes: lo que ya debería estar desbloqueado a tu tiempo de juego menos lo que realmente lo está, más la parte que corresponde a esta sesión. El panel desglosa la aritmética para que puedas comprobarla. Con **Fijar la duración según los ajustes** activado y sin una duración escrita a mano, también se calcula la longitud de la sesión: el tiempo que necesitaría un jugador real para los logros atrasados, limitado entre 15 minutos y 12 horas.
+**El número objetivo** y **la duración** se planifican juntos, con el mismo código que ejecuta la sesión, así que los números de los campos son los que se ejecutan. Con **Fijar la duración según los ajustes** activado y sin una duración escrita a mano, el objetivo es todo lo que queda y la sesión dura lo que necesitaría un jugador real: el tiempo de finalización al 100 %, por la proporción de logros que se desbloquearán, por la dificultad (normal es el propio tiempo de finalización), limitado entre 15 minutos y 999 horas. Un juego que se tarda 60 horas en completar recibe 60 horas para todos sus logros; con varios juegos en la cola, la duración es la suma de los juegos, cada uno con su propio tiempo de finalización. Si escribes una duración, se mantiene, y el objetivo pasa a ser lo que ganaría un jugador real en ese tiempo: lo que ya debería estar desbloqueado a tu tiempo de juego menos lo que realmente lo está, más la parte que corresponde a esas horas. El panel desglosa la aritmética para que puedas comprobarla.
 
 **El modelo de distribución** da forma al espaciado. Lineal es uniforme, exponencial carga la mano al principio como se ven las primeras horas de un jugador real, y Pareto pone la mayoría en el primer quinto.
 
@@ -235,6 +235,8 @@ El precio y la media de ventas se obtienen **por artículo, juntos**, y después
 **Los sobres de refuerzo y las gemas** tienen tipos propios. Un sobre de refuerzo se puede abrir desde el panel de detalle; los cromos que salen se añaden al inventario. Abrir un sobre es permanente.
 
 **Exportar CSV.** El botón de la parte superior escribe los objetos que muestra la página (el filtro actual o todos) en un archivo CSV que eliges: nombre, juego, tipo, cantidad, vendible en el mercado, intercambiable, el precio más bajo y la mediana ya obtenidos, el valor unitario y el valor del montón. Los precios no se obtienen para la exportación, así que obténlos antes si los quieres en el archivo. Los nombres de las columnas siempre están en inglés y un nombre que empieza como una fórmula se marca con un apóstrofo para que una hoja de cálculo no lo ejecute.
+
+**Inventarios de otros juegos.** El selector del principio de la barra de filtros lista los juegos en los que la cuenta tiene objetos, leídos de la página de inventario. Elige uno y su mochila se carga en la misma tabla: los filtros de tipo y de juego se apartan, y los precios, el historial de ventas, el libro de órdenes, la venta y la exportación CSV funcionan como con los objetos de Steam; un doble clic abre la página de mercado del propio objeto. Lo que se leyó se conserva hasta que vendes o actualizas, así que ir y volver no cuesta ninguna solicitud. Los precios se obtienen con el botón y no por su cuenta, porque una mochila puede tener cientos de tipos de objeto y Steam permite unas 20 solicitudes en 30 segundos. Los objetos de un juego se valoran solo por el nombre, así que el desgaste (float), el patrón y las pegatinas no forman parte del precio; comprueba en Steam el precio de los objetos caros, la pregunta de venta lo advierte. Un inventario de más de 2000 objetos se lee página a página, y si Steam rechaza una página posterior se muestra la parte leída con un aviso. Steam no bloquea estos objetos; el selector se puede desactivar en Ajustes > Módulos.
 
 ### Claves de producto
 
@@ -299,6 +301,8 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `perfMode` | `auto` | Rendimiento: `auto`, `full`, `light` (sin animaciones, desenfoque ni sombras) |
 | `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Si la página está en uso. Una página desactivada sale del menú y no hace ninguna petición a Steam |
 | `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Orden del menú lateral |
+| `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Funciones pequeñas que se pueden desactivar: el cuadro de actividad del resumen, las estrellas de favoritos, Mis anuncios, Exportar CSV, los inventarios de otros juegos |
+| `topSearch`, `topNotif`, `topUpdate` | `true` | Elementos de la barra superior que se pueden desactivar: el cuadro de búsqueda y los botones de notificaciones y de actualización |
 | `preventSleep` | `false` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
 
 ### Farmeo de cromos
@@ -409,6 +413,10 @@ Steam limita cuántos anuncios puede crear una cuenta, y el límite depende de s
 ### Dice "quedan 40 cromos" pero solo cayeron unos pocos
 
 En cuentas con caídas de cromos restringidas, los cromos solo caen después de que un juego supere el umbral de caída de cromos (normalmente dos horas de tiempo total), y cada juego tiene su propio número limitado de caídas. Una sesión larga en los otros modos sobre juegos que están todos por debajo de dos horas no produce nada hasta que cruzan el umbral; el modo Rápido primero los sube todos juntos por encima.
+
+### Faltan objetos de Counter-Strike 2 o Dota 2
+
+Elige el juego en el selector del principio de la barra de filtros de la página Inventario y mercado; solo el inventario de Steam se abre por sí solo. Si falta el selector, comprueba que Ajustes > Módulos > Inventarios de otros juegos esté activado y que el juego tenga objetos en la cuenta. Un aviso de que solo se pudo leer una parte del inventario significa que Steam rechazó una página posterior (límite de solicitudes): espera unos minutos y elige el juego de nuevo.
 
 ### Los precios muestran un guion, o se rellenan muy despacio
 

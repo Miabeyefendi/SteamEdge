@@ -7,6 +7,30 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.2)
+
+Four problems people hit are fixed, the inventory page now shows every game's items and not only the Steam ones, and the modules get their small switches.
+
+### Added
+
+- **Counter-Strike 2, Dota 2 and every other game's inventory (Inventory & Market).** A selector at the start of the filter bar lists the games the account has items in. Pick one and its items load into the same table with the same tools: prices, sale history, order book, selling and CSV export. Steam never blocked these items: the page only ever asked for the Steam community inventory (cards, backgrounds, emoticons, gems) and never for a game's backpack. What was read is kept, so going back and forth costs no request. A game's items are priced by name only (wear, pattern and stickers are not part of the price), and the sale question says so in red. An inventory bigger than 2000 items is read page by page; if Steam refuses a later page, the part that was read is shown and the page tells you it is a part.
+- **Small features and top bar items can be switched off (Settings > Modules).** Small features: the activity box on the overview, the favorite stars, the My listings button, the CSV export button and the selector of the other games' inventories (switched off, they are not asked for at all). Top bar: the search box, the notification button and the update button. The settings and account buttons always stay. Everything is on until you switch it off.
+- **A window smaller than the layout scales the page.** The layout is drawn for 900 x 560 (the sign-in screen 900 x 640). Below that the whole page is scaled to fit, down to three quarters, so every button keeps its shape and nothing runs off the edge. The smallest window is now 675 x 420 (sign-in 675 x 480).
+
+### Fixed
+
+- **Realistic Mode: a game that takes 60 hours now gets 60 hours.** With the automatic duration on, the page showed one target and duration and sent something else to the engine: all achievements were unlocked within the 2 hours in the field. The engine now works out the target and the duration together, from the completion time, the share of achievements that will be unlocked and the difficulty, and the page shows exactly what will run. A duration typed by hand is respected and brings back the "what a real player would earn in that time" target. The difficulty "normal" no longer adds 20% on top of the completion time (60 hours showed as 72). A game that counts as finished does not get the compression on top of an automatic duration.
+- **The automatic duration and catch-up switches needed two clicks.** They showed "on" while the setting was empty, and the first click wrote "on" again.
+- **The top bar buttons were ellipses.** In a narrow window the round buttons were squeezed sideways. They keep their size now and the search box gives way instead.
+- **Buttons and rows inside scrolling columns were squeezed flat** when the column was short; they keep their height and the column scrolls.
+
+### Changed
+
+- Ctrl + / - / 0 no longer zoom the page: the window sets the zoom itself so the layout always fits.
+- `npm test` runs 37 tests (new: window fit, inventories of other games in the engine, in the page and in the sell guard, the small switches, the Realistic Mode plan and page).
+
+SHA-256 (`SteamEdge-v1.5.2-win-x64.rar`): `b79aa73bcdc19da6ec11d2a8ddd1b0b8f0da09e01d3559fef65143e74670674a`
+
 ## [1.5.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.1)
 
 Two things for people who want the app their own way: pages you can switch off, and a light mode for weak computers.

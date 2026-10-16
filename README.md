@@ -83,15 +83,15 @@
 - **Hours booster** - Keeps up to 32 games open at once, with optional playtime syncing that pulls a selection up to the same total.
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
-- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches. Active listings can be taken back, and booster packs opened, from the same page.
+- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches. Active listings can be taken back, and booster packs opened, from the same page. A selector switches to the items of other games (Counter-Strike 2, Dota 2 and more), with the same tools.
 - **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time. When Steam's hourly limit is reached the queue waits and carries on by itself. A key an account already owns can be tried on your other accounts, and a free game is added from its store link.
 - **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
 - **Schedule, proxy and token protection** - Card farming and Realistic Mode can run by themselves inside a time range, each account can use its own HTTP or SOCKS5 proxy (the sign-in has one too), and saved sign-in tokens can be encrypted with Windows DPAPI.
 - **Lists and filters** - A permanent blacklist and a whitelist for card farming, a filter that leaves out games still in their refund window, favorite games that sit at the top of the lists, and a CSV export of the inventory.
 - **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
-- **Fits your screen** - The layout is fluid down to 900 x 560: lists wrap instead of running off the edge, the side menu closes by itself on a narrow window and the interface turns compact on a short one. The window comes back where you left it, on a screen that still exists.
-- **Modular** - Switch off the pages you do not use (cards, hours, inventory, achievements, keys, chat) and put the rest in your own order. A page that is off asks Steam for nothing. A light mode turns off animations and blur for weak computers, and an automatic setting picks it for you.
+- **Fits your screen** - The layout is fluid down to 900 x 560: lists wrap instead of running off the edge, the side menu closes by itself on a narrow window and the interface turns compact on a short one. The window comes back where you left it, on a screen that still exists. Windows smaller than 900 x 560 scale the whole page, down to 675 x 420, so buttons keep their shape.
+- **Modular** - Switch off the pages you do not use (cards, hours, inventory, achievements, keys, chat) and put the rest in your own order. A page that is off asks Steam for nothing. A light mode turns off animations and blur for weak computers, and an automatic setting picks it for you. Small features (the activity box, favorite stars, the My listings and CSV buttons) and top bar items (search, notifications, updates) can be switched off too.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
 
@@ -155,10 +155,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.5.1-win-x64.rar`:
-`5a49eb53277959805d7a2b7c3141bde505d27e767454a9e001ed8585c261ecd5`
+SHA-256 of `SteamEdge-v1.5.2-win-x64.rar`:
+`b79aa73bcdc19da6ec11d2a8ddd1b0b8f0da09e01d3559fef65143e74670674a`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.5.1-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.5.2-win-x64.rar`.
 
 </details>
 

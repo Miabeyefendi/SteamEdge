@@ -108,7 +108,7 @@ The queue of games with cards still to drop, scraped from your badge pages, with
 
 ### Inventory & Market
 
-Your Steam inventory, merged so duplicates count as one row, filterable by game, name, type, state and price, optionally grouped by game. **Fetch prices** loads the market prices of what the current filter shows, by default together with each item's sale average; the averages come right after the prices, from the same button, which shows their progress and cancels them. The detail panel shows current listings, the price you can sell for instantly and completed sales. The bar at the bottom totals the selection, gross and what you receive, and offers the sale modes (from the average, undercut, match the lowest, sell instantly, your own price) before **Sell**. **My listings** (top right) opens your active listings, and booster packs and gems have their own types in the type filter.
+Your Steam inventory, merged so duplicates count as one row, filterable by game, name, type, state and price, optionally grouped by game. **Fetch prices** loads the market prices of what the current filter shows, by default together with each item's sale average; the averages come right after the prices, from the same button, which shows their progress and cancels them. The detail panel shows current listings, the price you can sell for instantly and completed sales. The bar at the bottom totals the selection, gross and what you receive, and offers the sale modes (from the average, undercut, match the lowest, sell instantly, your own price) before **Sell**. **My listings** (top right) opens your active listings, and booster packs and gems have their own types in the type filter. A selector at the start of the filter bar switches to the items of other games (Counter-Strike 2, Dota 2 and more), which load into the same table with the same tools.
 
 ### Hours Booster
 
@@ -134,9 +134,9 @@ Changes stay in the page until you press **Save**. Nothing is written before tha
 
 The theme (Dark, Midnight Purple, White) is under General and applies to the login screen as well.
 
-The interface density is Automatic by default: it turns compact while the window is short (under about 720 pixels) and relaxes again when you make the window taller. The side menu closes by itself on a window narrower than 1000 pixels, and the window remembers its size, its place and whether it was maximized.
+The interface density is Automatic by default: it turns compact while the window is short (under about 720 pixels) and relaxes again when you make the window taller. The side menu closes by itself on a window narrower than 1000 pixels, and the window remembers its size, its place and whether it was maximized. Below 900 x 560 pixels (the sign-in screen 900 x 640) the layout does not squeeze any further: the whole page is scaled to fit, down to three quarters, so even a window of 675 x 420 shows every button.
 
-Under **Modules** you can switch pages off (cards, hours, inventory, Realistic Mode, achievements, keys, chat) and move the rest up or down. A page that is off leaves the menu, the overview and the top bar, cannot be opened, and asks Steam for nothing; scheduled jobs keep running in the background according to their settings. **Performance mode** is Automatic, Full or Light. Light turns off animations, transitions, blur and shadows; Automatic switches it on when the system asks for less motion or the computer is weak, and **Set up for this computer** picks a mode from the cores and memory it finds. The first time the app starts it asks which pages you want. A long inventory is drawn in the background, so the page stays usable while 3000 rows appear.
+Under **Modules** you can switch pages off (cards, hours, inventory, Realistic Mode, achievements, keys, chat) and move the rest up or down. A page that is off leaves the menu, the overview and the top bar, cannot be opened, and asks Steam for nothing; scheduled jobs keep running in the background according to their settings. **Performance mode** is Automatic, Full or Light. Light turns off animations, transitions, blur and shadows; Automatic switches it on when the system asks for less motion or the computer is weak, and **Set up for this computer** picks a mode from the cores and memory it finds. The first time the app starts it asks which pages you want. A long inventory is drawn in the background, so the page stays usable while 3000 rows appear. Two more cards switch off small features (the activity box on the overview, the favorite stars, the My listings and Export CSV buttons, the selector of the other games' inventories) and top bar items (the search box, the notification button, the update button); the settings and account buttons always stay.
 
 ### Chat
 
@@ -206,7 +206,7 @@ Holds one game open and unlocks its achievements across the session, from the mo
 
 **100% completion time** is the number the whole page is built on: how many hours it takes to finish this game with all its achievements. Enter it and it is remembered for that game. Leave it empty and it is estimated from the game type, but that estimate is your own playtime times a factor, so it inflates on games you have played a lot.
 
-**Target count** is worked out from two parts: what should already be unlocked at your playtime minus what actually is, plus this session's own share. The panel spells the arithmetic out so you can check it. With **Set the duration from the settings** on and no duration typed by hand, the session length is worked out too: the time a real player would need for the achievements that are behind, kept between 15 minutes and 12 hours.
+**Target count** and **duration** are planned together, by the same code that runs the session, so the numbers in the boxes are the numbers that run. With **Set the duration from the settings** on and no duration typed by hand, the target is everything that is left and the session lasts as long as a real player would need for it: the 100% completion time, times the share of the achievements that will be unlocked, times the difficulty (normal is the completion time itself), kept between 15 minutes and 999 hours. A game that takes 60 hours gets 60 hours for all its achievements; with several games in the queue the duration is the sum of the games, each with its own completion time. If you type a duration it stays, and the target becomes what a real player would earn in that time: what should already be unlocked at your playtime minus what actually is, plus the share of those hours. The panel spells the arithmetic out so you can check it.
 
 **Distribution model** shapes the spacing. Linear is even, exponential front-loads the way a real player's first hours look, Pareto puts most of them in the first fifth.
 
@@ -235,6 +235,8 @@ Price and sale average are fetched **per item, together**, then the queue moves 
 **Booster packs and gems** have their own types. A booster pack can be opened from the detail panel; the cards that come out are added to the inventory. Opening a pack is permanent.
 
 **Export CSV.** The button at the top of the page writes the items the page shows (the current filter, or everything) to a CSV file you choose: name, game, type, quantity, marketable, tradable, the lowest and median price already fetched, the unit value and the value of the stack. Prices are not fetched for the export, so fetch them first if you want them in the file. The column names are always English, and a name that starts like a formula is marked with an apostrophe so a spreadsheet does not run it.
+
+**Other games' inventories.** The selector at the start of the filter bar lists the games the account has items in, read from the inventory page. Pick one and its backpack loads into the same table: the type and game filters step aside, and prices, sale history, the order book, selling and the CSV export work as for Steam items; a double click opens the item's own market page. What was read is kept until you sell or refresh, so going back and forth costs no request. Prices are fetched with the button and not on their own, because a backpack can hold hundreds of kinds of item and Steam allows about 20 requests in 30 seconds. A game's items are priced by name only, so wear (float), pattern and stickers are not part of the price; check the price of expensive items on Steam, the sale question warns about it. An inventory bigger than 2000 items is read page by page, and if Steam refuses a later page the part that was read is shown with a notice. Steam does not block these items; the selector can be switched off under Settings > Modules.
 
 ### Product keys
 
@@ -299,6 +301,8 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `perfMode` | `auto` | Performance: `auto`, `full`, `light` (no animations, blur or shadows) |
 | `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Whether each page is in use. A page that is off leaves the menu and makes no Steam request |
 | `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | The order of the side menu |
+| `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Small features that can be switched off: the overview activity box, the favorite stars, My listings, Export CSV, the other games' inventories |
+| `topSearch`, `topNotif`, `topUpdate` | `true` | Top bar items that can be switched off: the search box, the notification button, the update button |
 | `preventSleep` | `false` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |
 
 ### Card farming
@@ -409,6 +413,10 @@ Steam limits how many listings an account may create, and the limit depends on t
 ### "40 cards left" but only a handful dropped
 
 On accounts with restricted card drops, cards only drop after a game passes the Card drop threshold (usually two hours of total playtime), and each game has its own limited number of drops. A long session in the other modes on games that are all under two hours produces nothing until they cross it; Fast mode lifts them all above the threshold together first.
+
+### Counter-Strike 2 or Dota 2 items are missing
+
+Pick the game in the selector at the start of the filter bar on the Inventory & Market page; only the Steam inventory opens by itself. If the selector is not there, check that Settings > Modules > Other games' inventories is on and that the game has items in the account. A notice that only a part of the inventory could be read means Steam refused a later page (request limit): wait a few minutes and pick the game again.
 
 ### Prices show a dash, or fill in very slowly
 
