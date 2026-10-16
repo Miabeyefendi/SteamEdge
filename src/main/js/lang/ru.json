@@ -1500,5 +1500,15 @@
  "İşler Sürdürüldü": "Задания продолжены",
  "Arayüz ölçeği": "Масштаб интерфейса",
  "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Увеличивает или уменьшает весь интерфейс. Если окно слишком мало для макета в выбранном масштабе, масштаб уменьшается под окно. Меняется и клавишами Ctrl + / - / 0.",
- "Yüksek karşıtlık": "Высокая контрастность"
+ "Yüksek karşıtlık": "Высокая контрастность",
+ "Komut paleti": "Палитра команд",
+ "Komut ara...": "Поиск команд...",
+ "Sayfalar": "Страницы",
+ "İşlemler": "Действия",
+ "Hesaba geç": "Перейти на аккаунт",
+ "Kısayolları göster": "Показать сочетания клавиш",
+ "Kısayollar": "Сочетания клавиш",
+ "Pencereyi kapat": "Закрыть окно",
+ "Ayarlarda ara...": "Поиск по настройкам...",
+ "Kaydedilen bölümler:": "Сохранённые разделы:"
 }

@@ -24,6 +24,10 @@
 
         <div class="set-grid" style="display:grid;grid-template-columns:194px minmax(0,1fr) 282px;gap:18px;align-items:start">
           <div class="set-nav" style="display:flex;flex-direction:column;gap:4px;position:sticky;top:0">
+            <div style="position:relative;flex-shrink:0;margin-bottom:6px">
+              <input id="setSearch" type="text" role="combobox" aria-expanded="true" aria-controls="setFound" aria-autocomplete="list" autocomplete="off" spellcheck="false" placeholder="Ayarlarda ara..." style="width:100%;height:36px;border-radius:999px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 14px;outline:none">
+              <div id="setFound" role="listbox" class="e-pal-found" style="display:none"></div>
+            </div>
             <button data-secbtn="general" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Genel</button>
             <button data-secbtn="farming" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Kart Düşürme</button>
             <button data-secbtn="market" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0" class="h-bd">Pazar</button>

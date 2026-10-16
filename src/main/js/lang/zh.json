@@ -1500,5 +1500,15 @@
  "İşler Sürdürüldü": "工作已繼續",
  "Arayüz ölçeği": "介面縮放",
  "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "放大或縮小整個介面。若視窗在所選縮放下容納不下版面，縮放會隨視窗縮小。也可用 Ctrl + / - / 0 調整。",
- "Yüksek karşıtlık": "高對比"
+ "Yüksek karşıtlık": "高對比",
+ "Komut paleti": "指令面板",
+ "Komut ara...": "搜尋指令...",
+ "Sayfalar": "頁面",
+ "İşlemler": "操作",
+ "Hesaba geç": "切換到帳號",
+ "Kısayolları göster": "顯示快速鍵",
+ "Kısayollar": "快速鍵",
+ "Pencereyi kapat": "關閉視窗",
+ "Ayarlarda ara...": "搜尋設定...",
+ "Kaydedilen bölümler:": "已儲存的區段："
 }

@@ -94,6 +94,7 @@
 - **Modular** - Switch off the pages you do not use (cards, hours, inventory, achievements, keys, chat) and put the rest in your own order. A page that is off asks Steam for nothing. A light mode turns off animations and blur for weak computers, and an automatic setting picks it for you. Small features (the activity box, favorite stars, the My listings and CSV buttons) and top bar items (search, notifications, updates) can be switched off too.
 - **Picks up where it left off** - A card farm, hour boost or Realistic Mode run that was going when the app closed, the PC shut down or the app crashed starts again where it left off when the account connects again. The time the app was not running does not count, so a boost with three hours left has three hours left.
 - **Readable and keyboard friendly** - An interface scale from 80 to 150 percent (also Ctrl + / - / 0), a High contrast theme that follows the system's contrast setting, text that reads at 4.5 : 1 or better and never smaller than 11 pixels, and switches and the side menu that work from the keyboard and with a screen reader.
+- **Quick navigation** - Ctrl+K opens a command palette that finds pages, settings, accounts and the actions of the open page as you type; Ctrl+1 to Ctrl+9 open pages by number, ? lists the shortcuts, and Settings has its own search box and marks the sections you changed and saved.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
 
@@ -157,10 +158,10 @@ npm install
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.5.4-win-x64.rar`:
-`1868520b70fe8816048c7d8588c7a5002ff29669b66454d7d07346b735a1b56d`
+SHA-256 of `SteamEdge-v1.5.5-win-x64.rar`:
+`d8c0dd38d5783859ef67c0df720829da2eda7f8c6285cc69416d31db83fb48ea`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.5.4-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.5.5-win-x64.rar`.
 
 </details>
 

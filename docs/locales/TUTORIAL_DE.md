@@ -257,6 +257,12 @@ Ist der **Zeitplan für Kartensammeln** an (Einstellungen > Kartenfarmen), start
 
 Ein von Hand gestarteter Auftrag wird vom Zeitplan nie gestoppt, und ein Konto wird pro Zeitraum höchstens einmal gestartet: Stoppst du es im Zeitraum von Hand, bleibt es bis zum nächsten Zeitraum gestoppt. Nur verbundene Konten werden gestartet; der Zeitplan meldet niemanden an.
 
+### Schnellnavigation
+
+**Strg+K** öffnet die Befehlspalette: Tippen, um eine Seite, einen Bereich der Einstellungen, eine einzelne Einstellung, ein anderes Konto oder eine Aktion der geöffneten Seite (zum Beispiel Start oder Stopp) zu finden, dann Enter. Die Pfeiltasten bewegen sich durch die Liste, Esc schließt sie. **Strg+1** bis **Strg+7** öffnen die Seiten des Seitenmenüs in der angezeigten Reihenfolge (eine ausgeschaltete Seite schließt die Nummern auf), **Strg+8** öffnet den Chat, wenn er an ist, und **Strg+9** die Einstellungen. **?** oder **Strg+/** zeigt die Tastenkürzel mit den aktuellen Nummern. Die Tastenkürzel warten, solange ein Rückfragefenster offen ist.
+
+In den Einstellungen findet das Feld **Einstellungen durchsuchen** über den Bereichen eine einzelne Einstellung über ihren Namen oder ihren Hilfetext, öffnet ihren Bereich und hebt die Zeile hervor. Ein Bereich mit nicht gespeicherten Änderungen trägt einen Punkt; nach dem Speichern zeigen die gespeicherten Bereiche einige Sekunden ein Häkchen und werden in der Meldung genannt.
+
 ### Unterbrochene Aufgaben fortsetzen
 
 Eine Aufgabe, die beim Beenden der App läuft (der PC wird heruntergefahren, die App wird geschlossen, sie stürzt ab), wird in `settings/resume.json` festgehalten und läuft beim nächsten Start, sobald sich das Konto verbunden hat, dort weiter, wo sie aufgehört hat: Kartenfarmen bei seinem Spiel und seiner Minute, ein Stunden-Boost (alle zugleich oder nacheinander) mit der Zeit, die ihm blieb, ein Lauf des Realistischen Modus mit dem, was vom Ziel übrig war, über die verbleibende Zeit. Die Zeit, in der die App nicht lief, zählt nicht: Ein Boost mit drei Stunden Restzeit hat danach wieder drei Stunden. Ein Boost, der Stunden angleicht, liest die Spielzeiten neu, weil sie sich während des Laufs verschoben haben. Die Datei wird beim Start und Ende einer Aufgabe und alle halbe Minute geschrieben, solange eine läuft; ein Stromausfall kostet also höchstens eine halbe Minute.

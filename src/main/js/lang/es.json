@@ -1500,5 +1500,15 @@
  "İşler Sürdürüldü": "Tareas reanudadas",
  "Arayüz ölçeği": "Escala de la interfaz",
  "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Agranda o reduce toda la interfaz. Si la ventana no basta para el diseño a la escala elegida, la escala se reduce para ajustarse a la ventana. También cambia con Ctrl + / - / 0.",
- "Yüksek karşıtlık": "Alto contraste"
+ "Yüksek karşıtlık": "Alto contraste",
+ "Komut paleti": "Paleta de comandos",
+ "Komut ara...": "Buscar comandos...",
+ "Sayfalar": "Páginas",
+ "İşlemler": "Acciones",
+ "Hesaba geç": "Cambiar a la cuenta",
+ "Kısayolları göster": "Mostrar atajos",
+ "Kısayollar": "Atajos",
+ "Pencereyi kapat": "Cerrar la ventana",
+ "Ayarlarda ara...": "Buscar en los ajustes...",
+ "Kaydedilen bölümler:": "Secciones guardadas:"
 }

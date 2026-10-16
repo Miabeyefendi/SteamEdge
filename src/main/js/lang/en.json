@@ -1500,5 +1500,15 @@
  "İşler Sürdürüldü": "Jobs resumed",
  "Arayüz ölçeği": "Interface scale",
  "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Enlarges or shrinks the whole interface. If the window is too small for the layout at the chosen scale, the scale shrinks to fit the window. Ctrl + / - / 0 change it too.",
- "Yüksek karşıtlık": "High contrast"
+ "Yüksek karşıtlık": "High contrast",
+ "Komut paleti": "Command palette",
+ "Komut ara...": "Search commands...",
+ "Sayfalar": "Pages",
+ "İşlemler": "Actions",
+ "Hesaba geç": "Switch to account",
+ "Kısayolları göster": "Show shortcuts",
+ "Kısayollar": "Shortcuts",
+ "Pencereyi kapat": "Close the window",
+ "Ayarlarda ara...": "Search settings...",
+ "Kaydedilen bölümler:": "Sections saved:"
 }

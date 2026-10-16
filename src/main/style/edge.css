@@ -488,3 +488,34 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
   .e-toggle.on .e-knob,#tab-settings div[data-set][aria-checked="true"] > div{background:HighlightText!important}
   .e-nav-item.active{border:2px solid Highlight}
 }
+
+/* ---- Quick navigation (js/palette.js) ---- */
+.e-pal-back{align-items:flex-start;padding-top:13vh}
+.e-palette{width:560px;max-width:calc(100vw - 48px);border-radius:12px;background:#0D1118;border:1px solid #2B3345;box-shadow:0 24px 60px rgba(3,3,5,.75);overflow:hidden;transform:translateY(-6px) scale(.98);transition:transform .13s ease}
+.e-pal-back.show .e-palette{transform:none}
+.e-palette input{display:block;width:100%;height:46px;padding:0 18px;background:#090C12;border:0;border-bottom:1px solid #1D2432;color:#DCE2FA;font-size:14px;outline:none}
+.e-palette input:focus-visible{outline:none;box-shadow:inset 0 -2px 0 #7031CC;border-radius:0}
+#palList{max-height:min(380px,52vh);overflow-y:auto;padding:6px}
+.e-pal-grp{padding:10px 12px 4px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#8B8F9E}
+.e-pal-item{display:flex;align-items:center;gap:12px;min-height:36px;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:#B9C0D6}
+.e-pal-item .l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.e-pal-item .k{flex-shrink:0;font-size:11px;color:#8B8F9E;font-family:'Geist Mono',monospace}
+.e-pal-item.on{background:#151C28;color:#DCE2FA}
+.e-pal-item.on .k{color:#C2AAEE}
+.e-pal-none{padding:18px 12px;font-size:12.5px;color:#8B8F9E;text-align:center}
+.e-pal-found{position:absolute;left:0;right:0;top:40px;z-index:30;max-height:300px;overflow-y:auto;padding:6px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;box-shadow:0 18px 40px rgba(3,3,5,.7)}
+.e-pal-found .e-pal-item{flex-direction:column;align-items:flex-start;gap:2px}
+.e-help{width:400px}
+.e-help-rows{padding:8px 18px 16px}
+.e-help-row{display:flex;align-items:center;gap:14px;padding:7px 0;border-bottom:1px solid #101621;font-size:12.5px;color:#B9C0D6}
+.e-help-row kbd{min-width:104px;padding:3px 8px;border-radius:8px;background:#151C28;border:1px solid #2B3345;font-family:'Geist Mono',monospace;font-size:11px;color:#DCE2FA;text-align:center}
+/* A setting the search jumped to lights up for a moment */
+@keyframes e-flash{0%,60%{background:rgba(112,49,204,.28)}100%{background:transparent}}
+.e-flash{animation:e-flash 1.8s ease-out;border-radius:10px}
+/* A section of Settings with changes that are not saved yet carries a dot; after a save it shows a tick for a few seconds */
+.e-secmark{display:none;margin-left:8px;font-size:11px;vertical-align:middle}
+.e-secmark.dirty{display:inline-block;width:7px;height:7px;border-radius:50%;background:#B37E24}
+.e-secmark.saved{display:inline-block;color:#5FB324;font-weight:700}
+:root[data-tema="contrast"] .e-palette,:root[data-tema="contrast"] .e-pal-found{border-color:#fff}
+:root[data-tema="contrast"] .e-pal-item.on{outline:2px solid #FFFF66;outline-offset:-2px}
+@media (forced-colors: active){ .e-pal-item.on{outline:2px solid Highlight;outline-offset:-2px} .e-secmark.dirty{background:Highlight} }

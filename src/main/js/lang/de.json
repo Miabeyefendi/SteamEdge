@@ -1500,5 +1500,15 @@
  "İşler Sürdürüldü": "Aufgaben fortgesetzt",
  "Arayüz ölçeği": "Oberflächenmaßstab",
  "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Vergrößert oder verkleinert die gesamte Oberfläche. Reicht das Fenster für das Layout im gewählten Maßstab nicht aus, wird der Maßstab dem Fenster angepasst. Auch mit Strg + / - / 0 änderbar.",
- "Yüksek karşıtlık": "Hoher Kontrast"
+ "Yüksek karşıtlık": "Hoher Kontrast",
+ "Komut paleti": "Befehlspalette",
+ "Komut ara...": "Befehle suchen...",
+ "Sayfalar": "Seiten",
+ "İşlemler": "Aktionen",
+ "Hesaba geç": "Zum Konto wechseln",
+ "Kısayolları göster": "Tastenkürzel anzeigen",
+ "Kısayollar": "Tastenkürzel",
+ "Pencereyi kapat": "Fenster schließen",
+ "Ayarlarda ara...": "Einstellungen durchsuchen...",
+ "Kaydedilen bölümler:": "Gespeicherte Bereiche:"
 }
