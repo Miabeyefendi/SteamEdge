@@ -120,7 +120,7 @@ contextBridge.exposeInMainWorld('imu', {
   realistic: {
     // G11: duration in milliseconds, options = { hedef, model, rastgeleAralik, ultraNadirAtla,
     // otoSira, saatiSurdur, gecikmisHizlandir }. oyunlar = array of appids (the queue).
-    plan: (appid, durationMs, options) => ipcRenderer.invoke('realistic:plan', { appid, spanMs: durationMs, optionList: options }),
+    plan: (appid, durationMs, options, queueIds) => ipcRenderer.invoke('realistic:plan', { appid, spanMs: durationMs, optionList: options, queueIds }),
     start: (gameList, durationMs, options) => ipcRenderer.invoke('realistic:start', { gameEntries: gameList, spanMs: durationMs, optionList: options }),
     stop: () => ipcRenderer.send('realistic:stop'),
     // Games found to have no achievements. Learned once, written to disk, and that game

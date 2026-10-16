@@ -732,7 +732,7 @@
  "Evet, Hepsini Sil": "Ja, alles löschen",
  "Bildirimler çalışıyor ✓": "Benachrichtigungen funktionieren ✓",
  "ses:": "Ton:",
- "Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "Wenn aktiv, wird die Sitzungsdauer aus den Einstellungen abgeleitet: wie lange ein echter Spieler für die verbleibenden Errungenschaften bräuchte. Sie wird auf fünfzehn Minuten bis zwölf Stunden begrenzt. Trägst du selbst einen Wert ins Dauerfeld ein, bleibt die automatische Zuweisung für diese Sitzung aus.",
+ "Açıkken oturum süresi ayarlardan hesaplanır: açılacak başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. On beş dakika ile 999 saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "Wenn aktiv, wird die Sitzungsdauer aus den Einstellungen berechnet: wie lange ein echter Spieler für die freizuschaltenden Erfolge brauchen würde (Abschlusszeit x Anteil der Erfolge x Schwierigkeit). Bei 60 Stunden Abschlusszeit dauert das Freischalten aller Erfolge ebenfalls 60 Stunden. Sie wird auf fünfzehn Minuten bis 999 Stunden begrenzt. Wenn du einen Wert in das Dauerfeld eingibst, greift die Automatik in dieser Sitzung nicht.",
  "Hesap No": "Konto-ID",
  "Kimlikleri Kopyala": "IDs kopieren",
  "Hedef saat": "Zielstunden",
@@ -1467,5 +1467,6 @@
  "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Wähle die Seiten, die du nutzen willst. Das lässt sich jederzeit unter Einstellungen > Module ändern.",
  "Başla": "Los geht's",
  "# çekirdek · # GB bellek": "# Kerne · # GB Speicher",
- "Önerilen:": "Empfohlen:"
+ "Önerilen:": "Empfohlen:",
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# gilt bereits als abgeschlossen (# Stunden gespielt, Abschluss # Stunden). Die Dauer ergibt sich aus den Einstellungen, daher wird nichts gestaucht."
 }

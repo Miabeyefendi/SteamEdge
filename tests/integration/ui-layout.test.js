@@ -58,10 +58,17 @@ app.whenReady().then(async () => {
       }
     });
     if (sec) sec.querySelectorAll('*').forEach((e) => { const cs = getComputedStyle(e); if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && e.scrollWidth > e.clientWidth + 2 && e.clientWidth > 0) bars.push(label(e) + ' ' + e.scrollWidth + '>' + e.clientWidth); });
+    // Controls that were squeezed out of shape: the round buttons of the top bar must be round, and a button never gets shorter than the height it asks for.
+    const deformed = [...document.querySelectorAll('.e-icon-btn')].filter((e) => { const r = e.getBoundingClientRect(); return r.width && Math.abs(r.width - r.height) > 0.6; }).map((e) => label(e) + ' ' + e.getBoundingClientRect().width.toFixed(1) + 'x' + e.getBoundingClientRect().height.toFixed(1));
+    document.querySelectorAll('.e-header button, main section:not(.hidden) button').forEach((e) => {
+      const r = e.getBoundingClientRect(); if (!r.width || !r.height || e.closest('.hidden')) return;
+      const m = /^([0-9.]+)px$/.exec(e.style.height || '');
+      if (m && r.height < parseFloat(m[1]) - 1.5) deformed.push(label(e) + ' height ' + Math.round(r.height) + '<' + m[1]);
+    });
     const header = document.querySelector('.e-header');
     const inView = (id) => { const e = document.getElementById(id); if (!e) return false; const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= iw && r.width > 0 && r.top >= 0; };
     const ids = { 'tab-card': ['btnStart', 'btnStop'], 'tab-hours': ['btnBoostStart', 'btnBoostStop'], 'tab-realistic': ['grStart', 'grStop'] }[sec && sec.id];
-    return JSON.stringify({ cut: [...new Set(cut)].slice(0, 6), clipped: [...new Set(clipped)].slice(0, 6), bars: [...new Set(bars)].slice(0, 6), headerH: header ? header.getBoundingClientRect().height : 0,
+    return JSON.stringify({ cut: [...new Set(cut)].slice(0, 6), clipped: [...new Set(clipped)].slice(0, 6), bars: [...new Set(bars)].slice(0, 6), deformed: [...new Set(deformed)].slice(0, 6), headerH: header ? header.getBoundingClientRect().height : 0,
       docX: document.documentElement.scrollWidth > iw + 1, startStop: !ids || ids.every(inView) });
   })()`;
 
@@ -82,6 +89,7 @@ app.whenReady().then(async () => {
       const problems = [].concat(m.cut.map((x) => 'cut ' + x), m.clipped.map((x) => 'clipped ' + x), m.bars.map((x) => 'bar ' + x), m.docX ? ['page scrolls sideways'] : []);
       check(W + 'x' + H + ' ' + tab + ': fits the window', problems.length === 0, problems.join(' | '));
       check(W + 'x' + H + ' ' + tab + ': the top bar stays on one row', m.headerH > 0 && m.headerH <= 64, 'height ' + m.headerH);
+      check(W + 'x' + H + ' ' + tab + ': round buttons are round and no button is squeezed flat', m.deformed.length === 0, m.deformed.join(' | '));
       if (tab === 'card' || tab === 'hours' || tab === 'realistic') check(W + 'x' + H + ' ' + tab + ': Start and Stop are in view', m.startStop === true);
       if (process.env.SHOTS) await shot('layout-' + W + 'x' + H + '-' + tab);
     }

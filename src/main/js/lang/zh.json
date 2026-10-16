@@ -732,7 +732,7 @@
  "Evet, Hepsini Sil": "是，全部刪除",
  "Bildirimler çalışıyor ✓": "通知運作正常 ✓",
  "ses:": "音效：",
- "Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "開啟時，工作階段長度會依設定計算：真實玩家取得剩餘成就需要多久。範圍限制在十五分鐘到十二小時之間。若你在時長欄位手動輸入數值，該次工作階段將不會自動指派。",
+ "Açıkken oturum süresi ayarlardan hesaplanır: açılacak başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. On beş dakika ile 999 saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "開啟時，工作階段時間會依設定計算：真人玩家要獲得這些將解鎖的成就需要多久（通關時間 x 成就比例 x 難度）。通關時間為 60 小時時，解鎖全部成就也需要 60 小時。範圍限制在十五分鐘到 999 小時之間。若你在時間欄位手動輸入數值，該次工作階段不會套用自動設定。",
  "Hesap No": "帳號 ID",
  "Kimlikleri Kopyala": "複製 ID",
  "Hedef saat": "目標時數",
@@ -1467,5 +1467,6 @@
  "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "選擇你會用到的頁面。之後隨時可在 設定 > 模組 中更改。",
  "Başla": "開始",
  "# çekirdek · # GB bellek": "# 核心 · # GB 記憶體",
- "Önerilen:": "建議："
+ "Önerilen:": "建議：",
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# 已視為通關（已玩 # 小時，通關 # 小時）。時間由設定決定，因此不會套用壓縮。"
 }

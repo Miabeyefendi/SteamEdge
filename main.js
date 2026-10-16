@@ -3052,92 +3052,8 @@ function realisticClear(steamID) {
   s.realistic = null;
 }
 
-// The proportional time (0..1) of the i-th unlock in the session according to the model.
-// linear : even intervals
-// exp    : frequent at first, then sparse (a real player gets more achievements in the first hours)
-// pareto : 80% of the achievements in 20% of the time - a "reset everything from the start" look
-function realisticModelRatio(p, model) {
-  const q = Math.min(1, Math.max(0, p));
-  if (model === 'exp') {
-    const k = 2.5;
-    return (1 - Math.exp(-k * q)) / (1 - Math.exp(-k));
-  }
-  if (model === 'pareto') {
-    // 0.8 -> 0.2 mapping: q^(ln0.2/ln0.8)
-    return Math.pow(q, Math.log(0.2) / Math.log(0.8));
-  }
-  return q;
-}
-
-// ---- OVERDUE ACHIEVEMENT BACKLOG ----
-// If a game has been played for hours but no achievement was unlocked there is a BACKLOG: a real
-// player would already have got a lot of achievements in those hours. Spreading this backlog evenly over the whole session
-// looks wrong - like the first achievement of a 100 hour game coming two hours later. Instead the
-// backlog flows first, fast; then the rhythm returns to normal.
-//
-// Backlog = "the expected number of unlocks up to this hour" minus "the ones really unlocked".
-// Since the expected number depends on the playtime the measure is directly TIME based: a few achievements
-// in a 1 hour game, far more in a 100 hour one.
-const DELAY_UPPER_LIMIT = 0.6;      // at most 60% of the queue counts as backlog
-
-function realisticAccum(details) {
-  const b = details || {};
-  const sumTotal = +b.totalAchievements || 0;
-  const playedHours = Math.max(0, (+b.playtimeMin || 0) / 60);
-  const tcHours = Math.max(1, +b.tcHours || 0);
-  const difficulty = Math.max(0.1, +b.difficultyValue || 1.2);
-  if (!sumTotal || !playedHours) return 0;
-  // The number that SHOULD have been unlocked up to this hour, capped by the total.
-  const expected = Math.min(sumTotal, sumTotal * (playedHours / (tcHours * difficulty)));
-  return Math.max(0, Math.round(expected - (+b.unlockedState || 0)));
-}
-
-// ---- RARITY WEIGHT ----
-// When the time was divided equally over the queue an ultra rare achievement and a common one got the same interval;
-// what is more, since the rare ones are at the end of the queue they fell into the slow part of the session.
-// Now the time is divided WITH WEIGHTS: only the ultra rare ones (under 5%) wait long, the rest flow
-// even and fast. What stands out on a profile is how soon the ultra rare one came;
-// a 10% achievement unlocking fast does not draw attention.
-function realisticRarityWeight(pct, ultraMultiplier) {
-  if (!Number.isFinite(pct)) return 1;
-  return pct < 5 ? Math.max(1, ultraMultiplier || 3) : 1;
-}
-
-// Writes the unlock times into the queue (ms relative to the start of the session).
-//   birikim > 0 : the first that many achievements are squeezed into the start of the session
-//   setting     : { speedMultiplier, ultraMultiplier, compensationShare, finishedFlag, finishedRatio }
-function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
-  const n = queue.length;
-  if (!n) return queue;
-  const a = setting || {};
-  const hiz = Math.max(0.1, Math.min(4, +a.speedMultiplier || 1));
-  const ultra = Math.max(1, Math.min(10, +a.ultraMultiplier || 3));
-  const compensationShare = Math.max(0.02, Math.min(0.9, +a.compensationShare || 0.2));
-  // If the game is already finished (playtime >= completion time) there is no point imitating the learning curve:
-  // the schedule is compressed as a whole. The session itself is not shortened, only the unlocks
-  // end early - with "Keep collecting hours when unlocks finish" on it keeps collecting hours.
-  const finishedRatio = a.finishedFlag ? Math.max(0.05, Math.min(1, +a.finishedRatio || 0.5)) : 1;
-  const activeDuration = Math.max(60000, Math.round(durationMs * hiz * finishedRatio));
-
-  const fast = Math.min(Math.floor(n * DELAY_UPPER_LIMIT), Math.max(0, +accumulation || 0));
-  const fastDuration = fast ? Math.round(activeDuration * compensationShare) : 0;
-  const remainingTime = activeDuration - fastDuration;
-  const remainders = queue.slice(fast);
-  const weights = remainders.map((x) => realisticRarityWeight(x.rarityPct, ultra));
-  const totalWeight = weights.reduce((t, x) => t + x, 0) || 1;
-
-  let kum = 0;
-  queue.forEach((x, i) => {
-    if (i < fast) {
-      x.timeValue = Math.round(fastDuration * ((i + 1) / fast));
-      x.delayCompensation = true;
-    } else {
-      kum += weights[i - fast];
-      x.timeValue = fastDuration + Math.round(remainingTime * realisticModelRatio(kum / totalWeight, model));
-    }
-  });
-  return queue;
-}
+// The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
+const { realisticModelRatio, realisticAccum, realisticRarityWeight, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames } = require('./src/core/realisticPlan');
 
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
@@ -3388,6 +3304,10 @@ function realisticOptions(s) {
   const g = s || {};
   return {
     goalValue: Math.max(0, +g.goalValue || 0),                       // 0 = all
+    goalAuto: !!g.goalAuto,                                          // the target is worked out here (planGames), goalValue is then ignored
+    autoSpan: !!g.autoSpan,                                          // the duration is worked out here too: as long as the unlocks take a real player
+    tcByGame: Object.fromEntries(Object.entries((g.tcByGame && typeof g.tcByGame === 'object') ? g.tcByGame : {})
+      .map(([k, v]) => [k, Math.max(0, Math.min(20000, +v || 0))]).filter(([k, v]) => /^\d+$/.test(k) && v > 0)),
     model: ['linear', 'exp', 'pareto'].includes(g.model) ? g.model : 'linear',
     randomInterval: g.randomInterval !== false,
     ultraRareSkip: !!g.ultraRareSkip,
@@ -3402,64 +3322,62 @@ function realisticOptions(s) {
     compensationShare: Math.max(0.02, Math.min(0.9, +g.compensationShare || 0.2)),
     finishedRatio: Math.max(0.05, Math.min(1, +g.finishedRatio || 0.5)),
     tcHours: Math.max(1, +g.tcHours || 0) || 20,
-    difficultyValue: Math.max(0.1, +g.difficultyValue || 0) || 1.2,
+    difficultyValue: Math.max(0.1, +g.difficultyValue || 0) || 1,
     playtime: (g.playtime && typeof g.playtime === 'object') ? g.playtime : {},
   };
 }
 
-// Timing settings. 'bitmis' changes per game: if the playtime has passed the completion time.
-function realisticTimeSetting(appid, pick) {
-  const playedHours = (pick.playtime[appid] || pick.playtime[String(appid)] || 0) / 60;
-  return {
-    speedMultiplier: pick.speedMultiplier,
-    ultraMultiplier: pick.ultraMultiplier,
-    compensationShare: pick.compensationShare,
-    finishedFlag: playedHours > 0 && playedHours >= pick.tcHours,
-    finishedRatio: pick.finishedRatio,
-  };
-}
-
-// A game's backlog: 0 if the option is off.
-function computeRealisticAccum(appid, h, pick) {
-  if (!pick.accelerateDelayed) return 0;
-  return realisticAccum({
-    totalAchievements: h.totalAchievements,
-    unlockedState: h.unlockedState,
-    playtimeMin: pick.playtime[appid] || pick.playtime[String(appid)] || 0,
-    tcHours: pick.tcHours,
-    difficultyValue: pick.difficultyValue,
-  });
+// Prepares every game of a queue and plans them together: the duration and the share of each game depend on all of them.
+// The lists come back whole (prepareRealisticQueue is called without a target); planGames trims them.
+async function realisticPrepareAll(motor, listing, pick, givenSpanMs, autoSpanAllowed) {
+  const entries = [];
+  const dropped = {};
+  for (const id of listing) {
+    const h = await prepareRealisticQueue(motor, id, Object.assign({}, pick, { goalValue: 0 }));
+    if (!h.ok) { dropped[id] = h; continue; }
+    entries.push({ appid: id, h });
+  }
+  return Object.assign(planGames(entries, pick, givenSpanMs, autoSpanAllowed), { dropped });
 }
 
 // Preview: how many achievements, in what order, at which minute they will unlock.
-// If durationMs is not given the hours field is used (the old call form works too).
+// If durationMs is not given the hours field is used (the old call form works too). queueIds is the whole queue: the first game's list is
+// what comes back, but its share of the run and the automatic duration depend on the other games too.
 ipcMain.handle('realistic:plan', async (_e, arg) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
   const { appid, hours: hour, spanMs: durationMs } = arg || {};
   const pick = realisticOptions(arg && arg.optionList);
-  const duration = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
+  const given = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
+  const queueIds = (Array.isArray(arg && arg.queueIds) ? arg.queueIds.map((x) => +x) : []).filter(Boolean);
+  if (!queueIds.includes(+appid)) queueIds.unshift(+appid);
   try {
-    const h = await prepareRealisticQueue(engine, appid, pick);
-    if (!h.ok) return h;
-    const accumulation = computeRealisticAccum(appid, h, pick);
-    placeRealisticTimes(h.queueList, duration, pick.model, accumulation, realisticTimeSetting(appid, pick));
+    const built = await realisticPrepareAll(engine, queueIds, pick, given, true);
+    const head = built.games.find((g) => g.appid === +appid);
+    if (!head) return built.dropped[appid] || { ok: false, error: 'Plan alınamadı' };
+    pick.autoSpanApplied = built.auto;
+    const totalCount = built.games.reduce((t, g) => t + (g.queueList.length || 1), 0);
+    const share = Math.max(60000, Math.round(built.spanMs * ((head.queueList.length || 1) / totalCount)));
+    const accumulation = computeRealisticAccum(appid, head.h, pick);
+    placeRealisticTimes(head.queueList, share, pick.model, accumulation, realisticTimeSetting(appid, pick));
     return {
       ok: true,
       // The interface shows this as an "N achievements overdue" note.
-      accumulation: Math.min(accumulation, h.queueList.length),
+      accumulation: Math.min(accumulation, head.queueList.length),
       appid: +appid,
-      gameTitle: h.gameTitle,
-      totalSum: h.queueList.length,          // to be unlocked (trimmed by the target)
-      suitableTotal: h.suitableTotal,       // all of the unlockable ones
-      totalAchievements: h.totalAchievements,
-      unlockedState: h.unlockedState,
-      protectedFlag: h.protectedFlag,
-      ultraSkipped: h.ultraSkipped,
-      spanMs: duration,
+      gameTitle: head.h.gameTitle,
+      totalSum: head.queueList.length,          // to be unlocked (the target applied)
+      suitableTotal: head.h.suitableTotal,      // all of the unlockable ones
+      totalAchievements: head.h.totalAchievements,
+      unlockedState: head.h.unlockedState,
+      protectedFlag: head.h.protectedFlag,
+      ultraSkipped: head.h.ultraSkipped,
+      spanMs: built.spanMs,                     // the whole run (all games), the automatic one if autoSpan
+      autoSpan: built.auto,
+      queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0),
       model: pick.model,
-      averageIntervalMs: h.queueList.length ? Math.round(duration / h.queueList.length) : 0,
+      averageIntervalMs: head.queueList.length ? Math.round(share / head.queueList.length) : 0,
       // Full list: the interface draws the "Unlock order" table from this.
-      queueList: h.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, timeValue: a.timeValue })),
+      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, timeValue: a.timeValue })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
 });
@@ -3472,7 +3390,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
   const motor = s.engine;
   const { appid, hours: hour, spanMs: durationMs } = arg || {};
   const pick = realisticOptions(arg && arg.optionList);
-  const duration = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
+  const givenSpan = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
   const listing = (Array.isArray(arg && arg.gameEntries) && arg.gameEntries.length)
     ? arg.gameEntries.map((x) => +x)
     : [+appid];
@@ -3480,16 +3398,19 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
   try {
     // The queues of ALL games are prepared FIRST: sharing the time can only be done right once every game's
     // achievement count is known, and the error is seen before the first game starts.
+    // A game that turned out to have no achievements was written to the ledger and is silently dropped - the interface will
+    // remove it from the list anyway, there is no point stopping the queue or boosting hours.
+    // A run the schedule starts keeps the span it was given (it has to fit what is left of its time range); any other run may get the
+    // automatic duration.
+    const plan = await realisticPrepareAll(motor, listing, pick, givenSpan, !fromSchedule);
+    const duration = plan.spanMs;
+    pick.autoSpanApplied = plan.auto;
     const prepared = {};
     const gameList = [];
-    for (const id of listing) {
-      const h = await prepareRealisticQueue(motor, id, pick);
-      // A game that turned out to have no achievements was written to the ledger and is silently dropped - the interface will
-      // remove it from the list anyway, there is no point stopping the queue or boosting hours.
-      if (!h.ok) continue;
-      prepared[id] = h;
-      gameList.push({ appid: id, name: h.gameTitle });
-    }
+    plan.games.forEach((g) => {
+      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList });
+      gameList.push({ appid: g.appid, name: g.h.gameTitle });
+    });
     if (!gameList.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
 
     // A game with no locked achievement left to unlock is removed from the queue.

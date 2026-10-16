@@ -732,7 +732,7 @@
  "Evet, Hepsini Sil": "Да, удалить всё",
  "Bildirimler çalışıyor ✓": "Уведомления работают ✓",
  "ses:": "звук:",
- "Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "Если включено, длительность сессии рассчитывается из настроек: сколько времени реальный игрок потратил бы на оставшиеся достижения. Ограничивается от пятнадцати минут до двенадцати часов. Если ввести значение в поле длительности вручную, автоматическое назначение на эту сессию отключается.",
+ "Açıkken oturum süresi ayarlardan hesaplanır: açılacak başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. On beş dakika ile 999 saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "Когда включено, длительность сеанса вычисляется из настроек: сколько времени понадобилось бы настоящему игроку, чтобы получить открываемые достижения (время прохождения x доля достижений x сложность). При времени прохождения 60 часов открытие всех достижений тоже займёт 60 часов. Значение ограничено от пятнадцати минут до 999 часов. Если ввести значение в поле длительности, автоматический расчёт в этом сеансе не действует.",
  "Hesap No": "ID аккаунта",
  "Kimlikleri Kopyala": "Копировать ID",
  "Hedef saat": "Целевые часы",
@@ -1467,5 +1467,6 @@
  "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Выберите страницы, которыми будете пользоваться. Это можно изменить в любое время в Настройки > Модули.",
  "Başla": "Начать",
  "# çekirdek · # GB bellek": "ядер: # · память: # ГБ",
- "Önerilen:": "Рекомендуется:"
+ "Önerilen:": "Рекомендуется:",
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# уже считается пройденной (сыграно # ч, прохождение # ч). Длительность берётся из настроек, поэтому сжатие не применяется."
 }

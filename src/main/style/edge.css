@@ -69,14 +69,14 @@
 
 /* ---- topbar (header) ---- */
 .e-header{height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 20px 0 18px;background:var(--e-bgAlt);border-bottom:1px solid var(--e-bdPassive)}
-.e-search{position:relative;display:flex;align-items:center;flex:0 1 300px;min-width:110px}   /* gives way first when the window narrows */
+.e-search{position:relative;display:flex;align-items:center;width:300px;flex:0 1 auto;min-width:110px}   /* gives way first when the window narrows; it has a real width so the group around it is sized from 300, not from its content */
 .e-search svg{position:absolute;left:12px;pointer-events:none}
 .e-search input{width:100%;height:36px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);color:var(--e-title);font-size:12px;padding:0 12px 0 36px;outline:none}
 .e-search input:focus{border-color:var(--e-bdFocus)}
-.e-icon-btn{position:relative;width:36px;height:36px;border-radius:999px;background:var(--e-s1);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--e-muted)}
+.e-icon-btn{position:relative;flex-shrink:0;width:36px;height:36px;border-radius:999px;background:var(--e-s1);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--e-muted)}
 .e-icon-btn:hover{border-color:var(--e-brand)}
 .e-icon-btn .e-badge{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:12px;background:var(--e-bad);border:2px solid var(--e-bgAlt)}
-.e-acct{display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border-radius:var(--e-radius);border:1px solid transparent;background:transparent;cursor:pointer}
+.e-acct{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border-radius:var(--e-radius);border:1px solid transparent;background:transparent;cursor:pointer}
 .e-acct:hover,.e-acct.open{border-color:var(--e-brand)}
 .e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:10px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
 /* The Steam avatar arrives at 184x184 - it must not overflow the box (this was the cause of the broken profile icon). */
@@ -461,3 +461,7 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 
 /* Long lists: a row that is off screen is not laid out or painted */
 #invRows .inv-row{content-visibility:auto;contain-intrinsic-size:auto 46px}
+
+/* A column that scrolls keeps the height of what is in it. Without this the children shrank to fit when the column was too short (a 36 px button
+   became 16 px tall) instead of the column scrolling. Children that set their own flex (flex:1 ...) are not touched, inline styles win. */
+.edge [style*="overflow-y:auto"][style*="flex-direction:column"] > *{flex-shrink:0}

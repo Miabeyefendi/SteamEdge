@@ -732,7 +732,7 @@
  "Evet, Hepsini Sil": "Yes, delete everything",
  "Bildirimler çalışıyor ✓": "Notifications are working ✓",
  "ses:": "sound:",
- "Açıkken oturum süresi ayarlardan hesaplanır: geride kalan başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi. On beş dakika ile on iki saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "When on, the session length is derived from the settings: how long a real player would take to earn the remaining achievements. It is clamped between fifteen minutes and twelve hours. If you type a value into the duration field, automatic assignment stays off for that session.",
+ "Açıkken oturum süresi ayarlardan hesaplanır: açılacak başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. On beş dakika ile 999 saat arasına kırpılır. Süre alanına elle bir değer yazarsan otomatik atama o oturum boyunca devreye girmez.": "When on, the session length is worked out from the settings: how long a real player would need to earn the achievements that will be unlocked (completion time x share of the achievements x difficulty). With a completion time of 60 hours, unlocking all of them takes 60 hours too. It is limited to between fifteen minutes and 999 hours. If you type a value into the duration field, the automatic setting stays out of that session.",
  "Hesap No": "Account ID",
  "Kimlikleri Kopyala": "Copy IDs",
  "Hedef saat": "Target hours",
@@ -1467,5 +1467,6 @@
  "Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller'den değiştirebilirsin.": "Pick the pages you will use. You can change this any time in Settings > Modules.",
  "Başla": "Start",
  "# çekirdek · # GB bellek": "# cores · # GB memory",
- "Önerilen:": "Recommended:"
+ "Önerilen:": "Recommended:",
+ "# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.": "# counts as finished already (# hours played, completion # hours). The duration comes from the settings, so no compression is applied."
 }

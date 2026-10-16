@@ -283,7 +283,9 @@
     // A 180 hour game is read as "so it is 360 hours, you are only halfway".
     // That is why a value entered by hand always takes precedence and the box is now in the simple panel.
     function grTcAndDifficulty(game){
-      const difficulty = parseFloat(grVal('grDiff', '1.2')) || 1.2;
+      // "Normal" difficulty (the stored 1.2) is the completion time as entered: 60 hours means 60 hours. It used to add 20% on top, so a game that
+      // takes 60 hours showed 72. Easier / harder scale it from there (0.8 -> 0.67, 2.0 -> 1.67, 3.5 -> 2.92).
+      const difficulty = (parseFloat(grVal('grDiff', '1.2')) || 1.2) / 1.2;
       const crRaw = grVal('grCR', '2.0');
       const cr = crRaw === 'auto' ? 0 : (parseFloat(crRaw) || 2);
       const playedHours = game ? (game.playtimeMin / 60) : 0;
@@ -293,10 +295,14 @@
     }
     function grOptions(){
       const { tcHours: tcHours, difficultyValue: difficulty } = grTcAndDifficulty(grQueue[0]);
-      const playtime = {};
-      grQueue.forEach(g=>{ playtime[g.appid] = g.playtimeMin || 0; });
+      const playtime = {}, tcByGame = {};
+      grQueue.forEach(g=>{ playtime[g.appid] = g.playtimeMin || 0; tcByGame[g.appid] = grTcAndDifficulty(g).tcHours; });
+      const auto = !!grVal('grTargetAuto', true);
       return {
-        goalValue: grVal('grTargetAuto', true) ? 0 : Math.max(0, +grEl('grTarget').value || 0),
+        // The target and the duration are worked out by the engine (planGames) from these; what the page shows is what the engine plans.
+        goalAuto: auto,
+        goalValue: auto ? 0 : Math.max(0, +grEl('grTarget').value || 0),
+        autoSpan: !!grVal('grAutoDuration', true) && !grDurationTouched,
         model: grVal('grModel', 'linear'),
         randomInterval: !!grVal('grRandomGap', true),
         ultraRareSkip: !!grVal('grSkipUltraRare', false),
@@ -307,7 +313,7 @@
         ultraMultiplier: +grVal('grUltraMultiplier', 3) || 3,
         compensationShare: (+grVal('grCatchUpShare', 20) || 20) / 100,
         finishedRatio: (+grVal('grFinishedRatio', 50) || 50) / 100,
-        tcHours: tcHours, difficultyValue: difficulty, playtime,
+        tcHours: tcHours, tcByGame, difficultyValue: difficulty, playtime,
       };
     }
 
@@ -323,7 +329,7 @@
       grSet('grNextName', t('Başarım şeması okunuyor…'));
       // It is written to textContent: esc() here showed the name as "&amp;".
       grSet('grNextMeta', initial.name);
-      const p = await window.imu.realistic.plan(initial.appid, grDurationMs(), grOptions())
+      const p = await window.imu.realistic.plan(initial.appid, grDurationMs(), grOptions(), grQueue.map(g=>g.appid))
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (request !== grPlanRequest) return;      // there is a newer request, drop this one
       // If reading the schema shows "this game has no achievements" the game is removed from the queue and never
@@ -339,6 +345,12 @@
         return;
       }
       grPlan = (p && p.ok) ? p : null;
+      // Automatic duration: the engine says how long the whole run takes (the completion time for the achievements it unlocks). It goes into the
+      // fields and is remembered, as if it had been typed.
+      if (grPlan && grPlan.autoSpan && Math.abs(grPlan.spanMs - grDurationMs()) > 1000){
+        grWriteDuration(grPlan.spanMs);
+        grSave({ grDurationSec: Math.round(grPlan.spanMs / 1000) });
+      }
       if (!grPlan){
         grSet('grNextName', '-');
         grSet('grNextMeta', t((p && p.error) || 'Plan alınamadı'));
@@ -456,7 +468,7 @@
     // ---- target + HLTB calculations ----
     function grPaintAccount(){
       const game = grQueue[0];
-      let durationMs = grDurationMs();
+      const durationMs = grDurationMs();
       const suitable = grPlan ? (grPlan.suitableTotal || 0) : 0;
       const auto = !!grVal('grTargetAuto', true);
 
@@ -464,49 +476,27 @@
 
       const crRaw = grVal('grCR', '2.0');
       const { tcHours: tc, difficultyValue: diff, manuallyEntered: manuallyEntered, playedHours: playtimeHours } = grTcAndDifficulty(game);
-      let durationHours = durationMs / 3600000;
 
-      // The automatic target is made of TWO parts:
-      //   1. WHAT IS BEHIND - the number that SHOULD already have been unlocked at this playtime,
-      //      minus the one really unlocked. In a 180 hour game with its achievements locked
-      //      this is a big number.
-      //   2. SESSION SHARE - as much as will be earned in this session's own time.
-      // There used to be only the 2nd part: the calculation said "how many achievements would a player who starts from zero get in this
-      // time". The result was a suggestion like 2 achievements in 8 hours for a game with 180 hours played;
-      // yet in that game almost all of them should already have been unlocked.
+      // WHAT SHOULD ALREADY HAVE BEEN UNLOCKED at this playtime: the number a real player would have at this hour, minus the one really unlocked.
+      // It is only used for the notes below. The target and the duration themselves come from the engine together with the plan (main.js planGames),
+      // so the number in the box is the number that runs. (The page used to work out an automatic target of its own and send "all" to the engine.)
       const totalB = grPlan ? (grPlan.totalAchievements || 0) : 0;
       const unlockedB = grPlan ? (grPlan.unlockedState || 0) : 0;
       const denominator = Math.max(0.1, tc * diff);
       const scale = totalB || suitable;
       const expected = scale ? Math.min(scale, scale * (playtimeHours / denominator)) : 0;
       const remainingBehind = Math.max(0, Math.round(expected - unlockedB));
-      const sessionShare = scale * (durationHours / denominator);
-      // AUTOMATIC DURATION: when the settings change not only the target but the DURATION must be recomputed.
-      // The measure is how long it would take a real player to earn the achievements that are behind:
-      //   (behind / total) x completion time x difficulty
-      // It is clamped between 15 minutes and 12 hours. If the user typed the duration by hand it is left alone,
-      // and it is left alone if the switch in Ayarlar is off.
-      if (grVal('grAutoDuration', true) && !grDurationTouched && game && scale && remainingBehind > 0){
-        const neededHours = Math.max(0.25, Math.min(12, (remainingBehind / scale) * denominator));
-        const newMs = Math.round(neededHours * 3600000);
-        if (Math.abs(newMs - durationMs) > 60000){
-          grWriteDuration(newMs);
-          durationMs = newMs;
-          durationHours = neededHours;
-          grSave({ grDurationSec: Math.round(durationMs / 1000) });
-        }
-      }
-      const autoTarget = suitable ? Math.max(1, Math.min(suitable, Math.round(remainingBehind + sessionShare))) : 0;
+      const planned = grPlan ? (grPlan.totalSum || 0) : 0;
       // The two halves of the target box must look like ONE piece: the same font, the same height, the same colour.
       // It used to be a big white number on the top line and a small grey "/ total" under it.
       const goalColor = auto ? GRC.sub : GRC.title;
       grEl('grTarget').readOnly = auto;
-      if (auto) grEl('grTarget').value = String(autoTarget);
+      if (auto) grEl('grTarget').value = String(planned);
       ['grTarget', 'grTargetSep', 'grTargetTotal'].forEach((id)=>{
         const el = grEl(id); if (el) el.style.color = goalColor;
       });
-      const goal = auto ? autoTarget : Math.max(0, Math.min(suitable, +grEl('grTarget').value || 0));
-      grWritePlanSentence(durationMs, goal || (grPlan ? grPlan.totalSum : 0));
+      const goal = auto ? planned : Math.max(0, Math.min(suitable, +grEl('grTarget').value || 0));
+      grWritePlanSentence(durationMs, (grPlan && grPlan.queueTotal) || goal || planned);
 
       // Backlog note
       const not = grEl('grCatchUpNote');
@@ -586,7 +576,10 @@
       const { tcHours: tcHours, playedHours: playedHours } = grTcAndDifficulty(game);
       const isFinished = playedHours > 0 && playedHours >= tcHours;
       const frequent = +grVal('grFinishedRatio', 50) || 50;
-      not.textContent = isFinished
+      const autoSpan = !!grVal('grAutoDuration', true) && !grDurationTouched;
+      not.textContent = (isFinished && autoSpan)
+        ? tf('# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Süre ayarlardan belirlendiği için sıkıştırma uygulanmaz.', game.name, Math.round(playedHours), Math.round(tcHours))
+        : isFinished
         ? tf('# zaten bitmiş sayılıyor (# saat oynanmış, bitiş # saat). Çizelge %# oranına sıkıştırıldı.', game.name, Math.round(playedHours), Math.round(tcHours), frequent)
         : tf('Oyun henüz bitmemiş (# / # saat), sıkıştırma uygulanmıyor. Ultra nadir başarımlar # kat daha uzun bekler.', Math.round(playedHours), Math.round(tcHours), (+grVal('grUltraMultiplier', 3) || 3));
     }
@@ -601,11 +594,14 @@
     });
 
     // ---- switches (toggle) ----
+    // The switches that are ON until the user turns them off. Painting and clicking used to disagree about two of them (grCatchUp, grAutoDuration):
+    // the switch showed "on", and the first click wrote "on" again, so it seemed to do nothing.
+    // grCatchUp is ON by default: if there is no backlog it changes nothing anyway.
+    const grToggleDefault = (k) => k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grAutoDuration';
     function grPaintToggle(){
       document.querySelectorAll('#tab-realistic .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
-        // grCatchUp is ON by default: if there is no backlog it changes nothing anyway.
-        const on = !!grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grAutoDuration');
+        const on = !!grVal(k, grToggleDefault(k));
         el.style.background = on ? GRC.brand : '#151C28';
         el.style.borderColor = on ? GRC.brand : '#2B3345';
         const knob = el.firstElementChild;
@@ -615,10 +611,12 @@
     document.querySelectorAll('#tab-realistic .gr-toggle').forEach(el=>{
       el.addEventListener('click', async ()=>{
         const k = el.getAttribute('data-grset');
-        const newItem = !grVal(k, k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours');
+        const newItem = !grVal(k, grToggleDefault(k));
         await grSave({ [k]: newItem });
         grPaintToggle();
-        if (k === 'grSkipUltraRare') grFetchPlan();
+        // Turning the automatic duration on again takes back a duration typed earlier in this session
+        if (k === 'grAutoDuration' && newItem) grDurationTouched = false;
+        if (k === 'grSkipUltraRare' || k === 'grAutoDuration' || k === 'grCatchUp') grFetchPlan();
         else if (k === 'grShowNoAch') grPaintSearch();
         else grPaintList();
         grPaintAccount();
