@@ -1497,5 +1497,8 @@
  "# iş kaldığı yerden sürdürüldü": "Tareas reanudadas donde se quedaron: #",
  "Yarım kalan işler": "Tareas sin terminar",
  "Yarım kalan iş sürdürülemedi.": "No se pudo reanudar una tarea sin terminar.",
- "İşler Sürdürüldü": "Tareas reanudadas"
+ "İşler Sürdürüldü": "Tareas reanudadas",
+ "Arayüz ölçeği": "Escala de la interfaz",
+ "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Agranda o reduce toda la interfaz. Si la ventana no basta para el diseño a la escala elegida, la escala se reduce para ajustarse a la ventana. También cambia con Ctrl + / - / 0.",
+ "Yüksek karşıtlık": "Alto contraste"
 }

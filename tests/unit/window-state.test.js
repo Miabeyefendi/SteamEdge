@@ -25,10 +25,10 @@ function boot(displays) {
   };
   const screen = { getPrimaryDisplay: () => ({ workArea: displays[0] }), getDisplayMatching: (r) => ({ workArea: nearest(r) }) };
   const windowFit = require(path.resolve(__dirname, '..', '..', 'src', 'core', 'windowFit.js'));
-  const ctx = { fs, path, CONFIG_DIR: dir, screen, win: null, windowFit, Date, Math, JSON, Number, clearTimeout, setTimeout };
+  const ctx = { fs, path, CONFIG_DIR: dir, screen, win: null, windowFit, settings: { uiScale: 100 }, applySettingPatch: (p) => { ctx.settings = { ...ctx.settings, ...p }; ctx.patches.push(p); }, patches: [], Date, Math, JSON, Number, clearTimeout, setTimeout };
   vm.createContext(ctx);
   vm.runInContext(code + ';this.load = loadWindowState; this.def = defaultBounds; this.minFor = minimumFor; this.MIN_DASH = MIN_DASH; this.MIN_LOGIN = MIN_LOGIN;'
-    + ' this.fit = applyFitZoom; this.enterPanel = enterPanelWindow; this.enterLogin = enterLoginWindow;', ctx);
+    + ' this.fit = applyFitZoom; this.enterPanel = enterPanelWindow; this.enterLogin = enterLoginWindow; this.step = stepUiScale;', ctx);
   return ctx;
 }
 const file = path.join(dir, 'window.json');
@@ -136,6 +136,30 @@ t.enterLogin();
 check('the login window on a short screen is zoomed (576 of 640 high)', fw.zoom === 0.9 && fw.size[1] === 576, fw.zoom + ' ' + fw.size);
 t.enterPanel();
 check('and the panel, which needs 560, fits the same window without a zoom', fw.zoom === 1, String(fw.zoom));
+
+// the interface scale of the settings sets the zoom while the window has room for the layout at that size
+t = boot([{ x: 0, y: 0, width: 1920, height: 1080 }]);
+fw = fakeWindow(1500, 900); t.win = fw;
+t.enterPanel();
+t.settings.uiScale = 125; t.fit();
+check('at 125 percent a roomy window zooms the page to 1.25', fw.zoom === 1.25, String(fw.zoom));
+t.settings.uiScale = 150; t.fit();
+check('at 150 percent the window still has room (1500x900 holds 900x560 at 1.5)', fw.zoom === 1.5, String(fw.zoom));
+fw.setBounds({ width: 1000, height: 700 }); t.fit();
+check('in a window too small for 150 percent the zoom gives way to what fits: 1000 wide holds 900 at 1.11', fw.zoom === 1.11, String(fw.zoom));
+t.settings.uiScale = 100; fw.setBounds({ width: 1500, height: 900 }); t.fit();
+t.patches.length = 0;
+t.step(1); t.step(1); t.step(1);
+check('Ctrl + steps the scale up one step at a time (110, 125, 150) and saves each', JSON.stringify(t.patches) === '[{"uiScale":110},{"uiScale":125},{"uiScale":150}]', JSON.stringify(t.patches));
+t.step(1);
+check('and stays at the top step without saving again', t.patches.length === 3);
+t.step(0);
+check('Ctrl 0 goes back to 100', t.settings.uiScale === 100 && t.patches.length === 4);
+t.step(0);
+check('Ctrl 0 at 100 saves nothing', t.patches.length === 4);
+t.step(-1);
+check('Ctrl - steps down (90)', t.settings.uiScale === 90);
+check('back at 100 percent the page is not zoomed', fw.zoom === 1, String(fw.zoom));
 
 fs.rmSync(dir, { recursive: true, force: true });
 process.exit(failures ? 1 : 0);

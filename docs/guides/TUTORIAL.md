@@ -133,7 +133,9 @@ Everything the app can be told to do, grouped: General, Card farming, Market, In
 
 Changes stay in the page until you press **Save**. Nothing is written before that, and leaving the page with unsaved changes asks first. After Save, a running card farm or hours booster that the changed settings affect pauses for about five seconds and continues from the same game with the new values; settings that do not touch a running job apply at once. **Reset** loads the defaults into the page and also waits for Save; it keeps the app language.
 
-The theme (Dark, Midnight Purple, White) is under General and applies to the login screen as well.
+The theme (Automatic, Dark, Midnight Purple, White, High contrast) is under General and applies to the login screen as well. Automatic uses High contrast when the system asks for more contrast and Dark otherwise. **Interface scale** (80 to 150 percent, 100 by default) enlarges or shrinks the whole interface; Ctrl + / - / 0 change it too, and the window that opens on the first start asks for it. If the window is too small for the layout at the chosen scale, the scale shrinks to what fits. Dim text reads at 4.5 : 1 or better against its surface in every theme (7 : 1 in High contrast), no text is smaller than 11 pixels, and the contrast themes of Windows (forced colors) are followed.
+
+The switches and the side menu work from the keyboard: Tab moves between them, Enter or Space presses one, and a screen reader announces them as switches and buttons, with the open page marked as the current one.
 
 The interface density is Automatic by default: it turns compact while the window is short (under about 720 pixels) and relaxes again when you make the window taller. The side menu closes by itself on a window narrower than 1000 pixels, and the window remembers its size, its place and whether it was maximized. Below 900 x 560 pixels (the sign-in screen 900 x 640) the layout does not squeeze any further: the whole page is scaled to fit, down to three quarters, so even a window of 675 x 420 shows every button.
 
@@ -303,8 +305,9 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
-| `theme` | `dark` | Colour theme: `dark`, `midnight` (Midnight Purple), `white` |
+| `theme` | `auto` | Colour theme: `auto` (high contrast when the system asks for it, dark otherwise), `dark`, `midnight` (Midnight Purple), `white`, `contrast` (High contrast) |
 | `density` | `auto` | Spacing and row height: `auto` (compact while the window is short), `comfortable`, `compact` |
+| `uiScale` | `100` | Interface scale in percent: `80`, `90`, `100`, `110`, `125`, `150`. A window too small for the layout at that scale shrinks it to what fits |
 | `perfMode` | `auto` | Performance: `auto`, `full`, `light` (no animations, blur or shadows) |
 | `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Whether each page is in use. A page that is off leaves the menu and makes no Steam request |
 | `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | The order of the side menu |

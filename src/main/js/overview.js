@@ -51,8 +51,8 @@
       if (typeof updateNotifBadge === 'function') updateNotifBadge(activityFeed.length);
       if (!activityFeed.length){
         el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:48px 18px;text-align:center">'
-          + '<span style="font-size:13px;color:#656D80">Henüz bir işlem yapılmadı.</span>'
-          + '<span style="font-size:11px;color:#656D80">Kart düşürme, satış ve başarım işlemleri burada listelenir.</span></div>';
+          + '<span style="font-size:13px;color:#7F879B">Henüz bir işlem yapılmadı.</span>'
+          + '<span style="font-size:11px;color:#7F879B">Kart düşürme, satış ve başarım işlemleri burada listelenir.</span></div>';
         return;
       }
       el.innerHTML = activityFeed.map(f=>{
@@ -68,7 +68,7 @@
               + '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.text)+'</span>'
             + '</div>'
           + '</div>'
-          + '<div><span style="display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:12px;border:1px solid '+s.bd+';color:'+s.color+';font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">'+esc(f.status)+'</span></div>'
+          + '<div><span style="display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:12px;border:1px solid '+s.bd+';color:'+s.color+';font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">'+esc(f.status)+'</span></div>'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;text-align:right">'+t+'</span>'
           + '</div>';
       }).join('');
@@ -266,11 +266,11 @@
     // GetOwnedGames reply gives no type information, instead of a made up type the real running
     // information (mode + number of simultaneous games) is written there.
     function chip(text){
-      return '<span style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B8F9E;border:1px solid #1D2432;border-radius:12px;padding:3px 8px">'+esc(text)+'</span>';
+      return '<span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B8F9E;border:1px solid #1D2432;border-radius:12px;padding:3px 8px">'+esc(text)+'</span>';
     }
     function statCol(label, value, color){
       return '<div style="display:flex;flex-direction:column;gap:5px">'
-        + '<span style="font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#8B8F9E;white-space:nowrap">'+esc(label)+'</span>'
+        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#8B8F9E;white-space:nowrap">'+esc(label)+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;line-height:1;color:'+(color||'#DCE2FA')+'">'+value+'</span>'
         + '</div>';
     }
@@ -282,7 +282,7 @@
       pill.style.background = '#101621';
       pill.style.borderColor = c;
       pill.innerHTML = '<span style="width:6px;height:6px;border-radius:12px;background:'+c+';animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
-        + '<span style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:'+c+'">'+(running?'Çalışıyor':'Hazır')+'</span>';
+        + '<span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:'+c+'">'+(running?'Çalışıyor':'Hazır')+'</span>';
       if (typeof setSysStatus === 'function') setSysStatus(running);
     }
 
@@ -310,7 +310,7 @@
           + '<div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex:1">'
             + '<span style="font-size:15px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
               + 'text-overflow:ellipsis;line-height:1.2">' + esc(g.heading) + '</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:10.5px;color:#8B8F9E">'
+            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'
               + (g.appid ? ('APP_ID: ' + g.appid) : esc(g.subInfo || '')) + '</span>'
             + '<div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap">'
               + (g.badges || []).map(chip).join('') + '</div>'
@@ -327,7 +327,7 @@
             + 'min-width:38px;text-align:right;color:' + (g.colorValue || '#24AEB3') + '">' + fmtPercent(percent) + '</span>'
         + '</div>'
         + (g.started
-            ? ('<span style="font-family:Geist Mono,monospace;font-size:10px;color:#656D80">' + esc(t('Başlangıç:')) + ' '
+            ? ('<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">' + esc(t('Başlangıç:')) + ' '
                + fmtClock(g.started) + '</span>')
             : '')
         + '</div>';
@@ -465,7 +465,7 @@
         + 'border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;'
         + 'line-height:1;cursor:pointer;padding:0">'+marker+'</button>';
       return '<div style="display:flex;align-items:center;gap:8px;padding-bottom:2px">'
-        + '<span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
+        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
           + 'color:#8B8F9E;flex:1">' + esc(tf('# iş birlikte çalışıyor', count)) + '</span>'
         + ok('data-gorev-onceki', '‹')
         + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE;'
@@ -481,7 +481,7 @@
     // draws the shown job's own detail.
     const DETAIL_ROW = 'display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #101621';
     const DETAIL_MONO = 'font-family:Geist Mono,monospace;font-size:11px';
-    const detailEmpty = (text) => '<div style="padding:12px 0;font-size:11px;color:#656D80">' + text + '</div>';
+    const detailEmpty = (text) => '<div style="padding:12px 0;font-size:11px;color:#7F879B">' + text + '</div>';
 
     // Thin progress bar. The percentage is computed differently for each job type, the drawing is shared.
     function detailBar(percent, colorVal){

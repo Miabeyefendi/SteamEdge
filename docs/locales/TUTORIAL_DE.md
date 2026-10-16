@@ -133,7 +133,9 @@ Alles, was man der App sagen kann, gruppiert: Allgemein, Karten farmen, Markt, I
 
 Änderungen bleiben auf der Seite, bis du **Speichern** drückst. Vorher wird nichts geschrieben, und wer die Seite mit ungespeicherten Änderungen verlässt, wird gefragt. Nach dem Speichern pausiert ein laufendes Kartenfarmen oder Stunden-Boosten, das von den geänderten Einstellungen betroffen ist, etwa fünf Sekunden und macht mit denselben Spielen und den neuen Werten weiter; Einstellungen, die einen laufenden Auftrag nicht berühren, gelten sofort. **Zurücksetzen** lädt die Standardwerte in die Seite und wartet ebenfalls auf Speichern; die App-Sprache bleibt.
 
-Das Farbschema (Dunkel, Mitternachtslila, Weiß) steht unter Allgemein und gilt auch für den Anmeldebildschirm.
+Das Farbschema (Automatisch, Dunkel, Mitternachtslila, Weiß, Hoher Kontrast) steht unter Allgemein und gilt auch für den Anmeldebildschirm. Automatisch nimmt Hohen Kontrast, wenn das System mehr Kontrast verlangt, sonst Dunkel. Der **Oberflächenmaßstab** (80 bis 150 Prozent, standardmäßig 100) vergrößert oder verkleinert die gesamte Oberfläche; auch Strg + / - / 0 ändern ihn, und das Fenster beim ersten Start fragt danach. Ist das Fenster für das Layout im gewählten Maßstab zu klein, schrumpft der Maßstab auf das, was passt. Abgeblasster Text hat in jedem Design mindestens 4,5 : 1 zum Untergrund (7 : 1 bei Hohem Kontrast), kein Text ist kleiner als 11 Pixel, und die Kontrastdesigns von Windows (erzwungene Farben) werden befolgt.
+
+Die Schalter und das Seitenmenü lassen sich mit der Tastatur bedienen: Tab wechselt zwischen ihnen, Enter oder Leertaste betätigt einen, und ein Screenreader meldet sie als Schalter und Schaltflächen, die geöffnete Seite als aktuelle.
 
 Die Oberflächendichte steht standardmäßig auf Automatisch: Sie wird kompakt, solange das Fenster niedrig ist (unter etwa 720 Pixel), und wird wieder geräumig, wenn das Fenster höher wird. Das Seitenmenü schließt sich von selbst, wenn das Fenster schmaler als 1000 Pixel ist, und das Fenster merkt sich Größe, Position und ob es maximiert war. Unter 900 x 560 Pixeln (der Anmeldebildschirm 900 x 640) wird das Layout nicht weiter gestaucht: die ganze Seite wird passend verkleinert, bis auf drei Viertel, sodass selbst ein Fenster von 675 x 420 jede Schaltfläche zeigt.
 
@@ -303,8 +305,9 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `language` | `en` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Mit Windows starten |
-| `theme` | `dark` | Farbschema: `dark`, `midnight` (Mitternachtslila), `white` |
+| `theme` | `auto` | Farbdesign: `auto` (hoher Kontrast, wenn das System ihn verlangt, sonst dunkel), `dark`, `midnight` (Mitternachtslila), `white`, `contrast` (Hoher Kontrast) |
 | `density` | `auto` | Abstände und Zeilenhöhe: `auto` (kompakt, solange das Fenster niedrig ist), `comfortable`, `compact` |
+| `uiScale` | `100` | Oberflächenmaßstab in Prozent: `80`, `90`, `100`, `110`, `125`, `150`. Ein Fenster, das für das Layout in diesem Maßstab zu klein ist, verkleinert ihn auf das, was passt |
 | `perfMode` | `auto` | Leistung: `auto`, `full`, `light` (keine Animationen, Unschärfe oder Schatten) |
 | `moduleCard`, `moduleInventory`, `moduleHours`, `moduleRealistic`, `moduleAchievements`, `moduleKeys`, `moduleChat` | `true` | Ob die Seite genutzt wird. Eine ausgeschaltete Seite verschwindet aus dem Menü und stellt keine Steam-Anfrage |
 | `navOrder` | `overview,card,inventory,hours,realistic,achievements,keys` | Reihenfolge des Seitenmenüs |

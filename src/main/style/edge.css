@@ -11,11 +11,11 @@
   --e-bdPassive:#1D2432; --e-bd:#2B3345; --e-bdActive:#5624B3; --e-bdFocus:#7031CC;
   --e-brand:#5624B3; --e-brandHover:#7031CC; --e-brandActive:#C2AAEE; --e-brandGlow:#C2AAEE;
   --e-blue:#24AEB3;
-  --e-title:#DCE2FA; --e-body:#B9C0D6; --e-sub:#C2AAEE; --e-muted:#8B8F9E; --e-off:#656D80;
+  --e-title:#DCE2FA; --e-body:#B9C0D6; --e-sub:#C2AAEE; --e-muted:#8B8F9E; --e-off:#7F879B;
   --e-ok:#5FB324; --e-warn:#B37E24; --e-bad:#B32453;
   --e-radius:12px;
 }
-.edge{font-family:Geist,-apple-system,"Segoe UI",sans-serif;font-size:13px;color:var(--e-body);-webkit-font-smoothing:antialiased}
+.edge{font-family:Geist,-apple-system,"Segoe UI","Microsoft JhengHei UI","Microsoft YaHei UI","Noto Sans TC",sans-serif;font-size:13px;color:var(--e-body);-webkit-font-smoothing:antialiased}
 .edge *{box-sizing:border-box}
 .edge a{color:var(--e-sub);text-decoration:none}
 .edge a:hover{color:var(--e-brand)}
@@ -59,7 +59,7 @@
 .e-nav-sep{height:1px;background:var(--e-bdPassive);margin:8px 2px}
 .e-sys{display:flex;align-items:center;gap:9px;padding:10px 12px;border-top:1px solid var(--e-bdPassive)}
 .e-sys .e-dot{width:7px;height:7px;border-radius:12px;flex-shrink:0;animation:e-dotPulse 2s ease-in-out infinite}
-.e-sys .e-sys-lbl{font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-muted);white-space:nowrap}
+.e-sys .e-sys-lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-muted);white-space:nowrap}
 .e-aside.collapsed .e-sys .e-sys-lbl{display:none}
 /* rail toggle: a half-circle tab sticking out of the edge */
 .e-rail-toggle{position:absolute;top:96px;z-index:6;width:19px;height:38px;background:transparent;border:0;padding:0;color:var(--e-muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Geist Mono',monospace;font-size:12px;font-weight:700;right:-19px}
@@ -78,25 +78,25 @@
 .e-icon-btn .e-badge{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:12px;background:var(--e-bad);border:2px solid var(--e-bgAlt)}
 .e-acct{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border-radius:var(--e-radius);border:1px solid transparent;background:transparent;cursor:pointer}
 .e-acct:hover,.e-acct.open{border-color:var(--e-brand)}
-.e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:10px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
+.e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
 /* The Steam avatar arrives at 184x184 - it must not overflow the box (this was the cause of the broken profile icon). */
 .e-acct-avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
 .e-acct-name{font-size:12px;font-weight:600;color:var(--e-title);line-height:1;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
-.e-acct-lvl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted);line-height:1;margin-top:2px;white-space:nowrap}
+.e-acct-lvl{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted);line-height:1;margin-top:2px;white-space:nowrap}
 .e-acct-caret{transition:transform .14s ease;color:var(--e-muted)}
 .e-acct.open .e-acct-caret{transform:rotate(180deg)}
 
 /* ---- account dropdown ---- */
 .e-dropdown{position:fixed;top:64px;right:20px;z-index:40;width:268px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 18px 44px rgba(3,3,5,.66);overflow:hidden;display:none}
 .e-dropdown.open{display:block}
-.e-dropdown-hd{display:block;padding:12px 14px 8px;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)}
+.e-dropdown-hd{display:block;padding:12px 14px 8px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-off)}
 .e-acct-list{display:flex;flex-direction:column;gap:2px;padding:0 6px 8px;max-height:260px;overflow-y:auto}
 /* The .acct-row / .nm / .tag / .x names are PRODUCED by renderAcctList() in common.js; the same names are used here so JS stays untouched (not edge.css's own e- prefix). */
 .acct-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--e-radius);cursor:pointer;background:transparent;font-size:13px;color:var(--e-body)}
 .acct-row:hover{background:var(--e-s3)}
 .acct-row.active{background:var(--e-s3)}
 .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:var(--e-title)}
-.acct-row .tag{font-size:10px;font-weight:700;color:var(--e-brandActive);background:rgba(86,36,179,.18);border:1px solid var(--e-bdActive);border-radius:20px;padding:2px 7px;flex:none}
+.acct-row .tag{font-size:11px;font-weight:700;color:var(--e-brandActive);background:rgba(86,36,179,.18);border:1px solid var(--e-bdActive);border-radius:20px;padding:2px 7px;flex:none}
 /* Account row status dots: green = card/hours running in the background, teal = only connected */
 .acct-row .run-dot{width:7px;height:7px;border-radius:12px;background:var(--e-ok);flex:none;animation:e-dotPulse 2s ease-in-out infinite}
 .acct-row .conn-dot{width:7px;height:7px;border-radius:12px;background:var(--e-blue);flex:none}
@@ -109,7 +109,7 @@
 .e-acct-signout:hover{background:var(--e-s3)}
 .e-acct-signout .e-dot{width:7px;height:7px;border-radius:12px;background:var(--e-bad);flex-shrink:0}
 .e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--e-bad);line-height:1}
-.e-acct-signout-sub{font-size:10px;color:var(--e-off);line-height:1.3;margin-top:3px}
+.e-acct-signout-sub{font-size:11px;color:var(--e-off);line-height:1.3;margin-top:3px}
 
 /* ---- Settings > identity rows in the Account card ---- The SAME pattern as the card's own rows: label on the left 11 px, value on the right mono 12 px, the same thin line on top. The measurements are taken from there so they do not look like a separate box; their only difference is that clicking copies the value to the clipboard. */
 .e-identity-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621;cursor:pointer}
@@ -118,7 +118,7 @@
 .e-identity-row .v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:var(--e-title)}
 .e-identity-row .v.bos{font-weight:500;color:var(--e-off)}
 .e-identity-sub{display:flex;gap:8px}
-.e-identity-sub button{flex:1;height:30px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:10px;font-weight:600;letter-spacing:.08em;cursor:pointer}
+.e-identity-sub button{flex:1;height:30px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer}
 .e-identity-sub button:hover{border-color:var(--e-brand);color:var(--e-title)}
 .e-identity-sub button:disabled{opacity:.4;cursor:default;border-color:var(--e-bdPassive);color:var(--e-off)}
 
@@ -131,7 +131,7 @@
 .notif-item:hover{background:var(--e-s2)}
 .notif-item .a{font-size:12.5px;font-weight:600;color:var(--e-title)}
 .notif-item .b{font-size:11.5px;color:var(--e-muted);margin-top:2px}
-.notif-item .t{font-size:10.5px;color:var(--e-off);margin-top:4px}
+.notif-item .t{font-size:11px;color:var(--e-off);margin-top:4px}
 
 /* ---- content shell ---- */
 .e-main{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:var(--e-bg);min-height:0}
@@ -163,13 +163,13 @@
   --blue:#5624B3; --primary:#5624B3; --green:#5FB324; --success:#5FB324;
   --info:#24AEB3; --danger:#B32453; --red:#B32453; --red-s:#B32453; --warning:#B37E24; --amber:#B37E24;
   --accent:#C2AAEE; --purple:#C2AAEE; --teal:#24AEB3; --gold:#B37E24; --pink:#ec4899;
-  --txt:#DCE2FA; --text:#DCE2FA; --muted:#8B8F9E; --text-2:#8B8F9E; --muted2:#656D80; --text-3:#656D80;
+  --txt:#DCE2FA; --text:#DCE2FA; --muted:#8B8F9E; --text-2:#8B8F9E; --muted2:#7F879B; --text-3:#7F879B;
   --surface:#0D1118; --surface-2:#151C28; --border:#2B3345; --lite:#DCE2FA;
   background:#030305;
 }
 
 /* ---- shared components (stat card, panel, form, pill, toggle row) ---- */
-.e-eyebrow-sm{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--e-off)}
+.e-eyebrow-sm{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--e-off)}
 .e-stat{border:1px solid var(--e-bd);border-radius:var(--e-radius);background:var(--e-s1);padding:16px 18px;display:flex;align-items:center;gap:14px}
 .e-stat-ic{width:38px;height:38px;flex-shrink:0;border-radius:var(--e-radius);background:var(--e-s3);display:flex;align-items:center;justify-content:center;color:var(--e-sub)}
 .e-stat-lbl{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted)}
@@ -189,7 +189,7 @@
 .e-toggle-row:last-child{border-bottom:0}
 .e-toggle-row .e-tr-t{font-size:13px;font-weight:600;color:var(--e-title)}
 .e-toggle-row .e-tr-d{font-size:11px;color:var(--e-muted);margin-top:2px}
-.e-sublabel{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--e-off);padding:17px 0 10px}
+.e-sublabel{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--e-off);padding:17px 0 10px}
 .e-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:48px 18px;text-align:center;color:var(--e-muted)}
 .e-empty-title{font-size:14px;font-weight:700;color:var(--e-body)}
 .e-empty-sub{font-size:12px;color:var(--e-off);max-width:280px}
@@ -210,7 +210,7 @@
 .h-s3:hover{background:#151C28}
 .h-start:hover{background:#451D8F;border-color:#451D8F}  /* Start */
 .h-stop:hover{background:#8F1D42;border-color:#8F1D42}   /* Stop */
-.h-logout:hover{color:#B32453;background:#101621}
+.h-logout:hover{color:#E45A86;background:#101621}
 .h-signout:hover{background:#B32453;border-color:#B32453;color:#DCE2FA}
 .f-focus:focus{border-color:#7031CC}
 
@@ -472,3 +472,19 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 /* A column that scrolls keeps the height of what is in it. Without this the children shrank to fit when the column was too short (a 36 px button
    became 16 px tall) instead of the column scrolling. Children that set their own flex (flex:1 ...) are not touched, inline styles win. */
 .edge [style*="overflow-y:auto"][style*="flex-direction:column"] > *{flex-shrink:0}
+
+/* ---- Contrast ---- */
+/* The high contrast theme (theme.js, palette "contrast") draws everything in black, white and bright accents; focus must be unmissable and
+   the edges of controls show. */
+:root[data-tema="contrast"] .edge *:focus-visible{outline:3px solid #FFFF66;outline-offset:2px}
+:root[data-tema="contrast"] .e-toggle,:root[data-tema="contrast"] #tab-settings div[data-set]{border-color:#fff!important}
+/* When the system asks for forced colours (Windows contrast themes) the system palette is used: the switches would otherwise be two filled boxes
+   of the same colour, and the focus ring must follow the system's highlight. */
+@media (forced-colors: active){
+  .edge *:focus-visible{outline:3px solid Highlight;outline-offset:2px}
+  .e-toggle,#tab-settings div[data-set]{forced-color-adjust:none;border:2px solid ButtonText!important;background:Canvas!important}
+  .e-toggle .e-knob,#tab-settings div[data-set] > div{background:ButtonText!important}
+  .e-toggle.on,#tab-settings div[data-set][aria-checked="true"]{background:Highlight!important}
+  .e-toggle.on .e-knob,#tab-settings div[data-set][aria-checked="true"] > div{background:HighlightText!important}
+  .e-nav-item.active{border:2px solid Highlight}
+}

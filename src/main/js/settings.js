@@ -15,7 +15,7 @@
     let saving = false;
 
     // palette shortcuts
-    const SC = { brand:'#5624B3', s3:'#151C28', bd:'#2B3345', title:'#DCE2FA', off:'#656D80', muted:'#8B8F9E', bdActive:'#5624B3' };
+    const SC = { brand:'#5624B3', s3:'#151C28', bd:'#2B3345', title:'#DCE2FA', off:'#7F879B', muted:'#8B8F9E', bdActive:'#5624B3' };
 
     S.get().then(s => {
       appSettings = s || {};
@@ -370,8 +370,8 @@
     const CONNECTION_VIEW = {
       connected:      { textValue: 'Bağlı',                colorValue: '#5FB324' },
       connecting: { textValue: 'Yeniden bağlanıyor',   colorValue: '#B37E24' },
-      dropped:      { textValue: 'Bağlantı koptu',       colorValue: '#B32453' },
-      abandoned: { textValue: 'Bağlantı kurulamadı',  colorValue: '#B32453' },
+      dropped:      { textValue: 'Bağlantı koptu',       colorValue: '#E45A86' },
+      abandoned: { textValue: 'Bağlantı kurulamadı',  colorValue: '#E45A86' },
       none:        { textValue: 'Bağlı değil',          colorValue: '#8B8F9E' },
     };
     function writeConnectionState(){

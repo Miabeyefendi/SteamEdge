@@ -28,16 +28,16 @@
     <div style="flex:1;min-width:0;display:flex;flex-direction:column">
       <div class="e-subhd" style="flex-shrink:0;height:46px;padding:0 22px 0 44px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1D2432">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E" id="listLabel">Düşürme Kuyruğu · 0 Oyun</span>
-        <button id="btnRefresh" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Yenile</button>
+        <button id="btnRefresh" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Yenile</button>
       </div>
       <div class="cq-scroll" style="flex:1;overflow-y:auto;padding:18px 22px 18px 44px">
         <div class="cq-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px 14px;flex-wrap:wrap;padding:0 14px 12px">
           <div class="cq-cols" style="display:flex;align-items:center;gap:12px">
-            <span id="sortRank" class="cq-rank" style="width:34px;flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#656D80;cursor:pointer;text-align:center">#<span style="color:#C2AAEE" id="arrowRank"></span></span>
+            <span id="sortRank" class="cq-rank" style="width:34px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:#7F879B;cursor:pointer;text-align:center">#<span style="color:#C2AAEE" id="arrowRank"></span></span>
             <div class="cq-thumb-sp" style="width:85px;flex-shrink:0"></div>
-            <span id="sortName" class="cq-name" style="width:150px;flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#656D80;cursor:pointer">Oyun Adı <span style="color:#C2AAEE" id="arrowName"></span></span>
-            <span id="sortRemain" class="cq-remain" style="width:64px;flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#656D80;cursor:pointer;border-left:1px solid #1D2432;padding-left:8px">Kalan <span style="color:#C2AAEE" id="arrowRemain"></span></span>
-            <span class="cq-id" style="width:84px;flex-shrink:0;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#656D80;border-left:1px solid #1D2432;padding-left:8px">APP-ID</span>
+            <span id="sortName" class="cq-name" style="width:150px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7F879B;cursor:pointer">Oyun Adı <span style="color:#C2AAEE" id="arrowName"></span></span>
+            <span id="sortRemain" class="cq-remain" style="width:64px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7F879B;cursor:pointer;border-left:1px solid #1D2432;padding-left:8px">Kalan <span style="color:#C2AAEE" id="arrowRemain"></span></span>
+            <span class="cq-id" style="width:84px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7F879B;border-left:1px solid #1D2432;padding-left:8px">APP-ID</span>
           </div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:100%;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345" id="qFilter">
             <button data-qf="all" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">Hepsi</button>
@@ -64,25 +64,25 @@
           <button data-mode="priority" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">Öncelikli</button>
           <button data-mode="fast" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">Hızlı Mod</button>
         </div>
-        <span style="font-size:11px;color:#656D80" id="durNote">Oyunları kuyruk sırasıyla tek tek çalıştırır.</span>
+        <span style="font-size:11px;color:#7F879B" id="durNote">Oyunları kuyruk sırasıyla tek tek çalıştırır.</span>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px" id="durationPanel">
         <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oturum Zamanlayıcı</span>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 12px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-            <input id="cardH" value="00" maxlength="3" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SA</span>
+            <input id="cardH" value="00" maxlength="3" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SA</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-            <input id="cardM" value="15" maxlength="2" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">DK</span>
+            <input id="cardM" value="15" maxlength="2" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">DK</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
-            <input id="cardS" value="00" maxlength="2" style="width:34px;height:22px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:7px;font-weight:600;letter-spacing:0.1em;color:#656D80">SN</span>
+            <input id="cardS" value="00" maxlength="2" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SN</span>
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap" id="cardPresets">
@@ -147,7 +147,7 @@
       <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden">
         <div style="height:44px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1D2432">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Son Düşüşler</span>
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="dropCount">0 öğe</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B" id="dropCount">0 öğe</span>
         </div>
         <div id="dropList"></div>
       </div>

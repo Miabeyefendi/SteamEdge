@@ -217,7 +217,7 @@
   .acct-row:hover{background:#ffffff08}
   .acct-row.active{background:#12263f}
   .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .acct-row .tag{font-size:10px;font-weight:700;color:var(--green);background:rgba(95,208,116,.12);
+  .acct-row .tag{font-size:11px;font-weight:700;color:var(--green);background:rgba(95,208,116,.12);
     border:1px solid #2c5a37;border-radius:20px;padding:2px 7px;flex:none}
   .acct-row .x{color:var(--muted2);padding:2px 5px;border-radius:5px;font-size:12px;line-height:1;flex:none}
   .acct-row .x:hover{color:var(--red);background:rgba(224,80,92,.14)}

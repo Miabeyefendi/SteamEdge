@@ -15,7 +15,7 @@
   --blue:#5624B3; --primary:#5624B3; --green:#5FB324; --success:#5FB324;
   --info:#24AEB3; --danger:#B32453; --red:#B32453; --red-s:#B32453; --warning:#B37E24; --amber:#B37E24;
   --accent:#C2AAEE; --purple:#C2AAEE; --teal:#24AEB3; --gold:#B37E24; --pink:#ec4899;
-  --txt:#DCE2FA; --text:#DCE2FA; --muted:#8B8F9E; --text-2:#8B8F9E; --muted2:#656D80; --text-3:#656D80;
+  --txt:#DCE2FA; --text:#DCE2FA; --muted:#8B8F9E; --text-2:#8B8F9E; --muted2:#7F879B; --text-3:#7F879B;
   --surface:#0D1118; --surface-2:#151C28; --border:#2B3345; --lite:#DCE2FA;
   background:#030305;
 }
@@ -43,19 +43,19 @@
 .acct-row:hover{background:rgba(255,255,255,.05)}
 .acct-row.active{background:rgba(86,36,179,.15)}
 .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acct-row .tag{font-size:10px;font-weight:700;color:#C2AAEE;background:rgba(86,36,179,.15);border:1px solid rgba(86,36,179,.4);border-radius:20px;padding:2px 7px;flex:none}
-.acct-row .x{color:#6b7280;padding:2px 5px;border-radius:5px;font-size:12px;line-height:1;flex:none}
-.acct-row .x:hover{color:#B32453;background:rgba(179,36,83,.14)}
+.acct-row .tag{font-size:11px;font-weight:700;color:#C2AAEE;background:rgba(86,36,179,.15);border:1px solid rgba(86,36,179,.4);border-radius:20px;padding:2px 7px;flex:none}
+.acct-row .x{color:#7F879B;padding:2px 5px;border-radius:5px;font-size:12px;line-height:1;flex:none}
+.acct-row .x:hover{color:#E45A86;background:rgba(179,36,83,.14)}
 .acct-add{display:flex;align-items:center;gap:8px;padding:11px 14px;border-top:1px solid rgba(255,255,255,.08);color:#C2AAEE;font-size:12.5px;font-weight:600;cursor:pointer}
 .acct-add:hover{background:rgba(255,255,255,.05)}
-.acct-add.acct-logout{color:#B32453}
+.acct-add.acct-logout{color:#E45A86}
 .acct-add.acct-logout:hover{background:rgba(179,36,83,.1)}
 .notif-hd{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9ca3af}
 .notif-item{padding:9px 10px;border-radius:8px}
 .notif-item:hover{background:rgba(255,255,255,.05)}
 .notif-item .a{font-size:12.5px;font-weight:600;color:#e5e7eb}
 .notif-item .b{font-size:12px;color:#9ca3af;margin-top:2px}
-.notif-item .t{font-size:11px;color:#6b7280;margin-top:4px}
+.notif-item .t{font-size:11px;color:#7F879B;margin-top:4px}
 .acct-list::-webkit-scrollbar, .notif-list::-webkit-scrollbar{width:8px}
 .acct-list::-webkit-scrollbar-thumb, .notif-list::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.14);border-radius:8px}
 

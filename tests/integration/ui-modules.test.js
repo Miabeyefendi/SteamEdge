@@ -103,8 +103,11 @@ app.whenReady().then(async () => {
   await wait(1800);
   check('a first start opens the welcome window', (await js("!!document.getElementById('setupBack')")) === true);
   await click("#setupBack [data-sm=keys]");
+  check('the welcome window asks for the interface scale, 100 percent preselected', (await js("document.getElementById('setupScale').value")) === '100' && (await js("document.getElementById('setupScale').options.length")) === 6);
+  await js("document.getElementById('setupScale').value = '110'");
   await click("#setupBack [data-yes]");
   await wait(700);
+  check('the chosen scale is saved with the rest', settings.uiScale === 110, String(settings.uiScale));
   check('the choice is saved and applied', settings.setupDone === true && settings.moduleKeys === false && (await visible()) === 'overview,card,inventory,hours,realistic,achievements', await visible());
   check('the window is gone', (await js("!document.getElementById('setupBack')")) === true);
   log('console errors', JSON.stringify(consoleErr));

@@ -127,7 +127,7 @@
     function favStar(appid){
       const on = isFavorite(appid);
       return '<button data-fav="' + (+appid) + '" title="' + esc(t(on ? 'Favorilerden Çıkar' : 'Favorilere Ekle')) + '" style="width:24px;height:24px;flex-shrink:0;border-radius:999px;background:transparent;border:none;color:'
-        + (on ? '#B37E24' : '#656D80') + ';cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (on ? 'currentColor' : 'none')
+        + (on ? '#B37E24' : '#7F879B') + ';cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (on ? 'currentColor' : 'none')
         + '" stroke="currentColor" stroke-width="2"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>';
     }
     async function toggleFavorite(appid){
@@ -166,7 +166,7 @@
             + '<span class="h">'+esc(t(o.title || 'Emin misin?'))+'</span>'
             + (o.body ? '<span class="p">'+esc(t(o.body))+'</span>' : '')
             // Red warning: for cases where one should not hurry (e.g. the price is below the 24 hour average)
-            + (o.warningRed ? '<span class="warn" style="color:#B32453;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.warningRed)+'</span>' : '')
+            + (o.warningRed ? '<span class="warn" style="color:#E45A86;border-color:#B32453;background:rgba(179,36,83,.08)">'+esc(o.warningRed)+'</span>' : '')
             + (o.warn ? '<span class="warn">'+esc(t(o.warn))+'</span>' : '')
           + '</div>'
           + (key ? '<div class="e-modal-ask" data-ask><span class="box">'
@@ -273,7 +273,7 @@
       const mode = (typeof appSettings==='object' && appSettings && appSettings.density) || 'auto';
       const compact = mode === 'compact' || (mode === 'auto' && window.innerHeight < DENSITY_AUTO_H);
       document.body.classList.toggle('e-compact', !!compact);
-      if (typeof applyTheme === 'function' && appSettings) applyTheme(appSettings.theme || 'dark');
+      if (typeof applyTheme === 'function' && appSettings) applyTheme(appSettings.theme || 'auto');
       if (typeof setRailTop === 'function') setRailTop(railTab);
     }
     // ================= MODULES =================
@@ -330,6 +330,45 @@
     function applyPerf(){ document.body.classList.toggle('e-light', perfLight()); }
     try { window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPerf); } catch (_) {}
 
+    // ================= KEYBOARD =================
+    // The switches (<span>/<div>) and the side menu items (<a> without an href) are not reachable with Tab and say nothing to a screen reader.
+    // They get a tab stop, a role and, for the switches, aria-checked that follows their look; Enter and Space press them.
+    // New ones (pages are filled later) are picked up by the observer.
+    const KB_SELECTOR = '.e-toggle, #tab-settings div[data-set], .e-nav-item';
+    function switchOn(el){
+      if (el.classList.contains('on')) return true;
+      const knob = el.firstElementChild;
+      return !!(knob && knob.style && knob.style.marginLeft === '16px');
+    }
+    function makeReachable(el){
+      if (el.getAttribute('data-kb')) return;
+      el.setAttribute('data-kb', '1');
+      el.setAttribute('tabindex', '0');
+      const isSwitch = !el.classList.contains('e-nav-item');
+      el.setAttribute('role', isSwitch ? 'switch' : 'button');
+      const sync = () => {
+        if (isSwitch) el.setAttribute('aria-checked', String(switchOn(el)));
+        else if (el.classList.contains('active')) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
+      };
+      sync();
+      new MutationObserver(sync).observe(el, { attributes: true, attributeFilter: ['class', 'style'], subtree: isSwitch });
+      el.addEventListener('keydown', (e) => {
+        if (e.target !== el || (e.key !== 'Enter' && e.key !== ' ')) return;
+        e.preventDefault();
+        el.click();
+      });
+    }
+    function reachAll(root){
+      if (!root || root.nodeType !== 1) return;
+      if (root.matches && root.matches(KB_SELECTOR)) makeReachable(root);
+      root.querySelectorAll(KB_SELECTOR).forEach(makeReachable);
+    }
+    function startKeyboard(){
+      reachAll(document.body);
+      new MutationObserver((ms) => ms.forEach(m => m.addedNodes.forEach(reachAll))).observe(document.body, { childList: true, subtree: true });
+    }
+    if (document.body) startKeyboard(); else document.addEventListener('DOMContentLoaded', startKeyboard);
+
     // ================= WELCOME WINDOW (first start only) =================
     function showSetup(){
       if (document.getElementById('setupBack')) return;
@@ -344,12 +383,15 @@
         + '<div class="e-modal-ask" style="cursor:default;gap:12px"><span style="flex:1">'+esc(t('Performans modu'))+'</span>'
         + '<select id="setupPerf" style="height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
         + '<option value="auto">'+esc(t('Otomatik'))+'</option><option value="full">'+esc(t('Tam'))+'</option><option value="light">'+esc(t('Hafif'))+'</option></select></div>'
+        + '<div class="e-modal-ask" style="cursor:default;gap:12px"><span style="flex:1">'+esc(t('Arayüz ölçeği'))+'</span>'
+        + '<select id="setupScale" style="height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
+        + [80, 90, 100, 110, 125, 150].map(v => '<option value="'+v+'"'+(v === 100 ? ' selected' : '')+'>'+v+'%</option>').join('') + '</select></div>'
         + '<div class="e-modal-ft"><button class="ok" data-yes>'+esc(t('Başla'))+'</button></div></div>';
       document.body.appendChild(back);
       requestAnimationFrame(() => back.classList.add('show'));
       back.querySelectorAll('[data-sm]').forEach(r => r.addEventListener('click', () => r.classList.toggle('on')));
       back.querySelector('[data-yes]').onclick = async () => {
-        const patch = { setupDone: true, perfMode: back.querySelector('#setupPerf').value };
+        const patch = { setupDone: true, perfMode: back.querySelector('#setupPerf').value, uiScale: Number(back.querySelector('#setupScale').value) };
         back.querySelectorAll('[data-sm]').forEach(r => { patch[MODULES[r.getAttribute('data-sm')]] = r.classList.contains('on'); });
         try { appSettings = await window.imu.settings.set(patch); } catch (_) { Object.assign(appSettings || {}, patch); }
         back.classList.remove('show');
@@ -1020,7 +1062,7 @@
         + (status === 'abandoned' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(message||'')+'</span>'
         + (status === 'abandoned'
             ? '<button data-reconnect style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
-              + ';font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
+              + ';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
             : '');
       const b = el.querySelector('[data-reconnect]');
       if (b) b.onclick = async ()=>{

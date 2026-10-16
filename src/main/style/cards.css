@@ -84,11 +84,11 @@
   .kart-hero-game{display:flex;align-items:start;gap:14px}
   .kart-hero-game img{width:64px;height:64px;border-radius:10px;border:1px solid var(--line);object-fit:cover;flex:none}
   .kart-timer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;padding:14px;background:rgba(74,155,255,.06);border:1px solid rgba(74,155,255,.15);border-radius:10px}
-  .kt-box .kt-lbl{font-size:9.5px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px}
+  .kt-box .kt-lbl{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px}
   .kt-box .kt-val{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
-  .kt-box .kt-sub{font-size:10px;color:var(--muted);margin-top:1px}
+  .kt-box .kt-sub{font-size:11px;color:var(--muted);margin-top:1px}
   .drop-slots{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px}
-  .drop-slot{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
+  .drop-slot{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
   .drop-slot.filled{background:rgba(95,208,116,.12);border:1px solid var(--green);color:var(--green)}
   .drop-slot.current{background:rgba(74,155,255,.2);border:1px dashed var(--blue);color:var(--blue);animation:kpulse 1.5s infinite}
   @keyframes kpulse{0%,100%{opacity:1}50%{opacity:.45}}
@@ -96,19 +96,19 @@
   .kart-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .ks-box{background:var(--card2);border-radius:var(--radius-sm);padding:10px;text-align:center}
   .ks-box .ks-val{font-size:17px;font-weight:800}
-  .ks-box .ks-lbl{font-size:10px;color:var(--muted2);margin-top:2px}
+  .ks-box .ks-lbl{font-size:11px;color:var(--muted2);margin-top:2px}
   .kq-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);transition:background .1s}
   .kq-row:hover{background:var(--card2)}
   .kq-row.live{background:rgba(74,155,255,.04);border-left:2px solid var(--blue)}
-  .kq-num{width:20px;height:20px;border-radius:5px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted2);font-weight:700;flex:none}
+  .kq-num{width:20px;height:20px;border-radius:5px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted2);font-weight:700;flex:none}
   .kq-row.live .kq-num{background:rgba(74,155,255,.15);color:var(--blue)}
   .kq-info{flex:1;min-width:0}
   .kq-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .kq-sub{display:flex;align-items:center;gap:5px;margin-top:2px}
   .kq-sub .mini-bar{width:48px;height:3px;border-radius:2px;background:var(--line);overflow:hidden}
   .kq-sub .mini-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),#7031CC);border-radius:2px}
-  .kq-sub span{font-size:10px;color:var(--muted)}
-  .kq-pill{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px;flex:none}
+  .kq-sub span{font-size:11px;color:var(--muted)}
+  .kq-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;flex:none}
   .kq-pill.live{background:rgba(95,208,116,.12);color:var(--green);border:1px solid rgba(95,208,116,.25)}
   .kq-pill.next{background:rgba(74,155,255,.1);color:var(--blue);border:1px solid rgba(74,155,255,.2)}
   .kart-acts{display:flex;gap:8px;margin-top:14px}

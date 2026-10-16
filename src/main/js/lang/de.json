@@ -1497,5 +1497,8 @@
  "# iş kaldığı yerden sürdürüldü": "Aufgaben, die dort fortgesetzt wurden, wo sie aufgehört hatten: #",
  "Yarım kalan işler": "Unterbrochene Aufgaben",
  "Yarım kalan iş sürdürülemedi.": "Eine unterbrochene Aufgabe konnte nicht fortgesetzt werden.",
- "İşler Sürdürüldü": "Aufgaben fortgesetzt"
+ "İşler Sürdürüldü": "Aufgaben fortgesetzt",
+ "Arayüz ölçeği": "Oberflächenmaßstab",
+ "Bütün arayüzü büyütür ya da küçültür. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değişir.": "Vergrößert oder verkleinert die gesamte Oberfläche. Reicht das Fenster für das Layout im gewählten Maßstab nicht aus, wird der Maßstab dem Fenster angepasst. Auch mit Strg + / - / 0 änderbar.",
+ "Yüksek karşıtlık": "Hoher Kontrast"
 }

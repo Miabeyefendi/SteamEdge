@@ -19,7 +19,7 @@
                 border:1px solid var(--line);border-radius:12px;color:var(--txt);outline:none;font-variant-numeric:tabular-nums;letter-spacing:-1px}
   .bc-seg input:focus{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
   .bc-seg input.accent{color:#a9cdff}
-  .bc-seg span{font-size:9px;letter-spacing:1.4px;color:var(--muted2);font-weight:800}
+  .bc-seg span{font-size:11px;letter-spacing:1.4px;color:var(--muted2);font-weight:800}
   .bc-sep{font-size:28px;font-weight:800;color:var(--muted2);line-height:62px}
   /* Game list row (timebooster select table: dot + name + hours + add button) */
   .grow2{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #1e2836;cursor:pointer;border-left:2px solid transparent}
@@ -29,13 +29,13 @@
   .grow2.sel .gdot{background:var(--blue)}
   .gnm{flex:1;min-width:0;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .grow2.sel .gnm{color:#a9cdff;font-weight:600}
-  .ghrs{font-size:10.5px;color:var(--muted2);flex:none;font-variant-numeric:tabular-nums}
+  .ghrs{font-size:11px;color:var(--muted2);flex:none;font-variant-numeric:tabular-nums}
   .addbtn{width:24px;height:24px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:flex;
           align-items:center;justify-content:center;color:var(--muted2);font-size:11px;cursor:pointer;flex:none;transition:all .15s}
   .addbtn:hover{background:rgba(74,155,255,.12);color:var(--blue);border-color:var(--blue)}
   .addbtn.on{background:rgba(74,155,255,.16);color:var(--blue);border-color:var(--blue)}
   .qx{width:24px;height:24px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:flex;
-      align-items:center;justify-content:center;color:var(--muted2);font-size:10px;cursor:pointer;flex:none;transition:all .15s}
+      align-items:center;justify-content:center;color:var(--muted2);font-size:11px;cursor:pointer;flex:none;transition:all .15s}
   .qx:hover{color:var(--red);border-color:var(--red);background:rgba(232,90,102,.1)}
   .pnhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
   .pncount{font-size:11px;color:var(--muted2);font-weight:600}
@@ -43,10 +43,10 @@
   .qrow{display:flex;align-items:center;gap:10px;padding:8px 8px;border-bottom:1px solid #1e2836}
   .qrow:last-child{border-bottom:0}
   .qnum{width:20px;height:20px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;
-        justify-content:center;font-size:10px;font-weight:800;color:var(--muted);flex:none}
+        justify-content:center;font-size:11px;font-weight:800;color:var(--muted);flex:none}
   .qrow.on .qnum{background:rgba(86,36,179,.22);border-color:var(--blue);color:#C2AAEE}
   .qname{flex:1;min-width:0;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .qtarget{font-size:10.5px;color:var(--muted2);font-variant-numeric:tabular-nums;flex:none}
+  .qtarget{font-size:11px;color:var(--muted2);font-variant-numeric:tabular-nums;flex:none}
   /* Boost card (active-boost visual + Live badge; the order comes from the queue) */
   .bcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:9px;background:var(--card2)}
   .bcard.live{border-color:rgba(95,208,116,.35);box-shadow:0 0 0 1px rgba(95,208,116,.12)}
@@ -55,16 +55,16 @@
   .bcard-scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,17,25,.95) 0%,rgba(11,17,25,.55) 100%)}
   .bcard-top{position:absolute;inset:0;display:flex;align-items:center;gap:9px;padding:0 10px}
   .bcard-num{width:20px;height:20px;border-radius:6px;background:rgba(11,17,25,.85);border:1px solid var(--line);display:flex;
-             align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#a9cdff;flex:none}
+             align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#a9cdff;flex:none}
   .bcard-name{font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bcard-sub{font-size:10px;color:var(--muted);margin-top:1px}
-  .blive{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:9.5px;font-weight:800;
+  .bcard-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .blive{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;
          background:rgba(95,208,116,.15);color:#8ee39d;border:1px solid rgba(95,208,116,.35);flex:none}
   .blive i{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:blink 2s infinite}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
   .bcard-body{padding:8px 10px 9px;display:flex;flex-direction:column;gap:6px}
   .bclock{font-size:15px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums}
-  .bstop{font-size:10.5px;font-weight:700;color:rgba(232,90,102,.75);cursor:pointer;background:none;border:0;padding:0}
+  .bstop{font-size:11px;font-weight:700;color:rgba(232,90,102,.75);cursor:pointer;background:none;border:0;padding:0}
   .bstop:hover{color:var(--red)}
   .btrack{height:5px;border-radius:3px;background:#0e1620;border:1px solid var(--line);overflow:hidden}
   .btrack>i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),#8ee39d)}

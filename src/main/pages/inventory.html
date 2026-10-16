@@ -35,7 +35,7 @@
         <button id="invMyListings" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">İlanlarım</button>
         <button id="invExportCsv" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">CSV Aktar</button>
       <!-- G9: a small note that says the reason for dimmed rows (inventory.js > drawThresholdBadge) -->
-      <span id="invThresholdNote" style="display:none;align-items:center;gap:7px;font-size:10.5px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
+      <span id="invThresholdNote" style="display:none;align-items:center;gap:7px;font-size:11px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
       </div>
     </div>
 
@@ -93,27 +93,27 @@
     <div class="inv-list" style="flex:1;min-width:0;display:flex;flex-direction:column">
       <div id="invHead" class="inv-row" style="flex-shrink:0;display:grid;grid-template-columns:34px 14px 44px minmax(130px,1.6fr) minmax(90px,1.1fr) 76px 104px 104px;gap:0;align-items:center;height:34px;padding:0 22px 0 44px;border-bottom:1px solid #1D2432">
         <span><span id="selAll" style="width:16px;height:16px;border-radius:12px;border:1px solid #2B3345;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"></span></span>
-        <span id="invSortStatus" title="Duruma göre sırala" style="display:flex;align-items:center;justify-content:flex-start;height:34px;margin:0 -6px;padding:0 6px;cursor:pointer"><span style="width:7px;height:7px;border-radius:12px;background:#656D80;flex-shrink:0"></span></span>
+        <span id="invSortStatus" title="Duruma göre sırala" style="display:flex;align-items:center;justify-content:flex-start;height:34px;margin:0 -6px;padding:0 6px;cursor:pointer"><span style="width:7px;height:7px;border-radius:12px;background:#7F879B;flex-shrink:0"></span></span>
         <span></span>
-        <span id="invSortName" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#656D80;cursor:pointer">Eşya <span style="color:#C2AAEE" id="arrName"></span></span>
-        <span id="invSortGame" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;padding-left:9px;color:#656D80;cursor:pointer">Oyun <span style="color:#C2AAEE" id="arrGame"></span></span>
-        <span id="invSortQty" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Adet<span style="color:#C2AAEE" id="arrQty"></span></span>
-        <span id="invSortLow" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">En Düşük<span style="color:#C2AAEE" id="arrLow"></span></span>
-        <span id="invSortMed" style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#656D80;cursor:pointer">Ortalama<span style="color:#C2AAEE" id="arrMed"></span></span>
+        <span id="invSortName" style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7F879B;cursor:pointer">Eşya <span style="color:#C2AAEE" id="arrName"></span></span>
+        <span id="invSortGame" style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;padding-left:9px;color:#7F879B;cursor:pointer">Oyun <span style="color:#C2AAEE" id="arrGame"></span></span>
+        <span id="invSortQty" style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#7F879B;cursor:pointer">Adet<span style="color:#C2AAEE" id="arrQty"></span></span>
+        <span id="invSortLow" style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#7F879B;cursor:pointer">En Düşük<span style="color:#C2AAEE" id="arrLow"></span></span>
+        <span id="invSortMed" style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-left:1px solid #1D2432;height:16px;display:flex;align-items:center;justify-content:center;gap:4px;color:#7F879B;cursor:pointer">Ortalama<span style="color:#C2AAEE" id="arrMed"></span></span>
       </div>
 
       <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:6px 12px;flex-wrap:wrap;padding:8px 22px 8px 44px;border-bottom:1px solid #1D2432">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80" id="invCount">-</span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B" id="invCount">-</span>
           <span class="inv-leg" style="width:1px;height:11px;background:#2B3345"></span>
-          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#5FB324"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılabilir</span></div>
-          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#24AEB3"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Takas</span></div>
-          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#B32453"></span><span style="font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#656D80">Satılamaz</span></div>
+          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#5FB324"></span><span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#7F879B">Satılabilir</span></div>
+          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#24AEB3"></span><span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#7F879B">Takas</span></div>
+          <div class="inv-leg" style="display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;border-radius:12px;background:#B32453"></span><span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:#7F879B">Satılamaz</span></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#656D80">Fiyatlar · <span id="invPriceProg">-</span></span>
+          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">Fiyatlar · <span id="invPriceProg">-</span></span>
           <!-- The price fetch button is HERE, in the filter row: what it does depends on the filter. Its previous place was the bottom bar and it had moved that and pushed it to the right edge. -->
-          <button id="invFetchPrices" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Fiyatları Getir</button>
+          <button id="invFetchPrices" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Fiyatları Getir</button>
         </div>
       </div>
 

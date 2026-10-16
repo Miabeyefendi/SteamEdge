@@ -334,8 +334,9 @@ const DEFAULT_SETTINGS = {
   // Small features and top bar items that can be switched off (Settings > Modules, common.js FEATURES); everything is on until the setting says false
   featFeed: true, featFavorites: true, featListings: true, featCsv: true, featOtherGames: true,
   topSearch: true, topNotif: true, topUpdate: true,
-  theme: 'dark',            // dark | midnight | white (see src/main/js/theme.js)
+  theme: 'auto',            // auto | dark | midnight | white | contrast (see src/main/js/theme.js); auto = contrast when the system asks for it, dark otherwise
   density: 'auto',          // auto | comfortable | compact (*)
+  uiScale: 100,             // percent, one of windowFit.SCALES; the window zooms the page to this while the layout still fits (applyFitZoom)
   timeFormat: '24',
   sidebarCollapsed: false,
   queueSort: 'default',
@@ -560,6 +561,7 @@ function reconnectLimit() {
 function applySettings() {
   try { app.setLoginItemSettings({ openAtLogin: !!settings.autoLaunch }); } catch (_) {}
   updateSleepBlocker();
+  applyFitZoom();
   // The reconnect limit to all engines. If an engine has run out of attempts and given up
   // and the new setting allows it, the attempts start over.
   const bound = reconnectLimit();
@@ -770,8 +772,13 @@ function applyMinimumSize(base) {
 function applyFitZoom() {
   if (!win || win.isDestroyed() || win.isMinimized()) return;
   const [width, height] = win.getContentSize();
-  const zoom = windowFit.fitZoom(width, height, fitDesign);
+  const zoom = windowFit.fitZoom(width, height, fitDesign, settings.uiScale);
   if (Math.abs(win.webContents.getZoomFactor() - zoom) > 0.001) win.webContents.setZoomFactor(zoom);
+}
+// Ctrl + / - / 0: the next step of the interface scale (0 = back to 100), saved like the setting in Settings (which shows it next time it opens).
+function stepUiScale(dir) {
+  const next = dir === 0 ? 100 : windowFit.stepScale(settings.uiScale, dir);
+  if (next !== windowFit.normalizeScale(settings.uiScale)) applySettingPatch({ uiScale: next });
 }
 // While the app itself moves the window (centring, fitting) the position must not be remembered as the user's choice.
 let windowSaveBlockedUntil = 0;
@@ -874,7 +881,9 @@ function createWindow() {
   win.webContents.on('did-finish-load', applyFitZoom);
   // Ctrl + / - / 0 would change the zoom the window sets for itself, and the next resize would snap it back
   win.webContents.on('before-input-event', (e, input) => {
-    if (input.type === 'keyDown' && (input.control || input.meta) && ['+', '=', '-', '_', '0'].includes(input.key)) e.preventDefault();
+    if (input.type !== 'keyDown' || !(input.control || input.meta) || !['+', '=', '-', '_', '0'].includes(input.key)) return;
+    e.preventDefault();
+    stepUiScale(input.key === '0' ? 0 : (input.key === '-' || input.key === '_') ? -1 : 1);
   });
   // Windows is shutting down or signing out: the app may be ended before before-quit, so the jobs are written now
   win.on('session-end', () => resumeSave(true));
@@ -3738,6 +3747,7 @@ function applySettingPatch(patch) {
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
   ['farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
   if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
+  if ('uiScale' in received) received.uiScale = windowFit.normalizeScale(received.uiScale);      // the selector sends text
   ['proxyUrl', 'loginProxyUrl'].forEach((k) => {
     if (!(k in received) || received.__proxyError) return;
     const p = parseProxy(received[k]);

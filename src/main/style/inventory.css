@@ -26,13 +26,13 @@
   .grphead .pr{color:var(--blue);font-size:12.5px;font-weight:600}
   .cardgrid{display:grid;gap:10px}
   .cslot{height:102px;border-radius:8px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
-  .cslot .qty{position:absolute;top:6px;right:7px;background:#0009;color:#fff;font-size:10px;font-weight:700;border-radius:6px;padding:1px 6px}
-  .cslot .pr{position:absolute;bottom:0;left:0;right:0;background:#000c;color:#fff;font-weight:700;font-size:10px;text-align:center;padding:3px}
+  .cslot .qty{position:absolute;top:6px;right:7px;background:#0009;color:#fff;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px}
+  .cslot .pr{position:absolute;bottom:0;left:0;right:0;background:#000c;color:#fff;font-weight:700;font-size:11px;text-align:center;padding:3px}
   .cslot.filled{background:linear-gradient(155deg,#1a1530,#0D1118)}
   .cslot .cn{position:absolute;top:8px;left:9px;font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000a}
-  .cslot .cg{position:absolute;bottom:9px;left:9px;font-size:9px;color:#cdd9e5;text-shadow:0 1px 2px #000a}
-  .cslot .trade{position:absolute;bottom:0;left:0;right:0;background:#5FB324;color:#030305;font-size:9.5px;text-align:center;padding:3px;font-weight:600}
-  .cslot.empty{border:1px dashed rgba(255,255,255,.14);background:#0A0C10;display:flex;align-items:center;justify-content:center;color:#4b5563;font-size:18px;font-weight:700}
+  .cslot .cg{position:absolute;bottom:9px;left:9px;font-size:11px;color:#cdd9e5;text-shadow:0 1px 2px #000a}
+  .cslot .trade{position:absolute;bottom:0;left:0;right:0;background:#5FB324;color:#030305;font-size:11px;text-align:center;padding:3px;font-weight:600}
+  .cslot.empty{border:1px dashed rgba(255,255,255,.14);background:#0A0C10;display:flex;align-items:center;justify-content:center;color:#7F879B;font-size:18px;font-weight:700}
   .showmore{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-size:13px;cursor:pointer;margin-top:4px}
   .qa2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .qab{display:flex;align-items:center;gap:9px;border-radius:10px;padding:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--card2);color:var(--txt)}
@@ -47,7 +47,7 @@
   /* ---- Inventory v3: efficiency focused ---- */
   .envbar{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;gap:11px 18px}
   .fgroup{display:flex;align-items:center;gap:7px}
-  .flbl{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;display:inline-flex;align-items:center;height:24px;box-sizing:border-box}
+  .flbl{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;display:inline-flex;align-items:center;height:24px;box-sizing:border-box}
   .chips{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
   .chip{font-size:11.5px;padding:0 9px;height:24px;box-sizing:border-box;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center}
   .chip:hover{color:var(--txt)}
@@ -65,11 +65,11 @@
 
   /* inner components of the filter panel (the outer container is now built with Tailwind in inventory.html) */
   .ef-sec{display:flex;flex-direction:column;gap:2px}
-  .ef-lbl{font-size:10.5px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px}
+  .ef-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px}
   .ef-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--muted);transition:background .12s,color .12s}
   .ef-opt:hover{background:var(--card2);color:var(--txt)}
   .ef-opt.sel{background:rgba(86,36,179,.18);color:var(--blue)}
-  .ef-opt .ef-cnt{margin-left:auto;font-size:10.5px;color:var(--muted2)}
+  .ef-opt .ef-cnt{margin-left:auto;font-size:11px;color:var(--muted2)}
   .ef-opt.sel .ef-cnt{color:var(--blue)}
   .ef-opt.off{opacity:.45;cursor:not-allowed}
   .ef-sep{height:1px;background:var(--line)}
@@ -79,7 +79,7 @@
   .ef-reset{width:100%;justify-content:center}
   .ef-gamelist{max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
   .ef-gamesearch{width:100%;height:28px;background:var(--card2);border:1px solid var(--line);border-radius:7px;color:var(--txt);font-size:11.5px;padding:0 8px;outline:none;margin-bottom:6px}
-  .envhead{display:flex;align-items:center;gap:11px;padding:9px 14px;border-bottom:1px solid var(--line);flex:none;font-size:10.5px;font-weight:700;letter-spacing:.4px;color:var(--muted2);text-transform:uppercase}
+  .envhead{display:flex;align-items:center;gap:11px;padding:9px 14px;border-bottom:1px solid var(--line);flex:none;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted2);text-transform:uppercase}
   .envhead .hh{flex:none}
   .envscroll{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
   /* a more usable scrollbar (item 13) */
@@ -111,30 +111,30 @@
   .erow .eact{width:88px;display:none;gap:4px;justify-content:flex-end;flex:none}
   .erow:hover .eact{display:flex}
   .erow:hover .efl{display:none}
-  .mini-b{font-size:9.5px;padding:2px 6px;border-radius:5px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer}
+  .mini-b{font-size:11px;padding:2px 6px;border-radius:5px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer}
   .mini-b:hover{color:var(--txt);border-color:var(--blue)}
 
   /* price tiers - so the eye goes straight to the expensive ones */
-  .p0{color:#6f8091}                       /* 0-1 TL grey */
+  .p0{color:#7F879B}                       /* 0-1 TL grey */
   .p1{color:#57c66a}                       /* 1-5 TL green */
   .p2{color:#e8a33d}                       /* 5-20 TL orange (sunset) */
   .p3{color:#e2703a}                       /* 20-100 TL dark orange */
   .p4{color:var(--gold);text-shadow:0 0 8px #ffd75e40}  /* 100+ TL gold */
-  .hv{margin-left:5px;font-size:10px}
+  .hv{margin-left:5px;font-size:11px}
 
   .egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;padding:10px}
   .bulkbar{display:none;align-items:center;gap:0;background:var(--card);border:1px solid var(--blue);border-radius:var(--radius);padding:10px 14px;margin-top:12px}
   .bulkbar.on{display:flex}
   .bblock{display:flex;flex-direction:column;gap:2px;padding:0 18px;border-right:1px solid var(--line)}
   .bblock:first-child{padding-left:0}
-  .bblock .bl{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px}
+  .bblock .bl{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px}
   .bblock .bv{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
   .bulkbar button.btn{flex:0 0 122px;display:flex;align-items:center;justify-content:center}
 
   .dpimg{width:100%;height:112px;object-fit:contain;border-radius:8px;background:#0e1620;margin-bottom:6px}
   .dprow{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid #1e2836}
   .dprow span:first-child{color:var(--muted)}
-  .dpsec{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;margin:12px 0 4px}
+  .dpsec{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;margin:12px 0 4px}
   .dpnav{display:flex;align-items:center;gap:6px;margin-bottom:8px}
   .dpnav button{width:26px;height:24px;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer;font-size:12px}
   .dpnav button:hover{color:var(--txt);border-color:var(--blue)}
