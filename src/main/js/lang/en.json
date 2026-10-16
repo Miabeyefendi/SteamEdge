@@ -1491,5 +1491,11 @@
  "Arama kutusu": "Search box",
  "Bildirim düğmesi": "Notifications button",
  "Güncelleme düğmesi": "Update button",
- "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "The button that checks for updates by hand. The app still checks by itself at startup."
+ "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "The button that checks for updates by hand. The app still checks by itself at startup.",
+ "Yarım kalan işleri açılışta sürdür": "Resume unfinished jobs at startup",
+ "Uygulama kapanırken (bilgisayarın kapanması dahil) çalışan kart düşürme, saat yükseltme ve Gerçekçi Mod işleri, açılışta hesap bağlanınca kaldığı yerden sürer. Uygulamanın kapalı olduğu süre kalan süreden düşmez. Elle durdurduğun ya da biten işler sürdürülmez; zamanlayıcının başlattıkları zamanlayıcıya kalır.": "Card farming, hour boosting and Realistic Mode jobs that are running when the app ends (the PC shutting down included) continue where they left off once the account connects at the next start. The time the app was closed is not taken off the time that is left. Jobs you stopped by hand or that finished are not resumed; the ones the schedule started are left to the schedule.",
+ "# iş kaldığı yerden sürdürüldü": "Jobs resumed where they left off: #",
+ "Yarım kalan işler": "Unfinished jobs",
+ "Yarım kalan iş sürdürülemedi.": "An unfinished job could not be resumed.",
+ "İşler Sürdürüldü": "Jobs resumed"
 }

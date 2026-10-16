@@ -92,6 +92,7 @@
 - **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
 - **Ekrana uyar** - Yerleşim 900 x 560'a kadar akışkandır: listeler kenardan taşmak yerine alt satıra geçer, dar pencerede yan menü kendiliğinden kapanır, kısa pencerede arayüz sıkışık moda geçer. Pencere kaldığı yerde, hâlâ var olan bir ekranda açılır. 900 x 560'tan küçük pencerelerde sayfanın tamamı pencereyle birlikte küçülür (675 x 420'ye kadar), düğmeler biçimini korur.
 - **Modüler** - Kullanmadığın sayfaları kapat (kart, saat, envanter, başarım, anahtar, sohbet), kalanları kendi sıranda diz. Kapalı sayfa Steam'den hiçbir şey istemez. Hafif mod zayıf bilgisayarlar için animasyon ve bulanıklığı kapatır, otomatik ayar bunu senin yerine seçer. Küçük özellikler (etkinlik kutusu, favori yıldızları, İlanlarım ve CSV düğmeleri) ve üst çubuk öğeleri (arama, bildirimler, güncellemeler) de kapatılabilir.
+- **Kaldığı yerden sürer** - Uygulama kapanırken, bilgisayar kapanırken ya da uygulama çökerken sürmekte olan bir kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışması, hesap yeniden bağlanınca kaldığı yerden başlar. Uygulamanın çalışmadığı süre sayılmaz: üç saati kalan bir yükseltme yine üç saat sürer.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
 

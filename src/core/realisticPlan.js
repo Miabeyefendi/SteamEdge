@@ -139,7 +139,7 @@ function hoursForCount(count, total, tcHours, difficulty) {
 
 // Decides, for the whole queue at once, how many achievements each game unlocks and how long the run lasts.
 //   entries : [{ appid, h }] in queue order, h = the game's full list of unlockable achievements (common to rare), see prepareRealisticQueue
-//   pick    : the options (goalAuto, goalValue, autoSpan, tcHours / tcByGame, difficultyValue, playtime)
+//   pick    : the options (goalAuto, goalValue, goalByGame, autoSpan, tcHours / tcByGame, difficultyValue, playtime)
 //   givenSpanMs : the duration the user has set
 //   autoSpanAllowed : false for a run the schedule starts, it has to fit what is left of its time range
 //
@@ -174,7 +174,11 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
   const totalLeft = games.reduce((t, g) => t + g.left, 0) || 1;
   games.forEach((g) => {
     const share = spanMs * (g.left / totalLeft);          // this game's part of the run
-    if (pick.goalAuto) {
+    const fixed = pick.goalByGame && pick.goalByGame[g.appid];
+    if (fixed != null) {
+      // A run that is being resumed after a restart: exactly what was left of the target of this game, whatever the other options say
+      g.goal = Math.min(g.left, Math.max(0, Math.floor(+fixed || 0)));
+    } else if (pick.goalAuto) {
       g.goal = auto ? g.left : Math.max(g.left ? 1 : 0, Math.min(g.left, Math.round(g.behind + g.total * (share / HOUR) / g.denominator)));
     } else {
       g.goal = pick.goalValue > 0 ? Math.min(g.left, pick.goalValue) : g.left;

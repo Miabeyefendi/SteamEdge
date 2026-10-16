@@ -50,6 +50,7 @@ SteamEdge/
     accounts.json              gespeicherte Konten
     session.json               aktives Sitzungstoken
     window.json                Fenstergröße, -position und Maximierung
+    resume.json                Aufgaben, die beim Beenden der App liefen; wird alle halbe Minute neu geschrieben, solange eine läuft
     accounts/<steamID>.json    pro Konto: Statistik, Warteschlangen, Schlüssel-Warteschlange, Voreinstellungen, Errungenschaftsprotokoll
     stats.json, state.json     nur von älteren Versionen: einmal gelesen, nie wieder geschrieben
     *.bak, *.bozuk             automatische Sicherungskopie und beiseitegelegte defekte Datei
@@ -254,6 +255,12 @@ Ist der **Zeitplan für Kartensammeln** an (Einstellungen > Kartenfarmen), start
 
 Ein von Hand gestarteter Auftrag wird vom Zeitplan nie gestoppt, und ein Konto wird pro Zeitraum höchstens einmal gestartet: Stoppst du es im Zeitraum von Hand, bleibt es bis zum nächsten Zeitraum gestoppt. Nur verbundene Konten werden gestartet; der Zeitplan meldet niemanden an.
 
+### Unterbrochene Aufgaben fortsetzen
+
+Eine Aufgabe, die beim Beenden der App läuft (der PC wird heruntergefahren, die App wird geschlossen, sie stürzt ab), wird in `settings/resume.json` festgehalten und läuft beim nächsten Start, sobald sich das Konto verbunden hat, dort weiter, wo sie aufgehört hat: Kartenfarmen bei seinem Spiel und seiner Minute, ein Stunden-Boost (alle zugleich oder nacheinander) mit der Zeit, die ihm blieb, ein Lauf des Realistischen Modus mit dem, was vom Ziel übrig war, über die verbleibende Zeit. Die Zeit, in der die App nicht lief, zählt nicht: Ein Boost mit drei Stunden Restzeit hat danach wieder drei Stunden. Ein Boost, der Stunden angleicht, liest die Spielzeiten neu, weil sie sich während des Laufs verschoben haben. Die Datei wird beim Start und Ende einer Aufgabe und alle halbe Minute geschrieben, solange eine läuft; ein Stromausfall kostet also höchstens eine halbe Minute.
+
+Von Hand gestoppte oder beendete Aufgaben werden nicht fortgesetzt. Vom Zeitplan gestartete Aufgaben überlässt die App dem Zeitplan (er startet sie innerhalb seines Zeitfensters selbst), und ein Eintrag, der älter als eine Woche ist, wird verworfen. Startest du selbst etwas auf dem Konto, bevor die Seite bereit ist, wird der alte Eintrag verworfen. Aktivitätsfeed und eine Benachrichtigung sagen, wie viele Aufgaben zurückgekommen sind. Ausschalten unter Einstellungen > Allgemein > **Unterbrochene Aufgaben beim Start fortsetzen**; die Datei wird dann entfernt.
+
 ### Schutz der Anmelde-Token
 
 Die gespeicherten Anmelde-Token in `settings/accounts.json` und `settings/session.json` sind standardmäßig Klartext. Ist **Anmelde-Token verschlüsseln** an (Einstellungen > Datenschutz & Sicherheit), werden sie mit Windows DPAPI verschlüsselt gespeichert; eine Kopie des Ordners ist auf einem anderen Computer oder unter einem anderen Windows-Benutzer wertlos. Beim Einschalten werden beide Dateien sofort neu geschrieben und die `.bak`-Kopien, die noch Klartext enthielten, gelöscht; beim Ausschalten wird wieder Klartext geschrieben. Verschlüsselte Token werden unabhängig von der Einstellung gelesen, es geht also in beide Richtungen nichts verloren.
@@ -304,6 +311,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Kleine Funktionen, die sich ausschalten lassen: das Aktivitätsfeld der Übersicht, die Favoriten-Sterne, Meine Angebote, CSV exportieren, die Inventare anderer Spiele |
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Elemente der Kopfleiste, die sich ausschalten lassen: das Suchfeld, die Benachrichtigungs- und die Update-Schaltfläche |
 | `preventSleep` | `false` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |
+| `resumeJobs` | `true` | Aufgaben, die beim Beenden der App liefen, laufen beim Start dort weiter, wo sie aufgehört haben (Kartenfarmen, Stunden-Boost, Realistischer Modus) |
 
 ### Kartenfarming
 

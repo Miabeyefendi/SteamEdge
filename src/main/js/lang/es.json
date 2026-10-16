@@ -1491,5 +1491,11 @@
  "Arama kutusu": "Cuadro de búsqueda",
  "Bildirim düğmesi": "Botón de notificaciones",
  "Güncelleme düğmesi": "Botón de actualización",
- "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "El botón que busca actualizaciones a mano. La aplicación sigue comprobando sola al iniciar."
+ "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "El botón que busca actualizaciones a mano. La aplicación sigue comprobando sola al iniciar.",
+ "Yarım kalan işleri açılışta sürdür": "Reanudar al iniciar las tareas sin terminar",
+ "Uygulama kapanırken (bilgisayarın kapanması dahil) çalışan kart düşürme, saat yükseltme ve Gerçekçi Mod işleri, açılışta hesap bağlanınca kaldığı yerden sürer. Uygulamanın kapalı olduğu süre kalan süreden düşmez. Elle durdurduğun ya da biten işler sürdürülmez; zamanlayıcının başlattıkları zamanlayıcıya kalır.": "El farmeo de cromos, el impulso de horas y las tareas del Modo realista que estén en marcha cuando la app se cierre (incluido el apagado del PC) continúan donde lo dejaron cuando la cuenta se conecta en el siguiente inicio. El tiempo con la app cerrada no se descuenta del tiempo restante. Las tareas que detuviste a mano o que terminaron no se reanudan; las que inició el programador se dejan al programador.",
+ "# iş kaldığı yerden sürdürüldü": "Tareas reanudadas donde se quedaron: #",
+ "Yarım kalan işler": "Tareas sin terminar",
+ "Yarım kalan iş sürdürülemedi.": "No se pudo reanudar una tarea sin terminar.",
+ "İşler Sürdürüldü": "Tareas reanudadas"
 }

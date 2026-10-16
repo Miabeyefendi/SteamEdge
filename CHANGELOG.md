@@ -7,6 +7,23 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.3)
+
+A job that was running when the app ended no longer has to be started again by hand: it comes back where it left off.
+
+### Added
+
+- **Unfinished jobs resume at startup.** If the PC is shut down, the app is closed or it crashes while a card farm, an hour boost (all at once or one by one) or a Realistic Mode run is going, the job is written to `settings/resume.json` and starts again as soon as the account connects at the next start. A card farm comes back at its game and its minute, a boost with the time it had left, a Realistic Mode run with what was left of its target over the time that was left. The time the app was not running does not count: a boost with three hours left has three hours left again. A boost that synchronises hours reads the playtimes again, because they moved while it ran.
+- The file is written when a job starts or ends and every half minute while one runs, so a power cut loses at most half a minute. Jobs you stopped by hand or that finished are not resumed. Jobs the schedule started are left to the schedule, an entry older than a week is dropped, and if you start something on the account yourself before the page is up, the old entry is dropped. The activity feed and a notification say how many jobs came back.
+- **Settings > General > Resume unfinished jobs at startup** switches it off (on by default); the file is then removed.
+
+### Changed
+
+- Realistic Mode can take a fixed number of achievements per game, which is what lets a resumed run continue with exactly what was left.
+- `npm test` runs 39 tests (new: the resume file and its plan, and the part of the main process that writes, reads and restarts the jobs).
+
+SHA-256 (`SteamEdge-v1.5.3-win-x64.rar`): `0256cd0ba2e6555daa5df2d9509af845a068b35151a8642b4e1e483b5baa4885`
+
 ## [1.5.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.2)
 
 Four problems people hit are fixed, the inventory page now shows every game's items and not only the Steam ones, and the modules get their small switches.

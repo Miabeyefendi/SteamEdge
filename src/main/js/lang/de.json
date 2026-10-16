@@ -1491,5 +1491,11 @@
  "Arama kutusu": "Suchfeld",
  "Bildirim düğmesi": "Schaltfläche „Benachrichtigungen“",
  "Güncelleme düğmesi": "Update-Schaltfläche",
- "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "Die Schaltfläche, die manuell nach Updates sucht. Die App prüft beim Start weiterhin von selbst."
+ "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "Die Schaltfläche, die manuell nach Updates sucht. Die App prüft beim Start weiterhin von selbst.",
+ "Yarım kalan işleri açılışta sürdür": "Unterbrochene Aufgaben beim Start fortsetzen",
+ "Uygulama kapanırken (bilgisayarın kapanması dahil) çalışan kart düşürme, saat yükseltme ve Gerçekçi Mod işleri, açılışta hesap bağlanınca kaldığı yerden sürer. Uygulamanın kapalı olduğu süre kalan süreden düşmez. Elle durdurduğun ya da biten işler sürdürülmez; zamanlayıcının başlattıkları zamanlayıcıya kalır.": "Kartenfarmen, Stunden-Boost und Aufgaben des Realistischen Modus, die beim Beenden der App laufen (auch beim Herunterfahren des PCs), laufen beim nächsten Start weiter, sobald sich das Konto verbunden hat. Die Zeit, in der die App geschlossen war, wird von der Restzeit nicht abgezogen. Von Hand gestoppte oder beendete Aufgaben werden nicht fortgesetzt; die vom Zeitplan gestarteten überlässt die App dem Zeitplan.",
+ "# iş kaldığı yerden sürdürüldü": "Aufgaben, die dort fortgesetzt wurden, wo sie aufgehört hatten: #",
+ "Yarım kalan işler": "Unterbrochene Aufgaben",
+ "Yarım kalan iş sürdürülemedi.": "Eine unterbrochene Aufgabe konnte nicht fortgesetzt werden.",
+ "İşler Sürdürüldü": "Aufgaben fortgesetzt"
 }

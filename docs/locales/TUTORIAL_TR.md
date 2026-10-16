@@ -50,6 +50,7 @@ SteamEdge/
     accounts.json              kayıtlı hesaplar
     session.json               aktif oturum anahtarı
     window.json                pencere boyutu, yeri ve büyütülmüş durumu
+    resume.json                uygulama kapanırken çalışan işler; bir iş sürdükçe yarım dakikada bir yeniden yazılır
     accounts/<steamID>.json    hesaba özel: istatistikler, kuyruklar, anahtar kuyruğu, presetler, başarım günlüğü
     stats.json, state.json     yalnızca eski sürümlerden: bir kez okunur, bir daha yazılmaz
     *.bak, *.bozuk             otomatik yedek kopya ve kenara alınmış bozuk dosya
@@ -254,6 +255,12 @@ Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayf
 
 Elle başlattığın bir işi zamanlayıcı asla durdurmaz ve bir hesap aralık başına en fazla bir kez başlatılır: aralık içinde elle durdurursan sonraki aralığa kadar durur. Yalnızca bağlı hesaplar başlatılır; zamanlayıcı kimseye giriş yapmaz.
 
+### Yarım kalan işleri sürdürme
+
+Uygulama kapanırken çalışan bir iş (bilgisayarın kapanması, uygulamanın kapatılması, çökmesi) `settings/resume.json` dosyasına yazılır; sonraki açılışta hesap bağlanınca kaldığı yerden sürer: kart düşürme kendi oyununda ve kendi dakikasında, saat yükseltme (hepsi birden ya da sırayla) kalan süresiyle, Gerçekçi Mod hedefinden kalanla ve kalan süreyle. Uygulamanın çalışmadığı süre sayılmaz: üç saati kalan bir yükseltme yine üç saat sürer. Saatleri eşitleyen bir yükseltme, oyun süreleri çalışırken kaydığı için onları yeniden okur. Dosya bir iş başlayınca, bitince ve iş sürdükçe yarım dakikada bir yazılır; elektrik kesilirse en fazla yarım dakika kaybolur.
+
+Elle durdurduğun ya da biten işler sürdürülmez. Zamanlayıcının başlattıkları zamanlayıcıya kalır (kendi zaman aralığında onları kendisi başlatır), bir haftadan eski kayıt atılır. Sayfa hazır olmadan hesapta kendin bir şey başlatırsan eski kayıt atılır. Etkinlik akışı ve bir bildirim kaç işin geri geldiğini söyler. Ayarlar > Genel > **Yarım kalan işleri açılışta sürdür** altından kapatılır; dosya o zaman silinir.
+
 ### Giriş anahtarı koruması
 
 `settings/accounts.json` ve `settings/session.json` içindeki kayıtlı giriş anahtarları varsayılan olarak düz metindir. **Giriş anahtarlarını şifrele** açıkken (Ayarlar > Gizlilik & Güvenlik) Windows DPAPI ile şifreli saklanır; klasörün kopyası başka bir bilgisayarda ya da başka bir Windows kullanıcısında işe yaramaz. Açınca iki dosya birden yeniden yazılır ve düz metni hâlâ tutan `.bak` kopyaları silinir; kapatınca yeniden düz metin yazılır. Şifreli anahtarlar ayar ne olursa olsun okunur, yani iki yönde de hiçbir şey kaybolmaz.
@@ -304,6 +311,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Kapatılabilen küçük özellikler: genel bakış etkinlik kutusu, favori yıldızları, İlanlarım, CSV aktar, diğer oyunların envanterleri |
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Kapatılabilen üst çubuk öğeleri: arama kutusu, bildirim düğmesi, güncelleme düğmesi |
 | `preventSleep` | `false` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
+| `resumeJobs` | `true` | Uygulama kapanırken çalışan işler açılışta kaldığı yerden başlar (kart düşürme, saat yükseltme, Gerçekçi Mod) |
 
 ### Kart düşürme
 

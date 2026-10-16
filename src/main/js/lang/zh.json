@@ -1491,5 +1491,11 @@
  "Arama kutusu": "搜尋框",
  "Bildirim düğmesi": "通知按鈕",
  "Güncelleme düğmesi": "更新按鈕",
- "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "手動檢查更新的按鈕。應用程式啟動時仍會自動檢查。"
+ "Güncellemeleri elle denetleyen düğme. Uygulama açılışta yine kendiliğinden bakar.": "手動檢查更新的按鈕。應用程式啟動時仍會自動檢查。",
+ "Yarım kalan işleri açılışta sürdür": "啟動時繼續未完成的工作",
+ "Uygulama kapanırken (bilgisayarın kapanması dahil) çalışan kart düşürme, saat yükseltme ve Gerçekçi Mod işleri, açılışta hesap bağlanınca kaldığı yerden sürer. Uygulamanın kapalı olduğu süre kalan süreden düşmez. Elle durdurduğun ya da biten işler sürdürülmez; zamanlayıcının başlattıkları zamanlayıcıya kalır.": "應用程式結束時（包括電腦關機）仍在執行的卡牌掉落、時數提升與擬真模式工作，會在下次啟動、帳號連線後從中斷處繼續。應用程式關閉的時間不會從剩餘時間中扣除。手動停止或已結束的工作不會繼續；由排程啟動的工作則交給排程處理。",
+ "# iş kaldığı yerden sürdürüldü": "已從中斷處繼續的工作：#",
+ "Yarım kalan işler": "未完成的工作",
+ "Yarım kalan iş sürdürülemedi.": "無法繼續未完成的工作。",
+ "İşler Sürdürüldü": "工作已繼續"
 }

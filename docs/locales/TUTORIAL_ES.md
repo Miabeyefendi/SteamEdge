@@ -50,6 +50,7 @@ SteamEdge/
     accounts.json              cuentas guardadas
     session.json               token de sesión activa
     window.json                tamaño, posición y estado maximizado de la ventana
+    resume.json                tareas que estaban en marcha al cerrar la app; se reescribe cada medio minuto mientras haya una
     accounts/<steamID>.json    datos por cuenta: estadísticas, colas, cola de claves, presets, registro de logros
     stats.json, state.json     solo de versiones antiguas: se leen una vez y no se vuelven a escribir
     *.bak, *.bozuk             copia de seguridad automática y archivo dañado apartado
@@ -254,6 +255,12 @@ Con **Programación de cartas** activada (Ajustes > Farmeo de cromos), la recole
 
 La programación nunca detiene una tarea que iniciaste a mano, y una cuenta se inicia como máximo una vez por horario: si la detienes a mano dentro del horario, sigue detenida hasta el siguiente. Solo se inician las cuentas conectadas; la programación no inicia sesión por nadie.
 
+### Reanudar tareas sin terminar
+
+Una tarea que está en marcha cuando la app termina (el PC se apaga, la app se cierra, falla) se guarda en `settings/resume.json`, y cuando la cuenta se conecta en el siguiente inicio continúa donde lo dejó: una recolección de cartas en su juego y su minuto, un impulso de horas (todos a la vez o uno a uno) con el tiempo que le quedaba, una ejecución del Modo realista con lo que quedaba de su objetivo durante el tiempo restante. El tiempo con la app parada no cuenta: un impulso al que le quedaban tres horas vuelve a tener tres horas. Un impulso que sincroniza horas vuelve a leer los tiempos de juego, porque se movieron mientras corría. El archivo se escribe al empezar o terminar una tarea y cada medio minuto mientras haya una en marcha, así que un corte de luz pierde como mucho medio minuto.
+
+Las tareas que detuviste a mano o que terminaron no se reanudan. Las que inició el programador se dejan al programador (él las inicia dentro de su rango horario) y una entrada de más de una semana se descarta. Si inicias algo en la cuenta antes de que la página esté lista, la entrada antigua se descarta. El registro de actividad y una notificación dicen cuántas tareas volvieron. Se desactiva en Ajustes > General > **Reanudar al iniciar las tareas sin terminar**; el archivo se elimina entonces.
+
 ### Protección de los tokens de inicio de sesión
 
 Los tokens de inicio de sesión guardados en `settings/accounts.json` y `settings/session.json` son texto plano por defecto. Con **Cifrar los tokens de inicio de sesión** activado (Ajustes > Privacidad y seguridad) se guardan cifrados con Windows DPAPI, de modo que una copia de la carpeta no sirve en otro equipo ni con otro usuario de Windows. Al activarlo se reescriben los dos archivos a la vez y se borran las copias `.bak` que aún tenían el texto plano; al desactivarlo se vuelve a escribir texto plano. Los tokens cifrados se leen sea cual sea el ajuste, así que no se pierde nada en ningún sentido.
@@ -304,6 +311,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `featFeed`, `featFavorites`, `featListings`, `featCsv`, `featOtherGames` | `true` | Funciones pequeñas que se pueden desactivar: el cuadro de actividad del resumen, las estrellas de favoritos, Mis anuncios, Exportar CSV, los inventarios de otros juegos |
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Elementos de la barra superior que se pueden desactivar: el cuadro de búsqueda y los botones de notificaciones y de actualización |
 | `preventSleep` | `false` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
+| `resumeJobs` | `true` | Las tareas que estaban en marcha cuando la app terminó vuelven a empezar donde se quedaron (farmeo de cromos, impulso de horas, Modo realista) |
 
 ### Farmeo de cromos
 
