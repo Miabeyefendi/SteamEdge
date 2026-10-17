@@ -87,7 +87,7 @@
 |---|---|
 | İşletim sistemi | Windows 10 ya da üstü, 64 bit |
 | Steam hesabı | Steam Guard kurulu, mobil ya da e-posta |
-| Disk alanı | Çıkarılmış hâlde yaklaşık 330 MB |
+| Disk alanı | Çıkarılmış hâlde yaklaşık 290 MB |
 | Steam istemcisi | Gerekmez, kullanılmaz |
 
 ### Kaynaktan kurulum

@@ -70,7 +70,7 @@ SteamEdge/
 
 ### Requisitos
 
-Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 330 MB de espacio en disco una vez extraído. El cliente de Steam no hace falta y no se abre en ningún momento.
+Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 290 MB de espacio en disco una vez extraído. El cliente de Steam no hace falta y no se abre en ningún momento.
 
 ### Paso a paso
 

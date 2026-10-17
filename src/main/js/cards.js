@@ -369,7 +369,7 @@
     // ---- Start / Stop ----
     function setCardPill(run){
       const d = document.getElementById('cardPillDot');
-      if (d) d.style.background = run ? '#5FB324' : '#B37E24';
+      if (d){ d.style.background = run ? '#5FB324' : '#B37E24'; d.classList.toggle('e-pulse', !!run); }
     }
     document.getElementById('btnStart').onclick = () => {
       // playtimeMin is needed for fast mode's "2 hour" rule (the engine reads it)

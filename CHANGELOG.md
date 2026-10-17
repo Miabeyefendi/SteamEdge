@@ -7,6 +7,19 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.7)
+
+Lighter on the graphics card and on the disk: the window no longer redraws itself while nothing is happening, it holds a fraction of the video memory it did, and the download is 37 MB smaller.
+
+### Changed
+
+- **Video memory: about 67 MB down to 9 MB.** The window is now composited by the processor by default (Settings > Advanced & data > GPU compositing, off), measured on the overview page with Windows' own GPU counters. Next to a full screen game that is memory the game keeps, and the game's presentation path stays free. It costs a few points of processor time while something moves and none while the window is still. Settings files written before this follow the new default once; turn the setting on again if you prefer the graphics card (it asks for a restart).
+- **The window no longer draws forever.** With the full visual mode on, a pulsing "ready" dot in the side menu and in the pills of the pages kept Chromium drawing about 30 frames a second on every page, with nothing running (239 frames in 8 seconds, measured). Those dots now stand still and only pulse while a job runs. A window that starts without the focus (started with Windows while a game is open) is also calm from the first moment; before, it was calmed only after a focus and a blur had happened. An idle window now produces no frames at all.
+- **A smaller download.** 327 MB extracted becomes 288 MB, and the .rar 105 MB becomes 95 MB: the shader compiler of WebGPU and the software Vulkan that Electron ships (31 MB), which the app never loads, and the type definitions, source maps and tests that the dependencies carry (6 MB). The app starts and draws its pages with the processor compositing, the graphics card compositing and hardware acceleration off, checked on a copy of Electron without those files.
+- `npm test` runs 46 tests (new: the graphics defaults and their migration, the idle drawing).
+
+SHA-256 (`SteamEdge-v1.5.7-win-x64.rar`): `4108353f3383d1da87c9196efa19af9f6581c77c132c71a0c91693190559de62`
+
 ## [1.5.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.6)
 
 Realistic Mode takes the difficulty from real playing times: an easy story no longer turns a 12 hour game into 4 hours.
