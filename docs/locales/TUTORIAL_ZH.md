@@ -321,6 +321,8 @@ Windows 10 或更新版本，64 位。一个启用了 Steam 令牌的 Steam 账�
 | `topSearch`, `topNotif`, `topUpdate` | `true` | 可关闭的顶部栏项目：搜索框、通知按钮、更新按钮 |
 | `preventSleep` | `false` | 卡牌掉落、时数提升或拟真模式运行期间阻止电脑睡眠。屏幕仍可能关闭并锁定 |
 | `resumeJobs` | `true` | 应用结束时仍在运行的工作会在启动时从中断处继续（集卡、时数提升、拟真模式） |
+| `gpuComposition` | `false` | 在显卡（`true`）或处理器（`false`：显存 9 MB 而不是 67 MB，显卡留给游戏）上合成窗口。需要重新启动 |
+| `lowMemory` | `true` | 让图形和网络代码在主进程内运行：少两个进程，内存减少约 100 MB。若出现画面异常或突然关闭，请关闭。需要重新启动 |
 
 ### 卡牌掉落
 

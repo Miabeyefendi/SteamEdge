@@ -321,6 +321,8 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Elemente der Kopfleiste, die sich ausschalten lassen: das Suchfeld, die Benachrichtigungs- und die Update-Schaltfläche |
 | `preventSleep` | `false` | Verhindert den Ruhezustand, solange Kartenfarming, Stunden-Boost oder der Realistische Modus laufen. Der Bildschirm kann sich trotzdem abschalten und sperren |
 | `resumeJobs` | `true` | Aufgaben, die beim Beenden der App liefen, laufen beim Start dort weiter, wo sie aufgehört haben (Kartenfarmen, Stunden-Boost, Realistischer Modus) |
+| `gpuComposition` | `false` | Das Fenster auf der Grafikkarte (`true`) oder auf dem Prozessor (`false`: 9 MB statt 67 MB Grafikspeicher, die Karte bleibt einem Spiel überlassen) zusammensetzen. Erfordert einen Neustart |
+| `lowMemory` | `true` | Grafik- und Netzwerkcode im Hauptprozess ausführen: zwei Prozesse weniger und etwa 100 MB weniger Speicher. Ausschalten bei Grafikfehlern oder plötzlichen Abstürzen. Erfordert einen Neustart |
 
 ### Kartenfarming
 

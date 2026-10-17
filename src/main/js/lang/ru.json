@@ -1510,5 +1510,7 @@
  "Kısayollar": "Сочетания клавиш",
  "Pencereyi kapat": "Закрыть окно",
  "Ayarlarda ara...": "Поиск по настройкам...",
- "Kaydedilen bölümler:": "Сохранённые разделы:"
+ "Kaydedilen bölümler:": "Сохранённые разделы:",
+ "Düşük bellek modu": "Режим малого потребления памяти",
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Графика и сетевая работа выполняются внутри главного процесса, а не в отдельных: на два процесса меньше и примерно на 100 МБ меньше памяти. Цена: если драйвер видеокарты упадёт, приложение закроется вместе с ним. Выключите, если видите искажения графики или внезапные закрытия. Требуется перезапуск."
 }

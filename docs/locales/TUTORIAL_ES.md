@@ -321,6 +321,8 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Elementos de la barra superior que se pueden desactivar: el cuadro de búsqueda y los botones de notificaciones y de actualización |
 | `preventSleep` | `false` | Impide que el equipo se suspenda mientras funcionan el farmeo, el impulso de horas o el Modo realista. La pantalla puede apagarse y bloquearse igualmente |
 | `resumeJobs` | `true` | Las tareas que estaban en marcha cuando la app terminó vuelven a empezar donde se quedaron (farmeo de cromos, impulso de horas, Modo realista) |
+| `gpuComposition` | `false` | Componer la ventana en la tarjeta gráfica (`true`) o en el procesador (`false`: 9 MB de memoria de vídeo en lugar de 67 y la tarjeta queda para un juego). Requiere reiniciar |
+| `lowMemory` | `true` | Ejecutar el código de gráficos y de red dentro del proceso principal: dos procesos menos y unos 100 MB menos de memoria. Desactívalo si ves gráficos deformados o cierres repentinos. Requiere reiniciar |
 
 ### Farmeo de cromos
 

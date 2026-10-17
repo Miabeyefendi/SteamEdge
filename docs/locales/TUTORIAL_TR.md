@@ -321,6 +321,8 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Kapatılabilen üst çubuk öğeleri: arama kutusu, bildirim düğmesi, güncelleme düğmesi |
 | `preventSleep` | `false` | Kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışırken bilgisayarın uykuya geçmesini engeller. Ekran yine kapanıp kilitlenebilir |
 | `resumeJobs` | `true` | Uygulama kapanırken çalışan işler açılışta kaldığı yerden başlar (kart düşürme, saat yükseltme, Gerçekçi Mod) |
+| `gpuComposition` | `false` | Pencereyi ekran kartında (`true`) ya da işlemcide (`false`: 67 yerine 9 MB ekran kartı belleği, kart oyuna kalır) birleştirir. Yeniden başlatmayı gerektirir |
+| `lowMemory` | `true` | Grafik ve ağ kodunu ana süreçte çalıştırır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Görüntü bozulması ya da ani kapanma olursa kapat. Yeniden başlatmayı gerektirir |
 
 ### Kart düşürme
 

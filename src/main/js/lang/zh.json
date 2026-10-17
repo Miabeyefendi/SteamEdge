@@ -1510,5 +1510,7 @@
  "Kısayollar": "快速鍵",
  "Pencereyi kapat": "關閉視窗",
  "Ayarlarda ara...": "搜尋設定...",
- "Kaydedilen bölümler:": "已儲存的區段："
+ "Kaydedilen bölümler:": "已儲存的區段：",
+ "Düşük bellek modu": "低記憶體模式",
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "圖形與網路工作在主程序內執行，而不是各自獨立的程序：少兩個程序，記憶體減少約 100 MB。代價是顯示卡驅動程式當機時，應用程式也會一起關閉。若出現畫面異常或突然關閉，請關閉此選項。需要重新啟動。"
 }

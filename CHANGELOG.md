@@ -7,6 +7,20 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.8)
+
+Two processes fewer: the app takes about 100 MB less memory.
+
+### Changed
+
+- **Low memory mode (Settings > Advanced & data, on by default).** Chromium ran the graphics and the network code in two helper processes of their own; they now run inside the main process. On the overview page that is 2 processes instead of 4, and 313 MB of working set instead of 411 MB (measured with Electron's own process metrics). The price: a graphics driver that crashes takes the app down with it instead of just a helper process, so it can be switched off if you see garbled graphics or sudden closes (it asks for a restart). Every page test of the app passes with it on.
+- The two graphics settings of 1.5.7 (GPU compositing, low memory mode) are in the configuration reference of the tutorial.
+- `npm test` runs 46 tests (the graphics defaults test now covers low memory mode).
+
+**What did not move.** The part of the memory that the app itself owns is small: the main process holds 15 MB of JavaScript and the page 8 MB, with 7,000 elements. The rest is Chromium, so loading pages lazily would save a few megabytes, not tens, and was left out. GPU use while the window is shown, as Windows counts it, is 0% in every configuration, and the desktop compositor's share is around a tenth of a percent either way; the part that was worth cutting was the video memory (1.5.7).
+
+SHA-256 (`SteamEdge-v1.5.8-win-x64.rar`): `a8526335d54c6d8fcb1efba9eb5030f85dfeab2bb2d729e5bad93b76abc4449c`
+
 ## [1.5.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.7)
 
 Lighter on the graphics card and on the disk: the window no longer redraws itself while nothing is happening, it holds a fraction of the video memory it did, and the download is 37 MB smaller.

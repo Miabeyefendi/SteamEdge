@@ -566,7 +566,7 @@
     // ---- controls: they only change the draft ----
     // These switches are given to Chromium BEFORE app.whenReady(); changing them only takes effect
     // when the app is reopened. Saving says so.
-    const RESTART = ['hwAccel', 'gpuBackend', 'gpuComposition'];
+    const RESTART = ['hwAccel', 'gpuBackend', 'gpuComposition', 'lowMemory'];
     function writeToDraft(key, val){
       if (!draft) startDraft();
       draft[key] = val;

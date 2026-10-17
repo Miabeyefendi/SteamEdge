@@ -1510,5 +1510,7 @@
  "Kısayollar": "Shortcuts",
  "Pencereyi kapat": "Close the window",
  "Ayarlarda ara...": "Search settings...",
- "Kaydedilen bölümler:": "Sections saved:"
+ "Kaydedilen bölümler:": "Sections saved:",
+ "Düşük bellek modu": "Low memory mode",
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Graphics and network work run inside the main process instead of separate ones: two processes fewer and about 100 MB less memory. The price: if a graphics driver crashes, the app closes with it. Turn it off if you see garbled graphics or sudden closes. Needs a restart."
 }
