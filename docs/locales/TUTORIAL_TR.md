@@ -70,7 +70,7 @@ SteamEdge/
 
 ### Gereksinimler
 
-Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarılmış hâlde yaklaşık 330 MB disk alanı. Steam istemcisi gerekmez ve hiç açılmaz.
+Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarılmış hâlde yaklaşık 290 MB disk alanı. Steam istemcisi gerekmez ve hiç açılmaz.
 
 ### Adım adım
 

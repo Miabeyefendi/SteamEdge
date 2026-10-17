@@ -70,10 +70,12 @@ try {
   const angle = early && early.gpuBackend;
   if (angle && angle !== 'auto') app.commandLine.appendSwitch('use-angle', angle);
 
-  // GPU compositing off: the processor composites the window's frames and the graphics card
-  // is not touched at all. When running on the same desktop as a full screen game it frees the game's presentation
-  // path. The cost is a few points on the processor side.
-  if (early && early.gpuComposition === false) app.commandLine.appendSwitch('disable-gpu-compositing');
+  // GPU compositing off (the default since settings version 5): the processor composites the window's frames and the graphics card holds 9 MB of video memory
+  // instead of 67 MB, measured on the overview page. Next to a full screen game that is memory the game keeps, and its presentation path stays free.
+  // The cost is a few points on the processor side, and none while the window is still (it only draws when something changes).
+  // Only a user who turned it on (in a settings file of version 5 or later) gets the graphics card.
+  const keepGpuComposition = !!early && early.gpuComposition === true && (+early.settingsVersion || 1) >= 5;
+  if (!keepGpuComposition) app.commandLine.appendSwitch('disable-gpu-compositing');
 } catch (_) {}
 
 // On Windows toast notifications are silently dropped without an AppUserModelID - the HTML5
@@ -310,7 +312,7 @@ const DEFAULT_SETTINGS = {
   hwAccel: true,            // GPU hardware acceleration - turning it off asks for a restart
   lightMode: true,           // stop drawing and animations when the window is not focused
   gpuBackend: 'auto',        // ANGLE backend: auto | d3d11 | d3d9 | gl (asks for a restart)
-  gpuComposition: true,     // false = let the processor composite the window (reduces clashes with a game)
+  gpuComposition: false,    // false = the processor composites the window: 9 MB of video memory instead of 67 and no clash with a game (asks for a restart)
 
   // ---- The rest of the fields on the Settings screen ----
   // All are written/read persistently. Those marked (*) are NOT tied to a behaviour YET -
@@ -413,7 +415,7 @@ const DEFAULT_SETTINGS = {
   sessionTimeout: 'never',  // idle time (min), does not apply while a job runs - 'never' = off
   hideGameName: false,      // become invisible while playing (so the game name does not show on the profile)
   logLevel: 'error',        // log file: off | error | warn | info | debug
-  settingsVersion: 4,            // format of the settings file; migrations are in migrateSettings
+  settingsVersion: 5,            // format of the settings file; migrations are in migrateSettings
 };
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -510,6 +512,12 @@ function migrateSettings(v) {
   if ((+v.settingsVersion || 1) < 4) {
     if (v.density === 'comfortable') v.density = 'auto';
     v.settingsVersion = 4;
+    hasChanged = true;
+  }
+  // The window is composited by the processor by default now (see the early settings read at the top): a file written before that follows the new default once.
+  if ((+v.settingsVersion || 1) < 5) {
+    if (v.gpuComposition === true) v.gpuComposition = false;
+    v.settingsVersion = 5;
     hasChanged = true;
   }
   // Values renamed from Turkish: 'sinirsiz' -> 'unlimited', 'kapali' -> 'off'.

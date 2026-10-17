@@ -77,11 +77,14 @@ app.whenReady().then(async () => {
   await setSel('light');
   await click("#setSave"); await wait(600);
   check('light mode puts the class on the page', (await js("document.body.classList.contains('e-light')")) === true);
-  check('light mode really stops animations', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) === 'none');
+  await js('setSysStatus(true)');
+  check('light mode really stops animations (even the pulse of a running job)', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) === 'none');
   await setSel('full');
   await click("#setSave"); await wait(600);
   check('full mode takes it off', (await js("document.body.classList.contains('e-light')")) === false);
-  check('full mode keeps the animations', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) !== 'none');
+  check('full mode keeps the animation of a running job', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) !== 'none');
+  await js('setSysStatus(false)');
+  check('and the idle dot stands still in full mode too', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) === 'none');
   await setSel('auto');
   await click("#setSave"); await wait(600);
   await js("Object.defineProperty(navigator, 'hardwareConcurrency', { configurable: true, get: () => 2 }); applyPerf()");

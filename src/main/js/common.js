@@ -547,6 +547,9 @@
     }
     window.addEventListener('focus', () => { windowFocused = true; paintIdle(); });
     window.addEventListener('blur',  () => { windowFocused = false; paintIdle(); });
+    // A window that starts without the focus (started with Windows while a game is open) gets no blur event: it must be calmed from the start, not only after a focus and a blur
+    paintIdle();
+    document.addEventListener('DOMContentLoaded', paintIdle);
     function uiTickAllowed(){
       if (document.hidden) return false;
       return !(lightModeOn() && !windowFocused);
@@ -960,7 +963,7 @@
     function setSysStatus(running){
       const d = document.getElementById('sysDot'), l = document.getElementById('sysLabel');
       const c = running ? 'var(--e-ok)' : 'var(--e-warn)';
-      if (d) d.style.background = c;
+      if (d){ d.style.background = c; d.classList.toggle('e-pulse', !!running); }
       if (l){ l.style.color = c; l.textContent = running ? 'ÇALIŞIYOR' : 'HAZIR'; }
     }
 

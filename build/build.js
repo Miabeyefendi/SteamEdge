@@ -58,6 +58,12 @@ const IGNORE = [
   /^\/\.(gitignore|gitattributes|editorconfig)$/,
   /\.md$/i,
   /package-lock\.json$/,
+  // Not needed to run: type definitions, source maps, and the tests and examples that dependencies carry
+  /^\/node_modules\/@types($|\/)/,
+  /\.d\.ts$/,
+  /\.js\.map$/,
+  /^\/node_modules\/.*\/(test|tests|example|examples)($|\/)/,
+  /^\/node_modules\/steam-user\/scripts($|\/)/,
 ];
 
 async function main() {
@@ -116,6 +122,7 @@ async function main() {
     fs.mkdirSync(path.join(TARGET, d), { recursive: true });
   }
   const trimmed = trimLocales(TARGET);
+  const unused = trimUnused(TARGET);
   print(TARGET);
   writeChangelog(TARGET);
 
@@ -123,7 +130,7 @@ async function main() {
   console.log('\nDONE.');
   console.log('  folder : ' + TARGET);
   console.log('  size   : ' + (size / 1024 / 1024).toFixed(1) + ' MB'
-    + (trimmed.kazanc ? '  (with locale trimming ' + (trimmed.kazanc / 1024 / 1024).toFixed(1) + ' MB smaller)' : ''));
+    + (trimmed.kazanc || unused ? '  (' + ((trimmed.kazanc + unused) / 1024 / 1024).toFixed(1) + ' MB smaller from trimming locales and unused files)' : ''));
   console.log('  exe    : ' + pkg.productName + '.exe');
 }
 
@@ -163,6 +170,28 @@ function trimLocales(target) {
   console.log('  locale   : ' + removed + ' files deleted (' + (gain / 1024 / 1024).toFixed(1)
     + ' MB), remaining: ' + remaining.join(', '));
   return { silinen: removed, kazanc: gain };
+}
+
+// Electron ships files the app never loads. They were tried out: the app starts and draws its pages with the processor compositing, with the graphics card
+// compositing and with hardware acceleration off, on a copy of Electron without them.
+//   dxcompiler.dll, dxil.dll   the shader compiler of WebGPU, which the app does not use (26 MB)
+//   vk_swiftshader*            a software Vulkan, only for pages that ask for WebGL on a machine with no usable graphics (5.5 MB)
+// ffmpeg.dll, libEGL.dll, libGLESv2.dll, d3dcompiler_47.dll and the .pak and .dat files stay: without them Electron does not start or draws nothing.
+const UNUSED = ['dxcompiler.dll', 'dxil.dll', 'vk_swiftshader.dll', 'vk_swiftshader_icd.json'];
+const MUST_STAY = ['ffmpeg.dll', 'libEGL.dll', 'libGLESv2.dll', 'd3dcompiler_47.dll', 'icudtl.dat', 'resources.pak', 'snapshot_blob.bin', 'v8_context_snapshot.bin'];
+function trimUnused(target) {
+  let gain = 0;
+  for (const name of UNUSED) {
+    const p = path.join(target, name);
+    if (!fs.existsSync(p)) continue;
+    gain += fs.statSync(p).size;
+    fs.unlinkSync(p);
+  }
+  for (const name of MUST_STAY) {
+    if (!fs.existsSync(path.join(target, name))) throw new Error(name + ' is missing from the package - the app would not start');
+  }
+  console.log('  unused   : ' + UNUSED.join(', ') + ' removed (' + (gain / 1024 / 1024).toFixed(1) + ' MB)');
+  return gain;
 }
 
 function folderSize(d) {

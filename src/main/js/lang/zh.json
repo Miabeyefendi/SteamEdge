@@ -547,7 +547,7 @@
  "Chromium, arayüzü çizerken Windows üzerinde D3D11 kullanır. Bazı Intel ve eski AMD sürücülerinde bu yol takılıyor; D3D9 ya da OpenGL düzeltiyor. Otomatik, Chromium ne seçerse odur. Değiştirmek uygulamayı yeniden başlatmayı gerektirir.": "Chromium 在 Windows 上透過 D3D11 繪製介面。部分 Intel 與較舊的 AMD 驅動在這條路徑上會卡住，改用 D3D9 或 OpenGL 可以解決。自動即由 Chromium 決定。變更後需要重新啟動。",
  "Otomatik": "自動",
  "GPU birleştirme": "GPU 合成",
- "Kapalıyken pencerenin kareleri işlemcide birleştirilir, ekran kartına hiç dokunulmaz. Oyun oynarken ekran kartını tamamen serbest bırakır, karşılığında birkaç puan işlemci yer. Yeniden başlatmayı gerektirir.": "關閉時，視窗畫面改由處理器合成，完全不動用顯示卡。這會把顯示卡整個留給你的遊戲，代價是多用幾個百分點的 CPU。需要重新啟動。",
+ "Kapalıyken (varsayılan) pencerenin kareleri işlemcide birleştirilir: ekran kartı belleği yaklaşık 67 MB'tan 9 MB'a iner, oyun oynarken ekran kartı oyuna kalır. Karşılığında birkaç puan işlemci yer; pencere durağan olduğunda hiç yemez. Açıkken kareler ekran kartında birleştirilir. Yeniden başlatmayı gerektirir.": "關閉（預設）：視窗畫面由處理器合成。顯示記憶體由約 67 MB 降到 9 MB，顯示卡留給遊戲使用。畫面有動時會多花幾個百分點的處理器時間，視窗靜止時則完全不花。開啟：畫面在顯示卡上合成。需要重新啟動。",
  "Görsel önbelleğini boşalt": "清空圖片快取",
  "Oyun kapak görselleri ve indirilen sayfa parçaları bellekten ve diskten silinir. Ayar, oturum ve istatistik kaybı yoktur; silinen her şey gerektiğinde yeniden indirilir. Uzun süre açık kalan oturumlarda belleği geri kazanmanın en doğrudan yolu.": "遊戲封面圖與已下載的頁面資源會從記憶體和磁碟中移除。不會遺失任何設定、工作階段或統計資料；移除的內容需要時會重新下載。在長時間執行的工作階段中，這是取回記憶體最直接的方式。",
  "Boşalt": "清空",

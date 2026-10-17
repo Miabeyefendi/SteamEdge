@@ -281,7 +281,7 @@
       const c = running ? GC.ok : GC.warn;
       pill.style.background = '#101621';
       pill.style.borderColor = c;
-      pill.innerHTML = '<span style="width:6px;height:6px;border-radius:12px;background:'+c+';animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
+      pill.innerHTML = '<span'+(running?' class="e-pulse"':'')+' style="width:6px;height:6px;border-radius:12px;background:'+c+'"></span>'
         + '<span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:'+c+'">'+(running?'Çalışıyor':'Hazır')+'</span>';
       if (typeof setSysStatus === 'function') setSysStatus(running);
     }

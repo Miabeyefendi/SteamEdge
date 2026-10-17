@@ -87,7 +87,7 @@
 |---|---|
 | Sistema operativo | Windows 10 o superior, 64 bits |
 | Cuenta de Steam | Con Steam Guard configurado, móvil o correo |
-| Espacio en disco | Unos 330 MB extraído |
+| Espacio en disco | Unos 290 MB extraído |
 | Cliente de Steam | No hace falta, y no se usa |
 
 ### Instalar
