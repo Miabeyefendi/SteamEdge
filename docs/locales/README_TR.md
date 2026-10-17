@@ -14,7 +14,7 @@
 
 [English](../../README.md) · **Türkçe** · [Español](./README_ES.md) · [简体中文](./README_ZH.md) · [Русский](./README_RU.md)
 
-[Kurulum](#-kurulum) · [Özellikler](#-öne-çıkanlar) · [Kullanım](#-hızlı-başlangıç) · [Rehber](./TUTORIAL_TR.md) · [Sürüm notları](../../CHANGELOG.md)
+[Kurulum](#-kurulum) · [Özellikler](./FEATURES_TR.md) · [Kullanım](#-hızlı-başlangıç) · [Rehber](./TUTORIAL_TR.md) · [Sürüm notları](../../CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
   <img src="../../assets/btn-download.svg" height="52" alt="En son sürümü indir">
@@ -43,60 +43,23 @@
 > [!WARNING]
 > **SteamEdge Steam hesabın adına işlem yapabilir: kart toplar, saat yükseltir, başarım açar, pazarda eşya satar. Aşağıda girişinle tam olarak ne yaptığını, nerede sakladığını ve ağa ne gönderdiğini yazdım; rahat edip etmeyeceğine sen karar ver.**
 
-| Ne | Ne oluyor |
-|---|---|
-| **Parola** | Giriş ekranına yazılır ve HTTPS üzerinden doğrudan Steam'in kendi giriş servisine verilir. Yalnızca o çağrı boyunca bellekte durur. **Diske asla yazılmaz**, günlüğe de yazılmaz. |
-| **Steam Guard kodları** | Steam'e bir kez gönderilir ve atılır. Saklanmaz. Uygulama doğrulayıcı sırlarını tutmaz (eski maFile özelliği 1.1.9'da kaldırıldı), bu yüzden mobil onayları senin yerine veremez. |
-| **Oturum anahtarı** | Giriş sonrası Steam uygulamaya yenileme anahtarı verir, böylece tekrar sormaz. Bu parolan değildir. exe'nin yanındaki `settings/session.json` ve `settings/accounts.json` içinde durur. **Varsayılan olarak düz metindir.** *Ayarlar > Gizlilik & Güvenlik > Giriş anahtarlarını şifrele* açılırsa Windows DPAPI ile mühürlenir; bu bilgisayarda yalnızca senin Windows kullanıcın okuyabilir. Web çerezleri yalnızca bellekte durur. |
-| **Çerezle giriş (yedek yol)** | Normal giriş yerine çerezle girersen `settings/web-session.json` bu çerezleri çıkış yapana kadar düz metin tutar. |
-| **Günlük dosyası** | `cache/steamedge.log` olayları tutar; parola, anahtar ya da çerez yazılmaz. |
-| **Dışa aktarma** | Ayar dışa aktarımı anahtarları, vekil adreslerini (parolalarıyla) ve ebeveyn PIN'ini dışarıda bırakır. |
-
-**Ağa ne gidiyor**
-
-- **Steam'in kendisi**: Steam istemcisinin kurduğu aynı bağlantılar (giriş, sohbet, "oynuyor" durumu), `steam-user` ve `steam-session` kütüphaneleriyle.
-- **`steamcommunity.com`**: envanter, pazar, ilanlar ve başarım sayfaları, senin oturumunla.
-- **`api.steampowered.com`**: giriş ve oturum çağrıları.
-- **`*.steamstatic.com`**: oyun görselleri ve Steam'in kendi pazar ücret betiği (Node erişimi olmayan, gizli ve korumalı bir pencerede çalışır).
-- **`api.github.com`**: açılışta bir kez ve güncelleme düğmesine basınca, herkese açık sürüm listesini okumak için. Senin hakkında hiçbir şey göndermez, hiçbir şey indirmez ya da kurmaz.
-- **Kendi vekil sunucun**, yalnızca hesap başına ya da giriş için bir tane girdiysen.
-- Başka hiçbir şey yok. **Benim bir sunucum, analiz, telemetri, çökme raporu, reklam yok.** Yazı tipleri uygulamanın içinde olduğu için yazı tipi sunucusuna da gidilmez.
-
-**Satış**: ilanlar Steam pazarına web sitesindeki gibi gider. Mobil doğrulayıcı açıksa her ilan Steam uygulamasındaki onayını bekler ve SteamEdge bu onayı veremez. Uygulama istekleri aralıklı gönderir (en az 1,5 saniye) ve aynı eşyayı iki kez göndermez.
-
-**Uygulama penceresi nasıl kilitli**: yalnızca kendi dosyalarını yükler, web sayfası açamaz ve içinde Node erişimi kapalıdır (bağlam yalıtımı ve İçerik Güvenlik Politikası).
-
-**Bunları kendin nasıl denetlersin**: kod açık (AGPL-3.0), her değişiklik CodeQL ile taranır, her sürüm dosyasının SHA-256 değeri yayımlanır ve `npm run build` ile kendin derleyebilirsin.
-
-**Kendini koru**
-- `settings/` klasörünü kimseyle paylaşma (zip, ekran görüntüsü, destek isteği). İçinde anahtarın olabilir.
-- Anahtar şifrelemeyi aç (yukarıda) ve bir bilgisayarda işin bitince *Çıkış Yap*'ı kullan.
-- Kayıtlı tüm oturumları kesmek için Steam Guard ayarlarındaki Steam'in kendi *diğer tüm cihazlardan çıkış* seçeneğini kullan.
-
-**Dürüst sınırlar**: bu, tek kişinin kişisel projesi; Valve tarafından yapılmadı, onunla bağlantısı yok ve bir hesabı otomatikleştirmek Steam kurallarına aykırı olabilir. Kullanım riski sana ait.
+**Kısaca:** parolan hiçbir zaman diske yazılmaz, uygulama yalnızca Steam'e, görsel sunucularına ve GitHub'ın herkese açık sürüm listesine bağlanır; telemetri, analiz ve benim bir sunucum yoktur. Neyi nerede sakladığı ve bunu kendin nasıl denetleyeceğin [Gizlilik ve güvenlik](./PRIVACY_TR.md) sayfasında.
 
 ---
 
 ## ✨ Öne çıkanlar
 
-- **Kart düşürme** - Oyunlarını "oynanıyor" gösterir, ticari kartlar düşer. Yedi mod var; biri, kart düşürmesi kısıtlı hesaplarda Steam'in kart düşürmeye ancak oyun bir süre eşiğini (genelde iki saat) geçince başladığını bilir.
-- **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar. İsteğe bağlı saat eşitlemesi seçili oyunları aynı toplam süreye çeker.
+- **Kart düşürme** - Oyunlarını "oynanıyor" gösterir, ticari kartlar düşer.
+- **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar.
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
-- **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar. Profilde gerçekten oynanmış gibi bir iz bırakır.
-- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış. Hepsi hesabın cüzdan kurunda. Satış fiyatı Steam'in kendi ücret hesabıyla belirlenir; toplu satış Steam'in hesap başına sınırına gelince durup söyler ya da satışı partilere böler. Aktif ilanlar geri alınabilir, booster paketleri aynı sayfadan açılır. Bir seçici, diğer oyunların eşyalarına (Counter-Strike 2, Dota 2 ve daha fazlası) aynı araçlarla geçer.
-- **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir. Steam'in saatlik sınırına gelince kuyruk bekler ve kendiliğinden sürer. Bir hesabın zaten sahip olduğu anahtar diğer hesaplarında denenebilir, ücretsiz bir oyun mağaza bağlantısından eklenir.
-- **Sohbet** - Arkadaş listesi, yazışma ve mesaj gönderme, aynı ağ protokolü üzerinden. Okunmamış sayısı sekmede görünür, kuyruk çalışırken gelen mesaj kaçmaz.
-- **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır. İstatistikler hesap başına tutulur.
-- **Zamanlayıcı, vekil ve anahtar koruması** - Kart düşürme ve Gerçekçi Mod bir saat aralığında kendiliğinden çalışabilir, her hesap kendi HTTP ya da SOCKS5 vekilini kullanabilir (girişin de bir vekili vardır) ve kayıtlı giriş anahtarları Windows DPAPI ile şifrelenebilir.
-- **Listeler ve süzgeçler** - Kart düşürme için kalıcı kara liste ve beyaz liste, iade süresindeki oyunları dışarıda bırakan bir süzgeç, listelerin başında duran favori oyunlar ve envanterin CSV olarak dışa aktarımı.
-- **Tema ve dil** - Koyu, Gece Moru ve Beyaz tema, giriş ekranı dahil. Türkçe, İngilizce, Almanca, İspanyolca, Geleneksel Çince ve Rusça. Yeni kurulumlar İngilizce başlar.
-- **Ekrana uyar** - Yerleşim 900 x 560'a kadar akışkandır: listeler kenardan taşmak yerine alt satıra geçer, dar pencerede yan menü kendiliğinden kapanır, kısa pencerede arayüz sıkışık moda geçer. Pencere kaldığı yerde, hâlâ var olan bir ekranda açılır. 900 x 560'tan küçük pencerelerde sayfanın tamamı pencereyle birlikte küçülür (675 x 420'ye kadar), düğmeler biçimini korur.
-- **Modüler** - Kullanmadığın sayfaları kapat (kart, saat, envanter, başarım, anahtar, sohbet), kalanları kendi sıranda diz. Kapalı sayfa Steam'den hiçbir şey istemez. Hafif mod zayıf bilgisayarlar için animasyon ve bulanıklığı kapatır, otomatik ayar bunu senin yerine seçer. Küçük özellikler (etkinlik kutusu, favori yıldızları, İlanlarım ve CSV düğmeleri) ve üst çubuk öğeleri (arama, bildirimler, güncellemeler) de kapatılabilir.
-- **Kaldığı yerden sürer** - Uygulama kapanırken, bilgisayar kapanırken ya da uygulama çökerken sürmekte olan bir kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışması, hesap yeniden bağlanınca kaldığı yerden başlar. Uygulamanın çalışmadığı süre sayılmaz: üç saati kalan bir yükseltme yine üç saat sürer.
-- **Okunaklı ve klavye dostu** - Yüzde 80 ile 150 arası arayüz ölçeği (Ctrl + / - / 0 ile de), sistemin karşıtlık ayarını izleyen Yüksek karşıtlık teması, 4,5 : 1 ya da daha iyi okunan ve 11 pikselden küçük olmayan metin, klavyeyle ve ekran okuyucuyla çalışan anahtarlar ile yan menü.
-- **Hızlı gezinme** - Ctrl+K, yazdıkça sayfaları, ayarları, hesapları ve açık sayfanın işlemlerini bulan bir komut paleti açar; Ctrl+1 ile Ctrl+9 sayfaları numarayla açar, ? kısayolları listeler, Ayarlar'ın kendi arama kutusu vardır ve değiştirip kaydettiğin bölümleri işaretler.
-- **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
-- **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
+- **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar.
+- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış.
+- **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir.
+- **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır.
+- **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur.
+- **Taşınabilir** - Çıkar ve çalıştır.
+
+**[Tüm özellikler →](./FEATURES_TR.md)**
 
 ---
 
@@ -111,13 +74,6 @@
 | <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="Gerçekçi Mod, gelişmiş"><br><sub>Gerçekçi Mod, gelişmiş</sub> | <img src="../../design/screenshots/Market.png" alt="Envanter & Pazar"><br><sub>Envanter & Pazar</sub> |
 | <img src="../../design/screenshots/Market2.png" alt="Pazar, sipariş defteri"><br><sub>Pazar, sipariş defteri</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam sohbeti"><br><sub>Steam sohbeti</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ayarlar"><br><sub>Ayarlar</sub> |  |
-
-**Temalar: Koyu, Gece Moru, Beyaz (Ayarlar > Genel > Tema)**
-
-| Koyu | Gece Moru | Beyaz |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="Koyu"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="Gece Moru"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Beyaz"> |
-| <img src="../../design/screenshots/themes/login-dark.png" alt="Koyu"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="Gece Moru"> | <img src="../../design/screenshots/themes/login-white.png" alt="Beyaz"> |
 
 </div>
 
@@ -134,37 +90,16 @@
 | Disk alanı | Çıkarılmış hâlde yaklaşık 330 MB |
 | Steam istemcisi | Gerekmez, kullanılmaz |
 
-### Kullanılan araçlar
-
-![Electron](https://img.shields.io/badge/Electron-1E293B?style=for-the-badge&logo=electron&logoColor=A78BFA)
-![Node.js](https://img.shields.io/badge/Node.js-1E293B?style=for-the-badge&logo=nodedotjs&logoColor=A78BFA)
-![JavaScript](https://img.shields.io/badge/JavaScript-1E293B?style=for-the-badge&logo=javascript&logoColor=A78BFA)
-
 ### Kaynaktan kurulum
-
-```bash
-git clone https://github.com/Miabeyefendi/SteamEdge.git
-cd SteamEdge
-npm install
-```
-
-<details>
-<summary><b>Yayınlanmış sürümden kurmak</b></summary>
 
 1. [Yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) en son `.rar` dosyasını indir.
 2. İstediğin yere çıkar. Kendi sahip olduğun bir klasöre, `Program Files` içine değil.
 3. `SteamEdge.exe` dosyasını çalıştır. Kurulacak bir şey yok; o klasörün dışına hiçbir şey yazılmaz.
 4. Güncellemek için yeni sürümü boş ve yeni bir klasöre çıkar, eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır.
 
-</details>
-
 ---
 
 ## 🚀 Hızlı başlangıç
-
-```bash
-npm start
-```
 
 İlk açılışta giriş ekranı gelir. QR kodunu Steam mobil uygulamasıyla okut ya da parola sekmesine geçip kullanıcı adı, parola ve Steam Guard kodunu gir. Hiçbir şey saklanmaz; yalnızca bir oturum anahtarı exe'nin yanındaki `settings/` klasörüne yazılır.
 
@@ -172,92 +107,18 @@ Girdikten sonra Genel Bakış neyin çalıştığını ve neyin hazır olduğunu
 
 ---
 
-## ⚙️ Yapılandırma
-
-Ayarlar exe'nin yanındaki `settings/settings.json` dosyasında, hesaba özel veriler ise `settings/accounts/<steamID>.json` içinde durur. Neredeyse hepsi uygulamadaki Ayarlar sayfasından ve özelliklerin kendi sayfalarından düzenlenebilir; dosyalara elle dokunmak için bir sebep yok. Ayarlar sayfasındaki değişiklikler yalnızca Kaydet'e basınca uygulanır, çalışan işler birkaç saniye içinde yeni değerlerle devam eder.
-
-> **`settings/` klasörünü kimseyle paylaşma.** İçinde Steam oturum anahtarın var ve o anahtar hesabını kullanmaya yeter.
-
-| Anahtar | Varsayılan | Ne yapar |
-|---|---|---|
-| `boostMaxGames` | `32` | Saat yükseltici aynı anda kaç oyunu açık tutar |
-| `boostSync` | `false` | Seçili oyunları aynı toplam süreye çeker |
-| `fetchAvgWithPrice` | `true` | Bir eşyanın ortalamasını fiyatıyla aynı turda çeker |
-| `pauseFarmOnBoost` | `false` | Saat yükseltici ya da Gerçekçi Mod çalışırken kart düşürmeyi duraklatır |
-| `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür; `0` Steam durdurana kadar listeler |
-| `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
-| `reconnectPolicy` | `unlimited` | Bağlantı koparsa yeniden bağlanma: `unlimited`, `10`, `3` ya da `off` |
-| `sessionTimeout` | `never` | Bu kadar dakika işlem yapılmazsa tüm oturumları kapatır; çalışan işler boşta sayılmaz |
-| `theme` | `dark` | Renk teması: `dark`, `midnight`, `white` |
-| `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
-
-[Yapılandırma başvurusu](./TUTORIAL_TR.md#️-yapılandırma-başvurusu) bilinmeye değer anahtarları kapsar; geri kalanı Ayarlar sayfasındaki diğer denetimlerdir.
-
----
-
 ## 📖 Belgeler
 
-- [**Rehber**](./TUTORIAL_TR.md) - her özellik, her ayar, tam anlatımıyla
-- [**Sürüm notları**](../../CHANGELOG.md) - hangi sürümde ne değişti
+- [**Özellikler**](./FEATURES_TR.md) - uygulamanın yaptığı her şey
+- [**Kılavuz**](./TUTORIAL_TR.md) - her özellik ve her ayar, tüm ayrıntısıyla
+- [**Ayarlar**](./SETTINGS_TR.md) - ayarların nerede durduğu ve bilinmesi gereken anahtarlar
+- [**Gizlilik ve güvenlik**](./PRIVACY_TR.md) - girişinle ne yaptığı ve ağa ne gittiği
+- [**Sık sorulanlar**](./FAQ_TR.md) - yasaklanma, fiyatlar, açılmayan başarımlar, güncellemeler
+- [**Yol haritası**](./ROADMAP_TR.md) - nelerin bittiği ve sırada ne olduğu
+- [**Değişiklik günlüğü**](../../CHANGELOG.md) - her sürümde ne değişti
+- [**Geliştiriciler için**](../DEVELOPERS.md) - kod düzeni, testler, alışkanlıklar (İngilizce)
 - [**Katkı**](../../CONTRIBUTING.md) - değişiklik nasıl gönderilir
-- [**Güvenlik**](../../SECURITY.md) - açık nasıl gizlice bildirilir
-
----
-
-## 🧭 Yol haritası
-
-- [x] Steam sohbeti: arkadaş listesi, yazışma ve mesaj gönderme uygulamada
-- [x] Rusça arayüz dili, belgelerle aynı hizada
-- [x] Gerçekçi Mod şablona göre yeniden yapıldı
-- [x] Öğe bazlı pazar kuyruğu, fiyat ve ortalama birlikte çekiliyor
-- [x] Çalışma anında yazılan tüm metinler çevrildi, her dilde çoğul biçimlerle (1.3.0)
-- [x] Temalar: Koyu, Gece Moru, Beyaz (1.3.0)
-- [x] Electron 41 (1.3.2)
-- [x] Varsayılan dil İngilizce, kalan arayüz metinleri çevrildi (1.3.3)
-- [x] Tüm kod tabanı İngilizce: tanımlayıcılar, yorumlar, eleman id'leri, IPC kanalları, ayar anahtarları ve dosya adları (1.4.0)
-- [x] Küçük ekranlar için akışkan yerleşim ve yerini hatırlayan pencere (1.4.9)
-- [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa
-
-Buradakilerin hiçbiri söz değil. Bu kişisel bir proje ve öncelikler değişince liste de değişir.
-
----
-
-## ❓ Sık sorulanlar
-
-<details>
-<summary><b>Steam istemcisinin açık olması gerekiyor mu?</b></summary>
-
-Hayır. SteamEdge doğrudan Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, açık olması da bir şey değiştirmez.
-
-</details>
-
-<details>
-<summary><b>Hesabım yasaklanır mı?</b></summary>
-
-Oyunları boşta çalıştırmak ve protokol üzerinden başarım açmak pek çok aracın yaptığı iş ve Valve bu konuda açık bir tutum belirtmiş değil. Bu, güvenli olduğu anlamına gelmez. Riski sen alıyorsun. Karar vermeden önce aşağıdaki sorumluluk reddini oku.
-
-</details>
-
-<details>
-<summary><b>Fiyatlar neden benim para birimime çevrilmiyor?</b></summary>
-
-Zaten o para biriminde. Fiyatlar Steam'den hesabının cüzdan kurunda gelir ve geldiği gibi gösterilir. Çevirmek bir kur uydurmak demek olurdu; uydurma sayı, sayı olmamasından kötüdür.
-
-</details>
-
-<details>
-<summary><b>Bir başarım açılmıyor, neden?</b></summary>
-
-Bazı başarımları oyun sunucusu yazar, istemci değil; Steam hiçbir istemcinin bunlara dokunmasına izin vermez. SteamEdge bunları şemadan tanır ve tekrar tekrar denemek yerine ayıklar. Birkaç oyun da bu protokol üzerinden hiç istatistik tutmaz; o zaman `0 / N` görürsün ve yapılacak bir şey yoktur.
-
-</details>
-
-<details>
-<summary><b>Güncellemeden sonra bozuldu, ne yapmalıyım?</b></summary>
-
-Yeni sürümün boş ve yeni bir klasöre çıkarıldığından, yalnızca `settings/` klasörünün kopyalandığından emin ol; eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır. Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `cache/steamedge.log` dosyasına bak. Hâlâ bozuksa bir hata bildirimi aç ve o kaydı ekle.
-
-</details>
+- [**Güvenlik bildirimleri**](../../SECURITY.md) - bir açığı gizlice nasıl bildirirsin
 
 ---
 
@@ -281,13 +142,6 @@ Katkılar hoş karşılanır. Önce [CONTRIBUTING.md](../../CONTRIBUTING.md) ve
   </picture>
 </a>
 </div>
-
----
-
-## 🛡️ Güvenlik
-
-Bir açık mı buldun? Herkese açık bir issue açma. [SECURITY.md](../../SECURITY.md)
-içindeki gizli bildirim yolunu izle.
 
 ---
 

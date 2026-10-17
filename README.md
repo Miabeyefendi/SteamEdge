@@ -14,7 +14,7 @@
 
 **English** · [Türkçe](./docs/locales/README_TR.md) · [Español](./docs/locales/README_ES.md) · [简体中文](./docs/locales/README_ZH.md) · [Русский](./docs/locales/README_RU.md)
 
-[Install](#-installation) · [Features](#-highlights) · [Usage](#-quick-start) · [Tutorial](./docs/guides/TUTORIAL.md) · [Changelog](./CHANGELOG.md)
+[Install](#-installation) · [Features](./docs/FEATURES.md) · [Usage](#-quick-start) · [Tutorial](./docs/guides/TUTORIAL.md) · [Changelog](./CHANGELOG.md)
 
 <a href="https://github.com/Miabeyefendi/SteamEdge/releases/latest">
   <img src="./assets/btn-download.svg" height="52" alt="Download the latest release">
@@ -43,60 +43,23 @@
 > [!WARNING]
 > **SteamEdge can act on your Steam account: farm cards, boost hours, unlock achievements and list items on the market. Below is exactly what it does with your login, where it keeps it and what it sends over the network, so you can decide if you are comfortable using it.**
 
-| What | What happens |
-|---|---|
-| **Password** | Typed on the sign-in screen and handed straight to Steam's own sign-in service over HTTPS. It stays in memory only for that call. It is **never written to disk** and never logged. |
-| **Steam Guard codes** | Sent to Steam once and dropped. Not stored. The app holds none of your authenticator secrets (the old maFile feature was removed in 1.1.9), so it cannot approve mobile confirmations for you. |
-| **Session token** | After sign-in Steam gives the app a refresh token so it does not ask again. It is not your password. It is saved in `settings/session.json` and `settings/accounts.json`, next to the exe. **It is plain text by default.** Turn on *Settings > Privacy & security > Encrypt login tokens* to seal it with Windows DPAPI, so only your Windows user on this PC can read it. Web cookies live in memory only. |
-| **Cookie sign-in (fallback)** | If you use the cookie login instead of the normal one, `settings/web-session.json` keeps those cookies in plain text until you sign out. |
-| **Log file** | `cache/steamedge.log` holds events, never passwords, tokens or cookies. |
-| **Exports** | The settings export leaves out tokens, proxy addresses (with their passwords) and the parental PIN. |
-
-**What goes over the network**
-
-- **Steam itself**: the same connections the Steam client makes (sign-in, chat, "playing" status), through the `steam-user` and `steam-session` libraries.
-- **`steamcommunity.com`**: inventory, market, listings and achievement pages, with your session.
-- **`api.steampowered.com`**: sign-in and session calls.
-- **`*.steamstatic.com`**: game images and Steam's own market fee script (it runs in a hidden, sandboxed window with no Node access).
-- **`api.github.com`**: once at startup, and when you press the update button, to read the public list of releases. It sends nothing about you and never downloads or installs anything.
-- **Your own proxy**, only if you set one per account or for sign-in.
-- Nothing else. **No server of mine, no analytics, no telemetry, no crash reports, no ads.** The fonts are bundled, so no font servers either.
-
-**Selling**: listings go to Steam's market the way the website does it. With the mobile authenticator on, every listing waits for your approval in the Steam app, and SteamEdge cannot give that approval. The app spaces its requests (at least 1.5 seconds apart) and never sends the same item twice.
-
-**How the app window is locked down**: it can only load its own files, it cannot open web pages, and Node access is off inside it (context isolation and a Content Security Policy).
-
-**How to check all this yourself**: the code is open (AGPL-3.0), every change is scanned by CodeQL, the SHA-256 of each release file is published, and you can build it yourself with `npm run build`.
-
-**Protect yourself**
-- Never share your `settings/` folder (zip files, screenshots, support requests). It can hold your token.
-- Turn on token encryption (above), and use *Sign out* when you stop using the app on a PC.
-- To cut off every saved session, use Steam's own *sign out of all other devices* in the Steam Guard settings.
-
-**Honest limits**: this is a personal project by one person, it is not made by or connected to Valve, and automating an account can go against Steam's rules. Use it at your own risk.
+**In short:** your password is never written to disk, the app talks only to Steam, its image servers and GitHub's public list of releases, and there is no telemetry, no analytics and no server of mine. What it keeps, where, and how to check it yourself is in [Privacy and security](./docs/PRIVACY.md).
 
 ---
 
 ## ✨ Highlights
 
-- **Card farming** - Runs your games as "playing" so trading cards drop. Seven modes, one of which knows that on accounts with restricted drops Steam only starts dropping after a game passes a playtime threshold, usually two hours.
+- **Card farming** - Runs your games as "playing" so trading cards drop.
 - **Hours booster** - Keeps up to 32 games open at once, with optional playtime syncing that pulls a selection up to the same total.
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
 - **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
-- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency. Listing prices use Steam's own fee calculation, and bulk selling stops and tells you when Steam's per-account limit is reached, or splits the sale into batches. Active listings can be taken back, and booster packs opened, from the same page. A selector switches to the items of other games (Counter-Strike 2, Dota 2 and more), with the same tools.
-- **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time. When Steam's hourly limit is reached the queue waits and carries on by itself. A key an account already owns can be tried on your other accounts, and a free game is added from its store link.
-- **Chat** - Friend list, conversations and sending, over the same network protocol. Unread counts show on the tab, so nothing is missed while a queue runs.
-- **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress. Statistics are kept per account.
-- **Schedule, proxy and token protection** - Card farming and Realistic Mode can run by themselves inside a time range, each account can use its own HTTP or SOCKS5 proxy (the sign-in has one too), and saved sign-in tokens can be encrypted with Windows DPAPI.
-- **Lists and filters** - A permanent blacklist and a whitelist for card farming, a filter that leaves out games still in their refund window, favorite games that sit at the top of the lists, and a CSV export of the inventory.
-- **Themes and languages** - Dark, Midnight Purple and White themes, login screen included. Turkish, English, German, Spanish, Traditional Chinese and Russian. New installs start in English.
-- **Fits your screen** - The layout is fluid down to 900 x 560: lists wrap instead of running off the edge, the side menu closes by itself on a narrow window and the interface turns compact on a short one. The window comes back where you left it, on a screen that still exists. Windows smaller than 900 x 560 scale the whole page, down to 675 x 420, so buttons keep their shape.
-- **Modular** - Switch off the pages you do not use (cards, hours, inventory, achievements, keys, chat) and put the rest in your own order. A page that is off asks Steam for nothing. A light mode turns off animations and blur for weak computers, and an automatic setting picks it for you. Small features (the activity box, favorite stars, the My listings and CSV buttons) and top bar items (search, notifications, updates) can be switched off too.
-- **Picks up where it left off** - A card farm, hour boost or Realistic Mode run that was going when the app closed, the PC shut down or the app crashed starts again where it left off when the account connects again. The time the app was not running does not count, so a boost with three hours left has three hours left.
-- **Readable and keyboard friendly** - An interface scale from 80 to 150 percent (also Ctrl + / - / 0), a High contrast theme that follows the system's contrast setting, text that reads at 4.5 : 1 or better and never smaller than 11 pixels, and switches and the side menu that work from the keyboard and with a screen reader.
-- **Quick navigation** - Ctrl+K opens a command palette that finds pages, settings, accounts and the actions of the open page as you type; Ctrl+1 to Ctrl+9 open pages by number, ? lists the shortcuts, and Settings has its own search box and marks the sections you changed and saved.
-- **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
-- **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
+- **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency.
+- **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time.
+- **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress.
+- **No Steam client** - Talks Steam's own network protocol.
+- **Portable** - Extract and run.
+
+**[See every feature →](./docs/FEATURES.md)**
 
 ---
 
@@ -111,13 +74,6 @@
 | <img src="./design/screenshots/RealisticModeAdvanced.png" alt="Realistic Mode, advanced"><br><sub>Realistic Mode, advanced</sub> | <img src="./design/screenshots/Market.png" alt="Inventory & Market"><br><sub>Inventory & Market</sub> |
 | <img src="./design/screenshots/Market2.png" alt="Market, order book"><br><sub>Market, order book</sub> | <img src="./design/screenshots/Chat.png" alt="Steam chat"><br><sub>Steam chat</sub> |
 | <img src="./design/screenshots/SettingsGeneral.png" alt="Settings"><br><sub>Settings</sub> |  |
-
-**Themes: Dark, Midnight Purple, White (Settings > General > Theme)**
-
-| Dark | Midnight Purple | White |
-|---|---|---|
-| <img src="./design/screenshots/themes/overview-dark.png" alt="Dark"> | <img src="./design/screenshots/themes/overview-midnight.png" alt="Midnight Purple"> | <img src="./design/screenshots/themes/overview-white.png" alt="White"> |
-| <img src="./design/screenshots/themes/login-dark.png" alt="Dark"> | <img src="./design/screenshots/themes/login-midnight.png" alt="Midnight Purple"> | <img src="./design/screenshots/themes/login-white.png" alt="White"> |
 
 </div>
 
@@ -134,22 +90,7 @@
 | Disk space | About 330 MB extracted |
 | Steam client | Not required, and not used |
 
-### Built with
-
-![Electron](https://img.shields.io/badge/Electron-1E293B?style=for-the-badge&logo=electron&logoColor=A78BFA)
-![Node.js](https://img.shields.io/badge/Node.js-1E293B?style=for-the-badge&logo=nodedotjs&logoColor=A78BFA)
-![JavaScript](https://img.shields.io/badge/JavaScript-1E293B?style=for-the-badge&logo=javascript&logoColor=A78BFA)
-
 ### Install
-
-```bash
-git clone https://github.com/Miabeyefendi/SteamEdge.git
-cd SteamEdge
-npm install
-```
-
-<details>
-<summary><b>Install from a release instead</b></summary>
 
 1. Download the latest `.rar` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
 2. Extract it anywhere you like. A folder you own, not `Program Files`.
@@ -163,15 +104,9 @@ SHA-256 of `SteamEdge-v1.5.6-win-x64.rar`:
 
 Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.5.6-win-x64.rar`.
 
-</details>
-
 ---
 
 ## 🚀 Quick Start
-
-```bash
-npm start
-```
 
 On first launch you get the login screen. Scan the QR code with the Steam mobile app, or switch to the password tab and enter your credentials plus a Steam Guard code. Nothing is stored anywhere except a session token in `settings/`, next to the executable.
 
@@ -179,92 +114,18 @@ Once you are in, the Overview shows what is running and what is available. Open 
 
 ---
 
-## ⚙️ Configuration
-
-Settings live in `settings/settings.json` next to the executable, and per-account data in `settings/accounts/<steamID>.json`. Nearly all of it is editable from the in-app Settings page and the pages of the features themselves; there is no reason to touch the files by hand. Changes on the Settings page are applied only when you press Save, and running jobs pick them up within a few seconds.
-
-> **Never share the `settings/` folder.** It holds your Steam session token, which is enough to use your account.
-
-| Key | Default | What it does |
-|---|---|---|
-| `boostMaxGames` | `32` | How many games the hours booster keeps open at once |
-| `boostSync` | `false` | Pull selected games up to the same total playtime |
-| `fetchAvgWithPrice` | `true` | Fetch an item's sale average in the same pass as its price |
-| `pauseFarmOnBoost` | `false` | Pause card farming while the hours booster or Realistic Mode runs |
-| `bulkSellLimit` | `50` | Bulk sales are split into batches of this many items; `0` lists until Steam stops it |
-| `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that marks a price drop |
-| `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3` or `off` |
-| `sessionTimeout` | `never` | Close all sessions after this many idle minutes; running jobs do not count as idle |
-| `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
-| `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
-
-The [configuration reference](./docs/guides/TUTORIAL.md#️-configuration-reference) covers the keys worth knowing about; the rest are the other controls on the Settings page.
-
----
-
 ## 📖 Documentation
 
-- [**Tutorial**](./docs/guides/TUTORIAL.md) - every feature, every setting, explained in full
+- [**Features**](./docs/FEATURES.md) - everything the app does
+- [**Tutorial**](./docs/guides/TUTORIAL.md) - every feature and every setting, explained in full
+- [**Settings**](./docs/SETTINGS.md) - where the settings live and the keys worth knowing
+- [**Privacy and security**](./docs/PRIVACY.md) - what it does with your login and what goes over the network
+- [**FAQ**](./docs/FAQ.md) - bans, prices, achievements that will not unlock, updates
+- [**Roadmap**](./docs/ROADMAP.md) - what is done and what is next
 - [**Changelog**](./CHANGELOG.md) - what changed in each release
+- [**For developers**](./docs/DEVELOPERS.md) - code layout, tests, habits (English)
 - [**Contributing**](./CONTRIBUTING.md) - how to send a change
-- [**Security**](./SECURITY.md) - how to report a vulnerability privately
-
----
-
-## 🧭 Roadmap
-
-- [x] Steam chat: friend list, conversations and sending, in the app
-- [x] Russian interface language, matching the documentation
-- [x] Realistic Mode rebuilt to the design spec
-- [x] Item-based market queue, price and average fetched together
-- [x] Every runtime string translated, with plural forms in all languages (1.3.0)
-- [x] Themes: Dark, Midnight Purple, White (1.3.0)
-- [x] Electron 41 (1.3.2)
-- [x] English by default, with the remaining interface text translated (1.3.3)
-- [x] The whole code base in English: identifiers, comments, ids, IPC channels, setting keys and file names (1.4.0)
-- [x] A fluid layout for small screens and a window that remembers its place (1.4.9)
-- [ ] The remaining pages rebuilt to the design spec, one release at a time
-
-Nothing here is a promise. This is a personal project and the list moves when my priorities move.
-
----
-
-## ❓ FAQ
-
-<details>
-<summary><b>Do I need the Steam client running?</b></summary>
-
-No. SteamEdge speaks Steam's own network protocol directly. The client is never launched, and having it open changes nothing.
-
-</details>
-
-<details>
-<summary><b>Can this get my account banned?</b></summary>
-
-Idling games and unlocking achievements over the protocol is what a great many tools do, and Valve has never publicly committed to a position on it. That is not the same as it being safe. You run this at your own risk. Read the disclaimer below before you decide.
-
-</details>
-
-<details>
-<summary><b>Why are prices not converted to my currency?</b></summary>
-
-They are already in it. Prices come from Steam in your account's wallet currency and are shown exactly as they arrive. Converting them would mean inventing an exchange rate, and a made-up number is worse than no number.
-
-</details>
-
-<details>
-<summary><b>An achievement will not unlock. Why?</b></summary>
-
-Some achievements are written by the game server, not the client, and Steam refuses to let any client set them. SteamEdge detects those from the schema and skips them instead of failing over and over. A few games also keep no stats over this protocol at all, in which case you will see `0 / N` and nothing to do about it.
-
-</details>
-
-<details>
-<summary><b>It stopped working after an update. What now?</b></summary>
-
-Make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./docs/guides/TUTORIAL.md#-troubleshooting) of the tutorial and the log at `cache/steamedge.log` (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach that log.
-
-</details>
+- [**Security reports**](./SECURITY.md) - how to report a vulnerability privately
 
 ---
 
@@ -288,13 +149,6 @@ license your work under the AGPL-3.0.
   </picture>
 </a>
 </div>
-
----
-
-## 🛡️ Security
-
-Found a vulnerability? Do not open a public issue. Follow the private process in
-[SECURITY.md](./SECURITY.md).
 
 ---
 
