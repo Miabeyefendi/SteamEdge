@@ -60,8 +60,8 @@
   .bcard-sub{font-size:11px;color:var(--muted);margin-top:1px}
   .blive{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:800;
          background:rgba(95,208,116,.15);color:#8ee39d;border:1px solid rgba(95,208,116,.35);flex:none}
-  .blive i{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;animation:blink 2s infinite}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+  .blive i{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block}
+  body.e-beat .blive i{opacity:.35}
   .bcard-body{padding:8px 10px 9px;display:flex;flex-direction:column;gap:6px}
   .bclock{font-size:15px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums}
   .bstop{font-size:11px;font-weight:700;color:rgba(232,90,102,.75);cursor:pointer;background:none;border:0;padding:0}

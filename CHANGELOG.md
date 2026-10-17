@@ -7,6 +7,20 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.9)
+
+A running job no longer costs the window a quarter to three quarters of a processor core: the pulsing dots are driven by one slow timer instead of endless CSS animations.
+
+### Changed
+
+- **The dots beat from one timer, not from animations.** An animation that never ends makes Chromium draw the window 30 to 60 times a second, and with the processor compositing the window (the default since 1.5.7) a 7 px pulsing dot cost about three quarters of a processor core while a job ran and the window was in front; on the graphics card it cost a fifth. One timer now flips the dots every 0.8 seconds. Measured on the real page with the same method: **72 % of a core down to 1.4 % with the processor compositing, 16 to 20 % down to 3 % on the graphics card.** The look changes from a smooth fade to a two step blink.
+- The timer runs only while it can be seen: the window focused and visible, not in light mode, and a dot on screen. An unfocused window, a minimized one, light mode and a page with nothing running stop it altogether, so a game next to the app has nothing to compete with.
+- The same goes for every pulsing dot of the app: the side menu status, the running pills, the card page, the account list, the connection bar, the price fetch and the hour sync bar.
+- Left as they were: the turning circles of toasts, the achievement page and the sign-in screen (about 5 % of a core while an operation runs).
+- `npm test` runs 46 tests (the idle drawing test now covers the beat).
+
+SHA-256 (`SteamEdge-v1.5.9-win-x64.rar`): `ccfe5f4a15bd86e9f4029719f5889f4d8024fdc0506b3ffe0e9804c895b1ee90`
+
 ## [1.5.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.8)
 
 Two processes fewer: the app takes about 100 MB less memory.

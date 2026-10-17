@@ -327,7 +327,7 @@
       if (mode === 'full') return false;
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches || weakMachine(navigator.hardwareConcurrency || 8, navigator.deviceMemory || 8);
     }
-    function applyPerf(){ document.body.classList.toggle('e-light', perfLight()); }
+    function applyPerf(){ document.body.classList.toggle('e-light', perfLight()); if (typeof runBeat === 'function') runBeat(); }
     try { window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', applyPerf); } catch (_) {}
 
     // ================= KEYBOARD =================
@@ -541,9 +541,30 @@
     function lightModeOn(){
       return typeof appSettings !== 'object' || !appSettings || appSettings.lightMode !== false;
     }
+    // THE BEAT. A dot that pulses is one CSS animation, and a CSS animation that never ends makes Chromium draw the window 30 to 60 times a second: measured, a 7 px
+    // dot costs three quarters of a processor core when the processor composites the window (1.5.7 default) and a fifth of a core on the graphics card. So the dots do not
+    // animate: one timer flips body.e-beat every 0.8 s and the dots follow it (0.5 % of a core). It only runs while the window is in use: focused, visible, not in light mode,
+    // and there is a dot to flip.
+    const BEAT_MS = 800;
+    const BEAT_DOTS = '.e-pulse, .acct-row .run-dot, .drop-slot.current, .blive i, .panel-title .dot';
+    let beatTimer = null;
+    function beatWanted(){
+      return !document.hidden && !document.documentElement.classList.contains('e-idle') && !document.body.classList.contains('e-light');
+    }
+    // a dot that is in the page but not on screen (a hidden page, a bar that is closed) needs no beat
+    function beatDotShown(){ return [...document.querySelectorAll(BEAT_DOTS)].some(e => e.getClientRects().length > 0); }
+    function runBeat(){
+      if (beatWanted()){
+        if (!beatTimer) beatTimer = setInterval(() => { if (beatDotShown()) document.body.classList.toggle('e-beat'); }, BEAT_MS);
+      } else if (beatTimer){
+        clearInterval(beatTimer); beatTimer = null;
+        document.body.classList.remove('e-beat');
+      }
+    }
     function paintIdle(){
       const idle = lightModeOn() && !windowFocused;
       document.documentElement.classList.toggle('e-idle', idle);
+      runBeat();
     }
     window.addEventListener('focus', () => { windowFocused = true; paintIdle(); });
     window.addEventListener('blur',  () => { windowFocused = false; paintIdle(); });
@@ -555,6 +576,7 @@
       return !(lightModeOn() && !windowFocused);
     }
     document.addEventListener('visibilitychange', () => {
+      runBeat();
       if (document.hidden){
         // When "Arka Planda Topla" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
         // That was the promise of the setting ("lowest processor and memory use"); before, it only skipped
@@ -1061,8 +1083,7 @@
       }
       const colorVal = (status === 'dropped' || status === 'abandoned') ? '#B32453' : '#B37E24';
       el.style.borderBottomColor = colorVal; el.style.color = colorVal;
-      el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0;'
-        + (status === 'abandoned' ? '' : 'animation:e-dotPulse 1.6s ease-in-out infinite') + '"></span><span>'+esc(message||'')+'</span>'
+      el.innerHTML = '<span' + (status === 'abandoned' ? '' : ' class="e-pulse"') + ' style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0"></span><span>'+esc(message||'')+'</span>'
         + (status === 'abandoned'
             ? '<button data-reconnect style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
               + ';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'

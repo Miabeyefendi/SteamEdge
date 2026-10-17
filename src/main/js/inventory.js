@@ -1192,7 +1192,7 @@
         el.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:150;width:440px;max-width:calc(100vw - 48px);display:flex;flex-direction:column;gap:10px;'
           + 'padding:14px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;box-shadow:0 8px 28px rgba(0,0,0,.55)';
         el.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
-            + '<span data-sp="dot" style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0;animation:e-dotPulse 1.6s ease-in-out infinite"></span>'
+            + '<span class="e-pulse" data-sp="dot" style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0"></span>'
             + '<span data-sp="title" style="flex:1;min-width:0;font-size:12px;font-weight:600;color:#DCE2FA;line-height:1.4"></span>'
             + '<span data-sp="btns" style="display:flex;gap:6px;flex-shrink:0"></span></div>'
           + '<div style="height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden"><div data-sp="bar" style="height:100%;width:0;border-radius:999px;background:#5624B3;transition:width .2s"></div></div>'

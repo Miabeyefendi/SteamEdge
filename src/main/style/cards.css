@@ -90,8 +90,8 @@
   .drop-slots{display:flex;gap:4px;flex-wrap:wrap;margin-top:12px}
   .drop-slot{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
   .drop-slot.filled{background:rgba(95,208,116,.12);border:1px solid var(--green);color:var(--green)}
-  .drop-slot.current{background:rgba(74,155,255,.2);border:1px dashed var(--blue);color:var(--blue);animation:kpulse 1.5s infinite}
-  @keyframes kpulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .drop-slot.current{background:rgba(74,155,255,.2);border:1px dashed var(--blue);color:var(--blue)}
+  body.e-beat .drop-slot.current{opacity:.45}
   .drop-slot.empty{background:var(--card2);border:1px solid var(--line);color:var(--muted2)}
   .kart-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .ks-box{background:var(--card2);border-radius:var(--radius-sm);padding:10px;text-align:center}
