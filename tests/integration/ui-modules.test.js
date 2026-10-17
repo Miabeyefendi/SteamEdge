@@ -78,13 +78,13 @@ app.whenReady().then(async () => {
   await click("#setSave"); await wait(600);
   check('light mode puts the class on the page', (await js("document.body.classList.contains('e-light')")) === true);
   await js('setSysStatus(true)');
-  check('light mode really stops animations (even the pulse of a running job)', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) === 'none');
+  check('light mode keeps the dot of a running job fully lit and still (no beat)', (await js("+getComputedStyle(document.getElementById('sysDot')).opacity")) === 1 && (await js('beatWanted()')) === false);
   await setSel('full');
   await click("#setSave"); await wait(600);
   check('full mode takes it off', (await js("document.body.classList.contains('e-light')")) === false);
-  check('full mode keeps the animation of a running job', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) !== 'none');
+  check('full mode lets the dot of a running job beat (bright on the beat, dim between)', (await js("(() => { const d = document.getElementById('sysDot'); document.body.classList.add('e-beat'); const on = +getComputedStyle(d).opacity; document.body.classList.remove('e-beat'); return on === 1 && +getComputedStyle(d).opacity < 0.5; })()")) === true);
   await js('setSysStatus(false)');
-  check('and the idle dot stands still in full mode too', (await js("getComputedStyle(document.getElementById('sysDot')).animationName")) === 'none');
+  check('and the idle dot has no pulse in full mode', (await js("document.getElementById('sysDot').classList.contains('e-pulse')")) === false);
   await setSel('auto');
   await click("#setSave"); await wait(600);
   await js("Object.defineProperty(navigator, 'hardwareConcurrency', { configurable: true, get: () => 2 }); applyPerf()");

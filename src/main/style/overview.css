@@ -34,8 +34,8 @@
   .panel-qa{flex:none}
   .panel-header{padding:14px 20px;border-bottom:1px solid #252a3a;display:flex;align-items:center;justify-content:space-between;flex:none}
   .panel-title{font-size:12px;font-weight:700;color:#cbd5e1;text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:8px}
-  .panel-title .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e;animation:gpulse-dot 2s infinite}
-  @keyframes gpulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+  .panel-title .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px #22c55e}
+  body.e-beat .panel-title .dot{opacity:.4}
   .panel-body{padding:20px;flex:1;min-height:0;display:flex;flex-direction:column}
   .panel-body.scroll{overflow-y:auto}
 

@@ -1,5 +1,6 @@
-// Idle drawing: with nothing running no indicator animates, a running job pulses its dots, an unfocused window is calm from the start. A page that animates
-// forever makes Chromium draw about 30 frames a second for nothing, which takes video memory and compositing time from a game running next to it.
+// Idle drawing: with nothing running no indicator animates and nothing flips, a running job makes its dots beat from ONE timer (not from CSS animations, which make Chromium
+// draw the window 30 to 60 times a second: three quarters of a processor core when the processor composites the window), and an unfocused window or light mode
+// stops the beat altogether, so a game running next to the app has nothing to compete with.
 // Needs Electron: run with `npm test` (tests/run.js) or `electron <file> --user-data-dir=<temp folder>`.
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs'), vm = require('vm');
@@ -42,26 +43,38 @@ app.whenReady().then(async () => {
   await wait(1500);
 
   const anims = () => js("document.getAnimations().filter((a) => a.playState === 'running').map((a) => a.animationName).join()");
+  // how many times the class of the body changed in 3 seconds (the beat flips body.e-beat)
+  const flips = () => js("new Promise((res) => { let n = 0; const o = new MutationObserver(() => { n++; }); o.observe(document.body, { attributes: true, attributeFilter: ['class'] }); setTimeout(() => { o.disconnect(); res(n); }, 3000); })");
+  const hasBeat = () => js("document.body.classList.contains('e-beat')");
   // a window that has not got the focus (this one never has) is calm from the start, with no blur event to calm it
   check('a window that starts without the focus is calm from the start', (await js("document.documentElement.classList.contains('e-idle')")) === true);
-  await js("document.documentElement.classList.remove('e-idle')");
+  check('and its dots do not beat', (await flips()) === 0);
+  await js("document.documentElement.classList.remove('e-idle'); runBeat()");
   await wait(300);
-  check('with nothing running no indicator animates (a page that animates forever is drawn 30 times a second for nothing)', (await anims()) === '', await anims());
+  check('with nothing running no indicator animates and nothing flips (a page that animates forever is drawn 30 times a second for nothing)', (await anims()) === '' && (await flips()) === 0, await anims());
   await js("setSysStatus(true); setRunPill(true)");
   await wait(300);
-  check('a running job pulses its dot and its pill', (await js("document.getElementById('sysDot').classList.contains('e-pulse')")) === true && /e-dotPulse/.test(await anims()), await anims());
+  check('a running job puts the pulse class on its dot and its pill', (await js("document.getElementById('sysDot').classList.contains('e-pulse')")) === true && (await js("document.querySelectorAll('#gRunPill .e-pulse').length")) === 1);
+  check('and the dots beat from one timer, not from CSS animations (about 4 flips in 3 seconds, no animation running)', (await anims()) === '' && (await flips()) >= 3, await anims());
+  check('the dot follows the beat: bright on the beat, dim between', (await js("(() => { const d = document.getElementById('sysDot'); document.body.classList.add('e-beat'); const on = getComputedStyle(d).opacity; document.body.classList.remove('e-beat'); const off = getComputedStyle(d).opacity; return +on === 1 && +off < 0.5; })()")) === true);
   await js("setSysStatus(false); setRunPill(false)");
   await wait(300);
-  check('and when the job stops they stand still again', (await js("document.getElementById('sysDot').classList.contains('e-pulse')")) === false && (await anims()) === '', await anims());
+  check('when the job stops the dots stand still and the beat is quiet', (await js("document.getElementById('sysDot').classList.contains('e-pulse')")) === false && (await flips()) === 0);
   await js("openTab('card')");
   await wait(500);
-  check('the card page indicator stands still while nothing runs', (await js("document.getElementById('cardPillDot').classList.contains('e-pulse')")) === false && (await anims()) === '');
+  check('the card page indicator stands still while nothing runs', (await js("document.getElementById('cardPillDot').classList.contains('e-pulse')")) === false && (await flips()) === 0);
   await js("setCardPill(true)");
   await wait(300);
-  check('and pulses while cards are farmed', (await js("document.getElementById('cardPillDot').classList.contains('e-pulse')")) === true && /e-dotPulse/.test(await anims()));
-  await js("document.documentElement.classList.add('e-idle')");
+  check('and beats while cards are farmed', (await js("document.getElementById('cardPillDot').classList.contains('e-pulse')")) === true && (await flips()) >= 3);
+  await js("document.documentElement.classList.add('e-idle'); runBeat()");
   await wait(300);
-  check('an unfocused window stops even that (the animations are paused, so no frames are drawn)', (await anims()) === '', await anims());
+  check('an unfocused window stops the beat altogether (the timer is gone, so no frames are drawn)', (await flips()) === 0 && (await hasBeat()) === false);
+  await js("document.documentElement.classList.remove('e-idle'); document.body.classList.add('e-light'); runBeat()");
+  await wait(300);
+  check('light mode does not beat either, and its dots are fully lit', (await flips()) === 0 && (await js("+getComputedStyle(document.getElementById('cardPillDot')).opacity")) === 1);
+  await js("document.body.classList.remove('e-light'); runBeat()");
+  await wait(300);
+  check('and it beats again when light mode goes', (await flips()) >= 3);
 
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;

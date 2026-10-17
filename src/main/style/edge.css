@@ -27,7 +27,6 @@
 .edge ::-webkit-scrollbar-track{background:transparent}
 .edge ::-webkit-scrollbar-thumb{background:var(--e-bd);border-radius:999px;border:3px solid var(--e-bg);background-clip:padding-box;min-height:44px}
 .edge ::-webkit-scrollbar-thumb:hover{background:var(--e-brand);background-clip:padding-box}
-@keyframes e-dotPulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 /* The .toast .tspin in common.css wants this keyframe sequence but it was not defined in any file: the spinner did not rotate and stayed as a fixed half circle. */
 @keyframes spin{to{transform:rotate(360deg)}}
 .edge [data-tip]{position:relative}
@@ -60,7 +59,9 @@
 .e-sys{display:flex;align-items:center;gap:9px;padding:10px 12px;border-top:1px solid var(--e-bdPassive)}
 .e-sys .e-dot{width:7px;height:7px;border-radius:12px;flex-shrink:0}
 /* Only a running job pulses; a dot that pulses while nothing runs made the window redraw 30 times a second for nothing */
-.e-pulse{animation:e-dotPulse 1.6s ease-in-out infinite}
+.e-pulse{opacity:.4}
+body.e-beat .e-pulse{opacity:1;transform:scale(1.4)}
+body.e-light .e-pulse{opacity:1!important;transform:none!important}
 .e-sys .e-sys-lbl{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--e-muted);white-space:nowrap}
 .e-aside.collapsed .e-sys .e-sys-lbl{display:none}
 /* rail toggle: a half-circle tab sticking out of the edge */
@@ -100,7 +101,9 @@
 .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:var(--e-title)}
 .acct-row .tag{font-size:11px;font-weight:700;color:var(--e-brandActive);background:rgba(86,36,179,.18);border:1px solid var(--e-bdActive);border-radius:20px;padding:2px 7px;flex:none}
 /* Account row status dots: green = card/hours running in the background, teal = only connected */
-.acct-row .run-dot{width:7px;height:7px;border-radius:12px;background:var(--e-ok);flex:none;animation:e-dotPulse 2s ease-in-out infinite}
+.acct-row .run-dot{width:7px;height:7px;border-radius:12px;background:var(--e-ok);flex:none;opacity:.4}
+body.e-beat .acct-row .run-dot{opacity:1;transform:scale(1.4)}
+body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .acct-row .conn-dot{width:7px;height:7px;border-radius:12px;background:var(--e-blue);flex:none}
 .acct-row .x{color:var(--e-off);padding:2px 5px;border-radius:6px;font-size:12px;line-height:1;flex:none}
 .acct-row .x:hover{color:var(--e-bad);background:rgba(179,36,83,.14)}
