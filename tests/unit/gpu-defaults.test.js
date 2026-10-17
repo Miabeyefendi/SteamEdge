@@ -38,6 +38,16 @@ check('a file that says nothing about it composites on the processor', !composes
 check('turning hardware acceleration off still works as before', startUp({ settingsVersion: 5, hwAccel: false }).disabled === true && startUp({ settingsVersion: 5 }).disabled === false);
 check('the ANGLE backend choice is untouched', startUp({ settingsVersion: 5, gpuBackend: 'd3d9' }).switches.includes('use-angle=d3d9'));
 
+// ---- low memory mode: graphics and network code inside the main process ----
+const lowMem = (r) => r.switches.includes('in-process-gpu') && r.switches.includes('enable-features=NetworkServiceInProcess2');
+check('low memory mode is on for a first start', lowMem(startUp(undefined)));
+check('and for a file that says nothing about it', lowMem(startUp({ settingsVersion: 5 })));
+check('and when it is switched on', lowMem(startUp({ settingsVersion: 5, lowMemory: true })));
+const off = startUp({ settingsVersion: 5, lowMemory: false });
+check('switched off, neither switch is given', !off.switches.includes('in-process-gpu') && !off.switches.some((x) => x.startsWith('enable-features')));
+check('it is independent of the compositing choice', lowMem(startUp({ settingsVersion: 5, gpuComposition: true })) && !composes(startUp({ settingsVersion: 5, lowMemory: true })));
+check('the default is on and a change asks for a restart', /lowMemory: true,/.test(src) && /RESTART = \[[^\]]*'lowMemory'/.test(fs.readFileSync(path.resolve(__dirname, '..', '..', 'src', 'main', 'js', 'settings.js'), 'utf8')));
+
 // ---- the migration ----
 const m1 = src.indexOf('function migrateSettings(v) {');
 const m2 = src.indexOf('  return hasChanged;\n}', m1) + '  return hasChanged;\n}'.length;

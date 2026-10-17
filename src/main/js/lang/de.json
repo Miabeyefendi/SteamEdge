@@ -1510,5 +1510,7 @@
  "Kısayollar": "Tastenkürzel",
  "Pencereyi kapat": "Fenster schließen",
  "Ayarlarda ara...": "Einstellungen durchsuchen...",
- "Kaydedilen bölümler:": "Gespeicherte Bereiche:"
+ "Kaydedilen bölümler:": "Gespeicherte Bereiche:",
+ "Düşük bellek modu": "Speicherspar-Modus",
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Grafik- und Netzwerkarbeit laufen im Hauptprozess statt in eigenen Prozessen: zwei Prozesse weniger und etwa 100 MB weniger Speicher. Der Preis: Stürzt ein Grafiktreiber ab, schließt sich die App mit. Schalte es aus, wenn Grafikfehler oder plötzliche Abstürze auftreten. Erfordert einen Neustart."
 }

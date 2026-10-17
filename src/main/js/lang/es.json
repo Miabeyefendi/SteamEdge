@@ -1510,5 +1510,7 @@
  "Kısayollar": "Atajos",
  "Pencereyi kapat": "Cerrar la ventana",
  "Ayarlarda ara...": "Buscar en los ajustes...",
- "Kaydedilen bölümler:": "Secciones guardadas:"
+ "Kaydedilen bölümler:": "Secciones guardadas:",
+ "Düşük bellek modu": "Modo de poca memoria",
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "El trabajo de gráficos y de red se ejecuta dentro del proceso principal en lugar de procesos aparte: dos procesos menos y unos 100 MB menos de memoria. El precio: si un controlador gráfico falla, la aplicación se cierra con él. Desactívalo si ves gráficos deformados o cierres repentinos. Requiere reiniciar."
 }

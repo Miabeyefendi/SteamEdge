@@ -321,6 +321,8 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `topSearch`, `topNotif`, `topUpdate` | `true` | Top bar items that can be switched off: the search box, the notification button, the update button |
 | `preventSleep` | `false` | Keep the computer from sleeping while card farming, hours boosting or Realistic Mode runs. The screen can still turn off and lock |
 | `resumeJobs` | `true` | Jobs that were running when the app ended start again where they left off (card farming, hour boosting, Realistic Mode) |
+| `gpuComposition` | `false` | Composite the window on the graphics card (`true`) or on the processor (`false`: 9 MB of video memory instead of 67 and the card is left to a game). Needs a restart |
+| `lowMemory` | `true` | Run the graphics and network code inside the main process: two processes fewer and about 100 MB less memory. Turn it off if you see garbled graphics or sudden closes. Needs a restart |
 
 ### Card farming
 
