@@ -7,6 +7,26 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.5.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.6)
+
+Realistic Mode takes the difficulty from real playing times: an easy story no longer turns a 12 hour game into 4 hours.
+
+### Fixed
+
+- **Realistic Mode: the difficulty shrank a long completion time far too much.** "Easy" took a third off the time that was entered (12 hours became 8 and, with half the achievements left, 4) and "very hard" added two thirds, with nothing to stop a 300 hour game from becoming 500.
+
+### Changed
+
+- **The difficulty now follows how long real players take.** The curves are fitted to HowLongToBeat data for 47 games, from 5 to 435 hours: a player who rushes needs 0.68 of the average 100% time (0.57 to 0.77), one who takes their time needs 2.4 times (never under 1.6 times).
+  - **Easy** is the fast player: about 0.75 of the entered time on a short game and 0.63 on a long one (12 hours become 9, 100 become 67, 300 become 196, 800 become 507).
+  - **Normal** is the entered time itself.
+  - **Hard** is halfway between normal and very hard on a log scale: 1.38 times on a short game, 1.26 times on a long one (12 hours become 17, 100 become 132, 300 become 388).
+  - **Very hard** is the completionist who takes their time: 1.9 times on a short game falling to 1.6 times on a long one (12 hours become 23, 100 become 175, 300 become 501). The 999 hour limit of the duration still holds.
+- The four options in the advanced panel now say what they stand for (fast player, average player, takes their time, completionist) instead of the old multipliers.
+- `npm test` runs 44 tests (new: the difficulty curves).
+
+SHA-256 (`SteamEdge-v1.5.6-win-x64.rar`): `95db35feb592dc27876d7475ecb16679b3f059fdb779971353fde72a6fe6c6d6`
+
 ## [1.5.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.5)
 
 Finding things is quicker: a command palette, number shortcuts for the pages, a search box in Settings, and marks on the sections you changed.
