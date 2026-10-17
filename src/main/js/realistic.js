@@ -284,14 +284,26 @@
     // That is why a value entered by hand always takes precedence and the box is now in the simple panel.
     function grTcAndDifficulty(game){
       // "Normal" difficulty (the stored 1.2) is the completion time as entered: 60 hours means 60 hours. It used to add 20% on top, so a game that
-      // takes 60 hours showed 72. Easier / harder scale it from there (0.8 -> 0.67, 2.0 -> 1.67, 3.5 -> 2.92).
-      const difficulty = (parseFloat(grVal('grDiff', '1.2')) || 1.2) / 1.2;
+      // takes 60 hours showed 72. Easier / harder move it a little from there (see below).
+      // The difficulty only nudges the time the player entered: a game whose 100% takes 12 hours does not get done in 4 because the story is easy, and a
+      // 300 hour game is not 500 hours because it is hard (someone who needs 500 hours is not the player the entered time describes). Easy, hard and very hard
+      // follow curves fitted to HowLongToBeat data (below), normal is 1.
       const crRaw = grVal('grCR', '2.0');
       const cr = crRaw === 'auto' ? 0 : (parseFloat(crRaw) || 2);
       const playedHours = game ? (game.playtimeMin / 60) : 0;
       const manual = (game ? grTcRead(game.appid) : 0) || (parseFloat(grVal('grTc', '')) || 0);
       const estimate = Math.max(2, playedHours * (cr || 2) || (cr || 2) * 5);
-      return { tcHours: manual > 0 ? manual : estimate, difficultyValue: difficulty, manuallyEntered: manual > 0, playedHours: playedHours };
+      const tcValue = manual > 0 ? manual : estimate;
+      // Easy: a fast player. From HowLongToBeat, 47 games from 5 to 435 hours: the "rushed" 100% time is 0.68 of the average 100% time
+      // (0.57 to 0.77) and drops a little as the game gets longer, fitted as 0.762 - 0.0191 ln(hours): 12 h -> 8.6, 100 h -> 67, 800 h -> 507.
+      // Very hard: a completionist who takes their time. The same 47 games: the "leisure" 100% time is 2.4x the average (median), never below 1.6x;
+      // a quarter of the games are under 2.05x. Softened on purpose to the low side of that: 1.9x on a 12 hour game falling to the 1.6x floor at
+      // 800 hours (a long game's grind is the part people skip). Hard is halfway in between on a log scale (the square root): 1.38x to 1.26x.
+      const easy = Math.max(0.6, Math.min(0.75, 0.762 - 0.0191 * Math.log(Math.max(1, tcValue))));
+      const veryHard = Math.max(1.6, Math.min(1.9, 1.9 - 0.3 * Math.log(Math.max(1, tcValue) / 12) / Math.log(800 / 12)));
+      const factor = { '0.8': easy, '1.2': 1, '2.0': Math.sqrt(veryHard), '3.5': veryHard }[String(grVal('grDiff', '1.2'))] || 1;
+      const difficulty = Math.round(factor * 1000) / 1000;
+      return { tcHours: tcValue, difficultyValue: difficulty, manuallyEntered: manual > 0, playedHours: playedHours };
     }
     function grOptions(){
       const { tcHours: tcHours, difficultyValue: difficulty } = grTcAndDifficulty(grQueue[0]);
