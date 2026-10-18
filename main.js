@@ -3176,6 +3176,7 @@ function realisticNotify(steamID, extra) {
     finishTime: d ? d.finishTime : 0,
     upNext: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].name : null,
     upNextPct: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].rarityPct : null,
+    upNextRel: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].rel : null,
     upNextTime: d ? d.upNextTime : 0,
     gameCount: d ? d.gameEntries.length : 0,
     gameIndex: d ? d.gameIndex : 0,
@@ -3406,8 +3407,10 @@ async function prepareRealisticQueue(motor, appid, options) {
     suitable = suitable.filter((a) => !a.ultra);
     ultraSkipped = earlier - suitable.length;
   }
-  // Known percentages from the highest to the lowest; unknown ones after them (hidden ones last of all); the sort is stable, so equal ones keep the schema order
-  const weightOf = (x) => (Number.isFinite(x.rarityPct) ? x.rarityPct : (x.isHidden ? -2 : -1));
+  // Known percentages from the highest to the lowest; unknown ones after them (hidden ones last of all); the sort is stable, so equal ones keep the schema order.
+  // Steam gives the percentages with many decimals and they move a little between two reads: the order is decided on one decimal, as shown, so a group of equal
+  // ones (a game with "# single run" tiers) keeps the schema order and the preview and the run agree.
+  const weightOf = (x) => (Number.isFinite(x.rarityPct) ? Math.round(x.rarityPct * 10) / 10 : (x.isHidden ? -2 : -1));
   suitable.sort((x, y) => weightOf(y) - weightOf(x));
   // Target count: trimmed from the start (the most common).
   const goal = +options.goalValue || 0;
@@ -3507,7 +3510,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       model: pick.model,
       averageIntervalMs: head.queueList.length ? Math.round(share / head.queueList.length) : 0,
       // Full list: the interface draws the "Unlock order" table from this.
-      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, timeValue: a.timeValue })),
+      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, rel: a.rel, timeValue: a.timeValue })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
 });
