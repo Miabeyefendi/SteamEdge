@@ -85,19 +85,24 @@
     const grWriteHours = (dk) => durationUnit(localDecimal((dk || 0) / 60, 1), 'sa');
 
     // ---- rarity colour ----
-    function grPctColor(pct){
-      if (!Number.isFinite(pct)) return GRC.off;
-      if (pct < 5) return GRC.bad;
-      if (pct < 10) return GRC.sub;
-      if (pct < 25) return GRC.teal;
+    // The bands are read from the share against the game's own most common achievement (rel, from the engine; see realisticPlan.js) so the label says what the
+    // engine does: in a game where every achievement is 3% to 7% on Steam none of them is "ultra rare". Without rel the raw percentage is used.
+    const grBandValue = (pct, rel) => (Number.isFinite(rel) ? rel * 100 : pct);
+    function grPctColor(pct, rel){
+      const v = grBandValue(pct, rel);
+      if (!Number.isFinite(v)) return GRC.off;
+      if (v < 5) return GRC.bad;
+      if (v < 10) return GRC.sub;
+      if (v < 25) return GRC.teal;
       return GRC.muted;
     }
-    function grRarityLabel(pct){
-      if (!Number.isFinite(pct)) return 'Bilinmiyor';
-      if (pct < 5) return 'Ultra nadir';
-      if (pct < 10) return 'Nadir';
-      if (pct < 25) return 'Az bulunur';
-      if (pct < 50) return 'Yaygın';
+    function grRarityLabel(pct, rel){
+      const v = grBandValue(pct, rel);
+      if (!Number.isFinite(v)) return 'Bilinmiyor';
+      if (v < 5) return 'Ultra nadir';
+      if (v < 10) return 'Nadir';
+      if (v < 25) return 'Az bulunur';
+      if (v < 50) return 'Yaygın';
       return 'Çok yaygın';
     }
 
@@ -416,6 +421,7 @@
       if (hasAchievements || isRunning){
         const position = isRunning ? grStatus.upNext : (grPlan.queueList[0] && grPlan.queueList[0].name);
         const orderPct = isRunning ? grStatus.upNextPct : (grPlan.queueList[0] && grPlan.queueList[0].rarityPct);
+        const orderRel = isRunning ? grStatus.upNextRel : (grPlan.queueList[0] && grPlan.queueList[0].rel);
         const rank = isRunning ? (grStatus.openedGames + 1) : 1;
         grSet('grNextName', grStatus.achievementsDone ? t('Başarımlar bitti') : (position || '-'));
         grSet('grNextMeta', grStatus.achievementsDone
@@ -423,8 +429,8 @@
           : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : grPlan.averageIntervalMs), rank));
         const pctEl = grEl('grNextPct');
         pctEl.textContent = Number.isFinite(orderPct) ? fmtPercent(localDecimal(orderPct, 1)) : '-';
-        pctEl.style.color = grPctColor(orderPct);
-        pctEl.style.borderColor = grPctColor(orderPct);
+        pctEl.style.color = grPctColor(orderPct, orderRel);
+        pctEl.style.borderColor = grPctColor(orderPct, orderRel);
       }
 
       // Unlock order table
@@ -440,7 +446,7 @@
       let lastLabel = null;
       grPlan.queueList.forEach((a, i)=>{
         // Divider when the rarity changes: the "isDivider" row in the template.
-        const et = grRarityLabel(a.rarityPct);
+        const et = grRarityLabel(a.rarityPct, a.rel);
         if (et !== lastLabel){
           lastLabel = et;
           html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 2px 6px">'
@@ -449,14 +455,14 @@
             + '<span style="flex:1;height:1px;background:#1D2432"></span>'
             + '</div>';
         }
-        const colorVal = grPctColor(a.rarityPct);
+        const colorVal = grPctColor(a.rarityPct, a.rel);
         const wasOpened = openedNames.has(a.name);
         html += '<div style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid #101621">'
           + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">#'+(i+1)+'</span>'
           + '<div style="width:33px;height:33px;flex-shrink:0;border-radius:11px;border:1px solid '+(wasOpened?GRC.ok:'#2B3345')+';background:#101621;display:flex;align-items:center;justify-content:center">'
           + '<span style="width:10px;height:10px;background:'+(wasOpened?GRC.ok:colorVal)+';transform:rotate(45deg)"></span></div>'
           + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(wasOpened?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')+'</span>'
-          + '<span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+colorVal+';border:1px solid '+colorVal+';border-radius:12px;padding:2px 8px;flex-shrink:0">'+esc(grRarityLabel(a.rarityPct))+'</span>'
+          + '<span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+colorVal+';border:1px solid '+colorVal+';border-radius:12px;padding:2px 8px;flex-shrink:0">'+esc(grRarityLabel(a.rarityPct, a.rel))+'</span>'
           + '<span style="width:52px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+colorVal+';text-align:right">'
           + (Number.isFinite(a.rarityPct) ? fmtPercent(localDecimal(a.rarityPct, 1)) : '-')+'</span>'
           + '<span style="width:92px;flex-shrink:0;white-space:nowrap;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;text-align:right">'
@@ -812,6 +818,8 @@
       }
       grOpened = [];
       runBegin('realistic');
+      // The order could not be read from Steam: the run goes on with a guess and the user is told once
+      if (r.rarityMissing && typeof toast === 'function') toast('Gerçekçi Mod').fail('Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.');
       notify('boost', 'Gerçekçi Mod Başladı', (r.gameTitle||'') + ' · ' + tf('# başarım', r.totalSum));
       pushFeed('hours', 'Gerçekçi Mod',
                tf('# oyun', r.gameCount) + ' · ' + tf('# başarım # süreye yayıldı.', r.totalSum, grDurationLabel(durationMs)), 'Çalışıyor');

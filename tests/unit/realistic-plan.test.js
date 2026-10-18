@@ -93,18 +93,40 @@ check('a resumed run unlocks exactly what was left of each game, over the time t
 check('and never more than is left in the game', planGames([{ appid: 1, h: game(50, 45) }], Object.assign({}, base, { goalByGame: { 1: 30 } }), 2 * HOUR, false).games[0].goal === 5);
 check('a game with nothing left of its target gets no list', planGames([{ appid: 1, h: game(10, 0) }], Object.assign({}, base, { goalByGame: { 1: 0 } }), HOUR, false).games[0].queueList.length === 0);
 check('a game that is not named follows the usual target', planGames([{ appid: 1, h: game(50, 0) }, { appid: 2, h: game(20, 0) }], Object.assign({}, base, { goalAuto: false, goalValue: 0, autoSpan: false, goalByGame: { 2: 3 } }), HOUR, false).games.map((g) => g.goal).join() === '50,3');
-// ---- the order and the gaps by rarity: the achievement most players have comes first and fast, the rarest last and slow ----
-check('the weight grows as the achievement gets rarer: 100% 1, 50% 1.17, 20% 1.4, 5% 1.75', near(realisticRarityWeight(100, 3), 1, 1e-9) && near(realisticRarityWeight(50, 3), 1.173, 0.01) && near(realisticRarityWeight(20, 3), 1.402, 0.01) && near(realisticRarityWeight(5, 3), 1.748, 0.01));
-check('under 5% it is multiplied by the ultra rare wait of the settings', near(realisticRarityWeight(1, 3) / realisticRarityWeight(1, 1), 3, 1e-9) && near(realisticRarityWeight(4.9, 4) / realisticRarityWeight(4.9, 1), 4, 1e-9) && realisticRarityWeight(5, 4) === realisticRarityWeight(5, 1));
-check('an unknown rarity has the plain weight and the extremes stay finite', realisticRarityWeight(null, 3) === 1 && realisticRarityWeight(undefined, 3) === 1 && Number.isFinite(realisticRarityWeight(0, 3)) && realisticRarityWeight(0, 3) === realisticRarityWeight(0.1, 3));
-check('a rarer achievement never weighs less than a more common one (with the same setting)', [100, 80, 60, 40, 20, 10, 5.1, 4.9, 3, 1, 0.5, 0.1].every((p, i, a) => i === 0 || realisticRarityWeight(p, 3) >= realisticRarityWeight(a[i - 1], 3)));
+// ---- rarity: judged against the game's own most common achievement; ultra rare ones are last and never squeezed ----
+const { relativeRarity, isUltraRare } = require(path.resolve(__dirname, '..', '..', 'src', 'core', 'realisticPlan.js'));
+check('rarity is relative to the most common achievement of the game: 4% of a game whose best is 33% is not ultra rare, 1% is', !isUltraRare(relativeRarity(4, 33.7)) && isUltraRare(relativeRarity(1, 33.7)));
+check('a game where every achievement is 3% to 7% has no ultra rare ones', [3, 4, 5, 6, 7].every((p) => !isUltraRare(relativeRarity(p, 7))));
+check('the ultra rare weight is the setting, everything else weighs the same', realisticRarityWeight(true, 3) === 3 && realisticRarityWeight(true, 1) === 1 && realisticRarityWeight(false, 3) === 1 && realisticRarityWeight(undefined, 3) === 1);
 {
-  const q = [60, 40, 20, 8, 5, 3, 1, 0.2].map((x, i) => ({ rarityPct: x, name: 'a' + i }));
-  placeRealisticTimes(q, HOUR, 'linear', 0, {});
-  const gaps = q.map((x, i) => x.timeValue - (i ? q[i - 1].timeValue : 0));
-  check('the unlock times rise in the order of the queue', q.every((x, i) => i === 0 || x.timeValue > q[i - 1].timeValue));
-  check('the gaps widen as the queue goes to the rarer ones', gaps.every((g, i) => i === 0 || g >= gaps[i - 1] - 1), gaps.map((g) => Math.round(g / 60000)).join(' '));
-  check('the common half is out in the first third of the run, the ultra rare ones take the rest of it', q[3].timeValue < HOUR / 3 && q[5].timeValue > HOUR * 0.4 && q[7].timeValue === HOUR);
-  check('the most common achievement is unlocked within the first few minutes', q[0].timeValue < 5 * 60000);
+  // 100 achievements: 80 ordinary, 10 rare, 10 ultra rare (under 5% of the best one)
+  const pcts = [...Array.from({ length: 80 }, (_, i) => 60 - i * 0.3), ...Array.from({ length: 10 }, (_, i) => 12 - i * 0.5), ...Array.from({ length: 10 }, (_, i) => 2.5 - i * 0.2)];
+  const mk = () => pcts.map((x, i) => ({ rarityPct: x, name: 'a' + i }));
+  const q = mk();
+  placeRealisticTimes(q, 10 * HOUR, 'linear', 0, {});
+  const ultras = q.slice(90), others = q.slice(0, 90);
+  check('100 achievements, 10 of them ultra rare: none of them is among the first 90 unlocks', others.every((x, i) => i === 0 || x.timeValue >= others[i - 1].timeValue) && ultras.every((x) => x.timeValue >= others[89].timeValue));
+  check('the first unlock is a common one and comes early', q[0].timeValue < 15 * 60000 && !isUltraRare(relativeRarity(q[0].rarityPct, 60)));
+  const waits = q.map((x, i) => x.timeValue - (i ? q[i - 1].timeValue : 0));
+  check('the gap in front of the first ultra rare one is the ultra rare wait (3x an ordinary gap)', near(waits[90] / waits[50], 3, 0.2), (waits[90] / waits[50]).toFixed(2));
+  // the backlog squeeze: 50 overdue, but only the common ones may be squeezed
+  const sq = mk();
+  placeRealisticTimes(sq, 10 * HOUR, 'linear', 50, {});
+  check('the squeezed part holds only common achievements, 50 of them in the first fifth of the run', sq.slice(0, 50).every((x) => x.delayCompensation && x.timeValue <= 2.01 * HOUR) && !sq[60].delayCompensation);
+  const sq2 = mk();
+  placeRealisticTimes(sq2, 10 * HOUR, 'linear', 95, {});
+  const squeezed = sq2.filter((x) => x.delayCompensation);
+  check('an overdue count that reaches into the rare and ultra rare ones stops at the end of the story level (30% of the best)', squeezed.length > 0 && squeezed.length <= 60 && squeezed.every((x) => x.rarityPct / 60 >= 0.3), String(squeezed.length));
+  const sq3 = mk();
+  placeRealisticTimes(sq3, 10 * HOUR, 'pareto', 0, {});
+  check('a model that bends the curve still keeps the ultra rare ones after the others', sq3.slice(90).every((x) => x.timeValue >= Math.max(...sq3.slice(0, 90).map((y) => y.timeValue))));
+  // a small game: 5 achievements, 3 ultra rare, everything overdue
+  const small = [{ rarityPct: 50 }, { rarityPct: 40 }, { rarityPct: 1.5 }, { rarityPct: 1 }, { rarityPct: 0.5 }];
+  placeRealisticTimes(small, 2 * HOUR, 'linear', 5, {});
+  check('a small game with 3 ultra rare ones: they are not squeezed into the first minutes', small.slice(2).every((x) => !x.delayCompensation && x.timeValue > HOUR / 2), small.map((x) => Math.round(x.timeValue / 60000)).join(' '));
+  // no rarity at all (Steam did not answer): the list is still placed in order and nothing is squeezed
+  const none = Array.from({ length: 6 }, (_, i) => ({ rarityPct: null, name: 'n' + i }));
+  placeRealisticTimes(none, HOUR, 'linear', 4, {});
+  check('without any rarity data the unlocks still rise in order and nothing is squeezed', none.every((x, i) => !x.delayCompensation && (i === 0 || x.timeValue > none[i - 1].timeValue)));
 }
 process.exit(failures ? 1 : 0);

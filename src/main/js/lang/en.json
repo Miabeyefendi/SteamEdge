@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Realistic Mode",
  "Hız çarpanı": "Speed multiplier",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Compresses or stretches the whole schedule. 0.5 is twice as fast.",
- "%5 altı başarımlar bu oranda daha uzun bekler.": "Achievements under 5% wait this many times longer.",
+ "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Achievements held by less than a twentieth of what the most common one has wait this many times longer and always come last.",
  "Telafi payı": "Catch-up share",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "What percentage of the session the backlog is cleared in.",
  "Bitmiş oyunda sıkıştır": "Compress on a finished game",
@@ -1520,5 +1520,5 @@
  "Çalışan hesap: #": "Accounts running: #",
  "Biten: # hesap": "Finished: # accounts",
  "Çalışan işler için hesap listesini aç": "Open the account list to see what runs on each account",
- "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "The rarity percentages of the achievements could not be read from Steam; the order would have been wrong. Try again in a few minutes."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "The rarity percentages could not be read; the order is a guess, hidden achievements last."
 }

@@ -3159,7 +3159,7 @@ function realisticClear(steamID) {
 }
 
 // The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
-const { realisticModelRatio, realisticAccum, realisticRarityWeight, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames } = require('./src/core/realisticPlan');
+const { realisticModelRatio, realisticAccum, realisticRarityWeight, relativeRarity, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames } = require('./src/core/realisticPlan');
 
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
@@ -3176,6 +3176,7 @@ function realisticNotify(steamID, extra) {
     finishTime: d ? d.finishTime : 0,
     upNext: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].name : null,
     upNextPct: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].rarityPct : null,
+    upNextRel: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].rel : null,
     upNextTime: d ? d.upNextTime : 0,
     gameCount: d ? d.gameEntries.length : 0,
     gameIndex: d ? d.gameIndex : 0,
@@ -3388,35 +3389,37 @@ async function prepareRealisticQueue(motor, appid, options) {
     markNoAchievements(appid);
     return { ok: false, noAchievements: true, error: 'Bu oyunun başarımı yok.', gameTitle: (data && data.gameName) || null };
   }
-  // The order of the queue is the whole point of Realistic Mode (from the most common achievement to the rarest). If the percentages could not be read and nothing from
-  // an earlier read is kept, every rarity is unknown, the sort below has nothing to go by and the schema order would be used (which can put rare ones first):
-  // the run is refused with the reason instead.
-  if (data.rarityOk === false) {
-    log('warn', 'realistic mode: the rarity percentages of ' + appid + ' could not be read, the queue was not built');
-    return { ok: false, rarityMissing: true, error: 'Başarımların nadirlik oranları Steam\'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.' };
-  }
+  // The order of the queue is the point of Realistic Mode (from the most common achievement to the rarest). If the percentages could not be read and nothing from an earlier
+  // read is kept (rarityOk false) the run still starts: the order falls back to the schema order with the hidden achievements last (usually the end of the story and the
+  // grind), and the interface says so. It used to be refused, which left the user with nothing.
+  const rarityMissing = data.rarityOk === false;
+  if (rarityMissing) log('warn', 'realistic mode: the rarity percentages of ' + appid + ' could not be read, the order is a guess (hidden achievements last)');
+  // Rarity is judged against the game's OWN most common achievement (the players who started), see realisticPlan.js
+  const highest = Math.max(0, ...everything.map((a) => (Number.isFinite(a.rarityPct) ? a.rarityPct : 0)));
+  everything.forEach((a) => { a.rel = relativeRarity(a.rarityPct, highest); a.ultra = isUltraRare(a.rel); });
   // Locked + not protected. Protected ones are rejected by Steam (see G4).
   let suitable = everything.filter((a) => !a.achieved && !a.protectedFlag);
   const protected = everything.filter((a) => !a.achieved && a.protectedFlag).length;
-  // "Skip ultra rare achievements": those under 5% are the ones that stand out most on a profile.
+  // "Skip ultra rare achievements": the grind of a completionist, under 5% of the players who started
   let ultraSkipped = 0;
   if (options.ultraRareSkip) {
     const earlier = suitable.length;
-    suitable = suitable.filter((a) => !Number.isFinite(a.rarityPct) || a.rarityPct >= 5);
+    suitable = suitable.filter((a) => !a.ultra);
     ultraSkipped = earlier - suitable.length;
   }
-  suitable.sort((x, y) => {
-    const a = Number.isFinite(x.rarityPct) ? x.rarityPct : -1;
-    const b = Number.isFinite(y.rarityPct) ? y.rarityPct : -1;
-    return b - a;
-  });
+  // Known percentages from the highest to the lowest; unknown ones after them (hidden ones last of all); the sort is stable, so equal ones keep the schema order.
+  // Steam gives the percentages with many decimals and they move a little between two reads: the order is decided on one decimal, as shown, so a group of equal
+  // ones (a game with "# single run" tiers) keeps the schema order and the preview and the run agree.
+  const weightOf = (x) => (Number.isFinite(x.rarityPct) ? Math.round(x.rarityPct * 10) / 10 : (x.isHidden ? -2 : -1));
+  suitable.sort((x, y) => weightOf(y) - weightOf(x));
   // Target count: trimmed from the start (the most common).
   const goal = +options.goalValue || 0;
   const clipped = (goal > 0 && goal < suitable.length) ? suitable.slice(0, goal) : suitable;
   return {
     ok: true,
     gameTitle: data.gameName || ownedGameName(motor, appid) || ('App ' + appid),
-    queueList: clipped.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct })),
+    queueList: clipped.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct, rel: a.rel, ultra: a.ultra })),
+    rarityMissing,
     suitableTotal: suitable.length,
     protectedFlag: protected,
     ultraSkipped: ultraSkipped,
@@ -3500,13 +3503,14 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       unlockedState: head.h.unlockedState,
       protectedFlag: head.h.protectedFlag,
       ultraSkipped: head.h.ultraSkipped,
-      spanMs: built.spanMs,                     // the whole run (all games), the automatic one if autoSpan
+      rarityMissing: !!head.h.rarityMissing,
+      spanMs: built.spanMs,                   // the whole run (all games), the automatic one if autoSpan
       autoSpan: built.auto,
       queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0),
       model: pick.model,
       averageIntervalMs: head.queueList.length ? Math.round(share / head.queueList.length) : 0,
       // Full list: the interface draws the "Unlock order" table from this.
-      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, timeValue: a.timeValue })),
+      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, rel: a.rel, timeValue: a.timeValue })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
 });
@@ -3532,9 +3536,6 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     // A run the schedule starts keeps the span it was given (it has to fit what is left of its time range); any other run may get the
     // automatic duration.
     const plan = await realisticPrepareAll(motor, listing, pick, givenSpan, !fromSchedule);
-    // A game whose order could not be worked out stops the run: starting the others would quietly drop it from what the user asked for
-    const noOrder = Object.values(plan.dropped || {}).find((d) => d && d.rarityMissing);
-    if (noOrder) return { ok: false, error: noOrder.error };
     const duration = plan.spanMs;
     pick.autoSpanApplied = plan.auto;
     const prepared = {};
@@ -3599,7 +3600,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     d.upNextTime = Date.now() + initial;
     realisticNotify(steamID);
     d.timer = setTimeout(() => { if (realisticStatus(steamID) === d) realisticStep(steamID); }, initial);
-    return { ok: true, totalSum: totalTarget, gameCount: willRun.length, gameTitle: firstGame.name };
+    return { ok: true, totalSum: totalTarget, gameCount: willRun.length, gameTitle: firstGame.name, rarityMissing: plan.games.some((g) => g.h.rarityMissing) };
   } catch (e) { return { ok: false, error: e.message }; }
 }
 ipcMain.handle('realistic:start', (_e, arg) => realisticStartFor(activeSteamID, arg, false));

@@ -101,6 +101,12 @@ app.whenReady().then(async () => {
   await wait(1200);
   p = lastPlan();
   check('the second click turns it on and the 80 hours come back', settings.grAutoDuration === true && p.optionList.autoSpan === true && (await field('grRH')) === '80', (await field('grRH')));
+  // The rarity label follows what the engine does: against the game's own most common achievement, the raw percentage only when that is not known
+  const labels = await js("[grRarityLabel(4.9, 0.7), grRarityLabel(4.9, 0.02), grRarityLabel(4.9, undefined), grRarityLabel(4.9, null), grRarityLabel(60, 1), grPctColor(4.9, 0.7) === grPctColor(80), grPctColor(4.9, 0.02) !== grPctColor(80)]");
+  check('4.9% in a game whose best is 7% is not "ultra rare" (it is 70% of the best)', labels && labels[0] === 'Çok yaygın', JSON.stringify(labels));
+  check('1% of a game whose best is 50% is ultra rare', labels && labels[1] === 'Ultra nadir');
+  check('without the relative value the raw percentage is used as before', labels && labels[2] === 'Ultra nadir' && labels[3] === 'Ultra nadir' && labels[4] === 'Çok yaygın');
+  check('the colour follows the same value', labels && labels[5] === true && labels[6] === true);
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;
   app.exit(failures ? 1 : 0);

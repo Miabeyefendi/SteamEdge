@@ -8,6 +8,7 @@ const vm = require('vm');
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
 const root = path.resolve(__dirname, '..', '..');
+const planner = require(path.join(root, 'src', 'core', 'realisticPlan.js'));
 const rarityCache = require(path.join(root, 'src', 'core', 'rarityCache.js'));
 const SteamEngine = require(path.join(root, 'src', 'core', 'steamEngine.js'));
 
@@ -76,6 +77,7 @@ const SteamEngine = require(path.join(root, 'src', 'core', 'steamEngine.js'));
   const logs = [];
   const ctx = {
     log: (l, m) => logs.push(l + ' ' + m), markNoAchievements: () => {}, Number, Array, Object, Math, JSON,
+    relativeRarity: planner.relativeRarity, isUltraRare: planner.isUltraRare,
     accounts: new Map(), accountData: () => ({ lists: { owned: [{ appid: 636150, name: 'Bullet Game' }, { appid: 5, name: 'Other' }] } }),
   };
   vm.createContext(ctx);
@@ -90,10 +92,22 @@ const SteamEngine = require(path.join(root, 'src', 'core', 'steamEngine.js'));
   check('a game that is not in the library keeps the App number as its name', out.gameTitle === 'App 99');
   out = await ctx.prepare(m, 636150, { ultraRareSkip: true });
   check('"skip ultra rare" leaves out what is under 5% and keeps the order', out.queueList.map((x) => x.apiName).join() === 'common,mid,unknown' && out.ultraSkipped === 1);
-  m = motorOf([ach('rare', null), ach('common', null), ach('mid', null)], { rarityOk: false });
+  m = motorOf([{ ...ach('first', null), isHidden: true }, ach('second', null), { ...ach('third', null), isHidden: true }, ach('fourth', null)], { rarityOk: false });
   out = await ctx.prepare(m, 636150, {});
-  check('when the percentages could not be read the queue is refused, with the reason', out.ok === false && out.rarityMissing === true && /nadirlik/.test(out.error), JSON.stringify(out));
-  check('and the refusal is logged', logs.some((l) => /rarity percentages/.test(l)));
+  check('when the percentages could not be read the run still starts, with the flag', out.ok === true && out.rarityMissing === true, JSON.stringify(out).slice(0, 160));
+  check('the guessed order is the schema order with the hidden achievements last', out.queueList.map((x) => x.apiName).join() === 'second,fourth,first,third', out.queueList.map((x) => x.apiName).join());
+  check('and the guess is logged', logs.some((l) => /rarity percentages/.test(l)));
+  m = motorOf([ach('a', 60), ach('b', 40), ach('c', 1.5), ach('d', 1)], { rarityOk: true });
+  out = await ctx.prepare(m, 636150, {});
+  check('rarity is judged against the best achievement of the game: 1.5% and 1% of a game whose best is 60% are ultra rare', out.queueList.map((x) => x.ultra).join() === 'false,false,true,true' && out.rarityMissing === false, JSON.stringify(out.queueList.map((x) => x.ultra)));
+  m = motorOf([ach('a', 7), ach('b', 6), ach('c', 5), ach('d', 3)], { rarityOk: true });
+  out = await ctx.prepare(m, 636150, {});
+  check('a game whose achievements are all 3% to 7% has no ultra rare ones', out.queueList.every((x) => x.ultra === false));
+  out = await ctx.prepare(m, 636150, { ultraRareSkip: true });
+  check('and "skip ultra rare" then skips nothing in it', out.queueList.length === 4 && out.ultraSkipped === 0);
+  m = motorOf([ach('t3', 4.93), ach('t1', 4.94), ach('t2', 4.91), ach('top', 7.02)], { rarityOk: true });
+  out = await ctx.prepare(m, 636150, {});
+  check('percentages that read the same at one decimal keep the schema order (tiers of one family do not shuffle between two reads)', out.queueList.map((x) => x.apiName).join() === 'top,t3,t1,t2', out.queueList.map((x) => x.apiName).join());
   m = motorOf([ach('a', 10), ach('b', 20)], { rarityOk: true, gameName: 'Named By Steam' });
   out = await ctx.prepare(m, 636150, {});
   check('a name that Steam gives wins', out.gameTitle === 'Named By Steam');

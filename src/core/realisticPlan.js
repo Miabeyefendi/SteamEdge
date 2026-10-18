@@ -46,22 +46,37 @@ function realisticAccum(details) {
   return Math.max(0, Math.round(expected - (+b.unlockedState || 0)));
 }
 
-// ---- RARITY WEIGHT ----
-// How long a real player waits before the next unlock depends on how few players have that achievement. The queue is already in order, from the achievement most players
-// have (the one you get just by playing) to the rarest; the weight says how wide the gap in front of each one is. The gap grows with the logarithm of how rare the
-// achievement is: 100% of players = 1, 50% = 1.17, 20% = 1.4, 5% = 1.75, 1% = 2.15, 0.1% = 2.7. Under 5% (the ones that stand out on a profile) it is then multiplied by the
-// "ultra rare wait" setting, so those wait the longest. Before, only that last step existed: every achievement over 5% got the same gap, and the rarest got three times as much.
-const ULTRA_RARE_PCT = 5;
-function realisticRarityWeight(pct, ultraMultiplier) {
-  if (!Number.isFinite(pct)) return 1;
-  const share = Math.min(100, Math.max(0.1, pct));
-  const base = 1 + 0.25 * Math.log(100 / share);
-  return pct < ULTRA_RARE_PCT ? base * Math.max(1, ultraMultiplier || 3) : base;
+// ---- RARITY ----
+// Steam's percentage is the share of the OWNERS of the game, and many owners never really start it: the most common achievement of a game is held by 33% of the owners
+// in one game and by 97% in another. So rarity is measured against the game's own most common achievement (rel = percent / the highest percent of the game), which is
+// "the share of the players who started". Measured on 42 games (HowLongToBeat times and Steam percentages): about 8% of a game's achievements are under 0.05 of it
+// (the ultra rare ones, the grind of a completionist), and the achievement that ends the story sits at about 0.30.
+// The same data fits the time of an unlock best when it follows the RANK in the queue (from common to rare) in a straight line: at the end of the story a player has
+// 34% of the achievements after 38% of the time it takes to get all of them. A weight that grows with rarity fitted worse (log error 0.69 against 0.44), so the only
+// extra wait left is the "ultra rare wait" setting, in front of the ultra rare ones.
+const ULTRA_REL = 0.05;        // under this share of the game's most common achievement: ultra rare
+const STORY_REL = 0.30;        // at this share the story of a game is typically over; the backlog squeeze never reaches below it
+function relativeRarity(pct, highest) {
+  return Number.isFinite(pct) && highest > 0 ? pct / highest : null;
+}
+function isUltraRare(rel) { return Number.isFinite(rel) && rel < ULTRA_REL; }
+function realisticRarityWeight(ultra, ultraMultiplier) {
+  return ultra ? Math.max(1, ultraMultiplier || 3) : 1;
+}
+// rel and ultra come from the game's whole list (main.js prepareRealisticQueue); a list without them is judged against its own highest percent
+function rarityOf(queue) {
+  const highest = Math.max(0, ...queue.map((x) => (Number.isFinite(x.rarityPct) ? x.rarityPct : 0)));
+  return queue.map((x) => {
+    const rel = Number.isFinite(x.rel) ? x.rel : relativeRarity(x.rarityPct, highest);
+    return { rel, ultra: typeof x.ultra === 'boolean' ? x.ultra : isUltraRare(rel) };
+  });
 }
 
 // Writes the unlock times into the queue (ms relative to the start of the session).
-//   accumulation > 0 : the first that many achievements are squeezed into the start of the session
+//   accumulation > 0 : the first that many achievements are squeezed into the start of the session, but only common ones: never an ultra rare one, and never one that is
+//                      rarer than the end of a story (STORY_REL), because a player who has played for hours has the story achievements, not the grind
 //   setting          : { speedMultiplier, ultraMultiplier, compensationShare, finishedFlag, finishedRatio }
+// The ultra rare ones are always at the end of the run: none of them is unlocked before the last of the others.
 function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
   const n = queue.length;
   if (!n) return queue;
@@ -75,11 +90,13 @@ function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
   const finishedRatio = a.finishedFlag ? Math.max(0.05, Math.min(1, +a.finishedRatio || 0.5)) : 1;
   const activeDuration = Math.max(60000, Math.round(durationMs * speed * finishedRatio));
 
-  const fast = Math.min(Math.floor(n * DELAY_UPPER_LIMIT), Math.max(0, +accumulation || 0));
+  const kinds = rarityOf(queue);
+  let eligible = 0;
+  while (eligible < n && !kinds[eligible].ultra && Number.isFinite(kinds[eligible].rel) && kinds[eligible].rel >= STORY_REL) eligible++;
+  const fast = Math.min(Math.floor(n * DELAY_UPPER_LIMIT), Math.max(0, +accumulation || 0), eligible);
   const fastDuration = fast ? Math.round(activeDuration * compensationShare) : 0;
   const remainingTime = activeDuration - fastDuration;
-  const remainders = queue.slice(fast);
-  const weights = remainders.map((x) => realisticRarityWeight(x.rarityPct, ultra));
+  const weights = queue.slice(fast).map((x, i) => realisticRarityWeight(kinds[fast + i].ultra, ultra));
   const totalWeight = weights.reduce((t, x) => t + x, 0) || 1;
 
   let cumulative = 0;
@@ -92,6 +109,9 @@ function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
       x.timeValue = fastDuration + Math.round(remainingTime * realisticModelRatio(cumulative / totalWeight, model));
     }
   });
+  // A model that bends the curve (Pareto) must not bring an ultra rare one in front of the others
+  const lastOrdinary = queue.reduce((m, x, i) => (kinds[i].ultra ? m : Math.max(m, x.timeValue)), 0);
+  queue.forEach((x, i) => { if (kinds[i].ultra && x.timeValue < lastOrdinary) x.timeValue = lastOrdinary; });
   return queue;
 }
 
@@ -191,7 +211,7 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
 }
 
 module.exports = {
-  realisticModelRatio, realisticAccum, realisticRarityWeight, placeRealisticTimes,
+  realisticModelRatio, realisticAccum, realisticRarityWeight, relativeRarity, isUltraRare, placeRealisticTimes,
   tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, planGames,
-  DELAY_UPPER_LIMIT, MIN_SPAN_MS, MAX_SPAN_MS,
+  DELAY_UPPER_LIMIT, ULTRA_REL, STORY_REL, MIN_SPAN_MS, MAX_SPAN_MS,
 };

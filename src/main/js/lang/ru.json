@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Реалистичный режим",
  "Hız çarpanı": "Множитель скорости",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Сжимает или растягивает весь график. 0,5 - вдвое быстрее.",
- "%5 altı başarımlar bu oranda daha uzun bekler.": "Достижения реже 5% ждут во столько раз дольше.",
+ "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Достижения, которые есть менее чем у одной двадцатой от числа игроков самого частого, ждут во столько раз дольше и всегда идут последними.",
  "Telafi payı": "Доля на наверстывание",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "В какой первой доле сессии закрывается отставание.",
  "Bitmiş oyunda sıkıştır": "Сжимать в пройденной игре",
@@ -1520,5 +1520,5 @@
  "Çalışan hesap: #": "Работают аккаунты: #",
  "Biten: # hesap": "Завершено: # акк.",
  "Çalışan işler için hesap listesini aç": "Открыть список аккаунтов, чтобы увидеть, что работает на каждом",
- "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "Не удалось получить из Steam проценты редкости достижений; порядок был бы неверным. Повторите попытку через несколько минут."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Не удалось получить проценты редкости; порядок приблизительный, скрытые достижения в конце."
 }
