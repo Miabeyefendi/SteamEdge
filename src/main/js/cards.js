@@ -24,7 +24,7 @@
       priority: 'Öncelik listendeki oyunları önce çalıştırır.',
       leastPlayed: 'Oyunları oynanma süresi en az olandan başlayarak tek tek çalıştırır.',
       mostPlayed: 'Oyunları oynanma süresi en çok olandan başlayarak tek tek çalıştırır.',
-      fast: 'Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.'
+      fast: 'Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.'
     };
     // listRow(on) / segSet(cur,key) selected-style helpers
     const ROW_ON  = { bg:'#151C28', fg:'#DCE2FA', bd:'#5624B3' };
@@ -372,23 +372,30 @@
       if (d){ d.style.background = run ? '#5FB324' : '#B37E24'; d.classList.toggle('e-pulse', !!run); }
     }
     document.getElementById('btnStart').onclick = () => {
+      if (runIsOn('card')) return;
       // playtimeMin is needed for fast mode's "2 hour" rule (the engine reads it)
       const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining,playtimeMin:g.playtimeMin||0}));
       if (!games.length) return;
+      runBegin('card');
       E.startFarm(selectedMode, games, durationSec*1000);
       setCardPill(true);
       let sub = tf('# oyun sırada.', games.length);
       if (selectedMode === 'fast'){
         const threshold = (typeof appSettings === 'object' && appSettings && appSettings.fastMinPlaytimeMin != null) ? +appSettings.fastMinPlaytimeMin : 120;
         const cold = games.filter(g=>(g.playtimeMin||0) < threshold);
-        sub = cold.length
-          ? tf('# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.', cold.length)
-          : tf('# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.', games.length);
+        const hot = games.length - cold.length;
+        sub = cold.length && hot
+          ? tf('# oyun eşiğin altında ve eşiğe çekilecek; eşiği geçmiş # oyunda kart düşmesi hemen başlıyor.', cold.length, hot)
+          : cold.length
+            ? tf('# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.', cold.length)
+            : tf('# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.', games.length);
       }
       notify('farm', 'Kart Düşürme Başladı', sub);
       pushFeed('card', 'Kart Düşürme', sub, 'Çalışıyor');
     };
     document.getElementById('btnStop').onclick = () => {
+      if (!runIsOn('card')) return;
+      runEnd('card');
       E.stopFarm();
       setCardPill(false);
       notify('farm', 'Kart Düşürme Durdu', '');
@@ -405,6 +412,7 @@
       if (data.running && !lastTick.running && typeof autoSellFloor === 'function') autoSellFloor();
       lastTick = data;
       setCardPill(!!data.running);
+      paintRunButtons();
       if (!cardsLoaded || !designed.card || designed.card.classList.contains('hidden')) { lastCardSignature = ''; return; }
       const signature = (data.running ? 1 : 0) + '|' + (data.activeAppids || []).join(',') + '|' + data.currentAppid;
       if (signature !== lastCardSignature){ lastCardSignature = signature; renderCards(); return; }

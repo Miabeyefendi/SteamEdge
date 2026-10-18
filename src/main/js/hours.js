@@ -474,7 +474,7 @@
 
     // ---- start / stop ----
     async function startBoost(){
-      if (!selectedHours.length) return;
+      if (!selectedHours.length || runIsOn('hours')) return;
       // If hour sync is on, every selected game takes part (it opens up to 32 at once itself); otherwise the first
       // `maxConcurrent` games run together, and sequential idling cycles the whole queue in turn.
       const syncOn = syncActive();
@@ -522,6 +522,8 @@
         }
       }
 
+      if (runIsOn('hours')) return;                  // started from somewhere else while the question was open
+      runBegin('hours');
       if (boostFlags.seqIdle) E.boostStartSeq(games, (hourDurSec || 3600)*1000, boostFlags.loopQueue);
       else {
         // The whole selection goes too: if "at most at once" changes while the job runs the main process
@@ -591,6 +593,8 @@
     });
     document.getElementById('btnBoostStart').onclick = startBoost;
     document.getElementById('btnBoostStop').onclick = () => {
+      if (!runIsOn('hours')) return;
+      runEnd('hours');
       E.boostStop(); E.boostStopSeq();
       notify('boost', 'Saat Yükseltme Durdu', '');
       pushFeed('hours', 'Saat Yükseltici', 'Durduruldu.', 'Durdu');
@@ -601,6 +605,7 @@
     // info that came when the account changed could trigger the renewal on the WRONG account.
     function onHourTick(data){
       boostState = data;
+      paintRunButtons();
       if (boostTimerUI) clearInterval(boostTimerUI);
       if (data.running){
         boostTimerUI = setInterval(()=>{ if (typeof uiTickAllowed !== 'function' || uiTickAllowed()) renderActiveBox(); }, 1000);

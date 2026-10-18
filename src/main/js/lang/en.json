@@ -1298,7 +1298,7 @@
  "Durduruldu · # / #": "Stopped · # / #",
  "Steam bağlantısı yok · # / #": "No Steam connection · # / #",
  "Süre doldu, # başarım açılmadı · # / #": "Time is up, # achievement not unlocked · # / #|Time is up, # achievements not unlocked · # / #",
- "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "On accounts with restricted card drops, Steam only starts dropping cards once a game passes a certain playtime (usually 2 hours). Fast mode first runs the games under that threshold together to reach it, then keeps them all open and switches the featured game every 1.5-2 minutes. A newly bought game can no longer be refunded once it passes 2 hours.",
+ "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "On accounts with restricted card drops, Steam only starts dropping cards once a game passes a certain playtime (usually 2 hours). Fast mode first runs the games under that threshold together to reach it; games already past the threshold stay open meanwhile, take turns as the featured game and keep dropping cards. Then it keeps them all open and switches the featured game every 1.5-2 minutes. A newly bought game can no longer be refunded once it passes 2 hours.",
  "# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.": "# game is under the threshold; it will be brought up to it first, then cards will start dropping.|# games are under the threshold; they will be brought up to it first, then cards will start dropping.",
  "# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.": "The game is already past the threshold; cards start dropping right away.|All # games are already past the threshold; cards start dropping right away.",
  "En az oynanan önce": "Least played first",
@@ -1512,5 +1512,13 @@
  "Ayarlarda ara...": "Search settings...",
  "Kaydedilen bölümler:": "Sections saved:",
  "Düşük bellek modu": "Low memory mode",
- "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Graphics and network work run inside the main process instead of separate ones: two processes fewer and about 100 MB less memory. The price: if a graphics driver crashes, the app closes with it. Turn it off if you see garbled graphics or sudden closes. Needs a restart."
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Graphics and network work run inside the main process instead of separate ones: two processes fewer and about 100 MB less memory. The price: if a graphics driver crashes, the app closes with it. Turn it off if you see garbled graphics or sudden closes. Needs a restart.",
+ "# oyun eşiğin altında ve eşiğe çekilecek; eşiği geçmiş # oyunda kart düşmesi hemen başlıyor.": "# games are under the threshold and will be pulled up to it; cards start dropping at once for the # games already past it.",
+ "Bitti · #": "Done · #",
+ "# hesabına geçiliyor…": "Switching to #…",
+ "# hesabı açıldı.": "# is open.",
+ "Çalışan hesap: #": "Accounts running: #",
+ "Biten: # hesap": "Finished: # accounts",
+ "Çalışan işler için hesap listesini aç": "Open the account list to see what runs on each account",
+ "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "The rarity percentages of the achievements could not be read from Steam; the order would have been wrong. Try again in a few minutes."
 }

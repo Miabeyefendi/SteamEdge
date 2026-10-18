@@ -665,13 +665,17 @@
     // Connects to Card Farming's real engine, with the mode and duration selected there.
     function startCard(){
       if (!dropGames.length){ toast('Önce oyun listesini yenile.').fail('Düşürülecek kart bulunamadı.'); return; }
-      const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining}));
+      if (runIsOn('card')) return;
+      // playtimeMin too: fast mode decides which games are already past its threshold from it (cards.js sends it the same way)
+      const games = orderedForMode().map(g=>({appid:g.appid,name:g.name,remaining:g.remaining,playtimeMin:g.playtimeMin||0}));
+      runBegin('card');
       E.startFarm(selectedMode, games, durationSec*1000);
       if (typeof setCardPill === 'function') setCardPill(true, 'Çalışıyor');
       notify('farm', 'Kart Düşürme Başladı', tf('# oyun sırada.', games.length));
       pushFeed('card', 'Kart Düşürme', tf('# oyun ile başladı.', games.length), 'Çalışıyor');
     }
     function stopCard(){
+      runEnd('card');
       E.stopFarm();
       if (typeof setCardPill === 'function') setCardPill(false, 'Durduruldu');
       notify('farm', 'Kart Düşürme Durdu', '');
@@ -692,7 +696,8 @@
         el.style.opacity = closed ? '0.4' : '1';
         el.style.cursor = closed ? 'not-allowed' : 'pointer';
       };
-      passive(begin, !!g);
+      // Start starts card farming: it is closed while the shown job runs AND while card farming itself runs (another job may be the one on show)
+      passive(begin, !!g || runIsOn('card') || (runBusy.card || 0) > Date.now());
       passive(halt, !g);
       if (det) det.textContent = g ? (t('Detay') + ': ' + t(TASK_NAME[g.tab])) : 'Detay';
     }

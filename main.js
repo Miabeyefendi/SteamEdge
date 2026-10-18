@@ -983,21 +983,31 @@ ipcMain.handle('accounts:list', () => {
       active: a.steamID === activeSteamID,        // the one shown in the interface
       connected: !!(s && s.ready),                // the Steam session is open
       running: accountRunning(s),                            // card/hour/realistic is running
+      jobs: accountJobKinds(s),                              // which of them
+      finished: (s && s.finished) || null,                   // what ended while the account was in the background, until it is opened
     };
   });
 });
 
 // Switch account: NO RELOAD. Only the account the interface shows changes; the previous
 // account's card farming/hour boosting job keeps running without interruption in the background.
+let switchSeq = 0;
 ipcMain.handle('accounts:switch', async (_e, steamID) => {
   const entry = loadAccounts().find((a) => a.steamID === steamID);
   if (!entry) return { ok: false, error: 'Hesap bulunamadı.' };
+  const mine = ++switchSeq;
+  // The account on screen STAYS the account on screen until the new one is connected. It used to change at once, while the engine, the farm and the pages kept
+  // using the old account until the logon was done (several seconds for an account that was still connecting): the first click seemed to do nothing, the
+  // pages loaded the OLD account's games and jobs under the new name, and a second click was needed. An account that is already connected answers at once.
+  const r = await connectAccount(entry);
+  if (mine !== switchSeq) return { ok: true, superseded: true, steamID };     // a newer click won
+  if (!r.ok) return r;
   activeSteamID = steamID;
   // session.json always reflects the account "open in the interface" (that one opens on restart)
   makeActiveSession(entry);
-  const r = await connectAccount(entry);
   syncActive();
-  if (!r.ok) return r;
+  const slot = accounts.get(steamID);
+  if (slot && slot.finished) { slot.finished = null; sendRaw('accounts:activity', { steamID, running: accountRunning(slot), jobs: accountJobKinds(slot), finished: null }); }
   // The renderer should see the LIVE state of all the jobs of the account it switched to right away; the
   // previous account's running job must not hang on screen.
   sendJobStatus(steamID);
@@ -1127,6 +1137,15 @@ function accountBoostRunning(s) {
 function accountRunning(s) {
   return !!(s && ((s.farm && s.farm.running) || accountBoostRunning(s) || s.realistic));
 }
+// The kinds of job that run on an account ('card', 'hours', 'realistic'): the interface names them next to the account, so a job on the account that is NOT on
+// screen can be seen without opening that account.
+function accountJobKinds(s) {
+  const kinds = [];
+  if (s && s.farm && s.farm.running) kinds.push('card');
+  if (accountBoostRunning(s)) kinds.push('hours');
+  if (s && s.realistic) kinds.push('realistic');
+  return kinds;
+}
 // A job event of an account. Only those of the account open on screen go to the interface; all are kept.
 function accountBroadcast(steamID) {
   return (channelName, payloadData) => {
@@ -1135,9 +1154,13 @@ function accountBroadcast(steamID) {
     if (steamID === activeSteamID) sendRaw(channelName, { ...payloadData, steamID });
     if (s) {
       const isRunning = accountRunning(s);
+      const jobs = accountJobKinds(s);
+      if (jobs.length) s.lastJobs = jobs;
       if (isRunning !== s.lastRun) {
+        // What ran on an account that is not on screen and has stopped is remembered ("ended at 14:02") until that account is opened: the user cannot see it end otherwise
+        if (!isRunning && s.lastRun && steamID !== activeSteamID && s.lastJobs && s.lastJobs.length) s.finished = { jobs: s.lastJobs, ts: Date.now() };
         s.lastRun = isRunning;
-        sendRaw('accounts:activity', { steamID, running: isRunning });
+        sendRaw('accounts:activity', { steamID, running: isRunning, jobs, finished: s.finished || null });
         updateSleepBlocker();
         resumeSaveSoon();                       // a job started or ended: the file follows within a second
         handleUninterruptedRun(steamID, isRunning);
@@ -3335,6 +3358,8 @@ function markNoAchievements(appid) {
   return true;
 }
 loadNoAchievements();
+// The global unlock percentages Realistic Mode orders its queue by are kept for a day in a file of their own (src/core/rarityCache.js)
+require('./src/core/rarityCache').setFile(path.join(CACHE_DIR, 'achievement-rarity.json'));
 
 ipcMain.handle('realistic:noAchievementsList', () => ({ ok: true, appids: [...noAchievementsSet] }));
 ipcMain.handle('realistic:noAchievementsClear', () => {
@@ -3345,12 +3370,30 @@ ipcMain.handle('realistic:noAchievementsClear', () => {
   return { ok: true, deleted: n };
 });
 
+// The engine's achievement call gives no game name; the library list of the account that owns the engine does.
+function ownedGameName(motor, appid) {
+  for (const [id, s] of accounts) {
+    if (s.engine !== motor) continue;
+    const owned = (accountData(id).lists || {}).owned;
+    const g = Array.isArray(owned) ? owned.find((x) => +x.appid === +appid) : null;
+    return g && g.name ? g.name : null;
+  }
+  return null;
+}
+
 async function prepareRealisticQueue(motor, appid, options) {
   const data = await motor.getAchievements(appid);
   const everything = (data && Array.isArray(data.achievements)) ? data.achievements : null;
   if (!everything || !everything.length) {
     markNoAchievements(appid);
     return { ok: false, noAchievements: true, error: 'Bu oyunun başarımı yok.', gameTitle: (data && data.gameName) || null };
+  }
+  // The order of the queue is the whole point of Realistic Mode (from the most common achievement to the rarest). If the percentages could not be read and nothing from
+  // an earlier read is kept, every rarity is unknown, the sort below has nothing to go by and the schema order would be used (which can put rare ones first):
+  // the run is refused with the reason instead.
+  if (data.rarityOk === false) {
+    log('warn', 'realistic mode: the rarity percentages of ' + appid + ' could not be read, the queue was not built');
+    return { ok: false, rarityMissing: true, error: 'Başarımların nadirlik oranları Steam\'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.' };
   }
   // Locked + not protected. Protected ones are rejected by Steam (see G4).
   let suitable = everything.filter((a) => !a.achieved && !a.protectedFlag);
@@ -3372,7 +3415,7 @@ async function prepareRealisticQueue(motor, appid, options) {
   const clipped = (goal > 0 && goal < suitable.length) ? suitable.slice(0, goal) : suitable;
   return {
     ok: true,
-    gameTitle: data.gameName || ('App ' + appid),
+    gameTitle: data.gameName || ownedGameName(motor, appid) || ('App ' + appid),
     queueList: clipped.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct })),
     suitableTotal: suitable.length,
     protectedFlag: protected,
@@ -3489,6 +3532,9 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     // A run the schedule starts keeps the span it was given (it has to fit what is left of its time range); any other run may get the
     // automatic duration.
     const plan = await realisticPrepareAll(motor, listing, pick, givenSpan, !fromSchedule);
+    // A game whose order could not be worked out stops the run: starting the others would quietly drop it from what the user asked for
+    const noOrder = Object.values(plan.dropped || {}).find((d) => d && d.rarityMissing);
+    if (noOrder) return { ok: false, error: noOrder.error };
     const duration = plan.spanMs;
     pick.autoSpanApplied = plan.auto;
     const prepared = {};

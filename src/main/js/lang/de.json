@@ -1298,7 +1298,7 @@
  "Durduruldu · # / #": "Gestoppt · # / #",
  "Steam bağlantısı yok · # / #": "Keine Steam-Verbindung · # / #",
  "Süre doldu, # başarım açılmadı · # / #": "Zeit abgelaufen, # Errungenschaft nicht freigeschaltet · # / #|Zeit abgelaufen, # Errungenschaften nicht freigeschaltet · # / #",
- "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "Bei Konten mit eingeschränkten Kartendrops lässt Steam Karten erst fallen, wenn ein Spiel eine bestimmte Spielzeit überschreitet (meist 2 Stunden). Der Schnellmodus lässt zuerst die Spiele unter dieser Schwelle gemeinsam laufen, bis sie erreicht ist, hält dann alle offen und wechselt das vorn stehende Spiel alle 1,5-2 Minuten. Ein neu gekauftes Spiel lässt sich nach 2 Stunden nicht mehr zurückgeben.",
+ "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "Bei Konten mit eingeschränkten Kartendrops beginnt Steam erst Karten zu droppen, wenn ein Spiel eine bestimmte Spielzeit überschreitet (meist 2 Stunden). Der Schnellmodus lässt zuerst die Spiele unter dieser Schwelle gemeinsam laufen, um sie zu erreichen; Spiele über der Schwelle bleiben dabei geöffnet, wechseln sich als Hauptspiel ab und droppen weiter Karten. Danach hält er alle offen und wechselt das Hauptspiel alle 1,5-2 Minuten. Ein neu gekauftes Spiel kann nach 2 Stunden nicht mehr erstattet werden.",
  "# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.": "# Spiel liegt unter der Schwelle; es wird zuerst darauf gebracht, dann beginnen die Karten zu fallen.|# Spiele liegen unter der Schwelle; sie werden zuerst darauf gebracht, dann beginnen die Karten zu fallen.",
  "# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.": "Das Spiel hat die Schwelle bereits überschritten; die Karten fallen sofort.|Alle # Spiele haben die Schwelle bereits überschritten; die Karten fallen sofort.",
  "En az oynanan önce": "Am wenigsten gespielte zuerst",
@@ -1512,5 +1512,13 @@
  "Ayarlarda ara...": "Einstellungen durchsuchen...",
  "Kaydedilen bölümler:": "Gespeicherte Bereiche:",
  "Düşük bellek modu": "Speicherspar-Modus",
- "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Grafik- und Netzwerkarbeit laufen im Hauptprozess statt in eigenen Prozessen: zwei Prozesse weniger und etwa 100 MB weniger Speicher. Der Preis: Stürzt ein Grafiktreiber ab, schließt sich die App mit. Schalte es aus, wenn Grafikfehler oder plötzliche Abstürze auftreten. Erfordert einen Neustart."
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Grafik- und Netzwerkarbeit laufen im Hauptprozess statt in eigenen Prozessen: zwei Prozesse weniger und etwa 100 MB weniger Speicher. Der Preis: Stürzt ein Grafiktreiber ab, schließt sich die App mit. Schalte es aus, wenn Grafikfehler oder plötzliche Abstürze auftreten. Erfordert einen Neustart.",
+ "# oyun eşiğin altında ve eşiğe çekilecek; eşiği geçmiş # oyunda kart düşmesi hemen başlıyor.": "# Spiele liegen unter der Schwelle und werden darauf gebracht; bei den # Spielen über der Schwelle beginnen die Karten sofort zu droppen.",
+ "Bitti · #": "Fertig · #",
+ "# hesabına geçiliyor…": "Wechsel zu #…",
+ "# hesabı açıldı.": "# ist geöffnet.",
+ "Çalışan hesap: #": "Laufende Konten: #",
+ "Biten: # hesap": "Fertig: # Konten",
+ "Çalışan işler için hesap listesini aç": "Kontoliste öffnen, um zu sehen, was auf welchem Konto läuft",
+ "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "Die Seltenheitswerte der Erfolge konnten nicht von Steam gelesen werden; die Reihenfolge wäre falsch gewesen. Versuche es in ein paar Minuten erneut."
 }

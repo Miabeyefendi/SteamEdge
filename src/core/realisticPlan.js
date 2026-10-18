@@ -47,14 +47,16 @@ function realisticAccum(details) {
 }
 
 // ---- RARITY WEIGHT ----
-// When the time was divided equally over the queue an ultra rare achievement and a common one got the same interval;
-// what is more, since the rare ones are at the end of the queue they fell into the slow part of the session.
-// Now the time is divided WITH WEIGHTS: only the ultra rare ones (under 5%) wait long, the rest flow
-// even and fast. What stands out on a profile is how soon the ultra rare one came;
-// a 10% achievement unlocking fast does not draw attention.
+// How long a real player waits before the next unlock depends on how few players have that achievement. The queue is already in order, from the achievement most players
+// have (the one you get just by playing) to the rarest; the weight says how wide the gap in front of each one is. The gap grows with the logarithm of how rare the
+// achievement is: 100% of players = 1, 50% = 1.17, 20% = 1.4, 5% = 1.75, 1% = 2.15, 0.1% = 2.7. Under 5% (the ones that stand out on a profile) it is then multiplied by the
+// "ultra rare wait" setting, so those wait the longest. Before, only that last step existed: every achievement over 5% got the same gap, and the rarest got three times as much.
+const ULTRA_RARE_PCT = 5;
 function realisticRarityWeight(pct, ultraMultiplier) {
   if (!Number.isFinite(pct)) return 1;
-  return pct < 5 ? Math.max(1, ultraMultiplier || 3) : 1;
+  const share = Math.min(100, Math.max(0.1, pct));
+  const base = 1 + 0.25 * Math.log(100 / share);
+  return pct < ULTRA_RARE_PCT ? base * Math.max(1, ultraMultiplier || 3) : base;
 }
 
 // Writes the unlock times into the queue (ms relative to the start of the session).

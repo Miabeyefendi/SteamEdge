@@ -1298,7 +1298,7 @@
  "Durduruldu · # / #": "Detenido · # / #",
  "Steam bağlantısı yok · # / #": "Sin conexión con Steam · # / #",
  "Süre doldu, # başarım açılmadı · # / #": "Se acabó el tiempo; # logro sin desbloquear · # / #|Se acabó el tiempo; # logros sin desbloquear · # / #",
- "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "En cuentas con caídas de cromos restringidas, Steam solo suelta cromos cuando un juego supera cierto tiempo de juego (normalmente 2 horas). El modo rápido primero ejecuta juntos los juegos por debajo de ese umbral hasta alcanzarlo, después los mantiene todos abiertos y cambia el juego destacado cada 1,5-2 minutos. Un juego recién comprado deja de poder reembolsarse al superar las 2 horas.",
+ "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "En cuentas con caída de cartas restringida, Steam solo empieza a soltar cartas cuando un juego supera cierto tiempo de juego (normalmente 2 horas). El modo rápido primero ejecuta juntos los juegos por debajo de ese umbral para alcanzarlo; los juegos que ya lo superaron siguen abiertos mientras tanto, se turnan como juego destacado y siguen soltando cartas. Después mantiene todos abiertos y cambia el juego destacado cada 1,5-2 minutos. Un juego recién comprado ya no se puede reembolsar al pasar las 2 horas.",
  "# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.": "# juego está por debajo del umbral; primero se llevará a él y luego empezarán a caer cromos.|# juegos están por debajo del umbral; primero se llevarán a él y luego empezarán a caer cromos.",
  "# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.": "El juego ya supera el umbral; los cromos empiezan a caer enseguida.|Los # juegos ya superan el umbral; los cromos empiezan a caer enseguida.",
  "En az oynanan önce": "Menos jugados primero",
@@ -1512,5 +1512,13 @@
  "Ayarlarda ara...": "Buscar en los ajustes...",
  "Kaydedilen bölümler:": "Secciones guardadas:",
  "Düşük bellek modu": "Modo de poca memoria",
- "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "El trabajo de gráficos y de red se ejecuta dentro del proceso principal en lugar de procesos aparte: dos procesos menos y unos 100 MB menos de memoria. El precio: si un controlador gráfico falla, la aplicación se cierra con él. Desactívalo si ves gráficos deformados o cierres repentinos. Requiere reiniciar."
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "El trabajo de gráficos y de red se ejecuta dentro del proceso principal en lugar de procesos aparte: dos procesos menos y unos 100 MB menos de memoria. El precio: si un controlador gráfico falla, la aplicación se cierra con él. Desactívalo si ves gráficos deformados o cierres repentinos. Requiere reiniciar.",
+ "# oyun eşiğin altında ve eşiğe çekilecek; eşiği geçmiş # oyunda kart düşmesi hemen başlıyor.": "# juegos están por debajo del umbral y se llevarán hasta él; en los # que ya lo superaron las cartas empiezan a caer enseguida.",
+ "Bitti · #": "Terminado · #",
+ "# hesabına geçiliyor…": "Cambiando a #…",
+ "# hesabı açıldı.": "# abierta.",
+ "Çalışan hesap: #": "Cuentas activas: #",
+ "Biten: # hesap": "Terminadas: # cuentas",
+ "Çalışan işler için hesap listesini aç": "Abrir la lista de cuentas para ver qué se ejecuta en cada una",
+ "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "No se pudieron leer de Steam los porcentajes de rareza de los logros; el orden habría sido incorrecto. Inténtalo de nuevo en unos minutos."
 }

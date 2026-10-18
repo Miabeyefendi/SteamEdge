@@ -2,6 +2,7 @@ const SteamUser = require('steam-user');
 const translation = require('./translation');
 const { parseProxy, proxyFetch } = require('./proxyFetch');
 const inventorySources = require('./inventorySources');
+const rarityCache = require('./rarityCache');
 // steam-user's internal protobufs map doesn't register the user-stats messages, so we encode/decode
 // them ourselves from its generated schema and hand raw buffers to _send.
 const Schema = require('steam-user/protobufs/generated/_load.js');
@@ -1168,23 +1169,38 @@ class SteamEngine {
     return { crc: resp.crc_stats >>> 0, defs, statValues, appid: +appid };
   }
 
-  // Global unlock % per achievement (public endpoint, no auth needed) - real rarity data used for
-  // the "Rare / Ultra-Rare" filter. Best-effort: empty map on any failure, never fabricated.
+  // Global unlock % per achievement (public endpoint, no auth needed) - real rarity data used for the "Rare / Ultra-Rare" filter and for the order of Realistic Mode
+  // (from the most common to the rarest). Never fabricated: { map, ok, source }. ok is false only when the request failed and nothing was kept from before; a game for
+  // which Steam answers with an empty list is a valid, empty answer. An answer is kept for a day and a stale one is used when Steam does not answer (see rarityCache.js).
+  async fetchAchievementRarity(appid) {
+    const fresh = rarityCache.get(appid, true);
+    if (fresh) return { map: fresh.map, ok: true, source: 'cache' };
+    for (let round = 0; round < 2; round++) {
+      try {
+        const url = `https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appid}&format=json`;
+        const r = await this._requestItem(url, { withCookies: false, attemptCount: 3, timeoutLimitMs: 15000 }, 'Nadirlik');
+        const j = await r.json().catch(() => null);
+        if (j && j.achievementpercentages) {
+          const list = j.achievementpercentages.achievements || [];
+          const map = {};
+          // NOTE - Steam returns the `percent` field as a STRING (e.g. "74.1"). If we do not convert it to a number the rarity stays null.
+          list.forEach((a) => {
+            const n = parseFloat(a.percent);
+            if (!isNaN(n)) map[a.name] = n;
+          });
+          rarityCache.set(appid, map);
+          return { map, ok: true, source: 'steam' };
+        }
+      } catch (_) { /* try once more, then fall back to what was kept */ }
+      if (round === 0) await new Promise((res) => setTimeout(res, 2000));
+    }
+    const old = rarityCache.get(appid, false);
+    if (old) return { map: old.map, ok: true, source: 'stale' };
+    return { map: {}, ok: false, source: 'none' };
+  }
+
   async getAchievementRarity(appid) {
-    try {
-      const url = `https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/?gameid=${appid}&format=json`;
-      const r = await this._requestItem(url, { withCookies: false, attemptCount: 2, timeoutLimitMs: 12000 }, 'Nadirlik');
-      const j = await r.json().catch(() => null);
-      const list = (j && j.achievementpercentages && j.achievementpercentages.achievements) || [];
-      const map = {};
-      // NOTE: Steam returns the `percent` field as a STRING (e.g. "74.1"). If we do not convert it to a number
-      // the `typeof pct === 'number'` check below is always false and the rarity stays null.
-      list.forEach((a) => {
-        const n = parseFloat(a.percent);
-        if (!isNaN(n)) map[a.name] = n;
-      });
-      return map;
-    } catch (_) { return {}; }
+    return (await this.fetchAchievementRarity(appid)).map;
   }
 
   // This account's own unlock timestamps, via the same access_token auth as getOwnedGames.
@@ -1213,10 +1229,11 @@ class SteamEngine {
     const raw = await this._statsCached(appid);
     if (!raw || !raw.defs.length) return null;
     const iconUrl = (f) => (f ? `https://cdn.cloudflare.steamstatic.com/steamcommunity/public/images/apps/${appid}/${f}` : null);
-    const [rarityMap, unlockMap] = await Promise.all([
-      this.getAchievementRarity(appid),
+    const [rarity, unlockMap] = await Promise.all([
+      this.fetchAchievementRarity(appid),
       this.getAchievementUnlockTimes(appid),
     ]);
+    const rarityMap = rarity.map;
     const achievements = raw.defs.map((d) => {
       const val = raw.statValues.get(d.statId >>> 0) || 0;
       // the korumali flag is carried to the interface (it is added to the object below)
@@ -1235,7 +1252,7 @@ class SteamEngine {
         isHidden: !!d.hidden,
       };
     });
-    return { gameName: null, logo: null, total: achievements.length, unlocked: achievements.filter((a) => a.achieved).length, achievements };
+    return { gameName: null, logo: null, total: achievements.length, unlocked: achievements.filter((a) => a.achieved).length, achievements, rarityOk: rarity.ok, rarityKnown: achievements.filter((a) => Number.isFinite(a.rarityPct)).length };
   }
 
   // Unlock/lock achievements headless (ASF-style: CMsgClientStoreUserStats2). `changes` is
