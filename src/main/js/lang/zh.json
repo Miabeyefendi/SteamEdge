@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "擬真模式",
  "Hız çarpanı": "速度倍率",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "壓縮或拉長整份排程。0.5 表示速度加倍。",
- "%5 altı başarımlar bu oranda daha uzun bekler.": "低於 5% 的成就會等待這個倍數的時間。",
+ "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "持有率不到最常見成就二十分之一的成就，等待時間會延長這麼多倍，並且一律排在最後。",
  "Telafi payı": "補齊佔比",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "落後的部分要在時段的前百分之幾內補齊。",
  "Bitmiş oyunda sıkıştır": "已完成的遊戲予以壓縮",
@@ -1520,5 +1520,5 @@
  "Çalışan hesap: #": "執行中的帳號：#",
  "Biten: # hesap": "已完成：# 個帳號",
  "Çalışan işler için hesap listesini aç": "開啟帳號列表，查看每個帳號上執行的工作",
- "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "無法從 Steam 讀取成就的稀有度百分比，順序會不正確。請幾分鐘後重試。"
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "無法讀取稀有度百分比；順序為推測，隱藏成就排在最後。"
 }

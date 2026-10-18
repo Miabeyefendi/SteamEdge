@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Modo realista",
  "Hız çarpanı": "Multiplicador de velocidad",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Comprime o estira todo el calendario. 0,5 es el doble de rápido.",
- "%5 altı başarımlar bu oranda daha uzun bekler.": "Los logros por debajo del 5% esperan esta cantidad de veces más.",
+ "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Los logros que tienen menos de una veinteava parte de lo que tiene el más común esperan tantas veces más y van siempre al final.",
  "Telafi payı": "Parte de recuperación",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "En qué porcentaje de la sesión se recupera el atraso.",
  "Bitmiş oyunda sıkıştır": "Comprimir en un juego terminado",
@@ -1520,5 +1520,5 @@
  "Çalışan hesap: #": "Cuentas activas: #",
  "Biten: # hesap": "Terminadas: # cuentas",
  "Çalışan işler için hesap listesini aç": "Abrir la lista de cuentas para ver qué se ejecuta en cada una",
- "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "No se pudieron leer de Steam los porcentajes de rareza de los logros; el orden habría sido incorrecto. Inténtalo de nuevo en unos minutos."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "No se pudieron leer los porcentajes de rareza; el orden es una estimación, con los logros ocultos al final."
 }

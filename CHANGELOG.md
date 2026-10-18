@@ -7,6 +7,24 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.1)
+
+Realistic Mode no longer refuses to start without rarity data, judges "ultra rare" against the game itself, and never unlocks an ultra rare achievement early.
+
+### Fixed
+
+- **Ultra rare achievements were unlocked early.** The squeeze of the overdue backlog ("Catch up on delayed achievements") could reach into the rarest part of the queue, and "ultra rare" was decided from Steam's raw percentage. That percentage is the share of the owners of a game, and many owners never really start it: in one game the most common achievement is held by 33% of the owners, in another by 97%. In a game where every achievement sits between 3% and 7%, all of them counted as ultra rare, so the setting did nothing useful. Rarity is now measured against the game's own most common achievement: under a twentieth of it is ultra rare (about 8% of a game's achievements, measured on 42 games). The backlog squeeze only takes common achievements, never ultra rare ones and never the ones rarer than the end of a story (30% of the best). The ultra rare ones are always the last of the run, whatever the model, and still wait the "Ultra-rare wait" longer.
+- **Realistic Mode refused to start when Steam did not answer with the percentages (1.6.0).** It starts now. The order falls back to the schema order with the hidden achievements last (usually the end of the story and the grind), nothing is squeezed, and a notice says so.
+
+### Changed
+
+- **The gaps are even again.** 1.6.0 widened the gap in front of every rarer achievement. Fitted against the Steam percentages and the HowLongToBeat times of 42 games, that fitted worse than plain even spacing along the queue (error 0.69 against 0.44): at the end of a story a player has about 34% of a game's achievements after about 38% of the time it takes to get all of them. Only the ultra rare wait is left as an extra gap.
+- The "Ultra-rare wait" and "Skip ultra rare achievements" settings use the new definition.
+- `npm test` runs 50 tests (the Realistic Mode tests now cover the 100 achievement case, the squeeze, a model that bends the curve, a small game and a game without rarity data).
+
+
+SHA-256 (`SteamEdge-v1.6.1-win-x64.rar`): `5bc8cb0ddd81191abf01befd1af4c012499c6acc79e28c78f90760035b4d71d9`
+
 ## [1.6.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.0)
 
 Several accounts now behave the way they look: one click switches, what runs on each account can be seen without opening it, the Start and Stop buttons say what is possible, Realistic Mode unlocks from the most common achievement to the rarest, and fast mode farms every game it should.

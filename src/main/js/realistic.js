@@ -812,6 +812,8 @@
       }
       grOpened = [];
       runBegin('realistic');
+      // The order could not be read from Steam: the run goes on with a guess and the user is told once
+      if (r.rarityMissing && typeof toast === 'function') toast('Gerçekçi Mod').fail('Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.');
       notify('boost', 'Gerçekçi Mod Başladı', (r.gameTitle||'') + ' · ' + tf('# başarım', r.totalSum));
       pushFeed('hours', 'Gerçekçi Mod',
                tf('# oyun', r.gameCount) + ' · ' + tf('# başarım # süreye yayıldı.', r.totalSum, grDurationLabel(durationMs)), 'Çalışıyor');

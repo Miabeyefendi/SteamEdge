@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Realistischer Modus",
  "Hız çarpanı": "Geschwindigkeitsfaktor",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Staucht oder dehnt den ganzen Plan. 0,5 ist doppelt so schnell.",
- "%5 altı başarımlar bu oranda daha uzun bekler.": "Errungenschaften unter 5 % warten um diesen Faktor länger.",
+ "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Erfolge, die weniger als ein Zwanzigstel des häufigsten Erfolgs erreichen, warten so viel länger und kommen immer zuletzt.",
  "Telafi payı": "Aufholanteil",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "In wie viel Prozent der Sitzung der Rückstand aufgeholt wird.",
  "Bitmiş oyunda sıkıştır": "Bei abgeschlossenem Spiel stauchen",
@@ -1520,5 +1520,5 @@
  "Çalışan hesap: #": "Laufende Konten: #",
  "Biten: # hesap": "Fertig: # Konten",
  "Çalışan işler için hesap listesini aç": "Kontoliste öffnen, um zu sehen, was auf welchem Konto läuft",
- "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "Die Seltenheitswerte der Erfolge konnten nicht von Steam gelesen werden; die Reihenfolge wäre falsch gewesen. Versuche es in ein paar Minuten erneut."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Die Seltenheitswerte konnten nicht gelesen werden; die Reihenfolge ist geschätzt, versteckte Erfolge zuletzt."
 }
