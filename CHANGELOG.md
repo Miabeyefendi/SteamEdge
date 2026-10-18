@@ -7,6 +7,30 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.0)
+
+Several accounts now behave the way they look: one click switches, what runs on each account can be seen without opening it, the Start and Stop buttons say what is possible, Realistic Mode unlocks from the most common achievement to the rarest, and fast mode farms every game it should.
+
+### Fixed
+
+- **Switching accounts took several clicks and showed the wrong account's data.** The account on screen used to change the moment you clicked, while the connection of the new account was still being made. Until then the pages kept using the old account, so games and jobs of the first account appeared under the second one. Now the old account stays on screen until the new one is connected, the page is dimmed with a "Switching to ..." notice meanwhile, a second click on another row takes over, and a failed connection says why and changes nothing. The list of accounts is no longer redrawn when nothing in it changed, and a row is chosen when the button goes down, so a click cannot be lost to a redraw.
+- **Fast mode skipped games on the second account.** While games under the threshold were being pulled up, the games already past it were not opened at all, so no cards dropped from them for the whole warm-up. They now stay open and take turns as the featured game, and their cards keep dropping while the others catch up. The quick Start on the Overview page also sent the games without their playing time, which made every game look under the threshold; it now sends it like the Card Farming page does.
+- **Realistic Mode could unlock the rarest achievements first.** The order depends on the global unlock percentages, and when Steam did not answer, the percentages were silently empty and the queue fell back to the order of the game's schema. The percentages are now kept for a day (`cache/achievement-rarity.json`), asked for again once on failure, and an older answer is used when Steam stays silent. If there is nothing to go by the run is refused with the reason instead of started in the wrong order.
+- **Start and Stop were not closed when they made no sense.** Card Farming, Hour Booster and Realistic Mode now close Start while their job runs (or has just been started and the first answer has not come, or the question is open) and close Stop while nothing runs. The same on the Overview panel: its Start is closed while card farming runs even when another job is the one shown. A double click starts once.
+- The achievement queue of Realistic Mode names the game from the library of the account instead of "App 123456" when Steam does not give a name.
+
+### Added
+
+- **What runs on each account is visible without opening it.** A chip in the top bar counts the accounts that run something and the ones that finished while they were in the background; the account list names the jobs of every account (Card farming, Hour boosting, Realistic Mode) and says when a finished one ended. It clears when you open that account.
+
+### Changed
+
+- **Realistic Mode weights rarity smoothly.** The time between unlocks used to jump at the edges of a few rarity classes; it now grows with the logarithm of how rare an achievement is, and the ultra rare ones (under 5 %) keep their extra wait. The queue is ordered by global unlock percentage from the highest (obtained easily, early) to the lowest (late).
+- `npm test` runs 50 tests (new: fast mode warm-up, rarity cache and refusal, account switching, accounts and Start / Stop in the interface).
+
+
+SHA-256 (`SteamEdge-v1.6.0-win-x64.rar`): `181270127ff1ae5ae6bf64f6633e2307bb5507a99c8a0b3e2ad9504f2075ca5e`
+
 ## [1.5.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.5.9)
 
 A running job no longer costs the window a quarter to three quarters of a processor core: the pulsing dots are driven by one slow timer instead of endless CSS animations.

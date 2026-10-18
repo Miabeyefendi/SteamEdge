@@ -780,6 +780,8 @@
     grEl('grStart').onclick = async ()=>{
       if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Zaten çalışıyor.'); return; }
       if (!grQueue.length){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Önce sıraya oyun ekle.'); return; }
+      if ((runBusy.realistic || 0) > Date.now()) return;     // the question is already open
+      runBegin('realistic', 120000);
       const durationMs = grDurationMs();
       const pick = grOptions();
       const goal = grPlan ? grPlan.totalSum : 0;
@@ -799,21 +801,24 @@
         warn: 'Bu işlem Steam hesabını kalıcı olarak değiştirir. Süre boyunca uygulama açık kalmalı; istediğin an durdurabilirsin.',
         confirmText:'Başlat', cancelText:'Vazgeç',
       });
-      if (!ok) return;
+      if (!ok){ runEnd('realistic'); return; }
       const r = await window.imu.realistic.start(grQueue.map(g=>g.appid), durationMs, pick)
         .catch(e=>({ ok:false, error:(e&&e.message) }));
       if (!r || !r.ok){
+        runEnd('realistic');
         edgeConfirm({ tag:'Hata', danger:true, title:'Başlatılamadı',
                       body:(r&&r.error)||'Bilinmeyen hata.', confirmText:'Tamam', singleButton:true });
         return;
       }
       grOpened = [];
+      runBegin('realistic');
       notify('boost', 'Gerçekçi Mod Başladı', (r.gameTitle||'') + ' · ' + tf('# başarım', r.totalSum));
       pushFeed('hours', 'Gerçekçi Mod',
                tf('# oyun', r.gameCount) + ' · ' + tf('# başarım # süreye yayıldı.', r.totalSum, grDurationLabel(durationMs)), 'Çalışıyor');
     };
     grEl('grStop').onclick = ()=>{
       if (!grStatus.runningFlag) return;
+      runEnd('realistic');
       window.imu.realistic.stop();
       pushFeed('hours', 'Gerçekçi Mod', 'Durduruldu.', 'Durdu');
     };
@@ -828,6 +833,7 @@
     if (window.imu.realistic && window.imu.realistic.onTick){
       window.imu.realistic.onTick((d)=>{
         grStatus = d || { runningFlag:false };
+        paintRunButtons();
         if (grTimerUI){ clearInterval(grTimerUI); grTimerUI = null; }
 
         if (!d || !d.runningFlag){

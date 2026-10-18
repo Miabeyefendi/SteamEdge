@@ -2,7 +2,7 @@
 // and a duration typed by hand still gets the old "what a real player would earn in that time" target.
 // Run with `npm test` (tests/run.js).
 const path = require('path');
-const { planGames, tcFor, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, hoursForCount, MIN_SPAN_MS, MAX_SPAN_MS } = require(path.resolve(__dirname, '..', '..', 'src', 'core', 'realisticPlan.js'));
+const { realisticRarityWeight, planGames, tcFor, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, hoursForCount, MIN_SPAN_MS, MAX_SPAN_MS } = require(path.resolve(__dirname, '..', '..', 'src', 'core', 'realisticPlan.js'));
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
 const HOUR = 3600000;
@@ -93,4 +93,18 @@ check('a resumed run unlocks exactly what was left of each game, over the time t
 check('and never more than is left in the game', planGames([{ appid: 1, h: game(50, 45) }], Object.assign({}, base, { goalByGame: { 1: 30 } }), 2 * HOUR, false).games[0].goal === 5);
 check('a game with nothing left of its target gets no list', planGames([{ appid: 1, h: game(10, 0) }], Object.assign({}, base, { goalByGame: { 1: 0 } }), HOUR, false).games[0].queueList.length === 0);
 check('a game that is not named follows the usual target', planGames([{ appid: 1, h: game(50, 0) }, { appid: 2, h: game(20, 0) }], Object.assign({}, base, { goalAuto: false, goalValue: 0, autoSpan: false, goalByGame: { 2: 3 } }), HOUR, false).games.map((g) => g.goal).join() === '50,3');
+// ---- the order and the gaps by rarity: the achievement most players have comes first and fast, the rarest last and slow ----
+check('the weight grows as the achievement gets rarer: 100% 1, 50% 1.17, 20% 1.4, 5% 1.75', near(realisticRarityWeight(100, 3), 1, 1e-9) && near(realisticRarityWeight(50, 3), 1.173, 0.01) && near(realisticRarityWeight(20, 3), 1.402, 0.01) && near(realisticRarityWeight(5, 3), 1.748, 0.01));
+check('under 5% it is multiplied by the ultra rare wait of the settings', near(realisticRarityWeight(1, 3) / realisticRarityWeight(1, 1), 3, 1e-9) && near(realisticRarityWeight(4.9, 4) / realisticRarityWeight(4.9, 1), 4, 1e-9) && realisticRarityWeight(5, 4) === realisticRarityWeight(5, 1));
+check('an unknown rarity has the plain weight and the extremes stay finite', realisticRarityWeight(null, 3) === 1 && realisticRarityWeight(undefined, 3) === 1 && Number.isFinite(realisticRarityWeight(0, 3)) && realisticRarityWeight(0, 3) === realisticRarityWeight(0.1, 3));
+check('a rarer achievement never weighs less than a more common one (with the same setting)', [100, 80, 60, 40, 20, 10, 5.1, 4.9, 3, 1, 0.5, 0.1].every((p, i, a) => i === 0 || realisticRarityWeight(p, 3) >= realisticRarityWeight(a[i - 1], 3)));
+{
+  const q = [60, 40, 20, 8, 5, 3, 1, 0.2].map((x, i) => ({ rarityPct: x, name: 'a' + i }));
+  placeRealisticTimes(q, HOUR, 'linear', 0, {});
+  const gaps = q.map((x, i) => x.timeValue - (i ? q[i - 1].timeValue : 0));
+  check('the unlock times rise in the order of the queue', q.every((x, i) => i === 0 || x.timeValue > q[i - 1].timeValue));
+  check('the gaps widen as the queue goes to the rarer ones', gaps.every((g, i) => i === 0 || g >= gaps[i - 1] - 1), gaps.map((g) => Math.round(g / 60000)).join(' '));
+  check('the common half is out in the first third of the run, the ultra rare ones take the rest of it', q[3].timeValue < HOUR / 3 && q[5].timeValue > HOUR * 0.4 && q[7].timeValue === HOUR);
+  check('the most common achievement is unlocked within the first few minutes', q[0].timeValue < 5 * 60000);
+}
 process.exit(failures ? 1 : 0);

@@ -524,3 +524,23 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 :root[data-tema="contrast"] .e-palette,:root[data-tema="contrast"] .e-pal-found{border-color:#fff}
 :root[data-tema="contrast"] .e-pal-item.on{outline:2px solid #FFFF66;outline-offset:-2px}
 @media (forced-colors: active){ .e-pal-item.on{outline:2px solid Highlight;outline-offset:-2px} .e-secmark.dirty{background:Highlight} }
+
+/* ---- What runs on which account (common.js paintRunChip) ---- */
+.e-run-chip{flex-shrink:0;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--e-ok);background:var(--e-s1);color:var(--e-title);font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;white-space:nowrap}
+.e-run-chip.done{border-color:var(--e-bd);color:var(--e-body)}
+.e-run-chip:hover{background:var(--e-s3)}
+.e-run-dot{width:7px;height:7px;border-radius:50%;background:var(--e-ok);flex:none}
+.e-run-chip.done .e-run-dot{background:var(--e-muted)}
+.acct-row .nmwrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.acct-row .nmwrap .nm{flex:none}
+.acct-row .sub{font-size:11px;color:var(--e-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-row .sub.on{color:var(--e-ok)}
+/* Between the click on another account and the moment it is connected the page of the old account is dimmed and cannot be used */
+body.e-switching .e-main{opacity:.5;pointer-events:none}
+body.e-switching .e-main,body.e-switching #tbProfile{cursor:progress}
+@media (max-width: 1100px){ .e-run-chip #tbRunningText{display:none} .e-run-chip{padding:0 10px} }
+
+/* A Start / Stop button that cannot be pressed now (common.js paintRunButtons) */
+.h-start:disabled,.h-stop:disabled{opacity:.4 !important;cursor:not-allowed !important}
+.h-start:disabled:hover{background:#5624B3;border-color:#5624B3}
+.h-stop:disabled:hover{background:#B32453;border-color:#B32453}

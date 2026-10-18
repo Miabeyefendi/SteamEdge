@@ -1298,7 +1298,7 @@
  "Durduruldu · # / #": "已停止 · # / #",
  "Steam bağlantısı yok · # / #": "沒有 Steam 連線 · # / #",
  "Süre doldu, # başarım açılmadı · # / #": "時間到，# 項成就未解鎖 · # / #",
- "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "在卡牌掉落受限的帳號上，遊戲時數超過一定門檻（通常 2 小時）後，Steam 才會開始掉落卡牌。快速模式會先讓未達門檻的遊戲一起執行到門檻，之後全部保持開啟，並每 1.5-2 分鐘更換一次主要遊戲。新購買的遊戲超過 2 小時後就無法退款。",
+ "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "在卡片掉落受限的帳號上，Steam 只有在遊戲時數超過一定值（通常 2 小時）後才開始掉卡。快速模式先讓低於該門檻的遊戲一起執行以達到門檻；已超過門檻的遊戲此時保持開啟，輪流成為主遊戲並持續掉卡。之後讓它們全部保持開啟，並每 1.5-2 分鐘切換一次主遊戲。新購買的遊戲超過 2 小時後將無法退款。",
  "# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.": "有 # 款遊戲未達門檻，會先拉到門檻，之後才會開始掉落卡牌。",
  "# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.": "這 # 款遊戲都已超過門檻，會立即開始掉落卡牌。",
  "En az oynanan önce": "先玩時數最少的",
@@ -1512,5 +1512,13 @@
  "Ayarlarda ara...": "搜尋設定...",
  "Kaydedilen bölümler:": "已儲存的區段：",
  "Düşük bellek modu": "低記憶體模式",
- "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "圖形與網路工作在主程序內執行，而不是各自獨立的程序：少兩個程序，記憶體減少約 100 MB。代價是顯示卡驅動程式當機時，應用程式也會一起關閉。若出現畫面異常或突然關閉，請關閉此選項。需要重新啟動。"
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "圖形與網路工作在主程序內執行，而不是各自獨立的程序：少兩個程序，記憶體減少約 100 MB。代價是顯示卡驅動程式當機時，應用程式也會一起關閉。若出現畫面異常或突然關閉，請關閉此選項。需要重新啟動。",
+ "# oyun eşiğin altında ve eşiğe çekilecek; eşiği geçmiş # oyunda kart düşmesi hemen başlıyor.": "有 # 個遊戲低於門檻，將被提升到門檻；已超過門檻的 # 個遊戲會立即開始掉卡。",
+ "Bitti · #": "已完成 · #",
+ "# hesabına geçiliyor…": "正在切換到 #…",
+ "# hesabı açıldı.": "已開啟 #。",
+ "Çalışan hesap: #": "執行中的帳號：#",
+ "Biten: # hesap": "已完成：# 個帳號",
+ "Çalışan işler için hesap listesini aç": "開啟帳號列表，查看每個帳號上執行的工作",
+ "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "無法從 Steam 讀取成就的稀有度百分比，順序會不正確。請幾分鐘後重試。"
 }

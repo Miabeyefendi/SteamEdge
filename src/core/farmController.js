@@ -208,13 +208,30 @@ class FarmController {
       const cold = this.games.filter((g) => (g.playtimeMin || 0) < thresholdMin);
       if (!cold.length) break;
       const batch = cold.slice(0, this.maxGames);
+      // The games that are already past the threshold do not wait for the warm-up: they are open from the first minute and drop cards while the cold ones are
+      // pulled up (before, a game with 6 hours sat idle for the whole warm-up of the others, which can be an hour and more). The room left under cardMaxGames is theirs.
+      const hot = this.games.filter((g) => (g.playtimeMin || 0) >= thresholdMin).slice(0, Math.max(0, this.maxGames - batch.length));
       const needMs = Math.max(...batch.map((g) => (thresholdMin - (g.playtimeMin || 0)) * 60000));
       const ids = batch.map((g) => g.appid);
-      this._batchIds = ids;
-      this.engine.play(ids, this.ownerId);
+      const open = ids.concat(hot.map((g) => g.appid));
+      this._batchIds = ids;                       // only the cold ones are credited the warm-up time (location())
       this.startedAt = Date.now();
-      this._fastHoldTick(ids, needMs, 'warmup');
-      await this._sleep(needMs);
+      const t0 = Date.now();
+      let hotAt = 0;
+      // Steam drops a card when the list of open games is refreshed, so with hot games the list is refreshed at the rotation rhythm, one hot game in front each time
+      const refresh = () => {
+        this.currentActiveAppid = hot.length ? hot[hotAt++ % hot.length].appid : batch[0].appid;
+        this.engine.play(open, this.ownerId);
+      };
+      refresh();
+      this._fastHoldTick(open, needMs, 'warmup');
+      for (;;) {
+        const left = needMs - (Date.now() - t0);
+        if (left <= 0) break;
+        await this._sleep(hot.length ? Math.min(left, this._rotateMs()) : left);
+        if (mustFinish()) return;
+        if (hot.length && needMs - (Date.now() - t0) > 0) refresh();
+      }
       if (mustFinish()) return;
       // This batch has passed the threshold now; let it stay open in the loop too
       batch.forEach((g) => { g.playtimeMin = thresholdMin; });

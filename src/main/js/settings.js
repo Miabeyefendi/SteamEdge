@@ -21,6 +21,8 @@
       appSettings = s || {};
       // Start the language from the settings: it must take effect before the texts are drawn.
       if (typeof initI18n === 'function') initI18n(appSettings.language);
+      // The chip in the top bar was drawn from the first answer of the account list, before the language was known
+      if (typeof paintRunChip === 'function') paintRunChip();
       // The last known profile comes with the settings too (main.js > account file). So that the name,
       // avatar and level can be written to the screen before the Steam session is even set up, this is the first job.
       if (typeof cachedProfile === 'function') cachedProfile();

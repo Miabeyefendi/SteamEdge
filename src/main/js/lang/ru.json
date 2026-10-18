@@ -1298,7 +1298,7 @@
  "Durduruldu · # / #": "Остановлено · # / #",
  "Steam bağlantısı yok · # / #": "Нет соединения со Steam · # / #",
  "Süre doldu, # başarım açılmadı · # / #": "Время вышло, не открыто достижений: # · # / #",
- "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker, sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "На аккаунтах с ограничением выпадения Steam выдаёт карточки только после того, как игра наберёт определённое время (обычно 2 часа). Быстрый режим сначала запускает вместе игры ниже этого порога, чтобы довести их до него, затем держит открытыми все и каждые 1,5-2 минуты меняет основную игру. Недавно купленную игру нельзя вернуть, когда в ней набрано больше 2 часов.",
+ "Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.": "На аккаунтах с ограниченным выпадением карточек Steam начинает выдавать карточки, только когда игра превышает определённое время (обычно 2 часа). Быстрый режим сначала запускает вместе игры ниже этого порога, чтобы довести их до него; игры, уже перешагнувшие порог, при этом остаются открытыми, по очереди становятся главной игрой и продолжают получать карточки. Затем он держит все открытыми и меняет главную игру каждые 1,5-2 минуты. Недавно купленную игру нельзя вернуть после 2 часов.",
  "# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.": "# игра ниже порога; сначала её доведут до него, затем начнут выпадать карточки.|# игры ниже порога; сначала их доведут до него, затем начнут выпадать карточки.|# игр ниже порога; сначала их доведут до него, затем начнут выпадать карточки.",
  "# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.": "Все игры (#) уже выше порога; карточки начнут выпадать сразу.",
  "En az oynanan önce": "Сначала наименее наигранные",
@@ -1512,5 +1512,13 @@
  "Ayarlarda ara...": "Поиск по настройкам...",
  "Kaydedilen bölümler:": "Сохранённые разделы:",
  "Düşük bellek modu": "Режим малого потребления памяти",
- "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Графика и сетевая работа выполняются внутри главного процесса, а не в отдельных: на два процесса меньше и примерно на 100 МБ меньше памяти. Цена: если драйвер видеокарты упадёт, приложение закроется вместе с ним. Выключите, если видите искажения графики или внезапные закрытия. Требуется перезапуск."
+ "Grafik ve ağ işleri ayrı süreçler yerine ana süreçte çalışır: iki süreç eksilir, bellek yaklaşık 100 MB düşer. Karşılığında bir ekran kartı sürücüsü çökerse uygulama da kapanır; görüntü bozulması ya da ani kapanma yaşıyorsan kapat. Yeniden başlatmayı gerektirir.": "Графика и сетевая работа выполняются внутри главного процесса, а не в отдельных: на два процесса меньше и примерно на 100 МБ меньше памяти. Цена: если драйвер видеокарты упадёт, приложение закроется вместе с ним. Выключите, если видите искажения графики или внезапные закрытия. Требуется перезапуск.",
+ "# oyun eşiğin altında ve eşiğe çekilecek; eşiği geçmiş # oyunda kart düşmesi hemen başlıyor.": "# игр ниже порога и будут доведены до него; в # играх, уже перешагнувших порог, карточки начинают выпадать сразу.",
+ "Bitti · #": "Готово · #",
+ "# hesabına geçiliyor…": "Переход на #…",
+ "# hesabı açıldı.": "# открыт.",
+ "Çalışan hesap: #": "Работают аккаунты: #",
+ "Biten: # hesap": "Завершено: # акк.",
+ "Çalışan işler için hesap listesini aç": "Открыть список аккаунтов, чтобы увидеть, что работает на каждом",
+ "Başarımların nadirlik oranları Steam'den okunamadı; sıra bozuk olurdu. Birkaç dakika sonra tekrar dene.": "Не удалось получить из Steam проценты редкости достижений; порядок был бы неверным. Повторите попытку через несколько минут."
 }

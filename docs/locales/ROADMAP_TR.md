@@ -17,10 +17,15 @@
 - [x] Arayüz ölçeği, Yüksek karşıtlık teması, okunur metin ve klavye kullanımı (1.5.4)
 - [x] Komut paleti, kısayollar ve ayarlarda arama kutusu (1.5.5)
 - [x] Gerçekçi Mod zorluğu gerçek oynama sürelerinden alındı (1.5.6)
-- [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa
-- [ ] Daha düşük bellek kullanımı, zayıf bilgisayarlarda iyi çalışması için
+- [x] Daha az ekran kartı belleği, boştayken sürekli çizim yok ve daha küçük indirme (1.5.7)
+- [x] Zayıf bilgisayarlar için düşük bellek modu (1.5.8)
+- [x] Bitmeyen animasyonlar yerine tek bir hafif zamanlayıcı (1.5.9)
+- [x] Hesaplar ve işler (1.6.0): hesaba ilk tıklamada geçiliyor, her hesapta çalışan ya da biten iş üst çubukta ve hesap listesinde görünüyor, Başlat ve Durdur her sayfada işin durumuna uyuyor, Gerçekçi Mod başarımları en yaygından en nadire doğru açıyor, hızlı mod eşiği geçmiş oyunları diğerleri eşiğe çekilirken de çalıştırıyor
 - [ ] Daha küçük indirme boyutu
-- [ ] Ekran kartına daha az yük
+- [ ] Ekran kartı ve ekran kartı belleğinde daha da az kullanım
+- [ ] Bellekte (RAM) daha da az kullanım
+- [ ] Kalan sayfaların tasarım şablonuna göre yenilenmesi, sürüm başına bir sayfa
 - [ ] **Linux ve macOS: yardım lazım.** İkisini de deneyemiyorum. O sistemleri kullananlar sürümleri denemeye gönüllü olursa yaparım; test edecek kimse yoksa dokunmam.
+- Vazgeçilen: başka bir dile ya da çatıya (Tauri, Wails, Rust) geçmek. Araştırıldı; kazanç, özelliklere ve görünüme gelecek riski karşılamıyor. SteamEdge Electron'da kalıyor. Sıra: önce indirme boyutu, sonra ekran kartı belleği, sonra RAM.
 
 Buradakilerin hiçbiri söz değil. Bu kişisel bir proje ve öncelikler değişince liste de değişir.

@@ -45,6 +45,7 @@
       if (tab === 'chat') loadChat();
       if (tab === 'settings') loadSettingsPage();
       redrawHeavyList(tab);
+      paintRunButtons();
     }
     document.querySelectorAll('.nav a[data-tab]').forEach(a => {
       a.addEventListener('click', () => openTab(a.getAttribute('data-tab'), a));
@@ -1017,25 +1018,109 @@
       if (willOpen){ renderNotifList(); notifSeen = notifCount; updateNotifBadge(); }
     });
 
+    // ---- START / STOP BUTTONS: one place decides which of them can be pressed ----
+    // Start is closed while its job runs (or was just started and the first answer has not come), Stop is closed while nothing runs. The pages used to paint this
+    // themselves, each in its own way (or not at all), so a job could be started twice or "stopped" when nothing ran.
+    const runBusy = {};                 // kind -> until when a start that has been pressed counts as running
+    function runBegin(kind, ms){ runBusy[kind] = Date.now() + (ms || 4000); paintRunButtons(); setTimeout(paintRunButtons, (ms || 4000) + 60); }
+    function runEnd(kind){ delete runBusy[kind]; paintRunButtons(); }
+    function runIsOn(kind){
+      if (kind === 'card') return typeof lastTick !== 'undefined' && !!(lastTick && lastTick.running);
+      if (kind === 'hours') return typeof boostState !== 'undefined' && !!(boostState && boostState.running);
+      if (kind === 'realistic') return typeof grStatus !== 'undefined' && !!(grStatus && grStatus.runningFlag);
+      return false;
+    }
+    function closeButton(id, closed){
+      const el = document.getElementById(id);
+      if (!el || el.disabled === closed) return;
+      el.disabled = closed;
+      el.classList.toggle('is-off', closed);
+    }
+    function paintRunButtons(){
+      const pairs = [['card', 'btnStart', 'btnStop'], ['hours', 'btnBoostStart', 'btnBoostStop'], ['realistic', 'grStart', 'grStop']];
+      pairs.forEach(([kind, start, stop]) => {
+        const on = runIsOn(kind);
+        closeButton(start, on || (runBusy[kind] || 0) > Date.now());
+        closeButton(stop, !on);
+      });
+      if (typeof paintPanelButtons === 'function') paintPanelButtons();
+    }
+
+    // ---- THE ACCOUNTS: what runs on each of them ----
+    // The user has several accounts and works on one at a time. A job on another account used to be visible only by opening that account, and what ended there was
+    // not visible at all. acctState keeps every account's running jobs and what ended while it was in the background; the chip in the top bar and the list of accounts show it.
+    const acctState = new Map();       // steamID -> { steamID, accountName, active, connected, running, jobs: [], finished: { jobs, ts } | null }
+    const JOB_NAMES = { card: 'Kart Düşürme', hours: 'Saat Yükseltme', realistic: 'Gerçekçi Mod' };
+    function jobLine(a){
+      if (a.running && a.jobs && a.jobs.length) return a.jobs.map(k => t(JOB_NAMES[k] || k)).join(' · ');
+      if (a.finished) return tf('Bitti · #', new Date(a.finished.ts).toLocaleTimeString(localCode(), { hour:'2-digit', minute:'2-digit' }));
+      return '';
+    }
+    function paintRunChip(){
+      const chip = document.getElementById('tbRunning');
+      if (!chip) return;
+      const all = [...acctState.values()];
+      const running = all.filter(a => a.running);
+      const ended = all.filter(a => !a.running && a.finished);
+      if (!running.length && !ended.length){ chip.style.display = 'none'; return; }
+      const parts = [];
+      if (running.length) parts.push(tf('Çalışan hesap: #', running.length));
+      if (ended.length) parts.push(tf('Biten: # hesap', ended.length));
+      chip.style.display = '';
+      chip.classList.toggle('done', !running.length);
+      document.getElementById('tbRunningDot').classList.toggle('e-pulse', running.length > 0);
+      document.getElementById('tbRunningText').textContent = parts.join(' · ');
+      chip.title = all.filter(a => a.running || a.finished).map(a => (a.accountName || a.steamID) + ': ' + jobLine(a)).join('\n');
+    }
+    function mergeAcctState(d){
+      if (!d || !d.steamID) return;
+      const a = acctState.get(d.steamID);
+      if (!a){ refreshAcctState(); return; }       // an account the list has not seen yet: read the list again
+      a.running = !!d.running; a.jobs = d.jobs || []; a.finished = d.finished || null;
+      paintRunChip();
+    }
+    async function refreshAcctState(){
+      const accts = await window.imu.accounts.list().catch(()=>[]);
+      acctState.clear();
+      accts.forEach(a => acctState.set(a.steamID, a));
+      paintRunChip();
+      return accts;
+    }
+    let acctListSignature = '';
     async function renderAcctList(){
       const list = document.getElementById('acctList');
-      const accts = await window.imu.accounts.list().catch(()=>[]);
-      if (!accts.length){ list.innerHTML = '<div style="padding:10px 14px;color:var(--muted2);font-size:12px">Kayıtlı hesap yok.</div>'; return; }
+      const accts = await refreshAcctState();
+      if (!accts.length){ acctListSignature = ''; list.innerHTML = '<div style="padding:10px 14px;color:var(--muted2);font-size:12px">Kayıtlı hesap yok.</div>'; return; }
+      // A list that has not changed is not drawn again: drawing replaces the rows, and a click that started on a row that was replaced before the button came up is lost
+      const signature = JSON.stringify(accts.map(a => [a.steamID, a.accountName, a.active, a.connected, a.running, a.jobs, a.finished && a.finished.ts]));
+      if (signature === acctListSignature && list.children.length) return;
+      acctListSignature = signature;
       // Badges: "Aktif" = shown in the interface, green dot = card/hour running in the background
       list.innerHTML = accts.map(a=>'<div class="acct-row'+(a.active?' active':'')+'" data-id="'+esc(a.steamID)+'">'
-        + '<span class="nm">'+esc(a.accountName||a.steamID)+'</span>'
+        + '<span class="nmwrap"><span class="nm">'+esc(a.accountName||a.steamID)+'</span>'
+        + (jobLine(a) ? '<span class="sub'+(a.running?' on':'')+'">'+esc(jobLine(a))+'</span>' : '') + '</span>'
         + (a.running?'<span class="run-dot" title="Arka planda çalışıyor"></span>':'')
         + (a.connected&&!a.running?'<span class="conn-dot" title="Bağlı"></span>':'')
         + (a.active?'<span class="tag">Aktif</span>':'')
         + '<span class="x" data-x="'+esc(a.steamID)+'">✕</span>'
         + '</div>').join('');
-      list.querySelectorAll('.acct-row').forEach(row=>{
-        row.addEventListener('click', (e)=>{ if (!e.target.closest('[data-x]')) switchAccount(row.getAttribute('data-id')); });
-      });
-      list.querySelectorAll('[data-x]').forEach(x=>{
-        x.addEventListener('click', (e)=>{ e.stopPropagation(); removeAccount(x.getAttribute('data-x')); });
-      });
     }
+    // One handler for the whole list, so it does not depend on the rows that happen to be there; a row is chosen when the button goes DOWN
+    document.getElementById('acctList').addEventListener('mousedown', (e)=>{
+      if (e.button !== 0) return;
+      const row = e.target.closest('.acct-row');
+      if (!row || e.target.closest('[data-x]')) return;
+      e.preventDefault();
+      switchAccount(row.getAttribute('data-id'));
+    });
+    document.getElementById('acctList').addEventListener('click', (e)=>{
+      const x = e.target.closest('[data-x]');
+      if (x){ e.stopPropagation(); removeAccount(x.getAttribute('data-x')); }
+    });
+    document.getElementById('tbRunning').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      if (!acctDropdown.classList.contains('open')) tbProfile.click();
+    });
     // G3: Steam connection state strip. So that a drop is not silent a persistent strip is shown
     // below the top bar; it disappears on its own when reconnected.
     // The text is built here in the interface language, not from the main process; the main process only sends the fields
@@ -1167,16 +1252,33 @@
       else if (tab === 'settings' && typeof loadSettingsPage === 'function') loadSettingsPage();
       else if (typeof loadOverview === 'function') loadOverview();
     }
+    // Switching accounts. The account on screen changes when the new one is CONNECTED (main.js accounts:switch); until then the page is dimmed and says what is going on,
+    // so nobody has to click again, and nothing is started on the old account by mistake.
+    let switchingTo = null, switchToast = null;
     async function switchAccount(steamID){
       closeAcct();
+      if (switchingTo === steamID) return;               // the same row clicked again while it is loading
+      const known = acctState.get(steamID);
+      if (known && known.active && !switchingTo) return;  // already the account on screen
+      switchingTo = steamID;
+      document.body.classList.add('e-switching');
+      // One notice for the whole change: a newer click on another row takes over the same notice
+      if (!switchToast) switchToast = toast(tf('# hesabına geçiliyor…', (known && known.accountName) || steamID));
       const r = await window.imu.accounts.switch(steamID).catch(()=>null);
+      if (r && r.superseded) return;                      // a newer click took over; it finishes the job
+      const working = switchToast; switchToast = null;
+      switchingTo = null;
+      document.body.classList.remove('e-switching');
       if (!r || !r.ok){
+        working.fail(t('Hesap değiştirilemedi.'));
         edgeConfirm({ tag:'Hata', danger:true, title:'Hesap değiştirilemedi.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', singleButton:true });
         return;
       }
+      working.done(tf('# hesabı açıldı.', (known && known.accountName) || steamID));
       resetPageCaches();
       imuProfile = null; imuProfileFresh = false; loadProfile();
       reloadActiveTab();
+      acctListSignature = '';
       renderAcctList();
     }
     async function removeAccount(steamID){
@@ -1207,9 +1309,11 @@
     }
     document.getElementById('acctAddBtn').onclick = () => window.imu.accounts.startAdd();
     // When one of the background accounts starts/stops refresh the dot in the list
-    if (window.imu.onAccountActivity) window.imu.onAccountActivity(()=>{
+    if (window.imu.onAccountActivity) window.imu.onAccountActivity((d)=>{
+      mergeAcctState(d);
       if (acctDropdown.classList.contains('open')) renderAcctList();
     });
+    refreshAcctState();
     // Incoming Steam message: it drops into the activity feed + a toast appears on screen. The desktop notification
     // is sent in the main process (see main.js connectAccount > onChatMessage).
     if (window.imu.onChatMessage) window.imu.onChatMessage((m)=>{
