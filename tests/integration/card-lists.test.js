@@ -26,7 +26,7 @@ app.whenReady().then(async () => {
     startCardFarm: (id, mode, games) => { started.push(games.map((g) => g.appid)); accounts.get(id).farm = { running: true }; return true; },
     boostStart: (id, req) => { boosted.push(req.appids); }, migrateKeys: (x) => x };
   vm.createContext(ctx);
-  vm.runInContext(code + '\n;this.api={accountData,writeAccountData,cleanAppIds,scheduleTick,startBoostAfterCards,accountDataAll};', ctx);
+  vm.runInContext('function settingFor(id, k) { return settings[k]; }\n' + code + '\n;this.api={accountData,writeAccountData,cleanAppIds,scheduleTick,startBoostAfterCards,accountDataAll};', ctx);
   const A = ctx.api;
   const d = A.accountData('111');
   ok('legacy removed moved to blacklist', JSON.stringify(d.farmExcluded) === '[20,30]' && d.entries['cards.queue'].v.removed.length === 0, JSON.stringify(d.farmExcluded));

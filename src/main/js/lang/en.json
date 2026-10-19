@@ -746,7 +746,7 @@
  "/ sa": "/ h",
  "# dk": "# min",
  "saat": "hours",
- "Buradaki ayarlar uygulamanın geneline ve bağlı tüm Steam hesaplarına uygulanır.": "These settings apply to the whole app and to every connected Steam account.",
+ "Buradaki ayarlar uygulamanın geneline uygulanır; \"Bu hesaba özel\" işaretli bölümlerde her hesabın kendi değeri vardır ve yalnızca açık olan hesap değişir.": "These settings apply to the whole app; in the sections marked \"This account only\" every account has its own values and only the account that is open changes.",
  "Değişiklikler Kaydet'e basınca uygulanır; çalışan işler birkaç saniye duraklayıp yeni ayarla sürer.": "Changes take effect when you press Save; running tasks pause for a few seconds and continue with the new settings.",
  "Bir ayarın açıklamasını görmek için adının yanındaki soru işaretinin üzerine gel.": "Hover over the question mark next to a setting to see what it does.",
  "Değişiklikleri Geri Al": "Discard changes",
@@ -1520,5 +1520,7 @@
  "Çalışan hesap: #": "Accounts running: #",
  "Biten: # hesap": "Finished: # accounts",
  "Çalışan işler için hesap listesini aç": "Open the account list to see what runs on each account",
- "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "The rarity percentages could not be read; the order is a guess, hidden achievements last."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "The rarity percentages could not be read; the order is a guess, hidden achievements last.",
+ "Bu hesaba özel": "This account only",
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Every account has its own values; a change made here affects only the account that is open."
 }

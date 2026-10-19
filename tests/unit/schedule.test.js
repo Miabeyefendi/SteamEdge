@@ -27,7 +27,7 @@ const ctx = { settings: { farmScheduleEnabled: true, farmScheduleFrom: '22:00', 
   startCardFarm: (id, mode, games, dur) => { started.push({ id, mode, games: games.map((g) => g.appid), dur }); const s = accounts.get(id); s.farm = { running: true, stop: (c) => { stopped.push([id, c]); s.farm.running = false; } }; return true; },
   Date: class extends Date { constructor(...a) { if (a.length) super(...a); else super(now.v.getTime()); } }, console, Promise, Math, Number, String, Map, Set };
 vm.createContext(ctx);
-vm.runInContext(block + '\n;this.api={scheduleTick,scheduleWindowKey,orderForMode};', ctx);
+vm.runInContext('function settingFor(id, k) { return settings[k]; }\n' + block + '\n;this.api={scheduleTick,scheduleWindowKey,orderForMode};', ctx);
 const A = ctx.api;
 const w = (h, m, d) => new ctx.Date(2026, 9, d || 10, h, m);
 ok('window inside (23:00)', A.scheduleWindowKey(w(23, 0)) === '2026-10-10');

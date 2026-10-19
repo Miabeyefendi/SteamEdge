@@ -1275,11 +1275,30 @@
         return;
       }
       working.done(tf('# hesabı açıldı.', (known && known.accountName) || steamID));
+      await loadAccountSettings();
       resetPageCaches();
       imuProfile = null; imuProfileFresh = false; loadProfile();
       reloadActiveTab();
       acctListSignature = '';
       renderAcctList();
+    }
+    // After a switch the pages must work with the NEW account's own values: its Realistic Mode queue and presets, its hour list, its card lists, its favourites and
+    // its job settings. They used to keep the values read at startup, so the first account's queue showed up on the second one and was saved into its file.
+    async function loadAccountSettings(){
+      const fresh = await window.imu.settings.get().catch(()=>null);
+      if (!fresh) return;
+      appSettings = fresh;
+      if (window.imu.settings.forAccount) window.imu.settings.forAccount(fresh.settingsAccount);
+      // what the pages took from the old account
+      if (typeof grQueue !== 'undefined') grQueue = [];
+      if (typeof grPresets !== 'undefined') grPresets = [];
+      if (typeof grDurationTouched !== 'undefined') grDurationTouched = false;
+      if (typeof farmUserTouched !== 'undefined') farmUserTouched = false;
+      if (typeof boostUserTouched !== 'undefined') boostUserTouched = false;
+      if (typeof concUserTouched !== 'undefined') concUserTouched = false;
+      // unsaved changes on the Settings page belonged to the old account
+      if (typeof draft !== 'undefined') { draft = null; draftBase = null; }
+      if (typeof applySettingsEverywhere === 'function') applySettingsEverywhere(false);
     }
     async function removeAccount(steamID){
       // ITEM 9: instead of a plain confirm() a confirmation that CLEARLY says what will be deleted

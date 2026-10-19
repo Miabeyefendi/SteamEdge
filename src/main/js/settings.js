@@ -19,6 +19,8 @@
 
     S.get().then(s => {
       appSettings = s || {};
+      // the account these values belong to: every write carries it, so a page of one account can never write into another (main.js applySettingPatch)
+      if (S.forAccount) S.forAccount(appSettings.settingsAccount);
       // Start the language from the settings: it must take effect before the texts are drawn.
       if (typeof initI18n === 'function') initI18n(appSettings.language);
       // The chip in the top bar was drawn from the first answer of the account list, before the language was known

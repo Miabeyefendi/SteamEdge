@@ -746,7 +746,7 @@
  "/ sa": "/ 小時",
  "# dk": "# 分",
  "saat": "小時",
- "Buradaki ayarlar uygulamanın geneline ve bağlı tüm Steam hesaplarına uygulanır.": "這裡的設定套用於整個應用程式與所有已連線的 Steam 帳號。",
+ "Buradaki ayarlar uygulamanın geneline uygulanır; \"Bu hesaba özel\" işaretli bölümlerde her hesabın kendi değeri vardır ve yalnızca açık olan hesap değişir.": "這些設定套用於整個應用程式；標示「僅限此帳號」的區段中，每個帳號都有自己的設定值，只會變更目前開啟的帳號。",
  "Değişiklikler Kaydet'e basınca uygulanır; çalışan işler birkaç saniye duraklayıp yeni ayarla sürer.": "按下「儲存」後變更才會生效；執行中的工作會暫停幾秒，再以新設定繼續。",
  "Bir ayarın açıklamasını görmek için adının yanındaki soru işaretinin üzerine gel.": "將滑鼠移到設定名稱旁的問號上即可查看說明。",
  "Değişiklikleri Geri Al": "放棄變更",
@@ -1520,5 +1520,7 @@
  "Çalışan hesap: #": "執行中的帳號：#",
  "Biten: # hesap": "已完成：# 個帳號",
  "Çalışan işler için hesap listesini aç": "開啟帳號列表，查看每個帳號上執行的工作",
- "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "無法讀取稀有度百分比；順序為推測，隱藏成就排在最後。"
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "無法讀取稀有度百分比；順序為推測，隱藏成就排在最後。",
+ "Bu hesaba özel": "僅限此帳號",
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "每個帳號都有自己的設定值；在這裡所做的變更只會影響目前開啟的帳號。"
 }

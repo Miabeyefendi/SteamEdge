@@ -9,6 +9,8 @@ let PACKAGE_VERSION = '';
 try { PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version || ''; }
 catch (_) { PACKAGE_VERSION = ''; }
 
+// The account the settings on the page belong to (settings.forAccount)
+let settingsAccount = null;
 contextBridge.exposeInMainWorld('imu', {
   versionStr: PACKAGE_VERSION,
   // Update check: only LOOKS. No download, no automatic install - the interface just links to
@@ -86,10 +88,12 @@ contextBridge.exposeInMainWorld('imu', {
   onChatMessage: (cb) => ipcRenderer.on('chat:message', (_e, d) => cb(d)),
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
-    set: (patch) => ipcRenderer.invoke('settings:set', patch),
+    // Every write says which account the page's values belong to (see main.js applySettingPatch): the page tells it after every read with forAccount()
+    set: (patch) => ipcRenderer.invoke('settings:set', patch, settingsAccount),
+    forAccount: (steamID) => { settingsAccount = steamID == null ? null : String(steamID); },
     // Save button of the Settings page: only changed keys are sent; the reply says which
     // running jobs will continue with the new settings.
-    saveIt: (patch) => ipcRenderer.invoke('settings:save', patch),
+    saveIt: (patch) => ipcRenderer.invoke('settings:save', patch, settingsAccount),
     // Defaults: Reset loads them into the page's draft and writes nothing.
     defaultsMap: () => ipcRenderer.invoke('settings:defaults'),
     details: () => ipcRenderer.invoke('settings:info'),

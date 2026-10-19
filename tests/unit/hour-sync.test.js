@@ -28,7 +28,7 @@ function boot(settings) {
     scheduleSync: (id) => sched.push(id), runSyncStep: () => {}, simulateSync: () => ({}), log: () => {},
   };
   vm.createContext(ctx);
-  vm.runInContext(code + '\n;this.start = boostStart; this.state = () => ctx_state();', ctx);
+  vm.runInContext('function settingFor(id, k) { return settings[k]; }\n' + code + '\n;this.start = boostStart; this.state = () => ctx_state();', ctx);
   ctx.ctx_state = () => ctx.accounts.get(1).boost;
   return ctx;
 }

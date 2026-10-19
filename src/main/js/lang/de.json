@@ -746,7 +746,7 @@
  "/ sa": "/ h",
  "# dk": "# Min.",
  "saat": "Std.",
- "Buradaki ayarlar uygulamanın geneline ve bağlı tüm Steam hesaplarına uygulanır.": "Diese Einstellungen gelten für die ganze App und für alle verbundenen Steam-Konten.",
+ "Buradaki ayarlar uygulamanın geneline uygulanır; \"Bu hesaba özel\" işaretli bölümlerde her hesabın kendi değeri vardır ve yalnızca açık olan hesap değişir.": "Diese Einstellungen gelten für die ganze App; in den Bereichen mit \"Nur dieses Konto\" hat jedes Konto eigene Werte und nur das geöffnete Konto ändert sich.",
  "Değişiklikler Kaydet'e basınca uygulanır; çalışan işler birkaç saniye duraklayıp yeni ayarla sürer.": "Änderungen werden erst mit „Speichern“ übernommen; laufende Aufgaben pausieren kurz und laufen mit den neuen Einstellungen weiter.",
  "Bir ayarın açıklamasını görmek için adının yanındaki soru işaretinin üzerine gel.": "Fahre mit der Maus über das Fragezeichen neben einer Einstellung, um ihre Beschreibung zu sehen.",
  "Değişiklikleri Geri Al": "Änderungen verwerfen",
@@ -1520,5 +1520,7 @@
  "Çalışan hesap: #": "Laufende Konten: #",
  "Biten: # hesap": "Fertig: # Konten",
  "Çalışan işler için hesap listesini aç": "Kontoliste öffnen, um zu sehen, was auf welchem Konto läuft",
- "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Die Seltenheitswerte konnten nicht gelesen werden; die Reihenfolge ist geschätzt, versteckte Erfolge zuletzt."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Die Seltenheitswerte konnten nicht gelesen werden; die Reihenfolge ist geschätzt, versteckte Erfolge zuletzt.",
+ "Bu hesaba özel": "Nur dieses Konto",
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Jedes Konto hat eigene Werte; eine Änderung hier betrifft nur das geöffnete Konto."
 }

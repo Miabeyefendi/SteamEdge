@@ -1283,24 +1283,24 @@ function updateStatsHour(steamID) {
 // out of cards never left the queue. The interval is deliberately 3 minutes: on a big library the badge page is
 // several pages and several accounts may be running at the same time.
 const CARD_WATCH_MS = 3 * 60 * 1000;
-function cardFarmOptions() {
+function cardFarmOptions(steamID) {
   return {
-    autoNext: settings.autoNextGame !== false,
-    maxGames: settings.cardMaxGames,
-    fastMinPlaytimeMin: settings.fastMinPlaytimeMin,
-    fastRotateMinSec: settings.fastRotateMinSec,
-    fastRotateMaxSec: settings.fastRotateMaxSec,
+    autoNext: settingFor(steamID, 'autoNextGame') !== false,
+    maxGames: settingFor(steamID, 'cardMaxGames'),
+    fastMinPlaytimeMin: settingFor(steamID, 'fastMinPlaytimeMin'),
+    fastRotateMinSec: settingFor(steamID, 'fastRotateMinSec'),
+    fastRotateMaxSec: settingFor(steamID, 'fastRotateMaxSec'),
   };
 }
 // The "When all cards are collected" action set to "Close the app". The check is repeated after a grace period so a job that was
 // paused for another one (resumeFarm) or a second account that is still working keeps the app open.
 let exitTimer = null;
-function scheduleExitWhenIdle() {
+function scheduleExitWhenIdle(steamID) {
   if (exitTimer) return;
   log('info', 'all cards collected: closing the app in 20 s if nothing else is running');
   exitTimer = setTimeout(() => {
     exitTimer = null;
-    if (settings.farmFinishedAction !== 'exit') return;
+    if (settingFor(steamID, 'farmFinishedAction') !== 'exit') return;
     let busy = false;
     accounts.forEach((s) => { if (accountRunning(s) || (s && s.pendingFarm)) busy = true; });
     if (busy) { log('info', 'close cancelled: a job is still running'); return; }
@@ -1322,7 +1322,7 @@ async function startBoostAfterCards(steamID) {
       return;
     }
     const owned = new Map((await s.engine.getOwnedGames()).map((o) => [o.appid, o]));
-    const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+    const limit = Math.max(1, Math.min(32, +settingFor(steamID, 'boostMaxGames') || 32));
     const games = ids.filter((id) => owned.has(id)).slice(0, limit)
       .map((id) => ({ appid: id, name: owned.get(id).name, playtimeMin: owned.get(id).playtimeForever || 0 }));
     if (!games.length || accountBoostRunning(s) || s.realistic) return;
@@ -1345,8 +1345,8 @@ function farmBroadcast(steamID) {
         feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Tüm kartlar toplandı.', status: 'Başarılı' },
       });
       resumeFarm(steamID);
-      if (settings.farmFinishedAction === 'exit') scheduleExitWhenIdle();
-      else if (settings.farmFinishedAction === 'boost') startBoostAfterCards(steamID);
+      if (settingFor(steamID, 'farmFinishedAction') === 'exit') scheduleExitWhenIdle(steamID);
+      else if (settingFor(steamID, 'farmFinishedAction') === 'boost') startBoostAfterCards(steamID);
     } else if ((payloadData.cause === 'duration' || payloadData.cause === 'gameFinished') && payloadData.wasRunning) {
       // "Move on when a game is done" is off: it says why it stopped, otherwise the user
       // thought the job had closed on its own.
@@ -1367,7 +1367,7 @@ function startCardFarm(steamID, mode, games, durationMs, extra) {
   s.farm.engine = s.engine;
   const proceed = !!(extra && extra.proceeding);
   log('info', `[${accountName(steamID)}] farm ${proceed ? 'resume' : 'start'}: mode=${mode} games=${(games || []).length} duration=${durationMs}ms`);
-  s.farm.start(mode, games || [], durationMs, { ...cardFarmOptions(), ...(extra || {}) });
+  s.farm.start(mode, games || [], durationMs, { ...cardFarmOptions(steamID), ...(extra || {}) });
   if (!proceed && s.farm.running) addStat(steamID, { sessions: 1 });
   if (s.farm.running) startCardWatcher(steamID, games || []);
   return true;
@@ -1443,11 +1443,11 @@ async function watchCards(steamID) {
 // "Unlock achievements while farming" (farmAchUnlock). It was in the interface and only worked for the account on screen,
 // while the window was open. Interval: the achievement unlock interval, at least one minute.
 async function openCardAchievements(steamID) {
-  if (!settings.farmAchUnlock) return;
+  if (!settingFor(steamID, 'farmAchUnlock')) return;
   const s = accounts.get(steamID);
   if (!s || !s.watcher || !s.farm || !s.farm.running || !s.engine || !s.ready) return;
   const trace = s.watcher;
-  const intervalMs = Math.max(60, +settings.achDelay || 60) * 1000;
+  const intervalMs = Math.max(60, +settingFor(steamID, 'achDelay') || 60) * 1000;
   if (trace.achievementBusy || Date.now() - (trace.lastAchievement || 0) < intervalMs) return;
   const appid = s.farm.currentActiveAppid;
   if (!appid) return;
@@ -1456,7 +1456,7 @@ async function openCardAchievements(steamID) {
     const data = await s.engine.getAchievements(appid);
     const locked = ((data && data.achievements) || []).filter((a) => !a.achieved && !a.protectedFlag);
     if (!locked.length) return;
-    const picked = settings.achSpread ? locked[Math.floor(Math.random() * locked.length)] : locked[0];
+    const picked = settingFor(steamID, 'achSpread') ? locked[Math.floor(Math.random() * locked.length)] : locked[0];
     await s.engine.setAchievements(appid, [{ apiName: picked.apiName, unlock: true }]);
     trace.lastAchievement = Date.now();
     const v = accountData(steamID);
@@ -1593,6 +1593,22 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
 const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly', 'favoriteGames'];
+// The settings of the JOBS of an account (card farming, hour boosting, Realistic Mode, achievements). They used to be one set for the whole app: two accounts could
+// not run Realistic Mode with two different durations, and a change made on one account changed the job of the other. Each account now keeps its own values in
+// its account file (jobSettings); an account that has never changed one reads the general value, so nothing changes for anyone on the first start.
+// The schedules of card farming and Realistic Mode too (each account its own range). The look, the language, notifications, the network and the app's
+// behaviour stay general.
+const ACCOUNT_SCOPED_SETTINGS = [
+  'cardPriorityMode', 'farmSkipUnplayed', 'farmSkipRecent', 'farmFinishedAction', 'cardMaxGames', 'farmAutoSell', 'farmAchUnlock', 'farmMaxMinutes',
+  'fastMinPlaytimeMin', 'fastRotateMinSec', 'fastRotateMaxSec', 'autoNextGame', 'queueSort',
+  'boostMaxGames', 'rememberBoostList', 'pauseFarmOnBoost', 'boostTarget', 'boostStagger', 'shuffleBoost', 'boostSync', 'boostSyncMode', 'boostSyncTargetHours',
+  'boostSyncLibraryMaxMin', 'boostSyncStrategy', 'boostAutoRestart', 'seqIdle', 'loopQueue', 'boostDurationSec',
+  'grDurationSec', 'grTargetAuto', 'grTarget', 'grCR', 'grDiff', 'grTc', 'grTcGame', 'grModel', 'grAuto', 'grRandomGap', 'grSkipUltraRare', 'grKeepHours', 'grCatchUp',
+  'grAutoDuration', 'grSpeed', 'grUltraMultiplier', 'grCatchUpShare', 'grFinishedRatio', 'grShowNoAch', 'grLevel',
+  'achConfirmSingle', 'achDelay', 'achOrder', 'achSafeMode', 'achSpread',
+  'farmScheduleEnabled', 'farmScheduleFrom', 'farmScheduleTo', 'grScheduleEnabled', 'grScheduleFrom', 'grScheduleTo',
+];
+const ACCOUNT_SCOPED = new Set(ACCOUNT_SCOPED_SETTINGS);
 const DEFAULT_ACCOUNT_DATA = {
   boostGameIds: [], entries: {}, achLog: [], stats: null, profileInfo: null,
   grQueue: [], grPresets: [],
@@ -1603,6 +1619,7 @@ const DEFAULT_ACCOUNT_DATA = {
   farmWhitelist: [],               // appids that card farming is limited to while farmWhitelistOnly is on
   farmWhitelistOnly: false,
   grLastRun: null,                 // the last Realistic Mode start of this account { gameEntries, spanMs, optionList }: what the schedule repeats
+  jobSettings: {},                 // this account's own values of ACCOUNT_SCOPED_SETTINGS (the ones it changed); the rest comes from the general settings
   favoriteGames: [],               // games starred in the Hour Booster, Realistic Mode and Achievements lists (shown first)
 };
 
@@ -1632,6 +1649,8 @@ function accountData(steamID) {
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
   // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
   ['keyQueue', 'keyResults', 'farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  if (!v.jobSettings || typeof v.jobSettings !== 'object' || Array.isArray(v.jobSettings) || v.jobSettings === DEFAULT_ACCOUNT_DATA.jobSettings) v.jobSettings = {};
+  Object.keys(v.jobSettings).forEach((k) => { if (!ACCOUNT_SCOPED.has(k)) delete v.jobSettings[k]; });
   // Games taken out of the queue used to live in the queue state, which expires with the retention period: move them to the blacklist once
   const legacy = v.entries && v.entries['cards.queue'] && v.entries['cards.queue'].v;
   if (legacy && Array.isArray(legacy.removed) && legacy.removed.length) {
@@ -1668,6 +1687,14 @@ function flushPendingWrites() {
 }
 // The active account's data. If there is no account a temporary container is returned (not written to disk).
 function activeAccountData() { return accountData(activeSteamID); }
+// The value of a job setting for one account: its own value if it set one, otherwise the general one. Every job reads its settings from here with ITS account.
+function settingFor(steamID, key) {
+  if (steamID && ACCOUNT_SCOPED.has(key)) {
+    const own = accountData(steamID).jobSettings;
+    if (own && Object.prototype.hasOwnProperty.call(own, key)) return own[key];
+  }
+  return settings[key];
+}
 
 // ---- One-time migration: move from the old global files to the active account's file ----
 // So the user does not lose data when upgrading. After moving, the copies in the global
@@ -1868,7 +1895,7 @@ ipcMain.handle('engine:dropGames', async () => {
     } catch (e) { log('warn', 'could not get the playtime: ' + e.message); }
     const output = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }));
     storeLists('drop', output);
-    const refundIds = settings.farmSkipRecent ? [...await refundableAppIds(activeSteamID, mins)] : [];
+    const refundIds = settingFor(activeSteamID, 'farmSkipRecent') ? [...await refundableAppIds(activeSteamID, mins)] : [];
     return { ok: true, games: output, refundIds };
   } catch (e) { return { ok: false, error: e.message }; }
 });
@@ -2958,7 +2985,7 @@ function boostStart(steamID, request) {
   boostClear(s);
   // Sequential and simultaneous boosting do not run at the same time; both write the same game list.
   if (s.hoursFarm && s.hoursFarm.running) s.hoursFarm.stop('boost');
-  if (settings.pauseFarmOnBoost) delayFarm(steamID, 'hour boosting');
+  if (settingFor(steamID, 'pauseFarmOnBoost')) delayFarm(steamID, 'hour boosting');
   const appids = (request.appids || []).slice();
   const games = Array.isArray(request.games) ? request.games : null;
   const durationMs = +request.durationMs || 0;
@@ -2972,18 +2999,18 @@ function boostStart(steamID, request) {
   //   parallel (default) - all together, drop the one that reaches the target from the list. The fastest.
   //   staged             - step by step, keeps the games level along the way. Slow but gradual.
   // "Highest of the selected" with a single game has nothing to equalise: it runs like a normal boost with the chosen duration
-  const syncMode = settings.boostSyncMode || 'highest';
-  if (settings.boostSync && games && games.length && (games.length > 1 || syncMode !== 'highest')) {
+  const syncMode = settingFor(steamID, 'boostSyncMode') || 'highest';
+  if (settingFor(steamID, 'boostSync') && games && games.length && (games.length > 1 || syncMode !== 'highest')) {
     const mode = syncMode;
     let targetMin;
-    if (mode === 'manual') targetMin = Math.max(0, Math.round((+settings.boostSyncTargetHours || 0) * 60));
-    else if (mode === 'library') targetMin = Math.max(0, +settings.boostSyncLibraryMaxMin || 0);
+    if (mode === 'manual') targetMin = Math.max(0, Math.round((+settingFor(steamID, 'boostSyncTargetHours') || 0) * 60));
+    else if (mode === 'library') targetMin = Math.max(0, +settingFor(steamID, 'boostSyncLibraryMaxMin') || 0);
     else targetMin = Math.max(...games.map((g) => g.playtimeMin || 0));
 
     const behind = games.filter((g) => (g.playtimeMin || 0) < targetMin);
     if (!behind.length) {
       log('info', '[' + accountName(steamID) + '] hour sync: all games are already at the target, starting them together directly');
-    } else if ((settings.boostSyncStrategy || 'parallel') === 'staged') {
+    } else if ((settingFor(steamID, 'boostSyncStrategy') || 'parallel') === 'staged') {
       const steps = buildSyncSteps(games, targetMin);
       if (steps.length) {
         b.sync = {
@@ -3028,7 +3055,7 @@ function boostStart(steamID, request) {
   const proceed = request.proceeding || null;
   const start = proceed && proceed.startPoint ? proceed.startPoint : Date.now();
   const remainingMs = durationMs ? Math.max(1000, durationMs - (Date.now() - start)) : 0;
-  const stagger = Math.max(0, +settings.boostStagger || 0) * 1000;
+  const stagger = Math.max(0, +settingFor(steamID, 'boostStagger') || 0) * 1000;
   b.appids = appids; b.startPoint = start; b.spanMs = durationMs;
 
   const emit = () => accountBroadcast(steamID)('boost:tick', { running: true, appids, activeAppids: s.engine.playingApps('hours'), startedAt: start, durationMs });
@@ -3059,7 +3086,7 @@ function boostTimeUp(steamID) {
   if (!b || !b.runningFlag) return;
   const request = b.request;
   boostFinish(steamID, 'duration', true);
-  if (settings.boostAutoRestart && request) {
+  if (settingFor(steamID, 'boostAutoRestart') && request) {
     accountEvent(steamID, {
       typeName: 'boostRenewed',
       feedEntry: { kind: 'hours', title: 'Saat Yükseltici', text: 'Süre doldu, oturum otomatik yenilendi.', status: 'Çalışıyor' },
@@ -3120,14 +3147,14 @@ function startSequential(steamID, request) {
   const s = accounts.get(steamID);
   if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
   if (s.boost && s.boost.runningFlag) boostFinish(steamID, 'sequential', true);
-  if (settings.pauseFarmOnBoost) delayFarm(steamID, 'sequential hour boosting');
+  if (settingFor(steamID, 'pauseFarmOnBoost')) delayFarm(steamID, 'sequential hour boosting');
   if (!s.hoursFarm) s.hoursFarm = new FarmController(s.engine, sequentialBroadcast(steamID), 'sequential');
   s.hoursFarm.engine = s.engine;
   s.sequentialRequest = { games: request.games || [], durationMs: request.durationMs, loop: request.loop !== false };
   // "Shuffle the game order" only makes sense here: since games are opened one by one the order
   // shows on the profile. In simultaneous boosting all are open together and the order has no effect.
   s.hoursFarm.start('sequential', s.sequentialRequest.games, s.sequentialRequest.durationMs, {
-    loop: s.sequentialRequest.loop, shuffle: !!settings.shuffleBoost, proceeding: request.proceeding || null,
+    loop: s.sequentialRequest.loop, shuffle: !!settingFor(steamID, 'shuffleBoost'), proceeding: request.proceeding || null,
   });
   return { ok: true };
 }
@@ -3556,7 +3583,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     // If another start came in during preparation a second job is not opened.
     if (s.realistic) return { ok: false, error: 'Zaten çalışıyor.' };
     // If it runs at the same time as card farming both write the same game list; so they do not clash.
-    if (settings.pauseFarmOnBoost) delayFarm(steamID, 'realistic mode');
+    if (settingFor(steamID, 'pauseFarmOnBoost')) delayFarm(steamID, 'realistic mode');
 
     const firstGame = willRun[0];
     const firstReady = prepared[firstGame.appid];
@@ -3631,12 +3658,14 @@ ipcMain.handle('engine:boostSyncPlan', async (_e, { games, mode, targetHours }) 
     try {
       const owned = await engine.getOwnedGames();
       targetMin = owned.reduce((m, g) => Math.max(m, g.playtimeForever || 0), 0);
-      settings.boostSyncLibraryMaxMin = targetMin; saveSettings();
+      // the highest playtime of THIS account's library: kept with the account
+      if (activeSteamID) { activeAccountData().jobSettings.boostSyncLibraryMaxMin = targetMin; writeAccountDataDelayed(activeSteamID); }
+      else { settings.boostSyncLibraryMaxMin = targetMin; saveSettings(); }
     } catch (e) { return { ok: false, error: e.message }; }
   } else targetMin = Math.max(...games.map((g) => g.playtimeMin || 0));
 
   const behind = games.filter((g) => (g.playtimeMin || 0) < targetMin);
-  const strategy = settings.boostSyncStrategy || 'parallel';
+  const strategy = settingFor(activeSteamID, 'boostSyncStrategy') || 'parallel';
 
   if (strategy === 'parallel') {
     const limit = SYNC_MAX_GAMES;
@@ -3796,6 +3825,9 @@ function accountSettingsAdded(basis) {
   const v = activeAccountData();
   const output = { ...basis };
   ACCOUNT_SETTING_KEYS.forEach((k) => { if (k in v) output[k] = v[k]; });
+  ACCOUNT_SCOPED_SETTINGS.forEach((k) => { output[k] = settingFor(activeSteamID, k); });
+  // which account these values belong to: the page sends it back with every write (see applySettingPatch)
+  output.settingsAccount = activeSteamID || null;
   return output;
 }
 ipcMain.handle('settings:get', () => {
@@ -3805,10 +3837,17 @@ ipcMain.handle('settings:get', () => {
 // Only the keys that REALLY changed are written and applied; the running jobs affected by the change
 // are resumed with the new setting. Session fields (persona, steamID, currency) are never written:
 // "Geri Al" used to send back the whole settings object and these got into the settings file.
-const SESSION_FIELDS = ['persona', 'steamID', 'accountCurrency'];
-function applySettingPatch(patch) {
+const SESSION_FIELDS = ['persona', 'steamID', 'accountCurrency', 'settingsAccount'];
+function applySettingPatch(patch, forAccount) {
   const received = { ...(patch || {}) };
   SESSION_FIELDS.forEach((k) => { delete received[k]; });
+  // A page that still shows ANOTHER account (the switch happened between its read and this write) must not write its account values into the account now on
+  // screen: that is how one account's Realistic Mode queue replaced the other's. Its general settings still go through.
+  if (forAccount !== undefined && forAccount !== null && String(forAccount) !== String(activeSteamID || '')) {
+    const dropped = Object.keys(received).filter((k) => ACCOUNT_SETTING_KEYS.includes(k) || ACCOUNT_SCOPED.has(k));
+    dropped.forEach((k) => { delete received[k]; });
+    if (dropped.length) log('warn', 'settings: ' + dropped.length + ' account value(s) from a page of another account were not written (' + dropped.join(', ') + ')');
+  }
   ['farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
   if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
   if ('uiScale' in received) received.uiScale = windowFit.normalizeScale(received.uiScale);      // the selector sends text
@@ -3829,11 +3868,27 @@ function applySettingPatch(patch) {
       writtenToAccount = true;
     }
   });
+  // The job settings: to the account on screen (its own value), unless there is no account yet (the first start), then to the general settings
+  const scopedChanged = [];
+  if (activeSteamID) {
+    const own = activeAccountData().jobSettings;
+    ACCOUNT_SCOPED_SETTINGS.forEach((k) => {
+      if (!(k in received)) return;
+      if (JSON.stringify(settingFor(activeSteamID, k)) !== JSON.stringify(received[k])) { own[k] = received[k]; scopedChanged.push(k); writtenToAccount = true; }
+      delete received[k];
+    });
+  }
   if (writtenToAccount) writeAccountData(activeSteamID);
   if (pinChanged) applyParentalPin(activeSteamID);
   if (writtenToAccount) applyActiveProxy();      // no-op unless the proxy of the account on screen changed
   const changed = Object.keys(received).filter((k) => JSON.stringify(settings[k]) !== JSON.stringify(received[k]));
-  if (!changed.length) return { ok: true, changedOne: changed, appliedOne: [] };
+  if (!changed.length) {
+    if (!scopedChanged.length) return { ok: true, changedOne: [], appliedOne: [] };
+    settingSaveTime = Date.now();
+    const applied = applySettingsToJobs(scopedChanged, activeSteamID);
+    log('info', 'account settings saved: ' + scopedChanged.join(', ') + (applied.length ? (' (applied to ' + applied.length + ' jobs)') : ''));
+    return { ok: true, changedOne: scopedChanged, appliedOne: applied };
+  }
   const old = settings;
   settings = { ...settings };
   changed.forEach((k) => { settings[k] = received[k]; });
@@ -3859,20 +3914,20 @@ function applySettingPatch(patch) {
     const n = pruneAccountRecords(activeAccountData());
     if (n) { writeAccountData(activeSteamID); log('info', 'retention period changed, ' + n + ' records deleted'); }
   }
-  const appliedItem = applySettingsToJobs(changed);
-  log('info', 'settings saved: ' + changed.join(', ') + (appliedItem.length ? (' (applied to ' + appliedItem.length + ' jobs)') : ''));
-  return { ok: true, changedOne: changed, appliedOne: appliedItem };
+  const appliedItem = applySettingsToJobs(changed).concat(scopedChanged.length ? applySettingsToJobs(scopedChanged, activeSteamID) : []);
+  log('info', 'settings saved: ' + changed.concat(scopedChanged).join(', ') + (appliedItem.length ? (' (applied to ' + appliedItem.length + ' jobs)') : ''));
+  return { ok: true, changedOne: changed.concat(scopedChanged), appliedOne: appliedItem };
 }
 // Instant controls on pages (the Hour Booster switches, "bir daha sorma" in the confirmation window
 // and the like) write from here: these are preferences that are applied with a single click anyway.
-ipcMain.handle('settings:set', (_e, patch) => {
-  applySettingPatch(patch);
+ipcMain.handle('settings:set', (_e, patch, forAccount) => {
+  applySettingPatch(patch, forAccount);
   return accountSettingsAdded(publicSettings());
 });
 // The "Kaydet" button of the Settings page. The page keeps changes in a draft, only the changed keys
 // come here. The reply also says which jobs will be resumed with the new setting.
-ipcMain.handle('settings:save', (_e, patch) => {
-  const r = applySettingPatch(patch);
+ipcMain.handle('settings:save', (_e, patch, forAccount) => {
+  const r = applySettingPatch(patch, forAccount);
   return { ...r, settings: accountSettingsAdded(publicSettings()), saveTime: settingSaveTime, pauseMs: SETTINGS_DEBOUNCE_MS };
 });
 // "Reset to defaults" no longer writes anything: the defaults are loaded into the page's draft,
@@ -3912,7 +3967,7 @@ function applyAndContinueCardFarm(steamID, changed) {
   const mode = s.farm.mode;
   const games = s.farm.games.map((g) => ({ ...g }));
   // If "Time per game" changed the new time, if not the time selected on the Card Farming page.
-  const dk = +settings.farmMaxMinutes;
+  const dk = +settingFor(steamID, 'farmMaxMinutes');
   const duration = changed.has('farmMaxMinutes') && dk > 0 ? dk * 60000 : s.farm.durationMs;
   s.farm.stop('setting');
   setupSettingWait(s, 'card', () => {
@@ -3931,7 +3986,7 @@ function applyAndContinueBoost(steamID) {
   const s = accounts.get(steamID);
   const b = s && s.boost;
   if (!b || !b.runningFlag || b.sync || !b.request) return false;
-  const limit = Math.max(1, Math.min(32, +settings.boostMaxGames || 32));
+  const limit = Math.max(1, Math.min(32, +settingFor(steamID, 'boostMaxGames') || 32));
   const allOfIt = b.request.allItems || b.request.games || (b.request.appids || []).map((appid) => ({ appid }));
   const newItem = allOfIt.slice(0, limit);
   const newIds = newItem.map((g) => g.appid);
@@ -3946,33 +4001,37 @@ function applyAndContinueBoost(steamID) {
   });
   return true;
 }
-function applySettingsToJobs(changed) {
+function applySettingsToJobs(changed, onlyAccount) {
   const d = new Set(changed || []);
   const summary = [];
   if (!d.size) return summary;
   accounts.forEach((s, steamID) => {
     if (!s) return;
+    if (onlyAccount && steamID !== onlyAccount) return;
+    // a general value changes nothing on an account that has its own
+    const keysHere = new Set([...d].filter((k) => onlyAccount || !ACCOUNT_SCOPED.has(k) || !Object.prototype.hasOwnProperty.call(accountData(steamID).jobSettings, k)));
+    if (!keysHere.size) return;
     const accountRef = accountName(steamID);
-    if (s.farm && s.farm.running && CARD_JOB_SETTINGS.some((k) => d.has(k))) {
-      if (applyAndContinueCardFarm(steamID, d)) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'paused' });
+    if (s.farm && s.farm.running && CARD_JOB_SETTINGS.some((k) => keysHere.has(k))) {
+      if (applyAndContinueCardFarm(steamID, keysHere)) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'paused' });
     }
     const b = s.boost;
-    if (b && b.runningFlag && d.has('boostMaxGames')) {
+    if (b && b.runningFlag && keysHere.has('boostMaxGames')) {
       // a running sync ignores this setting (see SYNC_MAX_GAMES)
       if (b.sync) { /* nothing to apply */ } else if (applyAndContinueBoost(steamID)) {
         summary.push({ steamID, accountRef: accountRef, is: 'hours', how: 'paused' });
       }
     }
     // In sequential idling shuffling takes effect on the next round; no need to pause.
-    if (s.hoursFarm && s.hoursFarm.running && d.has('shuffleBoost')) {
-      s.hoursFarm.shuffle = !!settings.shuffleBoost;
+    if (s.hoursFarm && s.hoursFarm.running && keysHere.has('shuffleBoost')) {
+      s.hoursFarm.shuffle = !!settingFor(steamID, 'shuffleBoost');
       s.hoursFarm.opts = { ...(s.hoursFarm.opts || {}), shuffle: s.hoursFarm.shuffle };
       summary.push({ steamID, accountRef: accountRef, is: 'sequential', how: 'instant' });
     }
-    if (d.has('pauseFarmOnBoost')) {
-      if (settings.pauseFarmOnBoost && (accountBoostRunning(s) || s.realistic) && s.farm && s.farm.running) {
+    if (keysHere.has('pauseFarmOnBoost')) {
+      if (settingFor(steamID, 'pauseFarmOnBoost') && (accountBoostRunning(s) || s.realistic) && s.farm && s.farm.running) {
         if (delayFarm(steamID, 'setting: pause while boosting hours')) summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'delayed' });
-      } else if (!settings.pauseFarmOnBoost && s.pendingFarm && !s.realistic) {
+      } else if (!settingFor(steamID, 'pauseFarmOnBoost') && s.pendingFarm && !s.realistic) {
         resumeFarm(steamID, true);
         summary.push({ steamID, accountRef: accountRef, is: 'card', how: 'resumed' });
       }
@@ -4007,6 +4066,7 @@ function exportPayload() {
     const v = accountData(a.steamID);
     const h = { stats: v.stats || null };
     BACKUP_ACCOUNT_FIELDS.forEach((k) => { h[k] = Array.isArray(v[k]) ? v[k] : []; });
+    h.jobSettings = { ...(v.jobSettings || {}) };          // the account's own job settings
     accountList[a.steamID] = h;
   });
   return {
@@ -4080,6 +4140,10 @@ ipcMain.handle('settings:import', async () => {
         const v = accountData(sid);
         if (h.stats && typeof h.stats === 'object') v.stats = { ...DEFAULT_STATS, ...h.stats };
         BACKUP_ACCOUNT_FIELDS.forEach((k) => { if (Array.isArray(h[k])) v[k] = h[k]; });
+        if (h.jobSettings && typeof h.jobSettings === 'object' && !Array.isArray(h.jobSettings)) {
+          v.jobSettings = {};
+          Object.keys(h.jobSettings).forEach((k) => { if (ACCOUNT_SCOPED.has(k)) v.jobSettings[k] = h.jobSettings[k]; });
+        }
         writeAccountData(sid);
         accountCount++;
       });
@@ -4389,8 +4453,8 @@ function scheduleWindow(now, fromText, toText) {
   if (cur < t) return { key: dayKey(now.getTime() - 86400000), endsInMs: untilEnd(t - cur) };
   return null;
 }
-function scheduleWindowKey(now) {
-  const w = scheduleWindow(now, settings.farmScheduleFrom || '22:00', settings.farmScheduleTo || '07:00');
+function scheduleWindowKey(now, steamID) {
+  const w = scheduleWindow(now, settingFor(steamID, 'farmScheduleFrom') || '22:00', settingFor(steamID, 'farmScheduleTo') || '07:00');
   return w ? w.key : null;
 }
 // The same order the Card farming page uses for a manual start (orderedForMode in cards.js).
@@ -4420,15 +4484,15 @@ async function scheduleStartFarm(steamID) {
     const acct = accountData(steamID);
     const excluded = new Set(acct.farmExcluded);
     const only = acct.farmWhitelistOnly ? new Set(acct.farmWhitelist) : null;
-    const refunds = settings.farmSkipRecent ? await refundableAppIds(steamID, mins) : new Set();
+    const refunds = settingFor(steamID, 'farmSkipRecent') ? await refundableAppIds(steamID, mins) : new Set();
     const list = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }))
-      .filter((g) => !excluded.has(g.appid) && (!only || only.has(g.appid)) && !(settings.farmSkipUnplayed && !(g.playtimeMin > 0)) && !refunds.has(g.appid));
+      .filter((g) => !excluded.has(g.appid) && (!only || only.has(g.appid)) && !(settingFor(steamID, 'farmSkipUnplayed') && !(g.playtimeMin > 0)) && !refunds.has(g.appid));
     // the account may have been given another job while the lists were loading
     if (!s.ready || accountRunning(s) || s.pendingFarm) return;
     if (!list.length) { log('info', '[' + accountName(steamID) + '] schedule: no game with cards left'); return; }
-    const ordered = orderForMode(list, settings.cardPriorityMode, saved.order || []);
-    const durationMs = Math.max(1, +settings.farmMaxMinutes || 5) * 60000;
-    if (!startCardFarm(steamID, settings.cardPriorityMode, ordered.map((g) => ({ appid: g.appid, name: g.name, remaining: g.remaining, playtimeMin: g.playtimeMin })), durationMs)) return;
+    const ordered = orderForMode(list, settingFor(steamID, 'cardPriorityMode'), saved.order || []);
+    const durationMs = Math.max(1, +settingFor(steamID, 'farmMaxMinutes') || 5) * 60000;
+    if (!startCardFarm(steamID, settingFor(steamID, 'cardPriorityMode'), ordered.map((g) => ({ appid: g.appid, name: g.name, remaining: g.remaining, playtimeMin: g.playtimeMin })), durationMs)) return;
     if (!s.farm || !s.farm.running) return;
     s.scheduleStarted = true;
     log('info', '[' + accountName(steamID) + '] schedule: card farming started (' + ordered.length + ' games)');
@@ -4443,13 +4507,14 @@ function scheduleTick() {
   realisticScheduleTick();
 }
 function cardScheduleTick() {
-  if (!settings.farmScheduleEnabled) {
-    // Turning the schedule off leaves a running farm alone
-    accounts.forEach((s) => { s.scheduleStarted = false; s.scheduleKey = null; });
-    return;
-  }
-  const key = scheduleWindowKey(new Date());
+  // Each account has its own schedule (switch and range, see ACCOUNT_SCOPED_SETTINGS)
   accounts.forEach((s, steamID) => {
+    if (!settingFor(steamID, 'farmScheduleEnabled')) {
+      // Turning the schedule off leaves a running farm alone
+      s.scheduleStarted = false; s.scheduleKey = null;
+      return;
+    }
+    const key = scheduleWindowKey(new Date(), steamID);
     if (!key) {
       if (s.scheduleStarted && s.pendingFarm) s.pendingFarm = null;   // paused for a boost: it must not resume after the window
       if (s.scheduleStarted && s.farm && s.farm.running) {
@@ -4476,12 +4541,12 @@ function cardScheduleTick() {
 // setup of its last Realistic Mode start made by hand (games, duration, options); the run is cut to what is left of the range and
 // stopped when the range closes. A run started by hand is never stopped, and an account is started at most once per range.
 function realisticScheduleTick() {
-  if (!settings.grScheduleEnabled) {
-    accounts.forEach((s) => { s.grScheduleStarted = false; s.grScheduleKey = null; });
-    return;
-  }
-  const w = scheduleWindow(new Date(), settings.grScheduleFrom || '22:00', settings.grScheduleTo || '07:00');
   accounts.forEach((s, steamID) => {
+    if (!settingFor(steamID, 'grScheduleEnabled')) {
+      s.grScheduleStarted = false; s.grScheduleKey = null;
+      return;
+    }
+    const w = scheduleWindow(new Date(), settingFor(steamID, 'grScheduleFrom') || '22:00', settingFor(steamID, 'grScheduleTo') || '07:00');
     if (!w) {
       if (s.grScheduleStarted && s.realistic) {
         log('info', '[' + accountName(steamID) + '] schedule: window closed, Realistic Mode stopped');

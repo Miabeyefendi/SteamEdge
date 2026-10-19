@@ -25,7 +25,7 @@ const ctx = {
   console, Promise, Math, Number, String, Map, Set,
 };
 vm.createContext(ctx);
-vm.runInContext(code + '\n;this.api = { scheduleWindow, realisticScheduleTick };', ctx);
+vm.runInContext('function settingFor(id, k) { return settings[k]; }\n' + code + '\n;this.api = { scheduleWindow, realisticScheduleTick };', ctx);
 const { scheduleWindow, realisticScheduleTick } = ctx.api;
 const settle = () => new Promise((r) => setTimeout(r, 20));
 const at = (h, m, d) => new ctx.Date(2026, 9, d || 10, h, m, 0);

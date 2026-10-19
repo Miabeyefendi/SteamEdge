@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.3)
+
+Every account now keeps its own job settings, and a page of one account can no longer write into another.
+
+### Fixed
+
+- **The Realistic Mode queue of one account replaced the queue of the other.** After a switch the pages kept the values they had read for the first account (its Realistic Mode queue and presets, its hour list, its card lists, its favourites), showed them on the second account and saved them into its file, so the second account's own game disappeared. The pages now read the settings of the new account the moment the switch is done and drop what they kept of the old one, and every write names the account its values belong to: a write from a page of another account is not taken into the account on screen.
+- Unsaved changes on the Settings page are dropped when the account changes; they belonged to the other account.
+
+### Added
+
+- **Settings per account.** The settings of the jobs are kept with each account: card farming (mode, time per game, games at once, the fast mode threshold and the rest of the section), the Hour Booster section, Realistic Mode (duration, target, difficulty, model and the other switches), the Achievements section, and the schedules of card farming and Realistic Mode. Two accounts can now run Realistic Mode with different settings, and a change made on one account changes and restarts only that account's jobs. An account that never changed a setting uses the general value, so nothing changes on the first start. The sections that work this way say "This account only". The look, the language, notifications, the market, the network and the app's behaviour stay general.
+- Backups include each account's own job settings.
+
+### Changed
+
+- `npm test` runs 51 tests (new: settings per account; the account switch test now checks that the page holds the new account's queue and that its writes name that account).
+
+
+SHA-256 (`SteamEdge-v1.6.3-win-x64.rar`): `93cf59401d8a94a72c0ed4cd91da738bca00ce63fe0e4feac78bc0564496c53e`
+
 ## [1.6.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.2)
 
 Realistic Mode names its rarity bands by proportion again, and the engine uses the same bands as the list.
