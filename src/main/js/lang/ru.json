@@ -746,7 +746,7 @@
  "/ sa": "/ ч",
  "# dk": "# мин",
  "saat": "ч",
- "Buradaki ayarlar uygulamanın geneline ve bağlı tüm Steam hesaplarına uygulanır.": "Эти настройки действуют во всём приложении и для всех подключённых аккаунтов Steam.",
+ "Buradaki ayarlar uygulamanın geneline uygulanır; \"Bu hesaba özel\" işaretli bölümlerde her hesabın kendi değeri vardır ve yalnızca açık olan hesap değişir.": "Эти настройки действуют на всё приложение; в разделах с пометкой «Только этот аккаунт» у каждого аккаунта свои значения, и меняется только открытый аккаунт.",
  "Değişiklikler Kaydet'e basınca uygulanır; çalışan işler birkaç saniye duraklayıp yeni ayarla sürer.": "Изменения применяются после нажатия «Сохранить»; запущенные задачи на несколько секунд приостанавливаются и продолжаются с новыми настройками.",
  "Bir ayarın açıklamasını görmek için adının yanındaki soru işaretinin üzerine gel.": "Наведите курсор на вопросительный знак рядом с настройкой, чтобы увидеть её описание.",
  "Değişiklikleri Geri Al": "Отменить изменения",
@@ -1520,5 +1520,7 @@
  "Çalışan hesap: #": "Работают аккаунты: #",
  "Biten: # hesap": "Завершено: # акк.",
  "Çalışan işler için hesap listesini aç": "Открыть список аккаунтов, чтобы увидеть, что работает на каждом",
- "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Не удалось получить проценты редкости; порядок приблизительный, скрытые достижения в конце."
+ "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Не удалось получить проценты редкости; порядок приблизительный, скрытые достижения в конце.",
+ "Bu hesaba özel": "Только этот аккаунт",
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "У каждого аккаунта свои значения; изменение здесь затрагивает только открытый аккаунт."
 }

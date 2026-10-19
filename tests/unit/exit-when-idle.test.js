@@ -11,7 +11,7 @@ function run(label,{action,busy,pending}){
   const ctx={settings:{farmFinishedAction:action},accounts:new Map([[1,{}]]),accountRunning:()=>busy,log:(l,m)=>logs.push(m),
     app:{quit:()=>quit++},isQuitting:false,setTimeout:(f,ms)=>{timers.push([f,ms]);return 1;}};
   ctx.accounts.get(1).pendingFarm=pending;
-  vm.createContext(ctx);vm.runInContext(fn+';this.go=scheduleExitWhenIdle;',ctx);
+  vm.createContext(ctx);vm.runInContext('function settingFor(id, k) { return settings[k]; }\n' + fn+';this.go=scheduleExitWhenIdle;',ctx);
   ctx.go();ctx.go(); // second call must not double schedule
   const ms=timers[0][1];timers.forEach(t=>t[0]());
   console.log(label,'| timers:',timers.length,'delay:',ms,'| quit calls:',quit,'|',logs.join(' / '));

@@ -15,10 +15,18 @@ let accountRows = [
 ];
 const calls = [];
 let switchDelay = 0;
+// each account's own values, as main.js gives them (accountSettingsAdded)
+const own = {
+  '76561198000000001': { grQueue: [10], grDurationSec: 3600 },
+  '76561198000000002': { grQueue: [20], grDurationSec: 18000 },
+  '76561198000000003': { grQueue: [], grDurationSec: 7200 },
+};
+const activeId = () => accountRows.find((a) => a.active).steamID;
+const view = () => ({ ...settings, ...own[activeId()], settingsAccount: activeId() });
 const answers = {
-  'settings:get': () => settings, 'settings:defaults': () => { const d = { ...DEFAULTS }; delete d.settingsVersion; return d; }, 'settings:info': () => ({ saveTime: null }),
+  'settings:get': () => view(), 'settings:defaults': () => { const d = { ...DEFAULTS }; delete d.settingsVersion; return d; }, 'settings:info': () => ({ saveTime: null }),
   'settings:save': (_e, patch) => { Object.assign(settings, patch); return { ok: true, settings, saveTime: Date.now(), appliedOne: [], pauseMs: 5000 }; },
-  'settings:set': (_e, patch) => { Object.assign(settings, patch); return settings; },
+  'settings:set': (_e, patch, forAccount) => { calls.push(['settings:set', patch, forAccount]); return view(); },
   'engine:connect': () => ({ ok: true }), 'engine:dropGames': () => ({ ok: true, games, refundIds: [] }), 'engine:lastLists': () => ({ ok: true, drop: [], owned: [] }),
   'engine:ownedGames': () => ({ ok: true, games: games.map((g) => ({ appid: g.appid, name: g.name, playtimeForever: g.playtimeMin, hasStats: true })) }),
   'engine:profile': () => ({ ok: true, profile: { persona: 'tester', level: 5 } }), 'engine:vanity': () => ({ ok: true }),
@@ -100,6 +108,21 @@ app.whenReady().then(async () => {
   await wait(1800);
   check('the newer click wins and nothing stays dimmed', accountRows.find((a) => a.active).steamID === '76561198000000003' && (await js("document.body.classList.contains('e-switching')")) === false, JSON.stringify(accountRows.map((a) => a.active)));
   check('no notice is left spinning', (await js("document.querySelectorAll('#toastBox .tspin').length")) === 0);
+
+  // ---- the settings of the account on screen ----
+  check('after the switch the page holds the values of the account on screen, not the first one', (await js("appSettings.settingsAccount + '|' + JSON.stringify(appSettings.grQueue) + '|' + appSettings.grDurationSec")) === '76561198000000003|[]|7200', await js("appSettings.settingsAccount + '|' + JSON.stringify(appSettings.grQueue) + '|' + appSettings.grDurationSec"));
+  calls.length = 0;
+  await js("window.imu.settings.set({ grDurationSec: 900 })");
+  await wait(150);
+  const tagged = calls.find((c) => c[0] === 'settings:set');
+  check('and a write from the page names that account', tagged && tagged[2] === '76561198000000003', JSON.stringify(tagged));
+  switchDelay = 0;
+  await js("document.getElementById('tbProfile').click()");
+  await wait(300);
+  await js("document.querySelector('#acctList .acct-row[data-id=\"76561198000000002\"]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }))");
+  await wait(900);
+  check('switching to the second account brings its own Realistic Mode queue and duration', (await js("JSON.stringify(appSettings.grQueue) + '|' + appSettings.grDurationSec")) === '[20]|18000', await js("JSON.stringify(appSettings.grQueue) + '|' + appSettings.grDurationSec"));
+  check('and the Realistic Mode queue the page kept from the other account is gone', (await js("typeof grQueue !== 'undefined' && grQueue.every((g) => g.appid !== 10)")) === true);
 
   // ---- Start / Stop ----
   const state = (ids) => js("(" + JSON.stringify(ids) + ").map(id => { const b = document.getElementById(id); return b ? b.disabled : null; })");
