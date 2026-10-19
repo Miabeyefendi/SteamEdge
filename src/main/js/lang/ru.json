@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Реалистичный режим",
  "Hız çarpanı": "Множитель скорости",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Сжимает или растягивает весь график. 0,5 - вдвое быстрее.",
- "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Достижения, которые есть менее чем у одной двадцатой от числа игроков самого частого, ждут во столько раз дольше и всегда идут последними.",
+ "Oyunun başarımlarının en nadir onda biri bu oranda daha uzun bekler ve hep sona kalır.": "Самая редкая десятая часть достижений игры ждёт во столько раз дольше и всегда идёт последней.",
  "Telafi payı": "Доля на наверстывание",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "В какой первой доле сессии закрывается отставание.",
  "Bitmiş oyunda sıkıştır": "Сжимать в пройденной игре",
