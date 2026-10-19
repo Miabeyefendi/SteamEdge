@@ -67,8 +67,17 @@ function isUltraRare(pos) { return Number.isFinite(pos) && pos >= ULTRA_POS; }
 function rarityPositions(list) {
   const known = list.filter((x) => Number.isFinite(x.rarityPct)).map((x, i) => ({ x, i }));
   known.sort((p, q) => (roundedPct(q.x.rarityPct) - roundedPct(p.x.rarityPct)) || (p.i - q.i));
+  // Steam gives one decimal, so hundreds of achievements can read exactly the same (500 achievements with 28 different values in one game). A band is never cut through
+  // such a group: all of them take the place of the middle of the group, so equal percentages always carry the same name; they still unlock in the order they came in.
   const out = new Map();
-  known.forEach((p, k) => out.set(p.x.apiName, k / known.length));
+  let i = 0;
+  while (i < known.length) {
+    let j = i;
+    while (j + 1 < known.length && roundedPct(known[j + 1].x.rarityPct) === roundedPct(known[i].x.rarityPct)) j++;
+    const pos = ((i + j) / 2) / known.length;
+    for (let k = i; k <= j; k++) out.set(known[k].x.apiName, pos);
+    i = j + 1;
+  }
   return out;
 }
 function realisticRarityWeight(ultra, ultraMultiplier) {

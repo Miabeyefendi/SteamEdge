@@ -100,8 +100,17 @@ const { rarityPositions, isUltraRare, ULTRA_POS, STORY_POS } = require(path.reso
   const pos = rarityPositions(list);
   check('the place of an achievement in its game: 0 for the most common, rising by a tenth for ten achievements', near(pos.get('a0'), 0, 1e-9) && near(pos.get('a5'), 0.5, 1e-9) && near(pos.get('a9'), 0.9, 1e-9));
   check('the last tenth is ultra rare, the rest is not', isUltraRare(pos.get('a9')) && !isUltraRare(pos.get('a8')) && ULTRA_POS === 0.9 && STORY_POS === 0.35);
-  const same = rarityPositions([{ apiName: 'b', rarityPct: 4.93 }, { apiName: 'a', rarityPct: 4.94 }, { apiName: 'c', rarityPct: 4.91 }, { apiName: 'x', rarityPct: null }]);
-  check('percentages that read the same at one decimal keep the order they came in, an unknown one has no place', same.get('b') === 0 && same.get('a') > 0 && same.get('c') > same.get('a') && !same.has('x'));
+  const same = rarityPositions([{ apiName: 'b', rarityPct: 4.93 }, { apiName: 'a', rarityPct: 4.94 }, { apiName: 'c', rarityPct: 4.91 }, { apiName: 'x', rarityPct: null }, { apiName: 'top', rarityPct: 9 }]);
+  check('percentages that read the same at one decimal share one place (never split between two names), an unknown one has no place', same.get('b') === same.get('a') && same.get('a') === same.get('c') && same.get('top') === 0 && same.get('a') > 0 && !same.has('x'));
+  // the real shape of a game like 636150: 500 achievements, a few hundred of them exactly 3.1%
+  const steam = [];
+  [[7, 20], [6, 30], [5, 60], [4, 80], [3.4, 70], [3.3, 40], [3.2, 40], [3.1, 120], [3, 40]].forEach(([p, n]) => { for (let i = 0; i < n; i++) steam.push({ apiName: 's' + steam.length, rarityPct: p }); });
+  const sp = rarityPositions(steam);
+  const nameOf = (x) => { const p = sp.get(x.apiName); return p < 0.2 ? 0 : p < 0.5 ? 1 : p < 0.7 ? 2 : p < 0.9 ? 3 : 4; };
+  const byPct = {};
+  steam.forEach((x) => { (byPct[x.rarityPct] = byPct[x.rarityPct] || new Set()).add(nameOf(x)); });
+  check('in a game with hundreds of achievements at exactly 3.1% they all carry the same band (never "uncommon" and "rare" for the same number)', Object.values(byPct).every((set) => set.size === 1), JSON.stringify(Object.entries(byPct).map(([k, v]) => k + ':' + [...v])));
+  check('and the rarest value of that game is the ultra rare end', [...byPct[3]][0] === 4 && !steam.filter((x) => x.rarityPct === 3.1).some((x) => isUltraRare(sp.get(x.apiName))));
   const flat = Array.from({ length: 50 }, (_, i) => ({ apiName: 'f' + i, rarityPct: 7 - i * 0.08 }));
   const flatPos = rarityPositions(flat);
   check('a game whose achievements all sit between 3% and 7% still has a rare end: the last tenth of them is ultra rare', flat.filter((x) => isUltraRare(flatPos.get(x.apiName))).length === 5);
