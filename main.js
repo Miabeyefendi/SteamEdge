@@ -3159,7 +3159,7 @@ function realisticClear(steamID) {
 }
 
 // The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
-const { realisticModelRatio, realisticAccum, realisticRarityWeight, relativeRarity, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames } = require('./src/core/realisticPlan');
+const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames } = require('./src/core/realisticPlan');
 
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
@@ -3176,7 +3176,7 @@ function realisticNotify(steamID, extra) {
     finishTime: d ? d.finishTime : 0,
     upNext: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].name : null,
     upNextPct: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].rarityPct : null,
-    upNextRel: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].rel : null,
+    upNextPos: a && a.queueList[a.indexNum] ? a.queueList[a.indexNum].pos : null,
     upNextTime: d ? d.upNextTime : 0,
     gameCount: d ? d.gameEntries.length : 0,
     gameIndex: d ? d.gameIndex : 0,
@@ -3394,9 +3394,10 @@ async function prepareRealisticQueue(motor, appid, options) {
   // grind), and the interface says so. It used to be refused, which left the user with nothing.
   const rarityMissing = data.rarityOk === false;
   if (rarityMissing) log('warn', 'realistic mode: the rarity percentages of ' + appid + ' could not be read, the order is a guess (hidden achievements last)');
-  // Rarity is judged against the game's OWN most common achievement (the players who started), see realisticPlan.js
-  const highest = Math.max(0, ...everything.map((a) => (Number.isFinite(a.rarityPct) ? a.rarityPct : 0)));
-  everything.forEach((a) => { a.rel = relativeRarity(a.rarityPct, highest); a.ultra = isUltraRare(a.rel); });
+  // Rarity is a proportion of the game's OWN achievements (place in the list from the most common), see realisticPlan.js; the place is worked out on the whole list so it
+  // does not change while achievements are being unlocked
+  const places = rarityPositions(everything);
+  everything.forEach((a) => { a.pos = places.has(a.apiName) ? places.get(a.apiName) : null; a.ultra = isUltraRare(a.pos); });
   // Locked + not protected. Protected ones are rejected by Steam (see G4).
   let suitable = everything.filter((a) => !a.achieved && !a.protectedFlag);
   const protected = everything.filter((a) => !a.achieved && a.protectedFlag).length;
@@ -3407,9 +3408,8 @@ async function prepareRealisticQueue(motor, appid, options) {
     suitable = suitable.filter((a) => !a.ultra);
     ultraSkipped = earlier - suitable.length;
   }
-  // Known percentages from the highest to the lowest; unknown ones after them (hidden ones last of all); the sort is stable, so equal ones keep the schema order.
-  // Steam gives the percentages with many decimals and they move a little between two reads: the order is decided on one decimal, as shown, so a group of equal
-  // ones (a game with "# single run" tiers) keeps the schema order and the preview and the run agree.
+  // Known percentages from the highest to the lowest (compared on one decimal, as shown, so a group that reads the same keeps the schema order and the preview and the run
+  // agree); unknown ones after them, the hidden ones last of all. The sort is stable.
   const weightOf = (x) => (Number.isFinite(x.rarityPct) ? Math.round(x.rarityPct * 10) / 10 : (x.isHidden ? -2 : -1));
   suitable.sort((x, y) => weightOf(y) - weightOf(x));
   // Target count: trimmed from the start (the most common).
@@ -3418,7 +3418,7 @@ async function prepareRealisticQueue(motor, appid, options) {
   return {
     ok: true,
     gameTitle: data.gameName || ownedGameName(motor, appid) || ('App ' + appid),
-    queueList: clipped.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct, rel: a.rel, ultra: a.ultra })),
+    queueList: clipped.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct, pos: a.pos, ultra: a.ultra })),
     rarityMissing,
     suitableTotal: suitable.length,
     protectedFlag: protected,
@@ -3510,7 +3510,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       model: pick.model,
       averageIntervalMs: head.queueList.length ? Math.round(share / head.queueList.length) : 0,
       // Full list: the interface draws the "Unlock order" table from this.
-      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, rel: a.rel, timeValue: a.timeValue })),
+      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, pos: a.pos, timeValue: a.timeValue })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
 });

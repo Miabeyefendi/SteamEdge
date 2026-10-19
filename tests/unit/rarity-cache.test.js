@@ -77,7 +77,7 @@ const SteamEngine = require(path.join(root, 'src', 'core', 'steamEngine.js'));
   const logs = [];
   const ctx = {
     log: (l, m) => logs.push(l + ' ' + m), markNoAchievements: () => {}, Number, Array, Object, Math, JSON,
-    relativeRarity: planner.relativeRarity, isUltraRare: planner.isUltraRare,
+    rarityPositions: planner.rarityPositions, isUltraRare: planner.isUltraRare,
     accounts: new Map(), accountData: () => ({ lists: { owned: [{ appid: 636150, name: 'Bullet Game' }, { appid: 5, name: 'Other' }] } }),
   };
   vm.createContext(ctx);
@@ -91,20 +91,22 @@ const SteamEngine = require(path.join(root, 'src', 'core', 'steamEngine.js'));
   out = await ctx.prepare(m, 99, {});
   check('a game that is not in the library keeps the App number as its name', out.gameTitle === 'App 99');
   out = await ctx.prepare(m, 636150, { ultraRareSkip: true });
-  check('"skip ultra rare" leaves out what is under 5% and keeps the order', out.queueList.map((x) => x.apiName).join() === 'common,mid,unknown' && out.ultraSkipped === 1);
+  check('"skip ultra rare" skips nothing when no achievement of the game is in its last tenth (4 known percentages: places 0, .25, .5, .75)', out.queueList.map((x) => x.apiName).join() === 'common,mid,rare,unknown' && out.ultraSkipped === 0);
   m = motorOf([{ ...ach('first', null), isHidden: true }, ach('second', null), { ...ach('third', null), isHidden: true }, ach('fourth', null)], { rarityOk: false });
   out = await ctx.prepare(m, 636150, {});
   check('when the percentages could not be read the run still starts, with the flag', out.ok === true && out.rarityMissing === true, JSON.stringify(out).slice(0, 160));
   check('the guessed order is the schema order with the hidden achievements last', out.queueList.map((x) => x.apiName).join() === 'second,fourth,first,third', out.queueList.map((x) => x.apiName).join());
   check('and the guess is logged', logs.some((l) => /rarity percentages/.test(l)));
-  m = motorOf([ach('a', 60), ach('b', 40), ach('c', 1.5), ach('d', 1)], { rarityOk: true });
+  // a game of 20 achievements: the last tenth (the 2 rarest) is ultra rare, whatever the percentages are
+  const twenty = (top, step) => Array.from({ length: 20 }, (_, i) => ach('x' + i, top - i * step));
+  m = motorOf(twenty(60, 3), { rarityOk: true });
   out = await ctx.prepare(m, 636150, {});
-  check('rarity is judged against the best achievement of the game: 1.5% and 1% of a game whose best is 60% are ultra rare', out.queueList.map((x) => x.ultra).join() === 'false,false,true,true' && out.rarityMissing === false, JSON.stringify(out.queueList.map((x) => x.ultra)));
-  m = motorOf([ach('a', 7), ach('b', 6), ach('c', 5), ach('d', 3)], { rarityOk: true });
+  check('20 achievements: the 2 rarest are ultra rare and the places rise from 0 towards 1', out.queueList.filter((x) => x.ultra).map((x) => x.apiName).join() === 'x18,x19' && out.queueList[0].pos === 0 && out.queueList[10].pos === 0.5 && out.rarityMissing === false);
+  m = motorOf(twenty(7, 0.2), { rarityOk: true });
   out = await ctx.prepare(m, 636150, {});
-  check('a game whose achievements are all 3% to 7% has no ultra rare ones', out.queueList.every((x) => x.ultra === false));
+  check('a game whose achievements are all between 3% and 7% has its own ultra rare end too: the 2 rarest', out.queueList.filter((x) => x.ultra).length === 2 && out.queueList[19].ultra === true);
   out = await ctx.prepare(m, 636150, { ultraRareSkip: true });
-  check('and "skip ultra rare" then skips nothing in it', out.queueList.length === 4 && out.ultraSkipped === 0);
+  check('and "skip ultra rare" skips exactly those 2', out.queueList.length === 18 && out.ultraSkipped === 2);
   m = motorOf([ach('t3', 4.93), ach('t1', 4.94), ach('t2', 4.91), ach('top', 7.02)], { rarityOk: true });
   out = await ctx.prepare(m, 636150, {});
   check('percentages that read the same at one decimal keep the schema order (tiers of one family do not shuffle between two reads)', out.queueList.map((x) => x.apiName).join() === 'top,t3,t1,t2', out.queueList.map((x) => x.apiName).join());

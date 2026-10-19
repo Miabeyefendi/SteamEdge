@@ -39,7 +39,7 @@ Object.assign(answers, {
     planner.placeRealisticTimes(head.queueList, share, pick.model, 0, planner.realisticTimeSetting(arg.appid, pick));
     return { ok: true, accumulation: 0, appid: arg.appid, gameTitle: 'Game', totalSum: head.queueList.length, suitableTotal: head.h.suitableTotal, totalAchievements: head.h.totalAchievements, unlockedState: 0,
       protectedFlag: 0, ultraSkipped: 0, spanMs: built.spanMs, autoSpan: built.auto, queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0), model: pick.model,
-      averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, timeValue: a.timeValue })) };
+      averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), queueList: head.queueList.map((a, i) => ({ name: a.name, rarityPct: a.rarityPct, pos: i / head.queueList.length, timeValue: a.timeValue })) };
   },
   'realistic:start': (_e, arg) => { calls.push(['start', arg]); return { ok: true, totalSum: 50, gameCount: 2, gameTitle: 'Alpha Game' }; },
 });
@@ -73,6 +73,7 @@ app.whenReady().then(async () => {
   check('the duration was remembered', settings.grDurationSec === 80 * 3600, String(settings.grDurationSec));
 
   // Start: the engine gets the flags and the confirm text names the real numbers
+  await shot('realistic-list');
   await js("document.getElementById('grStart').click()");
   await wait(600);
   const text = await js("(document.querySelector('.e-modal-back') || { textContent: '' }).textContent");
@@ -101,12 +102,12 @@ app.whenReady().then(async () => {
   await wait(1200);
   p = lastPlan();
   check('the second click turns it on and the 80 hours come back', settings.grAutoDuration === true && p.optionList.autoSpan === true && (await field('grRH')) === '80', (await field('grRH')));
-  // The rarity label follows what the engine does: against the game's own most common achievement, the raw percentage only when that is not known
-  const labels = await js("[grRarityLabel(4.9, 0.7), grRarityLabel(4.9, 0.02), grRarityLabel(4.9, undefined), grRarityLabel(4.9, null), grRarityLabel(60, 1), grPctColor(4.9, 0.7) === grPctColor(80), grPctColor(4.9, 0.02) !== grPctColor(80)]");
-  check('4.9% in a game whose best is 7% is not "ultra rare" (it is 70% of the best)', labels && labels[0] === 'Çok yaygın', JSON.stringify(labels));
-  check('1% of a game whose best is 50% is ultra rare', labels && labels[1] === 'Ultra nadir');
-  check('without the relative value the raw percentage is used as before', labels && labels[2] === 'Ultra nadir' && labels[3] === 'Ultra nadir' && labels[4] === 'Çok yaygın');
-  check('the colour follows the same value', labels && labels[5] === true && labels[6] === true);
+  // The rarity label follows what the engine does: a proportion of the game's own achievements (very common 20%, common 30%, uncommon 20%, rare 20%, ultra rare 10%)
+  const labels = await js("[0, 0.1, 0.2, 0.49, 0.5, 0.69, 0.7, 0.89, 0.9, 0.99].map((p) => grRarityLabel(4.9, p)).concat([grRarityLabel(4.9, undefined), grRarityLabel(60, null), grRarityLabel(null, undefined), grPctColor(4.9, 0.95) !== grPctColor(4.9, 0.1)])");
+  check('by place in the game: 0 to 20% very common, 20 to 50% common, 50 to 70% uncommon, 70 to 90% rare, the last tenth ultra rare', labels && labels.slice(0, 10).join() === 'Çok yaygın,Çok yaygın,Yaygın,Yaygın,Az bulunur,Az bulunur,Nadir,Nadir,Ultra nadir,Ultra nadir', labels && labels.slice(0, 10).join());
+  check('the same 4.9% is ultra rare at the end of a list and very common at its start (it depends on the game, not on the number)', labels && labels[9] === 'Ultra nadir' && labels[0] === 'Çok yaygın');
+  check('without the place the raw percentage is read as before, unknown stays unknown', labels && labels[10] === 'Ultra nadir' && labels[11] === 'Çok yaygın' && labels[12] === 'Bilinmiyor');
+  check('the colour follows the same band', labels && labels[13] === true);
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;
   app.exit(failures ? 1 : 0);

@@ -47,34 +47,44 @@ function realisticAccum(details) {
 }
 
 // ---- RARITY ----
-// Steam's percentage is the share of the OWNERS of the game, and many owners never really start it: the most common achievement of a game is held by 33% of the owners
-// in one game and by 97% in another. So rarity is measured against the game's own most common achievement (rel = percent / the highest percent of the game), which is
-// "the share of the players who started". Measured on 42 games (HowLongToBeat times and Steam percentages): about 8% of a game's achievements are under 0.05 of it
-// (the ultra rare ones, the grind of a completionist), and the achievement that ends the story sits at about 0.30.
-// The same data fits the time of an unlock best when it follows the RANK in the queue (from common to rare) in a straight line: at the end of the story a player has
-// 34% of the achievements after 38% of the time it takes to get all of them. A weight that grows with rarity fitted worse (log error 0.69 against 0.44), so the only
-// extra wait left is the "ultra rare wait" setting, in front of the ultra rare ones.
-const ULTRA_REL = 0.05;        // under this share of the game's most common achievement: ultra rare
-const STORY_REL = 0.30;        // at this share the story of a game is typically over; the backlog squeeze never reaches below it
-function relativeRarity(pct, highest) {
-  return Number.isFinite(pct) && highest > 0 ? pct / highest : null;
+// Steam's percentage says little about how hard an achievement is in ONE game: it is the share of the owners, many of whom never start the game (the most common achievement
+// is held by 33% of the owners of one game and by 97% of another), and some games have every achievement between 3% and 7%. So the bands are proportions of the game's
+// own achievements, in the order of their percentages: pos is the place of an achievement in the list of its game, from 0 (the most common) towards 1 (the rarest).
+//   pos under 0.20  very common   | 0.20 to 0.50  common   | 0.50 to 0.70  uncommon   | 0.70 to 0.90  rare   | 0.90 and over  ultra rare
+// Measured on 42 games (Steam percentages and HowLongToBeat times): the story of a game is over after about 34% of its achievements, and about 8% are the grind of a
+// completionist, so the last tenth is called ultra rare and the squeeze of the overdue backlog (below) never goes past the first 35%.
+// The same data fits the time of an unlock best when it follows the RANK in the queue in a straight line (at the end of a story a player has about 34% of the achievements
+// after about 38% of the time it takes to get all of them); a weight that grows with rarity fitted worse (log error 0.69 against 0.44). So the only extra wait left is the
+// "ultra rare wait" setting, in front of the ultra rare ones.
+const ULTRA_POS = 0.9;         // from this place on: ultra rare
+const STORY_POS = 0.35;        // up to this place the story of a game is typically over; the backlog squeeze never reaches past it
+const RARITY_BANDS = [0.2, 0.5, 0.7, 0.9];
+// The percentages are compared on one decimal, as shown: Steam moves them a little between two reads and a group that reads the same (the "single run #1 to #5" tiers) must
+// keep the order of the schema
+const roundedPct = (x) => Math.round(x * 10) / 10;
+function isUltraRare(pos) { return Number.isFinite(pos) && pos >= ULTRA_POS; }
+// pos of every achievement of a game: [{ apiName, rarityPct }] in any order -> Map apiName -> pos. Unknown percentages get no place.
+function rarityPositions(list) {
+  const known = list.filter((x) => Number.isFinite(x.rarityPct)).map((x, i) => ({ x, i }));
+  known.sort((p, q) => (roundedPct(q.x.rarityPct) - roundedPct(p.x.rarityPct)) || (p.i - q.i));
+  const out = new Map();
+  known.forEach((p, k) => out.set(p.x.apiName, k / known.length));
+  return out;
 }
-function isUltraRare(rel) { return Number.isFinite(rel) && rel < ULTRA_REL; }
 function realisticRarityWeight(ultra, ultraMultiplier) {
   return ultra ? Math.max(1, ultraMultiplier || 3) : 1;
 }
-// rel and ultra come from the game's whole list (main.js prepareRealisticQueue); a list without them is judged against its own highest percent
+// pos and ultra come from the game's whole list (main.js prepareRealisticQueue); a queue without them is judged by its own order
 function rarityOf(queue) {
-  const highest = Math.max(0, ...queue.map((x) => (Number.isFinite(x.rarityPct) ? x.rarityPct : 0)));
-  return queue.map((x) => {
-    const rel = Number.isFinite(x.rel) ? x.rel : relativeRarity(x.rarityPct, highest);
-    return { rel, ultra: typeof x.ultra === 'boolean' ? x.ultra : isUltraRare(rel) };
+  return queue.map((x, i) => {
+    const pos = Number.isFinite(x.pos) ? x.pos : (Number.isFinite(x.rarityPct) ? i / queue.length : null);
+    return { pos, ultra: typeof x.ultra === 'boolean' ? x.ultra : isUltraRare(pos) };
   });
 }
 
 // Writes the unlock times into the queue (ms relative to the start of the session).
 //   accumulation > 0 : the first that many achievements are squeezed into the start of the session, but only common ones: never an ultra rare one, and never one that is
-//                      rarer than the end of a story (STORY_REL), because a player who has played for hours has the story achievements, not the grind
+//                      past the end of a story (STORY_POS), because a player who has played for hours has the story achievements, not the grind
 //   setting          : { speedMultiplier, ultraMultiplier, compensationShare, finishedFlag, finishedRatio }
 // The ultra rare ones are always at the end of the run: none of them is unlocked before the last of the others.
 function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
@@ -92,7 +102,7 @@ function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
 
   const kinds = rarityOf(queue);
   let eligible = 0;
-  while (eligible < n && !kinds[eligible].ultra && Number.isFinite(kinds[eligible].rel) && kinds[eligible].rel >= STORY_REL) eligible++;
+  while (eligible < n && !kinds[eligible].ultra && Number.isFinite(kinds[eligible].pos) && kinds[eligible].pos < STORY_POS) eligible++;
   const fast = Math.min(Math.floor(n * DELAY_UPPER_LIMIT), Math.max(0, +accumulation || 0), eligible);
   const fastDuration = fast ? Math.round(activeDuration * compensationShare) : 0;
   const remainingTime = activeDuration - fastDuration;
@@ -211,7 +221,7 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
 }
 
 module.exports = {
-  realisticModelRatio, realisticAccum, realisticRarityWeight, relativeRarity, isUltraRare, placeRealisticTimes,
+  realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes,
   tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, planGames,
-  DELAY_UPPER_LIMIT, ULTRA_REL, STORY_REL, MIN_SPAN_MS, MAX_SPAN_MS,
+  DELAY_UPPER_LIMIT, ULTRA_POS, STORY_POS, RARITY_BANDS, MIN_SPAN_MS, MAX_SPAN_MS,
 };

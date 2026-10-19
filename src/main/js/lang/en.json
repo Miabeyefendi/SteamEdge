@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Realistic Mode",
  "Hız çarpanı": "Speed multiplier",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Compresses or stretches the whole schedule. 0.5 is twice as fast.",
- "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Achievements held by less than a twentieth of what the most common one has wait this many times longer and always come last.",
+ "Oyunun başarımlarının en nadir onda biri bu oranda daha uzun bekler ve hep sona kalır.": "The rarest tenth of the achievements of a game wait this many times longer and always come last.",
  "Telafi payı": "Catch-up share",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "What percentage of the session the backlog is cleared in.",
  "Bitmiş oyunda sıkıştır": "Compress on a finished game",

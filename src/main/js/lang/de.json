@@ -531,7 +531,7 @@
  "Gerçekçi Mod": "Realistischer Modus",
  "Hız çarpanı": "Geschwindigkeitsfaktor",
  "Tüm çizelgeyi sıkar ya da açar. 0,5 iki katı hızlı.": "Staucht oder dehnt den ganzen Plan. 0,5 ist doppelt so schnell.",
- "Oyunun en yaygın başarımının yirmide birinden azı olanlar bu oranda daha uzun bekler ve hep sona kalır.": "Erfolge, die weniger als ein Zwanzigstel des häufigsten Erfolgs erreichen, warten so viel länger und kommen immer zuletzt.",
+ "Oyunun başarımlarının en nadir onda biri bu oranda daha uzun bekler ve hep sona kalır.": "Das seltenste Zehntel der Erfolge eines Spiels wartet so viel länger und kommt immer zuletzt.",
  "Telafi payı": "Aufholanteil",
  "Geride kalanlar sürenin ilk yüzde kaçında açılır.": "In wie viel Prozent der Sitzung der Rückstand aufgeholt wird.",
  "Bitmiş oyunda sıkıştır": "Bei abgeschlossenem Spiel stauchen",
