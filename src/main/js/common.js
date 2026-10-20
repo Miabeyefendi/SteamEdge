@@ -1052,6 +1052,7 @@
     const acctState = new Map();       // steamID -> { steamID, accountName, active, connected, running, jobs: [], finished: { jobs, ts } | null }
     const JOB_NAMES = { card: 'Kart Düşürme', hours: 'Saat Yükseltme', realistic: 'Gerçekçi Mod' };
     function jobLine(a){
+      if (a.running && a.detail && a.detail.length) return a.detail.map(j => t(JOB_NAMES[j.kind] || j.kind) + (j.games && j.games.length ? (': ' + j.games.join(', ') + (j.more ? ' +' + j.more : '')) : '')).join(' · ');
       if (a.running && a.jobs && a.jobs.length) return a.jobs.map(k => t(JOB_NAMES[k] || k)).join(' · ');
       if (a.finished) return tf('Bitti · #', new Date(a.finished.ts).toLocaleTimeString(localCode(), { hour:'2-digit', minute:'2-digit' }));
       return '';
@@ -1076,14 +1077,17 @@
       if (!d || !d.steamID) return;
       const a = acctState.get(d.steamID);
       if (!a){ refreshAcctState(); return; }       // an account the list has not seen yet: read the list again
-      a.running = !!d.running; a.jobs = d.jobs || []; a.finished = d.finished || null;
+      a.running = !!d.running; a.jobs = d.jobs || []; a.detail = d.detail || (d.running ? a.detail : []) || []; a.finished = d.finished || null;
       paintRunChip();
+      if (typeof renderOverviewActive === 'function') renderOverviewActive();
+      if (typeof renderActiveBox === 'function' && typeof hoursLoaded !== 'undefined' && hoursLoaded) renderActiveBox();
     }
     async function refreshAcctState(){
       const accts = await window.imu.accounts.list().catch(()=>[]);
       acctState.clear();
       accts.forEach(a => acctState.set(a.steamID, a));
       paintRunChip();
+      if (typeof renderOverviewActive === 'function') renderOverviewActive();
       return accts;
     }
     let acctListSignature = '';
@@ -1328,11 +1332,16 @@
     }
     document.getElementById('acctAddBtn').onclick = () => window.imu.accounts.startAdd();
     // When one of the background accounts starts/stops refresh the dot in the list
+    // The account on screen started or stopped something (a job resumed at startup, for instance): the pages ask for its live state instead of trusting
+    // that every event reached them
+    const askJobStatus = () => { if (window.imu.jobs && window.imu.jobs.status) window.imu.jobs.status().catch(()=>{}); };
     if (window.imu.onAccountActivity) window.imu.onAccountActivity((d)=>{
       mergeAcctState(d);
+      const mine = d && d.steamID && acctState.get(d.steamID);
+      if (mine && mine.active && !switchingTo) askJobStatus();
       if (acctDropdown.classList.contains('open')) renderAcctList();
     });
-    refreshAcctState();
+    refreshAcctState().then(askJobStatus);
     // Incoming Steam message: it drops into the activity feed + a toast appears on screen. The desktop notification
     // is sent in the main process (see main.js connectAccount > onChatMessage).
     if (window.imu.onChatMessage) window.imu.onChatMessage((m)=>{

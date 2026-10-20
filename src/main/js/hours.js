@@ -205,6 +205,15 @@
       const unlimited = boostState.running ? (!boostState.durationMs && !boostState.sync && !syncGameInfo.size) : !hourDurSec;
       document.getElementById('hoursRemain').innerHTML = unlimited ? '∞' : monoHMS(left);
 
+      // A job of another account (a boost resumed there at startup, say) is not this page's, but it must not look like nothing runs anywhere
+      let others = document.getElementById('hoursOtherAccts');
+      if (!others && box.parentNode){ others = document.createElement('div'); others.id = 'hoursOtherAccts'; others.style.cssText = 'padding:0 18px'; box.parentNode.insertBefore(others, box); }
+      if (others){
+        const html = (!boostState.running && typeof otherAccountJobs === 'function') ? otherAccountJobs() : '';
+        if (others.innerHTML !== html){ others.innerHTML = html; if (typeof bindOtherAccountJobs === 'function') bindOtherAccountJobs(others); }
+        others.style.paddingBottom = html ? '10px' : '0';
+      }
+
       if (!selectedHours.length){
         box.innerHTML = '<div style="grid-column:1/-1;padding:48px 18px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#B9C0D6">Kuyruk boş</span>'

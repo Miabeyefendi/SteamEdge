@@ -74,6 +74,8 @@ contextBridge.exposeInMainWorld('imu', {
   },
   // Desktop notification (main process - Windows toasts need an AppUserModelID)
   notify: (title, body) => ipcRenderer.invoke('notify:show', { title, body }),
+  // the live state of the jobs of the account on screen, sent on the usual job channels (main.js sendJobStatus)
+  jobs: { status: () => ipcRenderer.invoke('jobs:status') },
   accounts: {
     list: () => ipcRenderer.invoke('accounts:list'),
     switch: (steamID) => ipcRenderer.invoke('accounts:switch', steamID),

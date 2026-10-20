@@ -59,7 +59,7 @@
  "Görev Kontrolü": "Aufgabensteuerung",
  "Aktif Görev": "Aktive Aufgabe",
  "Çalışmıyor": "Läuft nicht",
- "Şu anda çalışan bir işlem yok": "Derzeit läuft nichts",
+ "Bu hesapta çalışan bir işlem yok": "Auf diesem Konto läuft nichts",
  "Bu oturumda henüz kart düşmedi.": "In dieser Sitzung sind noch keine Karten gefallen.",
  "Düşürülecek kart kalmamış.": "Keine Karten mehr zum Farmen.",
  "Henüz bir işlem yapılmadı.": "Noch keine Aktivität.",
@@ -1522,5 +1522,7 @@
  "Çalışan işler için hesap listesini aç": "Kontoliste öffnen, um zu sehen, was auf welchem Konto läuft",
  "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Die Seltenheitswerte konnten nicht gelesen werden; die Reihenfolge ist geschätzt, versteckte Erfolge zuletzt.",
  "Bu hesaba özel": "Nur dieses Konto",
- "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Jedes Konto hat eigene Werte; eine Änderung hier betrifft nur das geöffnete Konto."
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Jedes Konto hat eigene Werte; eine Änderung hier betrifft nur das geöffnete Konto.",
+ "Kaldığı yerden sürdürüldü: #": "Dort fortgesetzt, wo es aufgehört hat: #",
+ "Diğer hesaplarda çalışıyor": "Läuft auf anderen Konten"
 }

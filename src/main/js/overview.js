@@ -249,7 +249,11 @@
         const [category, title, bodyEl] = b(o);
         notify(category, title, o.activeIds ? t(bodyEl || '') : ('[' + o.accountRef + '] ' + t(bodyEl || '')));
       }
-      if (!o.activeIds) return;
+      if (!o.activeIds){
+        // A job resumed on another account at startup is not on this account's pages: the recent activity says where it runs
+        if (o.resumed && o.feedEntry) pushFeed(o.feedEntry.kind, o.feedEntry.title, '[' + o.accountRef + '] ' + o.feedEntry.text, o.feedEntry.status);
+        return;
+      }
       if (o.typeName === 'cardDropped'){
         pushFeed('card', tf('# kart düştü', o.itemCount), o.displayName, 'Başarılı');
         if (typeof pushDrop === 'function') pushDrop(o.appid, o.displayName, o.itemCount);
@@ -430,8 +434,10 @@
       if (!tasks.length){
         taskIndex = 0;
         box.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">'
-          + '<span style="font-size:13px;font-weight:600;color:#DCE2FA">Şu anda çalışan bir işlem yok</span>'
-          + '<span style="font-size:11px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>';
+          + '<span style="font-size:13px;font-weight:600;color:#DCE2FA">Bu hesapta çalışan bir işlem yok</span>'
+          + '<span style="font-size:11px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>'
+          + otherAccountJobs();
+        bindOtherAccountJobs(box);
         paintPanelButtons();
         renderTaskDetail(null, null);
         return;
@@ -444,7 +450,8 @@
       const activeTask = tasks[taskIndex];
 
       box.innerHTML = (tasks.length > 1 ? navStrip(tasks.length) : '')
-        + taskRow(activeTask);
+        + taskRow(activeTask) + otherAccountJobs();
+      bindOtherAccountJobs(box);
 
       const git = (direction)=>{
         taskIndex = (taskIndex + direction + taskList.length) % taskList.length;
@@ -457,6 +464,27 @@
 
       paintPanelButtons();
       renderTaskDetail(activeTask, heroId);
+    }
+
+    // The jobs that run on the OTHER accounts (common.js acctState, from the main process): the page shows the account on screen, and a job of another
+    // account (one resumed at startup, for instance) used to be visible nowhere but in a count in the top bar. Each row names the account, the job and its games,
+    // and opens that account.
+    function otherAccountJobs(){
+      if (typeof acctState === 'undefined') return '';
+      const others = [...acctState.values()].filter(a => !a.active && a.running);
+      if (!others.length) return '';
+      return '<div style="display:flex;flex-direction:column;gap:6px;padding-top:8px;border-top:1px solid #1D2432">'
+        + '<span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#8B8F9E">' + esc(t('Diğer hesaplarda çalışıyor')) + '</span>'
+        + others.map(a => '<div style="display:flex;align-items:center;gap:10px;min-width:0">'
+          + '<span class="e-run-dot e-pulse" style="flex:none"></span>'
+          + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;flex:none">' + esc(a.accountName || a.steamID) + '</span>'
+          + '<span style="font-size:11px;color:#8B8F9E;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(typeof jobLine === 'function' ? jobLine(a) : '') + '</span>'
+          + '<button class="h-bd" data-open-acct="' + esc(a.steamID) + '" style="height:24px;padding:0 10px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;cursor:pointer;flex:none">' + esc(t('Hesaba geç')) + '</button>'
+          + '</div>').join('')
+        + '</div>';
+    }
+    function bindOtherAccountJobs(box){
+      box.querySelectorAll('[data-open-acct]').forEach(b => { b.onclick = () => { if (typeof switchAccount === 'function') switchAccount(b.getAttribute('data-open-acct')); }; });
     }
 
     // The ‹ 2 / 3 › strip. The text in the middle says which job is being looked at.

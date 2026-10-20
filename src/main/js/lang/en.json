@@ -59,7 +59,7 @@
  "Görev Kontrolü": "Task control",
  "Aktif Görev": "Active task",
  "Çalışmıyor": "Not running",
- "Şu anda çalışan bir işlem yok": "Nothing is running right now",
+ "Bu hesapta çalışan bir işlem yok": "Nothing is running on this account",
  "Bu oturumda henüz kart düşmedi.": "No cards have dropped this session yet.",
  "Düşürülecek kart kalmamış.": "No cards left to farm.",
  "Henüz bir işlem yapılmadı.": "Nothing has happened yet.",
@@ -1522,5 +1522,7 @@
  "Çalışan işler için hesap listesini aç": "Open the account list to see what runs on each account",
  "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "The rarity percentages could not be read; the order is a guess, hidden achievements last.",
  "Bu hesaba özel": "This account only",
- "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Every account has its own values; a change made here affects only the account that is open."
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Every account has its own values; a change made here affects only the account that is open.",
+ "Kaldığı yerden sürdürüldü: #": "Resumed where it left off: #",
+ "Diğer hesaplarda çalışıyor": "Running on other accounts"
 }

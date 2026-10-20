@@ -59,7 +59,7 @@
  "Görev Kontrolü": "Управление задачей",
  "Aktif Görev": "Активная задача",
  "Çalışmıyor": "Не выполняется",
- "Şu anda çalışan bir işlem yok": "Сейчас ничего не выполняется",
+ "Bu hesapta çalışan bir işlem yok": "На этом аккаунте ничего не запущено",
  "Bu oturumda henüz kart düşmedi.": "За эту сессию карточки ещё не выпадали.",
  "Düşürülecek kart kalmamış.": "Карточек для фарма не осталось.",
  "Henüz bir işlem yapılmadı.": "Пока ничего не происходило.",
@@ -1522,5 +1522,7 @@
  "Çalışan işler için hesap listesini aç": "Открыть список аккаунтов, чтобы увидеть, что работает на каждом",
  "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "Не удалось получить проценты редкости; порядок приблизительный, скрытые достижения в конце.",
  "Bu hesaba özel": "Только этот аккаунт",
- "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "У каждого аккаунта свои значения; изменение здесь затрагивает только открытый аккаунт."
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "У каждого аккаунта свои значения; изменение здесь затрагивает только открытый аккаунт.",
+ "Kaldığı yerden sürdürüldü: #": "Продолжено с того же места: #",
+ "Diğer hesaplarda çalışıyor": "Работает на других аккаунтах"
 }

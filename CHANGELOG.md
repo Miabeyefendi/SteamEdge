@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.5)
+
+A job that runs on another account can now be seen from the account on screen: the Overview, the Hour Booster page and the recent activity name it, with its account and its game.
+
+### Fixed
+
+- **"1 job resumed" and nothing anywhere.** At startup the jobs of the last session are resumed on every account, but the pages only show the account on screen. A boost resumed on the other account ran on Steam while the notice only said "1 job resumed", the recent activity had nothing, and the Hour Booster page and the Active task panel said nothing was running. Now:
+  - the notice and the recent activity say what was resumed and where: "[account] Resumed where it left off: Hour boosting (Counter-Strike 2)";
+  - the Active task panel of the Overview says "Nothing is running on this account" and lists what runs on the other accounts, each with its job, its game and a button that opens that account;
+  - the Hour Booster page of an account with nothing running shows the same list;
+  - the account list names the game of each running job ("Hour boosting: Counter-Strike 2").
+
+- **A job resumed on the account on screen could stay invisible too.** If it was resumed before the app knew which account is on screen (or before the page was listening), its state was never sent to the page. The pages now ask for the live state of the account on screen when they are ready and every time that account starts or stops something, so a resumed boost shows on the Hour Booster page and in the Active task panel of its own account. (1.6.4 fixed the other half: the state that did arrive was wiped by the empty state of sequential idling.)
+
+### Changed
+
+- `npm test` runs 52 tests (new: the job and game names of an account; the account switch test now checks the Overview, the Hour Booster page and the recent activity for a job of another account, and a resumed job whose state never reached the page).
+
+
+SHA-256 (`SteamEdge-v1.6.5-win-x64.rar`): `d7980ee9db4ca56b67c8a86a90cdc57470e17a86e6b7977deabd1a4c0e47af31`
+
 ## [1.6.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.4)
 
 A running hour boost no longer disappears from the screen when the account changes or when a job is resumed at startup.

@@ -46,6 +46,9 @@ function boot(over) {
     startSequential: (id, request) => { calls.push(['seq', request.games.length]); return { ok: true }; },
     realisticStartFor: async (id, request, fromSchedule) => { calls.push(['realistic', request.gameEntries.join(), request.spanMs, fromSchedule, JSON.stringify(request.optionList.goalByGame)]); return { ok: true }; },
     translation: { tf: (key, n) => key.replace('#', n) },
+    // the names of what runs (main.js accountJobDetail, tested in job-detail.test.js): what the three resumed jobs of this test give
+    ct: (x) => x,
+    accountJobDetail: () => [{ kind: 'card', games: ['a'], more: 1 }, { kind: 'hours', games: ['x'], more: 0 }, { kind: 'realistic', games: ['y'], more: 0 }],
     accountEvent: (id, evt) => events.push(evt),
     sendJobStatus: (id) => calls.push(['status', id]),
     activeSteamID: ID,
@@ -103,7 +106,7 @@ const tick = () => new Promise((r) => setTimeout(r, 30));
   check('the jobs start in the order: card farm, boost, Realistic Mode', t.calls.filter((c) => ['farm', 'boost', 'realistic'].includes(c[0])).map((c) => c[0]).join() === 'farm,boost,realistic');
   check('the file was rewritten (the entry taken out) before the first job started, so a start that crashes the app is not repeated forever',
     t.calls.findIndex((c) => c[0] === 'unlink' || c[0] === 'write') >= 0 && t.calls.findIndex((c) => c[0] === 'unlink' || c[0] === 'write') < t.calls.findIndex((c) => c[0] === 'farm'), JSON.stringify(t.calls.slice(0, 4)));
-  check('a line in the activity feed and a notification say three jobs were resumed', t.events.length === 1 && t.events[0].typeName === 'jobsResumed' && /3/.test(t.events[0].feedEntry.text), JSON.stringify(t.events[0]));
+  check('a line in the activity feed and a notification say which jobs were resumed, with their games', t.events.length === 1 && t.events[0].typeName === 'jobsResumed' && t.events[0].resumed === true && ['Kart Düşürme (a +1)', 'Saat Yükseltme (x)', 'Gerçekçi Mod (y)'].every((p) => t.events[0].feedEntry.text.includes(p)), JSON.stringify(t.events[0]));
   check('the page is told how things stand once it is up', t.calls.some((c) => c[0] === 'status' && c[1] === ID));
   check('the entry is used up: a second connection does not start them twice', !t.ctx.store.peek(ID) && (t.calls.length = 0, await t.ctx.after(ID), t.calls.length === 0));
 

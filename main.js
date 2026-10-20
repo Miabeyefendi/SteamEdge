@@ -967,6 +967,13 @@ ipcMain.on('go:dashboard', () => {
 // Lists the saved accounts (the refreshToken is not leaked - only the main process uses it).
 // If the active session is not in accounts.json (e.g. an old session.json logged in BEFORE the multi-account
 // feature) it adds it here on its own - otherwise the account you logged in with would not show in the list.
+// The page asks for the live state of the jobs of the account on screen when it is ready and whenever that account starts or stops something. Pushing it
+// was not enough: a job resumed at startup before the account on screen was known (or before the page listened) was never told to the page, so a boost ran
+// on the account on screen and its pages said nothing was running.
+ipcMain.handle('jobs:status', () => {
+  if (activeSteamID) sendJobStatus(activeSteamID);
+  return { ok: true, steamID: activeSteamID || null };
+});
 ipcMain.handle('accounts:list', () => {
   const sess = hasSession();
   let list = loadAccounts();
@@ -984,6 +991,7 @@ ipcMain.handle('accounts:list', () => {
       connected: !!(s && s.ready),                // the Steam session is open
       running: accountRunning(s),                            // card/hour/realistic is running
       jobs: accountJobKinds(s),                              // which of them
+      detail: accountJobDetail(s),                           // and on which games
       finished: (s && s.finished) || null,                   // what ended while the account was in the background, until it is opened
     };
   });
@@ -1139,6 +1147,25 @@ function accountRunning(s) {
 }
 // The kinds of job that run on an account ('card', 'hours', 'realistic'): the interface names them next to the account, so a job on the account that is NOT on
 // screen can be seen without opening that account.
+// What runs on an account, with its games, for the accounts that are NOT on screen: [{ kind, games: [names], more }]. A job of another account
+// (for example one resumed at startup) used to show only as a count; nothing said what it was or where.
+function accountJobDetail(s) {
+  const out = [];
+  const names = (list) => (list || []).map((g) => (g && g.name) || ('App ' + (g && g.appid))).filter(Boolean);
+  const pack = (kind, list) => { const all = names(list); out.push({ kind, games: all.slice(0, 2), more: Math.max(0, all.length - 2) }); };
+  if (s && s.farm && s.farm.running) {
+    const cur = (s.farm.games || []).find((g) => g.appid === s.farm.currentActiveAppid);
+    pack('card', cur ? [cur] : (s.farm.games || []).slice(0, 1));
+  }
+  if (s && s.boost && s.boost.runningFlag) {
+    const b = s.boost.request || {};
+    pack('hours', b.games || (b.appids || []).map((appid) => ({ appid })));
+  } else if (s && s.hoursFarm && s.hoursFarm.running) {
+    pack('hours', s.hoursFarm.games || (s.sequentialRequest && s.sequentialRequest.games) || []);
+  }
+  if (s && s.realistic && s.realistic.activeIds) pack('realistic', [{ appid: s.realistic.activeIds.appid, name: s.realistic.activeIds.gameTitle }]);
+  return out;
+}
 function accountJobKinds(s) {
   const kinds = [];
   if (s && s.farm && s.farm.running) kinds.push('card');
@@ -1156,11 +1183,19 @@ function accountBroadcast(steamID) {
       const isRunning = accountRunning(s);
       const jobs = accountJobKinds(s);
       if (jobs.length) s.lastJobs = jobs;
+      // the games of a running job changed (the next game of a queue): the account list and the overview follow
+      const detail = accountJobDetail(s);
+      const detailKey = JSON.stringify(detail);
+      if (isRunning === s.lastRun && detailKey !== s.lastDetail && isRunning) {
+        s.lastDetail = detailKey;
+        sendRaw('accounts:activity', { steamID, running: isRunning, jobs, detail, finished: s.finished || null });
+      }
       if (isRunning !== s.lastRun) {
+        s.lastDetail = detailKey;
         // What ran on an account that is not on screen and has stopped is remembered ("ended at 14:02") until that account is opened: the user cannot see it end otherwise
         if (!isRunning && s.lastRun && steamID !== activeSteamID && s.lastJobs && s.lastJobs.length) s.finished = { jobs: s.lastJobs, ts: Date.now() };
         s.lastRun = isRunning;
-        sendRaw('accounts:activity', { steamID, running: isRunning, jobs, finished: s.finished || null });
+        sendRaw('accounts:activity', { steamID, running: isRunning, jobs, detail, finished: s.finished || null });
         updateSleepBlocker();
         resumeSaveSoon();                       // a job started or ended: the file follows within a second
         handleUninterruptedRun(steamID, isRunning);
@@ -4387,6 +4422,12 @@ function rendererReady() {
     windowOpened.then(check);
   });
 }
+// "Hour boosting: Counter-Strike 2" and the like, in the interface language: the resume message names what runs again, not only how many jobs
+const JOB_TITLE = { card: 'Kart Düşürme', hours: 'Saat Yükseltme', realistic: 'Gerçekçi Mod' };
+function resumedText(s) {
+  const parts = accountJobDetail(s).map((j) => ct(JOB_TITLE[j.kind] || j.kind) + (j.games.length ? (' (' + j.games.join(', ') + (j.more ? ' +' + j.more : '') + ')') : ''));
+  return parts.join(' · ') || '-';
+}
 // The account is connected: what it was doing when the app ended starts again. The entry stays until the account is connected and the page is up, so
 // a connection that is lost in between does not lose it; an account on which the user has started something already is left alone.
 async function resumeAfterConnect(steamID) {
@@ -4420,7 +4461,8 @@ async function resumeAfterConnect(steamID) {
     if (result.started.length) {
       accountEvent(steamID, {
         typeName: 'jobsResumed',
-        feedEntry: { kind: 'card', title: 'Yarım kalan işler', text: translation.tf('# iş kaldığı yerden sürdürüldü', result.started.length), status: 'Çalışıyor' },
+        feedEntry: { kind: 'card', title: 'Yarım kalan işler', text: translation.tf('Kaldığı yerden sürdürüldü: #', resumedText(s)), status: 'Çalışıyor' },
+        resumed: true,
       });
     } else if (result.failed.length) {
       accountEvent(steamID, {

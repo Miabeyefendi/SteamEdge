@@ -59,7 +59,7 @@
  "Görev Kontrolü": "Control de tareas",
  "Aktif Görev": "Tarea activa",
  "Çalışmıyor": "Detenido",
- "Şu anda çalışan bir işlem yok": "No hay nada en ejecución",
+ "Bu hesapta çalışan bir işlem yok": "No hay nada en marcha en esta cuenta",
  "Bu oturumda henüz kart düşmedi.": "Aún no ha caído ningún cromo en esta sesión.",
  "Düşürülecek kart kalmamış.": "No quedan cromos por farmear.",
  "Henüz bir işlem yapılmadı.": "Todavía no hay actividad.",
@@ -1522,5 +1522,7 @@
  "Çalışan işler için hesap listesini aç": "Abrir la lista de cuentas para ver qué se ejecuta en cada una",
  "Nadirlik oranları okunamadı; sıra tahmini, gizli başarımlar sonda.": "No se pudieron leer los porcentajes de rareza; el orden es una estimación, con los logros ocultos al final.",
  "Bu hesaba özel": "Solo esta cuenta",
- "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Cada cuenta tiene sus propios valores; un cambio aquí solo afecta a la cuenta abierta."
+ "Her hesabın kendi değeri var; burada yaptığın değişiklik yalnızca açık olan hesabı etkiler.": "Cada cuenta tiene sus propios valores; un cambio aquí solo afecta a la cuenta abierta.",
+ "Kaldığı yerden sürdürüldü: #": "Reanudado donde se quedó: #",
+ "Diğer hesaplarda çalışıyor": "En marcha en otras cuentas"
 }
