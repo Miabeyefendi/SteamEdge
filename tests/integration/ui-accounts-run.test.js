@@ -38,6 +38,14 @@ const answers = {
     await new Promise((r) => setTimeout(r, switchDelay));
     if (mine !== switchSeq) return { ok: true, superseded: true, steamID: id };
     accountRows = accountRows.map((a) => ({ ...a, active: a.steamID === id }));
+    // what main.js sendJobStatus sends for an account whose hour boost runs: every job channel, the idle ones empty, in this order
+    if (id === '76561198000000002' && global.W) {
+      global.W.webContents.send('farm:tick', { running: false, steamID: id });
+      global.W.webContents.send('boost:tick', { running: true, appids: [730], activeAppids: [730], startedAt: Date.now() - 6 * 3600000, durationMs: 86400000, steamID: id });
+      global.W.webContents.send('hoursFarm:tick', { running: false, steamID: id });
+      global.W.webContents.send('boost:sync', { running: false, steamID: id });
+      global.W.webContents.send('realistic:tick', { runningFlag: false, steamID: id });
+    }
     return { ok: true, persona: 'x', steamID: id, softSwitch: true };
   },
   'engine:startFarm': (_e) => { calls.push(['startFarm']); return { ok: true }; },
@@ -52,6 +60,7 @@ const consoleErr = [];
 const log = console.log;
 app.whenReady().then(async () => {
   const w = new BrowserWindow({ show: process.env.SHOW === '1', width: 1716, height: 1000, useContentSize: true, webPreferences: { preload: ROOT + '/preload.js', sandbox: false, contextIsolation: true, backgroundThrottling: false } });
+  global.W = w;
   w.webContents.on('console-message', (_e, level, msg) => { if (level >= 2 && !/Electron Security Warning/.test(msg)) consoleErr.push(msg.slice(0, 200)); });
   await w.loadFile(ROOT + '/src/main/main.html');
   const js = (k) => w.webContents.executeJavaScript(k).catch((e) => { log('[js error] ' + e.message); return null; });
@@ -121,6 +130,7 @@ app.whenReady().then(async () => {
   await wait(300);
   await js("document.querySelector('#acctList .acct-row[data-id=\"76561198000000002\"]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }))");
   await wait(900);
+  check('an hour boost that runs on the account switched to stays running on screen (the empty sequential state sent after it used to wipe it)', (await js('boostState && boostState.running')) === true && (await js('JSON.stringify(boostState.appids)')) === '[730]', await js('JSON.stringify(boostState)'));
   check('switching to the second account brings its own Realistic Mode queue and duration', (await js("JSON.stringify(appSettings.grQueue) + '|' + appSettings.grDurationSec")) === '[20]|18000', await js("JSON.stringify(appSettings.grQueue) + '|' + appSettings.grDurationSec"));
   check('and the Realistic Mode queue the page kept from the other account is gone', (await js("typeof grQueue !== 'undefined' && grQueue.every((g) => g.appid !== 10)")) === true);
 

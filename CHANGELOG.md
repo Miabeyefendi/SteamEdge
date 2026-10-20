@@ -7,6 +7,21 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.4)
+
+A running hour boost no longer disappears from the screen when the account changes or when a job is resumed at startup.
+
+### Fixed
+
+- **"1 job resumed" but nothing on screen.** When the account on screen changes, and when the jobs of the last session are resumed, the app sends the state of every kind of job, the idle ones empty. The Hour Booster page kept simultaneous boosting and sequential idling in one state, and the empty sequential state that came right after a running boost wiped it: the boost ran on Steam, the page said nothing was running, and Start was open, so one click started it again from zero (a 24 hour session lost its 6 hours). The two kinds now keep their own state and the running one is shown, so the boost is on the page, Stop is open and Start is closed.
+
+### Changed
+
+- `npm test` runs 51 tests (the account switch test now sends the job states the way the app does and checks that a running boost stays on screen).
+
+
+SHA-256 (`SteamEdge-v1.6.4-win-x64.rar`): `a313c4e771c63aa06a2582f47b70b250f8306d0b4db37da017a92de412e0f9d3`
+
 ## [1.6.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.3)
 
 Every account now keeps its own job settings, and a page of one account can no longer write into another.

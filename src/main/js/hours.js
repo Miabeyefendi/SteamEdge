@@ -603,8 +603,15 @@
     // "Oturumu otomatik yenile" is now in the main process and per account (main.js > boostTimeUp).
     // While it stayed here it only worked on the account on screen and while the window was open; the "stopped"
     // info that came when the account changed could trigger the renewal on the WRONG account.
-    function onHourTick(data){
-      boostState = data;
+    // Simultaneous boosting (boost:tick) and sequential idling (hoursFarm:tick) are two channels that feed one state. When the account changes the main process
+    // sends the state of EVERY channel, the idle ones empty: the empty sequential state came right after a running boost and wiped it, so a boost that ran
+    // (a resumed one, or one on the account switched to) showed as "nothing running". Each channel keeps its own last state; the running one is shown.
+    const hourChannels = { boost: { running: false }, sequential: { running: false } };
+    function onHourTick(channel, data){
+      hourChannels[channel] = data || { running: false };
+      const other = hourChannels[channel === 'boost' ? 'sequential' : 'boost'];
+      boostState = hourChannels[channel].running || !other.running ? hourChannels[channel] : other;
+      data = boostState;
       paintRunButtons();
       if (boostTimerUI) clearInterval(boostTimerUI);
       if (data.running){
@@ -612,5 +619,5 @@
       }
       renderActiveBox();
     }
-    E.onBoostTick(onHourTick);
-    E.onHourFarmTick((data) => onHourTick({ running: data.running, activeAppids: data.activeAppids, startedAt: Date.now()-(data.elapsedMs||0), durationMs: data.durationMs }));
+    E.onBoostTick((data) => onHourTick('boost', data));
+    E.onHourFarmTick((data) => onHourTick('sequential', { running: data.running, activeAppids: data.activeAppids, startedAt: Date.now()-(data.elapsedMs||0), durationMs: data.durationMs }));
