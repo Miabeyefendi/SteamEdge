@@ -10,7 +10,7 @@ const settings = { ...DEFAULTS, language: 'en', accountCurrency: 'USD', steamID:
 const games = [{ appid: 10, name: 'Alpha Game', remaining: 2, playtimeMin: 500 }, { appid: 20, name: 'Beta Game', remaining: 1, playtimeMin: 30 }];
 let accountRows = [
   { steamID: '76561198000000001', accountName: 'first', active: true, connected: true, running: false, jobs: [], finished: null },
-  { steamID: '76561198000000002', accountName: 'second', active: false, connected: true, running: true, jobs: ['card', 'hours'], finished: null },
+  { steamID: '76561198000000002', accountName: 'second', active: false, connected: true, running: true, jobs: ['card', 'hours'], detail: [{ kind: 'hours', games: ['Counter-Strike 2'], more: 0 }], finished: null },
   { steamID: '76561198000000003', accountName: 'third', active: false, connected: false, running: false, jobs: [], finished: { jobs: ['realistic'], ts: Date.now() - 60000 } },
 ];
 const calls = [];
@@ -49,10 +49,21 @@ const answers = {
     return { ok: true, persona: 'x', steamID: id, softSwitch: true };
   },
   'engine:startFarm': (_e) => { calls.push(['startFarm']); return { ok: true }; },
+  // main.js jobs:status: the live state of the account on screen on every job channel, the idle ones empty
+  'jobs:status': () => {
+    calls.push(['jobs:status']);
+    const id = activeId();
+    if (global.W && resumedOn === id) {
+      global.W.webContents.send('boost:tick', { running: true, appids: [570], activeAppids: [570], startedAt: Date.now() - 3600000, durationMs: 0, steamID: id });
+      global.W.webContents.send('hoursFarm:tick', { running: false, steamID: id });
+    }
+    return { ok: true, steamID: id };
+  },
   'keys:state': () => ({ queue: [], results: [], resultCount: 0, usedCount: 0, running: false, pausedUntil: 0, error: null }),
   'app:info': () => ({ versionStr: '1.6.0' }), 'app:memory': () => null, 'update:lastStatus': () => null, 'realistic:noAchievementsList': () => ({ ok: true, appids: [] }),
 };
 let switchSeq = 0;
+let resumedOn = null;      // the account on which a job is resumed "at startup" without its state ever reaching the page
 const preload = fs.readFileSync(ROOT + '/preload.js', 'utf8');
 [...preload.matchAll(/invoke\('([^']+)'/g)].forEach((m) => { try { ipcMain.handle(m[1], answers[m[1]] || (() => ({ ok: true }))); } catch (_) {} });
 [...preload.matchAll(/send\('([^']+)'/g)].forEach((m) => ipcMain.on(m[1], (_e, ...a) => calls.push([m[1], ...a])));
@@ -79,10 +90,42 @@ app.whenReady().then(async () => {
   await wait(300);
   c = await chip();
   check('when the running account ends the chip turns into "finished" only', c.shown && c.done && !/running/i.test(c.text) && /2/.test(c.text), JSON.stringify(c));
-  send('accounts:activity', { steamID: '76561198000000002', running: true, jobs: ['hours'], finished: null });
+  send('accounts:activity', { steamID: '76561198000000002', running: true, jobs: ['hours'], detail: [{ kind: 'hours', games: ['Counter-Strike 2'], more: 0 }], finished: null });
   await wait(300);
   c = await chip();
   check('and back to running when the account starts again', c.shown && !c.done, JSON.stringify(c));
+
+  // ---- a job resumed on the account on screen whose state never reached the page ----
+  calls.length = 0;
+  resumedOn = '76561198000000001';
+  send('accounts:activity', { steamID: '76561198000000001', running: true, jobs: ['hours'], detail: [{ kind: 'hours', games: ['Dota 2'], more: 0 }], finished: null });
+  await wait(500);
+  check('the page asks for the live state when the account on screen starts something', calls.some((c) => c[0] === 'jobs:status'));
+  check('and a boost resumed on the account on screen shows as running, even though no event of it reached the page', (await js('boostState && boostState.running && JSON.stringify(boostState.appids)')) === '[570]', await js('JSON.stringify(boostState)'));
+  resumedOn = null;
+  send('boost:tick', { running: false, steamID: '76561198000000001' });
+  send('accounts:activity', { steamID: '76561198000000001', running: false, jobs: [], detail: [], finished: null });
+  await wait(300);
+
+  // ---- the Overview names the jobs of the other accounts ----
+  const other = await js("(() => { const b = document.getElementById('gActiveBody'); return b ? b.textContent : ''; })()");
+  check('the Overview of the account on screen lists the job running on another account, with the account and the game', /Running on other accounts/.test(other) && /second/.test(other) && /Counter-Strike 2/.test(other), other.slice(0, 200));
+  check('and says that nothing runs on THIS account', /Nothing is running on this account/.test(other));
+  check('each of those rows has a button that opens that account', (await js("!!document.querySelector('#gActiveBody [data-open-acct=\"76561198000000002\"]')")) === true);
+  await shot('overview-other-accounts');
+  await js("document.querySelector('.nav a[data-tab=hours]').click()");
+  await wait(1200);
+  await js("document.querySelectorAll('.e-modal-back').forEach(m=>m.remove())");
+  await shot('hours-other-accounts');
+  const hoursOther = await js("(document.getElementById('hoursOtherAccts') || { textContent: '' }).textContent");
+  check('the Hour Booster page of an account with nothing running names the boost of the other account', /Running on other accounts/.test(hoursOther) && /Counter-Strike 2/.test(hoursOther), hoursOther.slice(0, 160));
+  await js("document.querySelector('.nav a[data-tab=overview]').click()");
+  await wait(600);
+  // a job resumed at startup on another account goes into this account's recent activity with that account's name
+  send('account:event', { typeName: 'jobsResumed', activeIds: false, accountRef: 'second', resumed: true, feedEntry: { kind: 'card', title: 'Yarım kalan işler', text: 'Resumed where it left off: Hour boosting (Counter-Strike 2)', status: 'Çalışıyor' } });
+  await wait(300);
+  const feedText = await js("JSON.stringify(typeof activityFeed !== 'undefined' ? activityFeed.slice(0, 2) : [])");
+  check('a job resumed on another account shows in the recent activity, with the account and the game', /[second]/.test(feedText) && /Counter-Strike 2/.test(feedText), feedText.slice(0, 200));
 
   // ---- the list ----
   await js("document.getElementById('tbProfile').click()");
@@ -90,7 +133,7 @@ app.whenReady().then(async () => {
   const rows = await js("[...document.querySelectorAll('#acctList .acct-row')].map(r => ({ id: r.dataset.id, name: r.querySelector('.nm').textContent, sub: (r.querySelector('.sub') || { textContent: '' }).textContent, on: !!r.querySelector('.sub.on') }))");
   await shot('acct-list');
   check('three rows', rows && rows.length === 3, JSON.stringify(rows));
-  check('the running account names its job in the row', rows && /Hour/i.test(rows[1].sub) && rows[1].on, rows && rows[1].sub);
+  check('the running account names its job and its game in the row', rows && /Hour/i.test(rows[1].sub) && /Counter-Strike 2/.test(rows[1].sub) && rows[1].on, rows && rows[1].sub);
   check('the finished account says when it ended', rows && /\d/.test(rows[2].sub) && !rows[2].on, rows && rows[2].sub);
   check('the account on screen has no job line', rows && rows[0].sub === '');
 
