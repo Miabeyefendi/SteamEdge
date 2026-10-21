@@ -7,38 +7,22 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
-## [1.6.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.8)
+## [1.6.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.7)
 
-A second read of every Turkish text of the app, sentence by sentence: more fixes on top of 1.6.7.
+The Turkish texts of the app are corrected: fewer inverted and hanging sentences, matching subjects and verbs, one term for one thing, and shorter explanations.
 
 ### Changed
 
-- **About 35 more Turkish texts rewritten**, all by hand after reading the whole list again:
-  - one word for one thing: "eş zamanlı" and "sınır" instead of "eşzamanlı" and "limit", "ön ayar" instead of "preset", "pazar para birimi" instead of "pazar kuru", "Pazar" instead of "Market";
-  - plain words instead of loan words and slang ("Zor - grind gerekir" is now "Zor - çok uğraştırır");
-  - sentences that said the wrong thing or hung ("alıcı beklemesi uzar" is now "satış gecikir"; "Zaten sahip" is now "Zaten sahipsin"; the credits sentences whose subject changed in the middle);
-  - a quoted button name inside an explanation that is now described in plain words.
+- **About 125 Turkish texts rewritten by hand** after reading all 1526 texts twice, sentence by sentence (menus, setting descriptions, notices, dialogs, credits). What was fixed:
+  - inverted word order ("Menüler, etiketler ve bildirim metinleri seçilen dilde gösterilir. Değişiklik kaydedince hemen uygulanır." is now "Menüler, etiketler ve bildirimler bu dilde görünür. Değişiklik, kaydedince hemen geçerli olur.");
+  - subjects and verbs that did not agree ("İşlem sürerken uygulamayı kullanmaya devam edebilir, istediğin an iptal edebilirsin" and the sales statistics sentence);
+  - sentences that hung in the air, said the wrong thing or changed their subject in the middle (the update note that said "indirir, çıkarır, kopyalarsın"; "alıcı beklemesi uzar" is now "satış gecikir"; the credits);
+  - one term for one thing: "eş zamanlı", "sınır" instead of "limit", "ön ayar" instead of "preset", "para birimi" instead of "kur" for the market currency, "Pazar" instead of "Market";
+  - mixed forms of address ("hesabınız" among "hesabın"), loan words and slang ("farm edilir" is now "kart düşürülür", "Hub", "Statü", "grind") and over-long explanations.
 - The meaning of every text is unchanged, so the other five languages keep their translations.
 
 
-SHA-256 (`SteamEdge-v1.6.8-win-x64.rar`): `703d81fb77dfd572a6442d6f2e1977c6a46ed929546103a66bdce66e69f15ea6`
-
-## [1.6.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.7)
-
-The Turkish texts of the app are corrected: fewer inverted and hanging sentences, matching subjects and verbs, and shorter explanations.
-
-### Changed
-
-- **About 90 Turkish texts rewritten** (menus, setting descriptions, notices, dialogs). What was fixed:
-  - inverted word order ("Menüler, etiketler ve bildirim metinleri seçilen dilde gösterilir. Değişiklik kaydedince hemen uygulanır." is now "Menüler, etiketler ve bildirimler bu dilde görünür. Değişiklik, kaydedince hemen geçerli olur.");
-  - subjects and verbs that did not agree ("İşlem sürerken uygulamayı kullanmaya devam edebilir, istediğin an iptal edebilirsin" and the sales statistics sentence);
-  - sentences that hung in the air or changed their subject in the middle (the update note that said "indirir, çıkarır, kopyalarsın");
-  - a confusing word: "kur" for the market currency is now "para birimi";
-  - mixed forms of address ("hesabınız" among "hesabın"), loan words ("farm edilir" is now "kart düşürülür", "Hub", "Statü") and over-long explanations.
-- The meaning of every text is unchanged, so the other five languages keep their translations (the keys were renamed with them).
-
-
-SHA-256 (`SteamEdge-v1.6.7-win-x64.rar`): `17aae1954148e90639d2bc6b68cf4ca1683874b63a39152bc2d4f91373eb35c0`
+SHA-256 (`SteamEdge-v1.6.7-win-x64.rar`): `805be256a73c966f0d5a159e503a7e5971a38984110c2086912129c06564c743`
 
 ## [1.6.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.6)
 
