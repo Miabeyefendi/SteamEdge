@@ -30,7 +30,7 @@ const answers = {
   'engine:connect': () => ({ ok: true }), 'engine:dropGames': () => ({ ok: true, games, refundIds: [] }), 'engine:lastLists': () => ({ ok: true, drop: [], owned: [] }),
   'engine:ownedGames': () => ({ ok: true, games: games.map((g) => ({ appid: g.appid, name: g.name, playtimeForever: g.playtimeMin, hasStats: true })) }),
   'engine:profile': () => ({ ok: true, profile: { persona: 'tester', level: 5 } }), 'engine:vanity': () => ({ ok: true }),
-  'engine:connectionStatus': () => ({ condition: 'connected' }), 'state:get': () => ({ value: null }), 'stats:get': () => ({}),
+  'engine:connectionStatus': () => connection, 'state:get': () => ({ value: null }), 'stats:get': () => ({}),
   'accounts:list': () => accountRows.map((a) => ({ ...a })), 'accounts:connectAll': () => [],
   'accounts:switch': async (_e, id) => {
     calls.push(['switch', id]);
@@ -63,6 +63,7 @@ const answers = {
   'app:info': () => ({ versionStr: '1.6.0' }), 'app:memory': () => null, 'update:lastStatus': () => null, 'realistic:noAchievementsList': () => ({ ok: true, appids: [] }),
 };
 let switchSeq = 0;
+let connection = { condition: 'connected' };      // what main.js engine:connectionStatus answers for the account on screen
 let resumedOn = null;      // the account on which a job is resumed "at startup" without its state ever reaching the page
 const preload = fs.readFileSync(ROOT + '/preload.js', 'utf8');
 [...preload.matchAll(/invoke\('([^']+)'/g)].forEach((m) => { try { ipcMain.handle(m[1], answers[m[1]] || (() => ({ ok: true }))); } catch (_) {} });
@@ -106,6 +107,25 @@ app.whenReady().then(async () => {
   send('boost:tick', { running: false, steamID: '76561198000000001' });
   send('accounts:activity', { steamID: '76561198000000001', running: false, jobs: [], detail: [], finished: null });
   await wait(300);
+
+  // ---- the connection strip follows the state of the connection, not only the last event ----
+  const strip = () => js("!!document.getElementById('connectionStrip')");
+  connection = { condition: 'connecting', attemptCount: 2, waitMs: 10000 };
+  send('engine:status', { steamID: '76561198000000001', condition: 'connecting', attemptCount: 2, waitMs: 10000, activeIds: true });
+  await wait(300);
+  check('a drop shows the strip', (await strip()) === true);
+  // the connection comes back, but the event that says so is lost (it belonged to an account that was not on screen, or the account was changed in between)
+  connection = { condition: 'connected', ts: Date.now() };
+  send('engine:status', { steamID: '76561198000000002', condition: 'connected', reconnected: true, gameEntries: 1, activeIds: false });
+  await wait(500);
+  check('when the connection is back and the event for the account on screen never came, the strip still goes', (await strip()) === false);
+  connection = { condition: 'dropped', cause: 'x' };
+  send('engine:status', { steamID: '76561198000000001', condition: 'dropped', cause: 'x', activeIds: true });
+  await wait(300);
+  connection = { condition: 'connected', ts: Date.now() };
+  await js('reconcileConnection().then(armStripTimer)');
+  await wait(300);
+  check('the page asks for the state itself (this is also what the 15 second timer does while the strip shows)', (await strip()) === false);
 
   // ---- the Overview names the jobs of the other accounts ----
   const other = await js("(() => { const b = document.getElementById('gActiveBody'); return b ? b.textContent : ''; })()");
