@@ -289,7 +289,7 @@
         rateEl.style.color = '#B37E24';
         return;
       }
-      note.textContent = 'Steam Topluluk Pazarı kurun - tutarlar aynen bu kurda, çeviri yok';
+      note.textContent = 'Steam Topluluk Pazarı para birimi. Tutarlar aynen bu birimde gösterilir, dönüşüm yapılmaz.';
       rateEl.textContent = cur;
       rateEl.style.color = '#5FB324';
     }
@@ -770,7 +770,7 @@
     async function importIn(){
       const waiting = changes().length;
       const ok = await edgeConfirm({ tag:'İçe Aktar', title:'Yedekten geri yüklensin mi?',
-        body:'Seçeceğin dosyadaki ayarlar mevcut ayarların ÜZERİNE yazılır ve hemen uygulanır. Bu bilgisayarda kayıtlı hesapların istatistikleri ve seçili oyunları da yedekten geri gelir.'
+        body:'Seçeceğin dosyadaki ayarlar mevcut ayarların ÜZERİNE yazılır ve hemen uygulanır. Bu bilgisayarda kayıtlı hesapların istatistikleri ve seçili oyunları da yedekten geri yüklenir.'
              + (waiting ? ('\n\n' + tf('Sayfada kaydedilmemiş # değişiklik var; bunlar kaybolur.', waiting)) : ''),
         warn:'Steam oturumun ve kayıtlı hesapların etkilenmez.', confirmText:'Dosya Seç' });
       if (!ok) return;

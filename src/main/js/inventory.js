@@ -545,7 +545,7 @@
       const faded = (viewRows || []).filter(isLowValue).length;
       if (!threshold || !faded){ el.style.display = 'none'; return; }
       el.style.display = 'flex';
-      el.title = 'Ayarlar > Envanter > Düşük değer eşiği ile değiştirilir.';
+      el.title = 'Ayarlar > Envanter > Düşük değer eşiğinden değiştirilir.';
       el.innerHTML = '<span style="width:6px;height:6px;border-radius:12px;background:#7F879B;flex-shrink:0"></span>'
         + '<span>' + esc(tf('Soluk satırlar: # altındaki # öğe', fmtLira(threshold), faded)) + '</span>';
     }
@@ -1293,7 +1293,7 @@
           warningRed: [
             // items of a game are priced by name only: wear, pattern and stickers can make one copy worth many times another
             sellable.some(i => (i.invApp || 753) !== 753)
-              ? t('Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam\'de kontrol et.')
+              ? t('Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden gelir. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam\'de kontrol et.')
               : '',
             dropList.length
               ? (t('Dikkat: bu öğelerin fiyatı Steam\'in 24 saatlik ortalamasının belirgin şekilde altında. Acele etme, fiyatı kontrol et.') + '\n' + dropList.slice(0,6).join('\n'))

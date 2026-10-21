@@ -24,7 +24,7 @@
       priority: 'Öncelik listendeki oyunları önce çalıştırır.',
       leastPlayed: 'Oyunları oynanma süresi en az olandan başlayarak tek tek çalıştırır.',
       mostPlayed: 'Oyunları oynanma süresi en çok olandan başlayarak tek tek çalıştırır.',
-      fast: 'Kısıtlı hesaplarda Steam, kart düşürmeye oyun belirli bir süreyi (genelde 2 saat) geçince başlar. Hızlı mod önce bu eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kartları düşmeye devam eder. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınmış bir oyunun iadesi 2 saati geçince kapanır.'
+      fast: 'Kısıtlı hesaplarda Steam, bir oyun belirli bir süreyi (genelde 2 saat) geçince kart düşürmeye başlar. Hızlı mod önce eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kart düşürmeyi sürdürür. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınan bir oyunun iade hakkı 2 saati geçince kapanır.'
     };
     // listRow(on) / segSet(cur,key) selected-style helpers
     const ROW_ON  = { bg:'#151C28', fg:'#DCE2FA', bd:'#5624B3' };
@@ -182,7 +182,7 @@
 
       const banner = (whitelistOnly() && !rows[0]._list)
         ? '<div style="padding:10px 14px;margin-bottom:8px;border:1px solid #B37E24;border-radius:12px;background:#1A1408;color:#B37E24;font-size:11.5px">'
-          + esc(tf('Beyaz liste modu açık: yalnızca yıldızlı # oyun farm edilir.', whitelistIds.size)) + '</div>' : '';
+          + esc(tf('Beyaz liste modu açık: yalnızca yıldızlı # oyunda kart düşürülür.', whitelistIds.size)) + '</div>' : '';
       q.innerHTML = banner + rows.map(g=>{
         if (g._list) return listRow(g);
         const on = activeIds.has(g.appid);

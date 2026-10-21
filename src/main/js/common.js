@@ -838,7 +838,7 @@
           title: t('Yeni sürüm yayımlandı:') + ' v' + d.lastOne,
           body: t('Kurulu sürüm') + ' v' + d.installed + (date ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + date) : '')
                 + '\n' + t('Değişiklikleri yayın sayfasında okuyabilirsin.'),
-          warn: 'Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirir, arşivi BOŞ ve YENİ bir klasöre çıkarır, eski klasördeki settings klasörünü yeni klasöre kopyalarsın.',
+          warn: 'Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.',
           confirmText: 'Yayın Sayfasını Aç',
           cancelText: 'Şimdi Değil',
         });
@@ -1331,7 +1331,7 @@
              + '  · ' + t('O hesaba ait saat yükseltici listesi, kuyruk sırası ve başarım geçmişi') + '\n'
              + '  · ' + t('O hesaba ait istatistikler') + '\n\n'
              + t('Arka planda çalışan kart toplama ve saat yükseltme işi durdurulur.') + '\n\n'
-             + t('Steam hesabının kendisine hiçbir şey olmaz; istersen tekrar giriş yapabilirsin.'),
+             + t('Steam hesabına hiçbir şey olmaz; istersen tekrar giriş yapabilirsin.'),
         warn:'Bu işlem geri alınamaz.',
         confirmText:'Hesabı Kaldır', cancelText:'Vazgeç',
       });

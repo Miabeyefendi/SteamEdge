@@ -27,7 +27,7 @@
         body.innerHTML = '<div style="border:1px solid #B32453;border-radius:12px;background:#0D1118;padding:56px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#DCE2FA">Başarımlar yüklenemedi</span>'
           + '<span style="font-size:12px;color:#E45A86;max-width:380px">'+esc(msg||'Bilinmeyen hata')+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E;max-width:420px">Steam oturumu başka bir yerde açıldıysa (Steam istemcisi ya da uygulamanın ikinci bir penceresi) bu hesabın oturumu devralınmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
+          + '<span style="font-size:11px;color:#8B8F9E;max-width:420px">Hesap başka bir yerde açıldıysa (Steam istemcisi ya da SteamEdge\'in ikinci bir penceresi) oturumunu o devralmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
           + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:34px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
           + '</div>';
         const rb = document.getElementById('acRetry');
