@@ -353,9 +353,26 @@ class SteamEngine {
     this._reconnectTimer = setTimeout(() => {
       this._reconnectTimer = null;
       if (this._wasShutDown) return;
+      if (this._recoverIfOnline()) return;       // steam-user logged on again by itself while we waited
       try { this.user.logOn({ refreshToken: this._refreshToken }); }
       catch (_) { this._scheduleReconnect(); }
     }, wait);
+  }
+
+  // The session can be back without our own attempt having done it: steam-user logs on again by itself after some drops, and an error that arrives
+  // after the logon (the attempt of our timer meeting a session that is already open) sets "not connected" on a live session. The state then stayed
+  // "reconnecting" for good while the connection worked. If Steam says there is a session, we are connected: say so, once.
+  _recoverIfOnline() {
+    if (this._wasShutDown || this.isConnected) return false;
+    if (!(this.user && this.user.steamID)) return false;
+    this.isConnected = true;
+    this._reconnectAttempt = 0;
+    this.gaveUp = false; this.permanentDisconnect = false;
+    if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
+    try { this.user.webLogOn(); } catch (_) {}
+    if (this._playing && this._playing.length) { try { this.user.gamesPlayed(this._playing); } catch (_) {} }
+    this._reportStatus('connected', { reconnected: true, gameEntries: (this._playing || []).length });
+    return true;
   }
 
   // Restarts a loop that gave up: the user said "Reconnect" or the attempt limit was raised
@@ -388,6 +405,7 @@ class SteamEngine {
     if (this._pulseTimer) return;
     this._pulseTimer = setInterval(() => {
       if (this._wasShutDown) return;
+      if (this._recoverIfOnline()) return;           // not connected on our side, a session on Steam's: it is back
       const trulyConnected = !!(this.user && this.user.steamID);
       if (this.isConnected && !trulyConnected) {
         this.isConnected = false;

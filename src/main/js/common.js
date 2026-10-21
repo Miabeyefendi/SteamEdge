@@ -1184,10 +1184,26 @@
         if (!r || !r.ok){ b.disabled = false; toast('Steam Bağlantısı').fail(t((r && r.error) || 'Yeniden bağlanılamadı.')); }
       };
     }
+    // The strip says what the connection of the account on screen IS, not what the last event said: it hung on "reconnecting" after the connection had come back
+    // when the event that said so was missed (it belonged to the account that was not on screen at that moment, or the account was changed in between).
+    // The state is asked for from the main process whenever any account reports something, after a switch, and every 15 seconds while the strip shows.
+    let stripTimer = null;
+    async function reconcileConnection(){
+      const d = await window.imu.engine.connectionStatus().catch(()=>null);
+      if (!d || d.condition === 'none') { connectionStrip({ condition: 'connected' }); return; }
+      connectionStrip(d);
+    }
+    function armStripTimer(){
+      const shown = !!document.getElementById('connectionStrip');
+      if (shown && !stripTimer) stripTimer = setInterval(reconcileConnection, 15000);
+      if (!shown && stripTimer){ clearInterval(stripTimer); stripTimer = null; }
+    }
     if (window.imu.engine && window.imu.engine.onStatus){
       window.imu.engine.onStatus((d)=>{
-        if (!d || !d.activeIds) return;          // only the account open on screen
+        if (!d) return;
+        if (!d.activeIds){ reconcileConnection().then(armStripTimer); return; }   // another account: the one on screen may have changed state too
         connectionStrip(d);
+        armStripTimer();
         if (d.condition === 'dropped'){
           if (typeof setSysStatus === 'function') setSysStatus(false);
           if (typeof pushFeed === 'function') pushFeed('error', 'Steam Bağlantısı', connectionText(d), 'Hata');
@@ -1280,6 +1296,7 @@
       }
       working.done(tf('# hesabı açıldı.', (known && known.accountName) || steamID));
       await loadAccountSettings();
+      reconcileConnection().then(armStripTimer);
       resetPageCaches();
       imuProfile = null; imuProfileFresh = false; loadProfile();
       reloadActiveTab();
