@@ -856,7 +856,7 @@
       let o;
       if (!res || !res.ok) o = { failed: true, reason: (res && res.error) || 'Uygulama içi iletişim hatası' };
       else if (!res.orders) o = { failed: true, reason: 'Steam boş yanıt döndürdü' };
-      else if (res.orders.noCurrency) o = { failed: true, reason: 'hesabın pazar kuru henüz okunmadı' };
+      else if (res.orders.noCurrency) o = { failed: true, reason: 'hesabın pazar para birimi henüz okunmadı' };
       // Keep the reason: saying "could not be fetched" is not enough, WHY it could not be fetched must be written.
       else if (res.orders.error || res.orders.rateLimited) o = { failed: true, reason: res.orders.error || 'Steam istek sınırı', rateLimited: !!res.orders.rateLimited };
       else o = res.orders;
@@ -976,7 +976,7 @@
       let saleBox;
       if (!it.marketable) saleBox = priceQtyBox('Gerçekleşen Satışlar', '#7F879B', 'Bu öğe pazarda satılamaz.', '', '-');
       else if (hist === 'loading' || hist === undefined) saleBox = priceQtyBox('Gerçekleşen Satışlar', '#C2AAEE', 'Satış geçmişi yükleniyor…', '', '');
-      else if (hist === 'none') saleBox = priceQtyBox('Gerçekleşen Satışlar', '#B37E24', 'Satış geçmişi alınamadı (Steam istek limiti olabilir).', '', histRetryBtn());
+      else if (hist === 'none') saleBox = priceQtyBox('Gerçekleşen Satışlar', '#B37E24', 'Satış geçmişi alınamadı (Steam istek sınırı olabilir).', '', histRetryBtn());
       else {
         const st = hist.stats || {};
         const win = st.days ? tf('son # gün', st.days) : t('tüm zamanlar');

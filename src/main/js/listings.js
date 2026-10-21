@@ -66,7 +66,7 @@
       const todo = all.filter(l => mlSelected.has(l.listingId));
       if (!todo.length || mlBusy) return;
       const ok = await edgeConfirm({ tag: 'Pazar İlanları', danger: true, title: tf('# ilan iptal edilecek', todo.length),
-        body: 'Eşyalar envanterine geri döner. Bu işlem Steam pazarındaki ilanı kaldırır.', confirmText: 'İptal Et', cancelText: 'Vazgeç' });
+        body: 'İlan Steam pazarından kaldırılır; eşyalar envanterine geri döner.', confirmText: 'İptal Et', cancelText: 'Vazgeç' });
       if (!ok) return;
       mlBusy = true;
       const cancelBtn = mlBack && mlBack.querySelector('[data-mlcancel]');

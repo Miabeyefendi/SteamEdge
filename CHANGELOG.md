@@ -7,6 +7,22 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.8)
+
+A second read of every Turkish text of the app, sentence by sentence: more fixes on top of 1.6.7.
+
+### Changed
+
+- **About 35 more Turkish texts rewritten**, all by hand after reading the whole list again:
+  - one word for one thing: "eş zamanlı" and "sınır" instead of "eşzamanlı" and "limit", "ön ayar" instead of "preset", "pazar para birimi" instead of "pazar kuru", "Pazar" instead of "Market";
+  - plain words instead of loan words and slang ("Zor - grind gerekir" is now "Zor - çok uğraştırır");
+  - sentences that said the wrong thing or hung ("alıcı beklemesi uzar" is now "satış gecikir"; "Zaten sahip" is now "Zaten sahipsin"; the credits sentences whose subject changed in the middle);
+  - a quoted button name inside an explanation that is now described in plain words.
+- The meaning of every text is unchanged, so the other five languages keep their translations.
+
+
+SHA-256 (`SteamEdge-v1.6.8-win-x64.rar`): `703d81fb77dfd572a6442d6f2e1977c6a46ed929546103a66bdce66e69f15ea6`
+
 ## [1.6.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.7)
 
 The Turkish texts of the app are corrected: fewer inverted and hanging sentences, matching subjects and verbs, and shorter explanations.

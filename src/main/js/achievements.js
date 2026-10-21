@@ -212,7 +212,7 @@
       if (!res.data){
         document.getElementById('acBody').innerHTML = '<div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:64px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#B9C0D6">Bu oyunun başarımı yok</span>'
-          + '<span style="font-size:12px;color:#8B8F9E;max-width:280px">Bu oyun bu yöntemle başarım tutmuyor.</span></div>';
+          + '<span style="font-size:12px;color:#8B8F9E;max-width:280px">Bu oyun başarımları bu yöntemle tutmuyor.</span></div>';
         return;
       }
       acData = res.data;
@@ -564,7 +564,7 @@
       if (!targets.length){
         if (protectedCount){
           edgeConfirm({ tag:'Bilgi', title:'Bu başarımlar dışarıdan açılamaz',
-            body: tf('# başarım oyun tarafından korunuyor. Steam bunları yalnızca oyunun kendi sunucusundan kabul eder; uygulama üzerinden açılamaz.', protectedCount),
+            body: tf('# başarım oyun tarafından korunuyor. Steam bunları yalnızca oyunun kendi sunucusundan kabul eder; bu yüzden uygulamadan açılamazlar.', protectedCount),
             confirmText:'Tamam', singleButton:true });
         } else toast('Başarımlar').fail('Değiştirilecek başarım yok.');
         return;
