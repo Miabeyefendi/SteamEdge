@@ -1389,8 +1389,8 @@ function farmBroadcast(steamID) {
         typeName: 'cardStopped',
         feedEntry: { kind: 'card', title: 'Kart Düşürme', status: 'Durdu',
           text: payloadData.cause === 'duration'
-            ? 'Oyunun süresi doldu; sıradakine geçme kapalı olduğu için durdu.'
-            : 'Oyunun kartları bitti; sıradakine geçme kapalı olduğu için durdu.' },
+            ? 'Oyunun süresi doldu; sıradakine geçme kapalı olduğundan durdu.'
+            : 'Oyunun kartları bitti; sıradakine geçme kapalı olduğundan durdu.' },
       });
     }
   };

@@ -587,7 +587,7 @@ class SteamEngine {
       const countUp = (j.response && typeof j.response.game_count === 'number') ? j.response.game_count : null;
       if (countUp === null || countUp === 0) {
         throw new Error(translation.t('Oyun listesi boş döndü. Steam profilinde Gizlilik > "Oyun ayrıntıları" '
-          + 'ayarını Herkese Açık yapman gerekiyor, aksi halde Steam kütüphaneni paylaşmıyor.'));
+          + 'ayarını Herkese Açık yapmalısın; yoksa Steam kütüphaneni paylaşmaz.'));
       }
     }
     return games.map((g) => ({ appid: g.appid, name: g.name, playtimeForever: g.playtime_forever || 0, hasStats: !!g.has_community_visible_stats }))

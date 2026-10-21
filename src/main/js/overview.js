@@ -700,7 +700,7 @@
       E.startFarm(selectedMode, games, durationSec*1000);
       if (typeof setCardPill === 'function') setCardPill(true, 'Çalışıyor');
       notify('farm', 'Kart Düşürme Başladı', tf('# oyun sırada.', games.length));
-      pushFeed('card', 'Kart Düşürme', tf('# oyun ile başladı.', games.length), 'Çalışıyor');
+      pushFeed('card', 'Kart Düşürme', tf('# oyunla başladı.', games.length), 'Çalışıyor');
     }
     function stopCard(){
       runEnd('card');
