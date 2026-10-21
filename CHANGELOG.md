@@ -7,6 +7,23 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.6.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.8)
+
+The Russian texts of the app are corrected the same way the Turkish ones were in 1.6.7: shorter explanations, one term for one thing, no borrowed slang, and sentences that say what the setting really does.
+
+### Changed
+
+- **51 Russian texts rewritten by hand** after reading all 1525 Russian texts sentence by sentence next to the Turkish source. What was fixed:
+  - wordy explanations cut down (the language, start tab, side bar, notification and storage descriptions);
+  - sentences that no longer matched the Turkish text after 1.6.7 (the language note, the hidden-features note, the update button note, the usage of `Ayarlar > Envanter > Düşük değer`);
+  - one term for one thing: "шаблон" for the saved settings set instead of the English "пресет", "фарм карточек" for card farming everywhere (the schedule texts said "сбор карточек"), "сверхредкие" instead of "ультраредкие", "выпадение" instead of "дроп", "Единый инвентарь" instead of "Единый центр";
+  - slang and loan words replaced ("нужен гринд" is now "потребуется много усилий", "Не давать уснуть" is now "Не уходить в спящий режим");
+  - wrong or awkward forms: "Разбитие" is now "Разбивание", "# год" now has all three plural forms, the price loading note names a count that agrees with the noun ("Для # предмета ... цена" and "Для # разных предметов ... цены").
+- The meaning of every text is unchanged, so the other five languages keep their translations.
+
+
+SHA-256 (`SteamEdge-v1.6.8-win-x64.rar`): `859f4419d1bddbc6fc768539dfba520cb4b9284fa3e03f12500e68d8896a74c6`
+
 ## [1.6.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.7)
 
 The Turkish texts of the app are corrected: fewer inverted and hanging sentences, matching subjects and verbs, one term for one thing, and shorter explanations.
