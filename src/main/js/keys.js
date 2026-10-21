@@ -8,7 +8,7 @@
       used:      { label: 'Etkinleştirildi',        color: '#5FB324' },
       claimed:   { label: 'Hesaba eklendi',         color: '#5FB324' },
       notGranted:{ label: 'Lisans verilmedi',       color: '#B37E24' },
-      owned:     { label: 'Zaten sahip',            color: '#B37E24' },
+      owned:     { label: 'Zaten sahipsin',            color: '#B37E24' },
       region:    { label: 'Bölge kilitli',          color: '#E45A86' },
       invalid:   { label: 'Geçersiz anahtar',       color: '#E45A86' },
       duplicate: { label: 'Daha önce kullanılmış',  color: '#B37E24' },

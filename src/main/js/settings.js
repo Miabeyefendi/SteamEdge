@@ -284,7 +284,7 @@
       if (!note || !rateEl) return;
       const cur = (typeof curCode === 'function') ? curCode() : null;
       if (!cur){
-        note.textContent = 'Pazar kuru henüz okunmadı - Steam oturumu bekleniyor';
+        note.textContent = 'Pazar para birimi henüz okunmadı - Steam oturumu bekleniyor';
         rateEl.textContent = '-';
         rateEl.style.color = '#B37E24';
         return;

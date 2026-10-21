@@ -732,9 +732,9 @@
     // the oldest would mean deleting a configuration without the user knowing.
     const GR_PRESET_LIMIT = 5;
     grEl('grSavePreset').onclick = async ()=>{
-      if (!grQueue.length){ if (typeof toast === 'function') toast('Preset').fail('Önce sıraya oyun ekle.'); return; }
+      if (!grQueue.length){ if (typeof toast === 'function') toast('Ön ayar').fail('Önce sıraya oyun ekle.'); return; }
       if (grPresets.length >= GR_PRESET_LIMIT){
-        if (typeof toast === 'function') toast('Preset').fail(tf('En fazla # preset tutulur. Önce birini sil.', GR_PRESET_LIMIT));
+        if (typeof toast === 'function') toast('Ön ayar').fail(tf('En fazla # ön ayar tutulur. Önce birini sil.', GR_PRESET_LIMIT));
         return;
       }
       const durationMs = grDurationMs();
@@ -751,7 +751,7 @@
       grPresets = [p].concat(grPresets).slice(0, GR_PRESET_LIMIT);
       await grSave({ grPresets });
       grPaintPreset();
-      if (typeof toast === 'function') toast('Preset').done('Kaydedildi.');
+      if (typeof toast === 'function') toast('Ön ayar').done('Kaydedildi.');
     };
     grEl('grPresets').addEventListener('click', async (e)=>{
       const remove = e.target.closest('[data-grpdel]');
@@ -763,7 +763,7 @@
       }
       const row = e.target.closest('[data-grpreset]');
       if (!row) return;
-      if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Preset').fail('Çalışırken preset yüklenemez.'); return; }
+      if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Ön ayar').fail('Çalışırken ön ayar yüklenemez.'); return; }
       const p = grPresets[+row.getAttribute('data-grpreset')];
       if (!p) return;
       grQueue = (p.gameEntries||[]).map(id=>grGames.find(g=>g.appid===+id)).filter(Boolean);
@@ -775,7 +775,7 @@
       grPaintSelect(); grPaintToggle(); grPaintLibrary();
       grEl('grTarget').value = String(p.goalValue||0);
       grFetchPlan();
-      if (typeof toast === 'function') toast('Preset').done('Yüklendi.');
+      if (typeof toast === 'function') toast('Ön ayar').done('Yüklendi.');
     });
 
     // ---- start / stop ----

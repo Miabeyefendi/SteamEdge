@@ -371,7 +371,7 @@
         const nextDrop = lastTick.durationMs ? fmtSessionDur(Math.max(0, lastTick.durationMs - (lastTick.elapsedMs||0))) : '-';
         tasks.push({
           tab:'card', appid:heroId, heading:(cur?cur.name:'Kart Düşürme'),
-          badges:[modeLabels[selectedMode]||selectedMode, tf('# oyun eşzamanlı', activeIds.length)],
+          badges:[modeLabels[selectedMode]||selectedMode, tf('# oyun eş zamanlı', activeIds.length)],
           columns:[['Kalan Kart', (cur?cur.remaining:0), GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(Date.now()-(lastTick.sessionStart||Date.now())))],
                     ['Sonraki Düşüş', monoTime(nextDrop)]],
@@ -388,7 +388,7 @@
         const left = boostState.durationMs ? fmtSessionDur(Math.max(0, boostState.durationMs-passed)) : '-';
         tasks.push({
           tab:'hours', appid:bId, heading:(g?g.name:'Saat Yükseltici'),
-          badges:['Saat Yükseltici', tf('# oyun eşzamanlı', ids.length)],
+          badges:['Saat Yükseltici', tf('# oyun eş zamanlı', ids.length)],
           columns:[['Aktif Oyun', ids.length, GC.sub],
                     ['Oturum Süresi', monoTime(fmtSessionDur(passed))],
                     ['Kalan', monoTime(left)]],
@@ -799,8 +799,8 @@
       // An undefined requestPrices() used to be called here.
       await fetchPricesForView();
       renderOverviewStats();
-      pushFeed('market', 'Pazar', 'Market fiyatları yeniden çekiliyor.', 'Çalışıyor');
-      return { messageText: 'Fiyatlar çekiliyor, Envanter sekmesinden ilerlemeyi görebilirsin.' };
+      pushFeed('market', 'Pazar', 'Pazar fiyatları yeniden çekiliyor.', 'Çalışıyor');
+      return { messageText: 'Fiyatlar çekiliyor; ilerlemeyi Envanter sekmesinden izleyebilirsin.' };
     });
     document.getElementById('qaSettings').onclick = ()=> openSettingsPage();
 

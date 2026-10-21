@@ -875,7 +875,7 @@ class SteamEngine {
     // this kind once inflated the amounts 40 times).
     const expected = SteamEngine.SYMBOL[code];
     if (sampleRaw && expected && !String(sampleRaw).includes(expected)) {
-      return { error: translation.tf('pazar sayfası # dışında bir kurda geldi', code) + ' (' + sampleRaw + ')' };
+      return { error: translation.tf('pazar sayfası # dışında bir para biriminde geldi', code) + ' (' + sampleRaw + ')' };
     }
     return {
       sell, buy, sellCount, buyCount,

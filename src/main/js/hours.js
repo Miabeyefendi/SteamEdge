@@ -149,7 +149,7 @@
       if (stSel && stSel.value !== st) stSel.value = st;
 
       lock(document.getElementById('hoursConcBlock'), syncActive(),
-              'Eşitleme açık: oyunları eşitleme çalıştırır (en fazla 32 eşzamanlı).');
+              'Eşitleme açık: oyunları eşitleme çalıştırır (en fazla 32 eş zamanlı).');
       lock(document.getElementById('hoursDurBlock'), syncActive(),
               'Eşitleme açık: süreyi hedef saat belirler.');
     }
@@ -477,8 +477,8 @@
         boostGameIds: selectedHours.map(g=>g.appid),
         ...boostFlags,
       }).catch(()=>{});
-      if (typeof toast === 'function') toast('Preset kaydedildi').done(tf('# oyun', selectedHours.length) + ' · '
-        + (hourDurSec ? fmtHMS(hourDurSec) : '∞') + ' · ' + tf('en fazla # eşzamanlı', maxConcurrent));
+      if (typeof toast === 'function') toast('Ön ayar kaydedildi').done(tf('# oyun', selectedHours.length) + ' · '
+        + (hourDurSec ? fmtHMS(hourDurSec) : '∞') + ' · ' + tf('en fazla # eş zamanlı', maxConcurrent));
     };
 
     // ---- start / stop ----
@@ -513,7 +513,7 @@
                   + tf('Aynı anda açık: # oyun', plan.firstActive) + '\n\n'
                   + t('Tahmini bitiş sırası:') + '\n' + firsts
                   + (remainingNumber ? ('\n  · ' + tf('ve # oyun daha', remainingNumber)) : '')
-                  + '\n\n' + t('Hepsinin tamamlanması:') + ' ' + fmtHours(Math.round(plan.totalMs/60000));
+                  + '\n\n' + t('Hepsinin tamamlanma süresi:') + ' ' + fmtHours(Math.round(plan.totalMs/60000));
           } else {
             const lines = (plan.steps||[]).map((st,i)=>
               '  ' + (i+1) + '. ' + tf('# oyun: # → #', st.count, fmtHours(st.fromMin), fmtHours(st.toMin))
