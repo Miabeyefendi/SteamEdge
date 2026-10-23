@@ -912,7 +912,12 @@ function createWindow() {
 }
 
 // window controls
-ipcMain.on('win:minimize', () => win && win.minimize());
+// The minimise button sends the window to the notification area (tray), not to the taskbar; the tray icon brings it back. Without a tray icon it minimises as usual.
+ipcMain.on('win:minimize', () => {
+  if (!win) return;
+  ensureTray();
+  if (tray && !tray.isDestroyed()) win.hide(); else win.minimize();
+});
 ipcMain.on('win:maximize', () => { if (win) win.isMaximized() ? win.unmaximize() : win.maximize(); });
 ipcMain.on('win:close', () => win && win.close());
 ipcMain.on('win:fit', (_e, h) => {
@@ -3552,9 +3557,18 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
     const totalCount = built.games.reduce((t, g) => t + (g.queueList.length || 1), 0);
     const share = Math.max(60000, Math.round(built.spanMs * ((head.queueList.length || 1) / totalCount)));
     const accumulation = computeRealisticAccum(appid, head.h, pick);
-    placeRealisticTimes(head.queueList, share, pick.model, accumulation, realisticTimeSetting(appid, pick));
+    const timing = realisticTimeSetting(appid, pick);
+    placeRealisticTimes(head.queueList, share, pick.model, accumulation, timing);
+    // What the settings really make of the run, measured on the placed times: a finished game or a squeezed backlog ends its unlocks long before the whole duration
+    const times = head.queueList.map((a) => a.timeValue);
+    const unlockWindowMs = times.length ? Math.max(...times) : 0;
+    const firstUnlockMs = times.length ? Math.min(...times) : 0;
     return {
       ok: true,
+      firstUnlockMs,                            // when the first unlock comes
+      unlockWindowMs,                           // when the last one comes: all unlocks are done by then
+      unlockRatio: share > 0 ? Math.min(1, unlockWindowMs / share) : 1,   // that, as a part of this game's share of the run (1 = the unlocks use all of it)
+      finishedFlag: !!timing.finishedFlag,      // the playtime has already passed the completion time
       // The interface shows this as an "N achievements overdue" note.
       accumulation: Math.min(accumulation, head.queueList.length),
       appid: +appid,
@@ -3570,7 +3584,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       autoSpan: built.auto,
       queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0),
       model: pick.model,
-      averageIntervalMs: head.queueList.length ? Math.round(share / head.queueList.length) : 0,
+      averageIntervalMs: head.queueList.length ? Math.round(unlockWindowMs / head.queueList.length) : 0,
       // Full list: the interface draws the "Unlock order" table from this.
       queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, pos: a.pos, timeValue: a.timeValue })),
     };

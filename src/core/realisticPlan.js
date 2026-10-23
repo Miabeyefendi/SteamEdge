@@ -178,14 +178,26 @@ function hoursForCount(count, total, tcHours, difficulty) {
   return (count / total) * tcHours * difficulty;
 }
 
+// The achievements a game's playtime already pays for (its backlog) are not "earned" again over hours of play: the playtime is already behind them. They only have to look
+// like a catch-up, so the automatic duration gives them a few minutes each, at most BACKLOG_MAX_HOURS for the whole game, instead of the hours a new player would need.
+// A game played for 26 of its 26 hours therefore plans two to three hours, not another 26.
+const BACKLOG_MIN_PER_ACHIEVEMENT = 3;
+const BACKLOG_MAX_HOURS = 3;
+function autoHoursForGame(g, count, catchUp) {
+  const backlog = catchUp ? Math.min(count, g.behind) : 0;
+  const catchUpHours = Math.min(BACKLOG_MAX_HOURS, (backlog * BACKLOG_MIN_PER_ACHIEVEMENT) / 60);
+  return catchUpHours + hoursForCount(count - backlog, g.total, g.tc, g.difficulty);
+}
+
 // Decides, for the whole queue at once, how many achievements each game unlocks and how long the run lasts.
 //   entries : [{ appid, h }] in queue order, h = the game's full list of unlockable achievements (common to rare), see prepareRealisticQueue
 //   pick    : the options (goalAuto, goalValue, goalByGame, autoSpan, tcHours / tcByGame, difficultyValue, playtime)
 //   givenSpanMs : the duration the user has set
 //   autoSpanAllowed : false for a run the schedule starts, it has to fit what is left of its time range
 //
-// Automatic duration (autoSpan): the run lasts as long as a real player would need for the achievements it unlocks. A game that takes 60 hours
-// to finish therefore gets 60 hours for all of its achievements, not the two hours the field happened to hold. The automatic target is then
+// Automatic duration (autoSpan): the run lasts as long as a real player would need for the achievements it unlocks, minus what the playtime already covers
+// (autoHoursForGame). A game that takes 60 hours to finish therefore gets 60 hours for all of its achievements when it has not been played, not the two hours the field
+// happened to hold; one that has been played for 60 hours gets a few hours of catch-up. The automatic target is then
 // "all that is left"; a target typed by hand gets its own share of the completion time.
 // Duration set by hand: the automatic target is the backlog plus what a real player would earn in the time given.
 // (Before, the page worked out an automatic target but sent 0, which means all, to the engine: the box said 3 / 50 while all 50
@@ -208,7 +220,7 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
     let hours = 0;
     games.forEach((g) => {
       const count = pick.goalAuto ? g.left : Math.min(g.left, pick.goalValue > 0 ? pick.goalValue : g.left);
-      hours += hoursForCount(count, g.total, g.tc, g.difficulty);
+      hours += autoHoursForGame(g, count, !!pick.accelerateDelayed);
     });
     spanMs = Math.round(Math.min(MAX_SPAN_MS, Math.max(MIN_SPAN_MS, hours * HOUR)));
   }
@@ -231,6 +243,7 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
 
 module.exports = {
   realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes,
-  tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, planGames,
+  tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, autoHoursForGame, planGames,
+  BACKLOG_MAX_HOURS, BACKLOG_MIN_PER_ACHIEVEMENT,
   DELAY_UPPER_LIMIT, ULTRA_POS, STORY_POS, RARITY_BANDS, MIN_SPAN_MS, MAX_SPAN_MS,
 };
