@@ -7,6 +7,25 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.7.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.1)
+
+Realistic Mode now counts the hours a game has already been played, shows what its settings really do, and the minimise button sends the window to the tray.
+
+### Fixed
+
+- **A game that was already played for its whole completion time still planned that whole time again.** With the automatic duration, a game with a 26 hour completion time and 26 hours played planned another 26 hours of unlocks, although a real player with that many hours would already have all of them. The playtime now counts: the achievements it already covers (the backlog) get a few minutes each, at most 3 hours for the whole game, and only the rest gets the hours a real player would need. A game played to its completion time plans about 2 to 3 hours, a game played halfway plans the other half in full plus the short catch-up, a game never played is unchanged. With "Catch up on overdue achievements" off nothing is shortened.
+- **Changing the difficulty or the game type did not rebuild the plan.** The unlock times on screen stayed as they were until another setting was touched. Both (and the model, which already did) now ask the engine for a new plan.
+- **The "will unlock in about ..." text did not follow the settings.** It showed the average gap over the whole duration, so a duration of 1 hour and one of 16 hours could read the same, and a finished game, a squeezed backlog or the speed setting changed nothing on screen. The page now measures the plan itself: the first unlock is when the first achievement really comes, the average gap and the "N achievements in ..." sentences use the time the last unlock really comes.
+
+### Changed
+
+- **The minimise button sends the window to the notification area (tray) instead of the taskbar.** The tray icon (click, or "Show window" in its menu) brings it back. If the tray icon cannot be made, the window is minimised as before.
+- **Built on Electron 42.11.3** (the update merged in PR #50); the 53 tests pass on it.
+- `npm test` covers the playtime rule (never played, half played, played to the completion time, far past it, catch-up off) and the plan being rebuilt when the difficulty or game type changes.
+
+
+SHA-256 (`SteamEdge-v1.7.1-win-x64.rar`): `b6ff12b058c5b8cf0928c1d0260d742f33517e7b4fa261341ed6a95727731e96`
+
 ## [1.7.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.0)
 
 The Spanish, Traditional Chinese and English texts of the app are corrected the same way the Turkish, Russian and German ones were in 1.6.7 to 1.6.9, and with that every language of the app has been read sentence by sentence.

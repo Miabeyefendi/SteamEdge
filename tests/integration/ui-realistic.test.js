@@ -39,7 +39,7 @@ Object.assign(answers, {
     planner.placeRealisticTimes(head.queueList, share, pick.model, 0, planner.realisticTimeSetting(arg.appid, pick));
     return { ok: true, accumulation: 0, appid: arg.appid, gameTitle: 'Game', totalSum: head.queueList.length, suitableTotal: head.h.suitableTotal, totalAchievements: head.h.totalAchievements, unlockedState: 0,
       protectedFlag: 0, ultraSkipped: 0, spanMs: built.spanMs, autoSpan: built.auto, queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0), model: pick.model,
-      averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), queueList: head.queueList.map((a, i) => ({ name: a.name, rarityPct: a.rarityPct, pos: i / head.queueList.length, timeValue: a.timeValue })) };
+      averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), firstUnlockMs: Math.min(...head.queueList.map((a) => a.timeValue)), unlockWindowMs: Math.max(...head.queueList.map((a) => a.timeValue)), unlockRatio: Math.min(1, Math.max(...head.queueList.map((a) => a.timeValue)) / share), queueList: head.queueList.map((a, i) => ({ name: a.name, rarityPct: a.rarityPct, pos: i / head.queueList.length, timeValue: a.timeValue })) };
   },
   'realistic:start': (_e, arg) => { calls.push(['start', arg]); return { ok: true, totalSum: 50, gameCount: 2, gameTitle: 'Alpha Game' }; },
 });
@@ -102,6 +102,16 @@ app.whenReady().then(async () => {
   await wait(1200);
   p = lastPlan();
   check('the second click turns it on and the 80 hours come back', settings.grAutoDuration === true && p.optionList.autoSpan === true && (await field('grRH')) === '80', (await field('grRH')));
+  // A change of difficulty or game type rebuilds the plan (it used to repaint only: the unlock times on screen stayed as they were)
+  const planCount = calls.filter((c) => c[0] === 'plan').length;
+  await js("(() => { const d = document.getElementById('grDiff'); d.value = '0.8'; d.dispatchEvent(new Event('change')); })()");
+  await wait(900);
+  p = lastPlan();
+  check('changing the difficulty asks the engine for a new plan with the new difficulty', calls.filter((c) => c[0] === 'plan').length > planCount && p.optionList.difficultyValue < 1, String(p.optionList.difficultyValue));
+  const planCount2 = calls.filter((c) => c[0] === 'plan').length;
+  await js("(() => { const d = document.getElementById('grCR'); d.value = '2.5'; d.dispatchEvent(new Event('change')); })()");
+  await wait(900);
+  check('changing the game type asks for a new plan too', calls.filter((c) => c[0] === 'plan').length > planCount2);
   // The rarity label follows what the engine does: a proportion of the game's own achievements (very common 20%, common 30%, uncommon 20%, rare 20%, ultra rare 10%)
   const labels = await js("[0, 0.1, 0.2, 0.49, 0.5, 0.69, 0.7, 0.89, 0.9, 0.99].map((p) => grRarityLabel(4.9, p)).concat([grRarityLabel(4.9, undefined), grRarityLabel(60, null), grRarityLabel(null, undefined), grPctColor(4.9, 0.95) !== grPctColor(4.9, 0.1)])");
   check('by place in the game: 0 to 20% very common, 20 to 50% common, 50 to 70% uncommon, 70 to 90% rare, the last tenth ultra rare', labels && labels.slice(0, 10).join() === 'Çok yaygın,Çok yaygın,Yaygın,Yaygın,Az bulunur,Az bulunur,Nadir,Nadir,Ultra nadir,Ultra nadir', labels && labels.slice(0, 10).join());

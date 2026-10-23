@@ -422,7 +422,7 @@
         grSet('grNextName', grStatus.achievementsDone ? t('Başarımlar bitti') : (position || '-'));
         grSet('grNextMeta', grStatus.achievementsDone
           ? t('Süre sonuna kadar saat toplanıyor')
-          : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : grPlan.averageIntervalMs), rank));
+          : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : (grPlan.firstUnlockMs || grPlan.averageIntervalMs)), rank));
         const pctEl = grEl('grNextPct');
         pctEl.textContent = Number.isFinite(orderPct) ? fmtPercent(localDecimal(orderPct, 1)) : '-';
         pctEl.style.color = grPctColor(orderPct, orderPos);
@@ -479,6 +479,14 @@
         '<span style="font-family:Geist Mono,monospace;font-weight:700;color:#DCE2FA">' + (Number(goal) || 0) + '</span>');
     }
 
+    // When the last unlock of the plan comes. It is shorter than the duration whenever a finished game, a squeezed backlog or the speed setting shortens it;
+    // the sentence on the page says this, not the whole duration, so every setting that matters shows.
+    // The ratio comes from the first game's share of the run and is applied to the whole duration, so the sentence "N achievements in ..." stays true for every game of the queue.
+    function grUnlockWindowMs(durationMs){
+      const r = grPlan && grPlan.unlockRatio;
+      return (r > 0 && r < 0.995) ? Math.max(60000, Math.round(durationMs * r)) : durationMs;
+    }
+
     // ---- target + HLTB calculations ----
     function grPaintAccount(){
       const game = grQueue[0];
@@ -510,7 +518,7 @@
         const el = grEl(id); if (el) el.style.color = goalColor;
       });
       const goal = auto ? planned : Math.max(0, Math.min(suitable, +grEl('grTarget').value || 0));
-      grWritePlanSentence(durationMs, (grPlan && grPlan.queueTotal) || goal || planned);
+      grWritePlanSentence(grUnlockWindowMs(durationMs), (grPlan && grPlan.queueTotal) || goal || planned);
 
       // Backlog note
       const not = grEl('grCatchUpNote');
@@ -540,7 +548,7 @@
       grSet('grSimpleNote', game
         ? (tf('#: # saat oynanmış. Bitiş süresi # saat kabul edildi (#), zorluk: #.', game.name, Math.round(playtimeHours), Math.round(tc), tcSource, t(diffLabel[String(grVal('grDiff','1.2'))] || '-'))
            + ' ' + tf('Bu kadar oynanmışken # başarım açılmış olmalıydı; açılan #, geride kalan #.', Math.round(expected), unlockedB, remainingBehind)
-           + ' ' + tf('# içinde # başarım açılır.', grDurationLabel(durationMs), goal))
+           + ' ' + tf('# içinde # başarım açılır.', grDurationLabel(grUnlockWindowMs(durationMs)), goal))
         : t('Önce soldan bir oyun ekle.'));
 
       // Distribution model description
@@ -654,7 +662,7 @@
       e.addEventListener('change', async ()=>{
         await grSave({ [keyName]: e.value });
         grPaintSelect();
-        if (keyName === 'grModel') grFetchPlan(); else { grPaintAccount(); grPaintList(); }
+        grFetchPlan();          // the type, the difficulty and the model all change the unlock times, so the plan is rebuilt
       });
     });
     // Both panels write the same value and the value is kept PER GAME. There used to be a single general

@@ -87,7 +87,7 @@
 |---|---|
 | Operating system | Windows 10 or newer, 64 bit |
 | Steam account | With Steam Guard set up, mobile or email |
-| Disk space | About 290 MB extracted |
+| Disk space | About 300 MB extracted |
 | Steam client | Not required, and not used |
 
 ### Install
@@ -99,10 +99,10 @@
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.7.0-win-x64.rar`:
-`a9a55c55ed8060d5bae72d44d91781a809073b5297c4851a28a513751b0c7d0d`
+SHA-256 of `SteamEdge-v1.7.1-win-x64.rar`:
+`b6ff12b058c5b8cf0928c1d0260d742f33517e7b4fa261341ed6a95727731e96`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.7.0-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.7.1-win-x64.rar`.
 
 ---
 

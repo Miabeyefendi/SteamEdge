@@ -54,14 +54,14 @@ check('achievements the game protects or the setting skips are not counted: 40 o
 // ---- a finished game (played longer than the completion time) ----
 const finishedPick = Object.assign({}, base, { playtime: { 1: 100 * 60 } });
 plan = planGames([{ appid: 1, h: game(50, 0) }], finishedPick, 2 * HOUR, true);
-check('a game played for 100 hours still gets its 60 hours', plan.spanMs === 60 * HOUR);
+check('a game played for 100 hours (past its 60) plans 2.5 hours of catch-up, not 60 hours again', near(plan.spanMs, 2.5 * HOUR, 60000), (plan.spanMs / HOUR).toFixed(2) + ' h');
 const timing = realisticTimeSetting(1, Object.assign({ autoSpanApplied: plan.auto }, finishedPick));
 check('and the "finished game" compression is not laid on top of the automatic duration', timing.finishedFlag === true && timing.finishedRatio === 1);
 const timingHand = realisticTimeSetting(1, Object.assign({ autoSpanApplied: false }, finishedPick));
 check('with a duration typed by hand the compression still applies', timingHand.finishedRatio === 0.5);
 placeRealisticTimes(plan.games[0].queueList, plan.spanMs, 'linear', computeRealisticAccum(1, plan.games[0].h, Object.assign({ autoSpanApplied: true }, finishedPick)), timing);
 const lastFinished = plan.games[0].queueList[plan.games[0].queueList.length - 1].timeValue;
-check('the last unlock of a finished game is still at the end of the run', near(lastFinished, 60 * HOUR, 60000), (lastFinished / HOUR).toFixed(1) + ' h');
+check('the last unlock of a finished game is still at the end of the run', near(lastFinished, plan.spanMs, 60000), (lastFinished / HOUR).toFixed(2) + ' h');
 
 // ---- several games ----
 plan = planGames([{ appid: 1, h: game(50, 0) }, { appid: 2, h: game(20, 0) }], Object.assign({}, base, { tcByGame: { 1: 60, 2: 20 } }), 2 * HOUR, true);
@@ -143,5 +143,21 @@ check('the ultra rare weight is the setting, everything else weighs the same', r
   const none = Array.from({ length: 6 }, (_, i) => ({ rarityPct: null, name: 'n' + i }));
   placeRealisticTimes(none, HOUR, 'linear', 4, {});
   check('without any rarity data the unlocks still rise in order and nothing is squeezed', none.every((x, i) => !x.delayCompensation && (i === 0 || x.timeValue > none[i - 1].timeValue)));
+}
+
+// ---- the playtime counts: a game that was already played for its whole completion time ----
+{
+  const tc26 = Object.assign({}, base, { tcHours: 26 });
+  let r = planGames([{ appid: 1, h: game(50, 0) }], tc26, 2 * HOUR, true);
+  check('a game never played still gets its whole 26 hours', near(r.spanMs, 26 * HOUR, 60000), (r.spanMs / HOUR).toFixed(2) + ' h');
+  r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 26 * 60 } }), 2 * HOUR, true);
+  check('the same game played for 26 hours plans a few hours of catch-up, not another 26', r.spanMs >= HOUR && r.spanMs <= 3 * HOUR, (r.spanMs / HOUR).toFixed(2) + ' h');
+  check('and it still unlocks everything that is left', r.games[0].goal === 50);
+  r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 13 * 60 } }), 2 * HOUR, true);
+  check('half played: the 25 achievements behind get minutes, the other 25 get their real hours (1.25 + 13)', near(r.spanMs, 14.25 * HOUR, 60000), (r.spanMs / HOUR).toFixed(2) + ' h');
+  r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 26 * 60 }, accelerateDelayed: false }), 2 * HOUR, true);
+  check('with the catch-up switched off nothing is shortened', near(r.spanMs, 26 * HOUR, 60000), (r.spanMs / HOUR).toFixed(2) + ' h');
+  r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 200 * 60 } }), 2 * HOUR, true);
+  check('a game played far past its completion time is capped the same way', r.spanMs <= 3 * HOUR, (r.spanMs / HOUR).toFixed(2) + ' h');
 }
 process.exit(failures ? 1 : 0);
