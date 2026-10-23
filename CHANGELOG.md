@@ -7,6 +7,21 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.7.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.0)
+
+The Spanish, Traditional Chinese and English texts of the app are corrected the same way the Turkish, Russian and German ones were in 1.6.7 to 1.6.9, and with that every language of the app has been read sentence by sentence.
+
+### Changed
+
+- **83 texts rewritten by hand** after reading all 1525 texts of each language next to the Turkish source. These three languages were already close to the source, so there are fewer fixes than before; what was fixed:
+  - **Spanish (34):** "Farmeo de cromos" everywhere (the schedule texts said "cartas" and "recolección"), "plantilla" instead of "preset" and "preajuste", "Inventario unificado" instead of "Centro unificado", "Editor" instead of "Publicador", "precio mediano" instead of "precio medio" for the median, "grindeo" replaced by plain words, the setting that unlocks achievements while farming cards no longer talks about hours, the card threshold sentence with two counts no longer breaks for one game, and long or clumsy explanations cut down.
+  - **Traditional Chinese (25):** one word for card farming ("掛卡" instead of the mixed "集卡"), "卡牌" instead of "卡片", "庫存" instead of "物品庫", "市集價格" instead of "市場價格", "中位價" for the median price, "所選項目中最高者" under one name in both places, and a few clumsy sentences (window drawing, sync note) rewritten.
+  - **English (24):** British spelling throughout ("favourite", "licence", "recognised" were still American), "Sync playtimes" under one name, "median" where the Turkish text says median, the setting that unlocks achievements while farming cards no longer talks about hours, "Unified inventory" instead of "Unified hub", comma splices turned into proper sentences, and a plural-safe version of the sentence with two counts.
+- The meaning of every text is unchanged, so no other language is touched by a fix in one language.
+
+
+SHA-256 (`SteamEdge-v1.7.0-win-x64.rar`): `a9a55c55ed8060d5bae72d44d91781a809073b5297c4851a28a513751b0c7d0d`
+
 ## [1.6.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.6.9)
 
 The German texts of the app are corrected the same way the Turkish ones were in 1.6.7 and the Russian ones in 1.6.8: one term for one thing, shorter explanations, no borrowed slang, and sentences that say what the setting really does.
