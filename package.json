@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@electron/packager": "^20.2.0",
-    "electron": "^42.11.3"
+    "electron": "^42.11.9"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
@@ -53,7 +53,7 @@
     "steam-user": "^5.3.0"
   },
   "overrides": {
-    "ip-address": "^10.7.3",
+    "ip-address": "^10.7.4",
     "adm-zip": "^0.6.1",
     "@xmldom/xmldom": "^0.9.12",
     "steam-appticket": "^2.0.1",
