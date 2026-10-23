@@ -20,10 +20,11 @@ Realistic Mode now counts the hours a game has already been played, shows what i
 ### Changed
 
 - **The minimise button sends the window to the notification area (tray) instead of the taskbar.** The tray icon (click, or "Show window" in its menu) brings it back. If the tray icon cannot be made, the window is minimised as before.
+- **Built on Electron 42.11.3** (the update merged in PR #50); the 53 tests pass on it.
 - `npm test` covers the playtime rule (never played, half played, played to the completion time, far past it, catch-up off) and the plan being rebuilt when the difficulty or game type changes.
 
 
-SHA-256 (`SteamEdge-v1.7.1-win-x64.rar`): `782530002841ec54379a286ed6f5edb55a7648123c42cc68a269e653b197b248`
+SHA-256 (`SteamEdge-v1.7.1-win-x64.rar`): `b6ff12b058c5b8cf0928c1d0260d742f33517e7b4fa261341ed6a95727731e96`
 
 ## [1.7.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.0)
 
