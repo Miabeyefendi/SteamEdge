@@ -1593,6 +1593,9 @@ function bindConnectionState(eng, steamID) {
       // A long drop splits the uninterrupted run; one shorter than a minute does not (see handleUninterruptedRun).
       if (accountRunning(s)) handleUninterruptedRun(steamID, s.ready);
       syncConnectionChanged(steamID, s.ready);
+      // A card farm paused for a job that ended while the connection was down could not start then (resumeFarm needs a connection) and stayed paused for
+      // good, blocking the schedule and the resume of jobs too. It is given back when the connection is; resumeFarm leaves it paused if that job still runs.
+      if (s.ready && s.pendingFarm) resumeFarm(steamID);
     }
     if (steamID === activeSteamID) { engineReady = (status === 'connected'); }
     // Log text. The interface builds the text in its own language from the fields (condition, cause, attemptCount, waitMs,
