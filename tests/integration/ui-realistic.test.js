@@ -157,6 +157,9 @@ app.whenReady().then(async () => {
   check('click on the second game: the plan is asked for THAT game (the whole queue still planned)', p.appid === 20 && JSON.stringify(p.queueIds) === orderBefore && calls.filter((c) => c[0] === 'plan').length > before2, p.appid + ' ' + JSON.stringify(p.queueIds));
   check('click on the second game: it is the one framed in the list', (await js("[...document.querySelectorAll('#grLibrary [data-grsel]')].map((r) => r.getAttribute('data-grrow')).join()")) === '20');
   check('the completion time box shows the value and the name of THIS game', (await field('grTcMain')) === '20' && (await js("document.getElementById('grTcGameName').textContent")) === 'Beta Game', (await field('grTcMain')) + ' / ' + (await js("document.getElementById('grTcGameName').textContent")));
+  await js("document.getElementById('grLvlAdv').click()"); await wait(400);
+  check('the advanced panel has the same box: the value and the name of the selected game', (await field('grTc')) === '20' && (await js("document.getElementById('grTcGameName2').textContent")) === 'Beta Game', (await field('grTc')) + ' / ' + (await js("document.getElementById('grTcGameName2').textContent")));
+  await js("document.getElementById('grLvlSimple').click()"); await wait(300);
   check('there is no hour box in the rows any more', (await js("document.querySelectorAll('#grLibrary input').length")) === 0);
   before2 = calls.filter((c) => c[0] === 'plan').length;
   await js("(() => { const b = document.getElementById('grTcMain'); b.value = '5'; b.dispatchEvent(new Event('change')); })()");

@@ -19,6 +19,7 @@ const ctx = {
   accounts, activeSteamID: 'a', engineReady: false, log: () => {}, accountName: (i) => i,
   accountEvent: (id, e) => events.push([id, e.typeName]),
   startCardFarm: (id, mode, games, durationMs, extra) => { started.push({ id, mode, games, extra }); accounts.get(id).farm = { running: true, mode, games, durationMs, location: () => ({}), stop() { this.running = false; } }; },
+  keyChanged: (id) => events.push([id, 'keysChanged']),
   statsHour: () => {}, handleUninterruptedRun: () => {}, syncConnectionChanged: () => {}, sendRaw: () => {}, Date, console, Object,
 };
 vm.createContext(ctx);
@@ -64,4 +65,12 @@ started.length = 0; ({ s, eng } = account());
 eng.onStatus('dropped', { cause: 'x' });
 eng.onStatus('connected', { reconnected: true, gameEntries: 1 });
 check('nothing was paused: a reconnect does not start card farming', started.length === 0);
+// the key queue waits while the connection is down: when it is back the "Not connected" line goes at once and the queue wakes up
+({ s, eng } = account());
+let woke = false;
+s.keys = { running: true, error: 'Bağlı değil.', cancelSleep: () => { woke = true; } };
+events.length = 0;
+eng.onStatus('dropped', { cause: 'x' });
+eng.onStatus('connected', { reconnected: true, gameEntries: 0 });
+check('keys: the connection is back -> the "Not connected" line goes at once and the queue is woken', s.keys.error === null && woke && events.some((e) => e[1] === 'keysChanged'));
 process.exit(failures ? 1 : 0);

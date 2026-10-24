@@ -236,6 +236,19 @@
       </div>
 
       <div id="grAdvBox" style="display:none;flex-direction:column;gap:18px">
+        <!-- the same 100% completion time box as in the simple panel: the selected game's value, so it can be set in either view -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0">
+            <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">%100 Bitiş Süresi</span>
+            <span id="grTcGameName2" style="font-size:11px;color:#C2AAEE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0"></span>
+            <span data-tip="Oyunu başarımlarının tamamıyla bitirmek kaç saat sürer. Ana hikayenin değil, hepsini toplamanın süresi. Boş bırakırsan oyun türünden tahmin edilir; bu tahmin oynadığın süreye dayandığından çok oynadığın oyunlarda şişer. Değer oyun başına hatırlanır." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
+          </div>
+          <!-- The box must be the SAME width as the dropdowns under it. The row used to be two flex children, "input + hours"; it stayed as narrow as the "hours" label and a single box sat tucked in the panel. The unit is now inside the field, positioned; the outer container is full width. -->
+          <div style="position:relative;width:100%">
+            <input id="grTc" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#7F879B;pointer-events:none">saat</span>
+          </div>
+        </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Hız</span>
           <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:2px 14px">

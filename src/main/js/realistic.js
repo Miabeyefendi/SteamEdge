@@ -513,6 +513,7 @@
     function grPaintAccount(){
       const game = grSel();
       grSet('grTcGameName', game ? game.name : '');
+      grSet('grTcGameName2', game ? game.name : '');
       const durationMs = grDurationMs();
       const suitable = grPlan ? (grPlan.suitableTotal || 0) : 0;
       const auto = !!grVal('grTargetAuto', true);

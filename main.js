@@ -1596,6 +1596,8 @@ function bindConnectionState(eng, steamID) {
       // A card farm paused for a job that ended while the connection was down could not start then (resumeFarm needs a connection) and stayed paused for
       // good, blocking the schedule and the resume of jobs too. It is given back when the connection is; resumeFarm leaves it paused if that job still runs.
       if (s.ready && s.pendingFarm) resumeFarm(steamID);
+      // the key queue waits 30 s at a time while the connection is down and showed "Not connected" until its next try: it goes on as soon as the connection is back
+      if (s.ready && s.keys && s.keys.running && s.keys.error === 'Bağlı değil.') { s.keys.error = null; keyChanged(steamID); if (s.keys.cancelSleep) s.keys.cancelSleep(); }
     }
     if (steamID === activeSteamID) { engineReady = (status === 'connected'); }
     // Log text. The interface builds the text in its own language from the fields (condition, cause, attemptCount, waitMs,
