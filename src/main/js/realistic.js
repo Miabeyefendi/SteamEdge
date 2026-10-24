@@ -24,6 +24,7 @@
     // If the user touched the duration field by hand the automatic assignment does not kick in.
     let grDurationTouched = false;
     let grPlanRequest = 0;            // request counter to prevent race conditions
+    let grStopAsked = false;          // the Stop button was pressed here: the feed line and the "finished" notice of that stop are not written a second time when the engine confirms it
 
     const GRC = { brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
                   title:'#DCE2FA', muted:'#8B8F9E', off:'#7F879B', bd:'#2B3345', sub:'#C2AAEE',
@@ -831,6 +832,7 @@
     grEl('grStop').onclick = ()=>{
       if (!grStatus.runningFlag) return;
       runEnd('realistic');
+      grStopAsked = true;
       window.imu.realistic.stop();
       pushFeed('hours', 'Gerçekçi Mod', 'Durduruldu.', 'Durdu');
     };
@@ -850,7 +852,9 @@
 
         if (!d || !d.runningFlag){
           grPaintHours(0);
-          if (d && d.isFinished){
+          const stoppedHere = grStopAsked && d && d.isFinished;
+          grStopAsked = false;
+          if (d && d.isFinished && !stoppedHere){
             notify('boost', 'Gerçekçi Mod Bitti', tf('# / # başarım açıldı', d.openedGames, d.totalSum));
             pushFeed(d.failure?'error':'card', 'Gerçekçi Mod',
                      t(d.cause || 'Bitti') + ' · ' + tf('# / # başarım', d.openedGames, d.totalSum), d.failure?'Hata':'Başarılı');

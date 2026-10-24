@@ -102,6 +102,31 @@ app.whenReady().then(async () => {
   await wait(1200);
   p = lastPlan();
   check('the second click turns it on and the 80 hours come back', settings.grAutoDuration === true && p.optionList.autoSpan === true && (await field('grRH')) === '80', (await field('grRH')));
+  // ---- the page while a run goes, is stopped and ends: what the user sees must follow the engine, not stay on "running" ----
+  const send = (ch, d) => w.webContents.send(ch, d);
+  await js("window.__feed = []; window.__notes = []; (() => { const pf = window.pushFeed; window.pushFeed = (...a) => { window.__feed.push(a.slice(0, 2).join('|')); return pf && pf(...a); }; const nf = window.notify; window.notify = (...a) => { window.__notes.push(a[1]); return nf && nf(...a); }; })()");
+  const running = { runningFlag: true, appid: 10, gameTitle: 'Alpha Game', totalSum: 50, openedGames: 3, failure: 0, startPoint: Date.now(), finishTime: Date.now() + 3600000, upNext: 'Achievement 3', upNextPct: 70, upNextPos: 0.1, upNextTime: Date.now() + 60000, gameCount: 1, gameIndex: 0, averageIntervalMs: 60000 };
+  send('realistic:tick', running); await wait(500);
+  check('a running tick: the clock counts down from about an hour and Stop is enabled, Start is closed', (await js("document.getElementById('grClockM').textContent")) === '59' && (await js("document.getElementById('grStop').disabled")) === false && (await js("document.getElementById('grStart').disabled")) === true, await js("document.getElementById('grClockH').textContent + ':' + document.getElementById('grClockM').textContent"));
+  check('the progress shows 3 / 50', (await js("document.getElementById('grOpened').textContent")) === '3 / 50', await js("document.getElementById('grOpened').textContent"));
+  // the user presses Stop, the engine answers with the finished tick
+  await js("window.__feed.length = 0; window.__notes.length = 0; document.getElementById('grStop').click()");
+  send('realistic:tick', { runningFlag: false, isFinished: true, openedGames: 3, failure: 0, totalSum: 50, cause: 'Durduruldu' }); await wait(500);
+  check('after Stop: Start is open again, Stop is closed and the clock is back to zero', (await js("document.getElementById('grStart').disabled")) === false && (await js("document.getElementById('grStop').disabled")) === true && (await js("document.getElementById('grClockS').textContent")) === '00', await js("document.getElementById('grClockM').textContent"));
+  const feedAfterStop = await js("window.__feed.filter((x) => x.indexOf('Gerçekçi Mod') >= 0).length");
+  check('after Stop the feed gets ONE line, not two (the button and the engine both wrote one)', feedAfterStop === 1, String(feedAfterStop) + ' ' + JSON.stringify(await js('window.__feed')));
+  check('after Stop there is no "finished" notification for something the user just stopped', (await js("window.__notes.filter((n) => n === 'Gerçekçi Mod Bitti').length")) === 0, JSON.stringify(await js('window.__notes')));
+  // a run that ends by itself while the page is open
+  send('realistic:tick', running); await wait(400);
+  await js("window.__feed.length = 0; window.__notes.length = 0");
+  send('realistic:tick', { runningFlag: false, isFinished: true, openedGames: 50, failure: 0, totalSum: 50, cause: 'Süre doldu' }); await wait(500);
+  check('a run that ends by itself: one feed line and one "finished" notification, buttons back to idle', (await js("window.__feed.length")) === 1 && (await js("window.__notes.filter((n) => n === 'Gerçekçi Mod Bitti').length")) === 1 && (await js("document.getElementById('grStart').disabled")) === false && (await js("document.getElementById('grStop').disabled")) === true, JSON.stringify(await js('window.__feed')));
+  // the connection dropped and the run died with the account: a finished tick with the reason, not a clock that keeps counting
+  send('realistic:tick', running); await wait(400);
+  send('realistic:tick', { runningFlag: false, isFinished: true, openedGames: 3, failure: 0, totalSum: 50, cause: 'Steam bağlantısı yok' }); await wait(500);
+  await wait(1200);
+  check('a run that died with the connection: the clock stays at zero (the old interval is gone)', (await js("document.getElementById('grClockM').textContent")) === '00' && (await js("document.getElementById('grClockS').textContent")) === '00');
+
   // A change of difficulty or game type rebuilds the plan (it used to repaint only: the unlock times on screen stayed as they were)
   const planCount = calls.filter((c) => c[0] === 'plan').length;
   await js("(() => { const d = document.getElementById('grDiff'); d.value = '0.8'; d.dispatchEvent(new Event('change')); })()");
