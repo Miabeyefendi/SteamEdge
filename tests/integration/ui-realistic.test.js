@@ -6,7 +6,7 @@ const fs = require('fs'), vm = require('vm');
 const ROOT = require('path').resolve(__dirname, '..', '..');
 const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
 const DEFAULTS = vm.runInNewContext('(' + src.match(/const DEFAULT_SETTINGS = (\{[\s\S]*?\n\});/)[1] + ')');
-const settings = { ...DEFAULTS, grQueue: [10, 20], grTcGame: { 10: 60, 20: 20 }, language: process.env.LANGX || 'en', accountCurrency: 'USD', steamID: '76561198000000000', persona: 'tester', parentalPin: '' };
+const settings = { ...DEFAULTS, grQueue: [10, 20], grTcGame: { 10: 60, 20: 20 }, grParallel: false, language: process.env.LANGX || 'en', accountCurrency: 'USD', steamID: '76561198000000000', persona: 'tester', parentalPin: '' };
 const calls = [];
 const items = Array.from({ length: 14 }, (_, i) => ({ assetId: String(i + 1), order: i, dedupKey: 'k_' + i, name: i % 3 === 0 ? 'Some Rather Long Trading Card Name ' + i : 'Card ' + i, marketHashName: '440-Card ' + i, iconUrl: null, tradable: i % 2 === 0, marketable: true, type: i % 5 === 0 ? 'booster' : 'card', gameName: 'Game Number ' + (i % 7), appid: 440 + (i % 7), amount: 1 + (i % 4) }));
 const games = ['Alpha Game', 'Beta Game With A Much Longer Name Than Usual', 'Gamma Game', 'Delta', 'Epsilon Game'].map((name, i) => ({ appid: 10 * (i + 1), name, remaining: 1 + i, playtimeMin: 500 - 20 * i }));
@@ -35,10 +35,10 @@ Object.assign(answers, {
     const ids = arg.queueIds && arg.queueIds.length ? arg.queueIds : [arg.appid];
     const built = planner.planGames(ids.map((id) => ({ appid: id, h: id === 10 ? ach(50, 0) : ach(20, 0) })), pick, arg.spanMs, true);
     const head = built.games.find((g) => g.appid === arg.appid);
-    const share = built.spanMs * (head.queueList.length / Math.max(1, built.games.reduce((t, g) => t + g.queueList.length, 0)));
+    const share = built.parallel ? built.spanMs : built.spanMs * (head.queueList.length / Math.max(1, built.games.reduce((t, g) => t + g.queueList.length, 0)));
     planner.placeRealisticTimes(head.queueList, share, pick.model, 0, planner.realisticTimeSetting(arg.appid, pick));
     return { ok: true, accumulation: 0, appid: arg.appid, gameTitle: 'Game', totalSum: head.queueList.length, suitableTotal: head.h.suitableTotal, totalAchievements: head.h.totalAchievements, unlockedState: 0,
-      protectedFlag: 0, ultraSkipped: 0, spanMs: built.spanMs, autoSpan: built.auto, queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0), model: pick.model,
+      protectedFlag: 0, ultraSkipped: 0, parallel: built.parallel, suitableQueue: built.games.reduce((t, g) => t + g.h.suitableTotal, 0), spanMs: built.spanMs, autoSpan: built.auto, queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0), model: pick.model,
       averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), firstUnlockMs: Math.min(...head.queueList.map((a) => a.timeValue)), unlockWindowMs: Math.max(...head.queueList.map((a) => a.timeValue)), unlockRatio: Math.min(1, Math.max(...head.queueList.map((a) => a.timeValue)) / share), queueList: head.queueList.map((a, i) => ({ name: a.name, rarityPct: a.rarityPct, pos: i / head.queueList.length, timeValue: a.timeValue })) };
   },
   'realistic:start': (_e, arg) => { calls.push(['start', arg]); return { ok: true, totalSum: 50, gameCount: 2, gameTitle: 'Alpha Game' }; },
@@ -137,6 +137,33 @@ app.whenReady().then(async () => {
   await js("(() => { const d = document.getElementById('grCR'); d.value = '2.5'; d.dispatchEvent(new Event('change')); })()");
   await wait(900);
   check('changing the game type asks for a new plan too', calls.filter((c) => c[0] === 'plan').length > planCount2);
+  // ---- the games at the same time ----
+  await js("document.querySelectorAll('.e-modal-back').forEach(m=>m.remove())");
+  let before2 = calls.filter((c) => c[0] === 'plan').length;
+  await js("document.querySelector('#tab-realistic [data-grset=grParallel]').click()");
+  await wait(1200);
+  p = lastPlan();
+  check('the switch turns the games at the same time on and the plan is rebuilt with it', settings.grParallel === true && calls.filter((c) => c[0] === 'plan').length > before2 && p.optionList.parallel === true, String(settings.grParallel));
+  // the difficulty was set to easy above: the longest game is 60 h x that factor; the sum would add the 20 hour game on top
+  check('together the run is as long as the longest game (60 h x the difficulty), not the sum of the two', Math.abs(Number(await field('grRH')) - 60 * p.optionList.difficultyValue) <= 1, (await field('grRH')) + ' h, difficulty ' + p.optionList.difficultyValue);
+  check('the target box counts the whole queue (50 + 20)', (await js("document.getElementById('grTargetTotal').textContent")) === '70', await js("document.getElementById('grTargetTotal').textContent"));
+  // every game of the list has its own 100% completion time box
+  const boxes = await js("[...document.querySelectorAll('#grLibrary [data-grtc]')].map((b) => b.getAttribute('data-grtc') + '=' + b.value)");
+  check('every game in the list has its own completion time box with its own value', JSON.stringify(boxes) === JSON.stringify(['10=60', '20=20']) || JSON.stringify(boxes) === JSON.stringify(['20=20', '10=60']), JSON.stringify(boxes));
+  const orderBefore = JSON.stringify(settings.grQueue);
+  before2 = calls.filter((c) => c[0] === 'plan').length;
+  await js("(() => { const b = document.querySelector('#grLibrary [data-grtc=\"20\"]'); b.focus(); b.value = '5'; b.dispatchEvent(new Event('change', { bubbles: true })); })()");
+  await wait(1200);
+  p = lastPlan();
+  check('typing 5 hours in the box of the second game keeps it for THAT game and rebuilds the plan with it', settings.grTcGame && settings.grTcGame['20'] === 5 && p.optionList.tcByGame['20'] === 5 && p.optionList.tcByGame['10'] === 60 && calls.filter((c) => c[0] === 'plan').length > before2, JSON.stringify(settings.grTcGame) + ' / ' + JSON.stringify(p.optionList.tcByGame));
+  await shot('realistic-parallel');
+  check('and it does not move that game to the front of the queue', JSON.stringify(settings.grQueue) === orderBefore, JSON.stringify(settings.grQueue));
+  // the run ends: the page reads the plan again (it showed the list read before the first run)
+  before2 = calls.filter((c) => c[0] === 'plan').length;
+  send('realistic:tick', running); await wait(300);
+  send('realistic:tick', { runningFlag: false, isFinished: true, openedGames: 50, failure: 0, totalSum: 50, cause: 'Süre doldu' }); await wait(1200);
+  check('when a run ends the plan is read again from Steam (the next run shows only what is still locked)', calls.filter((c) => c[0] === 'plan').length > before2);
+
   // The rarity label follows what the engine does: a proportion of the game's own achievements (very common 20%, common 30%, uncommon 20%, rare 20%, ultra rare 10%)
   const labels = await js("[0, 0.1, 0.2, 0.49, 0.5, 0.69, 0.7, 0.89, 0.9, 0.99].map((p) => grRarityLabel(4.9, p)).concat([grRarityLabel(4.9, undefined), grRarityLabel(60, null), grRarityLabel(null, undefined), grPctColor(4.9, 0.95) !== grPctColor(4.9, 0.1)])");
   check('by place in the game: 0 to 20% very common, 20 to 50% common, 50 to 70% uncommon, 70 to 90% rare, the last tenth ultra rare', labels && labels.slice(0, 10).join() === 'Çok yaygın,Çok yaygın,Yaygın,Yaygın,Az bulunur,Az bulunur,Nadir,Nadir,Ultra nadir,Ultra nadir', labels && labels.slice(0, 10).join());

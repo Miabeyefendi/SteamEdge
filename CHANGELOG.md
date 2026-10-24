@@ -7,6 +7,29 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.7.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.4)
+
+Realistic Mode can play the games of the queue at the same time, every game has its own completion time in the list, and a scenario sweep of every setting found and fixed three timing defects.
+
+### Added
+
+- **Play the games at the same time** (advanced panel, on by default). All games in the queue stay open together (up to 32, Steam's limit), as in the Hour Booster, and each game's achievements unlock on its own plan within the same run. The automatic duration is that of the longest game instead of the sum of all of them: eight short games already played past their two hours now plan about one and a half hours, where they used to plan twelve, and twenty games without a typed completion time (estimated from their playtime) plan as long as one of them, where in the same test they added up to 65 hours. The unlock order shows the game of each achievement. Off plays the games one after the other, as before.
+- **A completion time box for every game in the list.** The 100% completion time used to be typed only for the game at the top, and every other game fell back to an estimate made from its playtime. Each game now has its own box next to its name; an empty box shows the estimate in grey. Changing it does not move the game in the queue.
+
+### Fixed
+
+- **A second run showed all achievements again.** When a run ended, the page kept the list it had read before the first run, when everything was still locked, so the next run looked as if it started over (the engine itself read Steam again and only unlocked what was still locked). The page now reads the plan again when a run ends.
+- **A slower pace cut the run short.** With the speed setting above 1 ("stretches the schedule") the unlocks were placed past the end of the run, which then stopped with "Time is up, N achievements not unlocked" and sent one unlock after its end. A slower pace now makes the run itself that much longer (a 2 hour run at speed 2 lasts 4 hours). A run that has to fit a given time (the schedule's range, or what is left of a resumed run) is not stretched again.
+- **With several games ending at the same moment, the last ones were dropped.** When the last unlock of more than one game fell on the very end of the run, the first one ended the run and the others were reported as not unlocked. Unlocks planned up to the end are now still sent a few seconds apart; only what is late by more than that (the connection was down past the end) is left and reported.
+- **The start question named the duration field, not the run.** It now names the run the engine plans.
+
+### Changed
+
+- `npm test` runs 56 tests. New: `tests/unit/realistic-sweep.test.js` runs 92 real starts (main.js `realisticStartFor` and `prepareRealisticQueue` on a fake schema and a fake clock, each to its end) over 23 settings (every model, random gaps, skipping ultra rare, the queue start, keeping hours, catch-up, speed 0.5 / 2 / 4, ultra wait 1 / 10, catch-up share 2 / 90 %, finished ratio 5 / 100 %, a target by hand, easy and very hard, a duration by hand) on one half played game, one finished game and three mixed games together and one after the other, and checks that every planned achievement is unlocked in its own game, from common to rare, before the end, that nothing already open is sent again, and that the run ends and says so. It also covers the user's cases (many short finished games, twenty games without a completion time, 33 games), a second run after the first, a slower pace, a resumed and a scheduled run, and a run of games together closed and resumed. `ui-realistic` covers the switch, the per game boxes and the plan read again after a run.
+
+
+SHA-256 (`SteamEdge-v1.7.4-win-x64.rar`): `0d121c60ffedb94136317a2c91abff1b5b7b318b1fe66deae99397047d740d61`
+
 ## [1.7.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.3)
 
 A scenario check of Realistic Mode and the tray found four defects; they are fixed and every scenario is now a test.

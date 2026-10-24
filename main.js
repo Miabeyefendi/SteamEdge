@@ -410,6 +410,7 @@ const DEFAULT_SETTINGS = {
   grKeepHours: true,        // when the achievements are done collect hours until the end of the time
   grCatchUp: true,          // squeeze the overdue achievement backlog into the start of the session
   grAutoDuration: true,          // assign the duration on its own according to the settings (left alone if typed by hand)
+  grParallel: true,              // Realistic Mode plays the games of the queue at the same time (off: one after the other)
   grSpeed: 1,                 // speed multiplier: compresses/stretches the whole schedule
   grUltraMultiplier: 3,         // achievements under 5% wait this many times longer
   grCatchUpShare: 20,          // in what first percent of the time the ones left behind are unlocked
@@ -1179,7 +1180,9 @@ function accountJobDetail(s) {
   } else if (s && s.hoursFarm && s.hoursFarm.running) {
     pack('hours', s.hoursFarm.games || (s.sequentialRequest && s.sequentialRequest.games) || []);
   }
-  if (s && s.realistic && s.realistic.activeIds) pack('realistic', [{ appid: s.realistic.activeIds.appid, name: s.realistic.activeIds.gameTitle }]);
+  if (s && s.realistic && s.realistic.activeIds) pack('realistic', s.realistic.activeIds.parallel
+    ? s.realistic.gameEntries.map((g) => ({ appid: g.appid, name: g.name }))
+    : [{ appid: s.realistic.activeIds.appid, name: s.realistic.activeIds.gameTitle }]);
   return out;
 }
 function accountJobKinds(s) {
@@ -1655,7 +1658,7 @@ const ACCOUNT_SCOPED_SETTINGS = [
   'boostMaxGames', 'rememberBoostList', 'pauseFarmOnBoost', 'boostTarget', 'boostStagger', 'shuffleBoost', 'boostSync', 'boostSyncMode', 'boostSyncTargetHours',
   'boostSyncLibraryMaxMin', 'boostSyncStrategy', 'boostAutoRestart', 'seqIdle', 'loopQueue', 'boostDurationSec',
   'grDurationSec', 'grTargetAuto', 'grTarget', 'grCR', 'grDiff', 'grTc', 'grTcGame', 'grModel', 'grAuto', 'grRandomGap', 'grSkipUltraRare', 'grKeepHours', 'grCatchUp',
-  'grAutoDuration', 'grSpeed', 'grUltraMultiplier', 'grCatchUpShare', 'grFinishedRatio', 'grShowNoAch', 'grLevel',
+  'grAutoDuration', 'grParallel', 'grSpeed', 'grUltraMultiplier', 'grCatchUpShare', 'grFinishedRatio', 'grShowNoAch', 'grLevel',
   'achConfirmSingle', 'achDelay', 'achOrder', 'achSafeMode', 'achSpread',
   'farmScheduleEnabled', 'farmScheduleFrom', 'farmScheduleTo', 'grScheduleEnabled', 'grScheduleFrom', 'grScheduleTo',
 ];
@@ -3237,15 +3240,18 @@ function realisticClear(steamID) {
 }
 
 // The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
-const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames } = require('./src/core/realisticPlan');
+const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames, mergeParallel } = require('./src/core/realisticPlan');
 
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
   const a = d ? d.activeIds : null;
+  // with the games at the same time the game on screen is the one of the next unlock
+  const nextItem = a && a.parallel ? a.queueList[a.indexNum] : null;
   accountBroadcast(steamID)('realistic:tick', Object.assign({
     runningFlag: !!d,
-    appid: a ? a.appid : null,
-    gameTitle: a ? a.gameTitle : null,
+    parallel: !!(a && a.parallel),
+    appid: a ? ((nextItem && nextItem.appid) || a.appid) : null,
+    gameTitle: a ? ((nextItem && nextItem.gameTitle) || a.gameTitle) : null,
     // toplam/acilan describe the WHOLE session; the queue can hold more than one game.
     totalSum: d ? d.totalGoal : 0,
     openedGames: d ? d.totalUnlocked : 0,
@@ -3304,20 +3310,23 @@ async function realisticStep(steamID) {
     return;
   }
 
+  // with the games at the same time every item carries its own game
+  const goalAppid = goal.appid || a.appid;
+  const goalTitle = goal.gameTitle || a.gameTitle;
   try {
-    await s.engine.setAchievements(a.appid, [{ apiName: goal.apiName, unlock: true }]);
+    await s.engine.setAchievements(goalAppid, [{ apiName: goal.apiName, unlock: true }]);
     a.openedGames++; d.totalUnlocked++;
-    log('info', '[' + accountName(steamID) + '] realistic mode: unlocked -> ' + goal.name + ' (%' + (goal.rarityPct != null ? goal.rarityPct.toFixed(1) : '?') + ')');
+    log('info', '[' + accountName(steamID) + '] realistic mode: unlocked -> ' + goal.name + ' (%' + (goal.rarityPct != null ? goal.rarityPct.toFixed(1) : '?') + ')' + (a.parallel ? ' in ' + goalTitle : ''));
     accountBroadcast(steamID)('realistic:opened', {
-      appid: a.appid, gameTitle: a.gameTitle, apiName: goal.apiName,
+      appid: goalAppid, gameTitle: goalTitle, apiName: goal.apiName,
       name: goal.name, rarityPct: goal.rarityPct,
     });
     const v = accountData(steamID);
-    v.achLog.unshift({ appid: a.appid, game: a.gameTitle, apiName: goal.apiName, name: goal.name, unlock: true, ts: Date.now() });
+    v.achLog.unshift({ appid: goalAppid, game: goalTitle, apiName: goal.apiName, name: goal.name, unlock: true, ts: Date.now() });
     if (v.achLog.length > 2000) v.achLog.length = 2000;
     writeAccountDataDelayed(steamID);
     if (steamID !== activeSteamID) {
-      addFeed(steamID, { kind: 'card', title: 'Başarım açıldı', text: goal.name + ' · ' + a.gameTitle, status: 'Başarılı' });
+      addFeed(steamID, { kind: 'card', title: 'Başarım açıldı', text: goal.name + ' · ' + goalTitle, status: 'Başarılı' });
     }
   } catch (e) {
     a.failure++; d.totalErrors++;
@@ -3326,7 +3335,10 @@ async function realisticStep(steamID) {
   if (s.realistic !== d) return;          // it was stopped in the meantime
   a.indexNum++;
 
-  if (Date.now() >= d.finishTime && a.indexNum < a.queueList.length) {
+  // The time is up. Unlocks planned up to the end are still sent, a few seconds apart (with the games at the same time several of them end at the same moment);
+  // only what is late by more than that (the connection was down past the end) is left and reported.
+  const dueAtEnd = a.queueList.slice(a.indexNum).filter((x) => a.startPoint + (x.timeValue || 0) <= d.finishTime).length;
+  if (Date.now() >= d.finishTime + dueAtEnd * 3000 + 5000 && a.indexNum < a.queueList.length) {
     // The time is up but achievements are left - we do not force the rest, we tell the user.
     realisticFinish(steamID, 'time up, ' + (a.queueList.length - a.indexNum) + ' not unlocked');
     return;
@@ -3342,6 +3354,7 @@ function realisticNextGame(steamID) {
   const s = accounts.get(steamID);
   const d = s && s.realistic;
   if (!d) return false;
+  if (d.activeIds && d.activeIds.parallel) return false; // all games of the queue are already running together
   if (!d.optionList.autoOrder) return false;             // "Start the queue automatically" is off
   while (d.gameIndex + 1 < d.gameEntries.length) {
     d.gameIndex++;
@@ -3522,6 +3535,9 @@ function realisticOptions(s) {
     randomInterval: g.randomInterval !== false,
     ultraRareSkip: !!g.ultraRareSkip,
     autoOrder: g.autoOrder !== false,
+    // the games of the queue at the same time (like the Hour Booster), each over the whole run; off: one after the other. On unless it was switched off, so a run
+    // saved by an older version (schedule, resume) is read the way the page now starts one
+    parallel: g.parallel !== false,
     continueHours: g.continueHours !== false,
     // Squeeze the overdue achievement backlog into the start of the session. The size of the backlog depends on the game's
     // PLAYTIME: a few in a 1 hour game, far more in a 100 hour one.
@@ -3574,20 +3590,29 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
     const timing = realisticTimeSetting(appid, pick);
     placeRealisticTimes(head.queueList, share, pick.model, accumulation, timing);
     // What the settings really make of the run, measured on the placed times: a finished game or a squeezed backlog ends its unlocks long before the whole duration
-    const times = head.queueList.map((a) => a.timeValue);
+    // the games at the same time: the preview is the merged timeline of all of them over the whole run, the one the engine runs
+    const together = built.parallel ? built.games.filter((g) => g.queueList.length) : null;
+    const shown = together && together.length > 1
+      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList,
+          accumulation: computeRealisticAccum(g.appid, g.h, pick), timing: realisticTimeSetting(g.appid, pick) })), built.spanMs, pick.model)
+      : head.queueList;
+    const shownShare = shown === head.queueList ? share : built.spanMs;
+    const times = shown.map((a) => a.timeValue);
     const unlockWindowMs = times.length ? Math.max(...times) : 0;
     const firstUnlockMs = times.length ? Math.min(...times) : 0;
     return {
       ok: true,
+      parallel: shown !== head.queueList,
+      suitableQueue: built.games.reduce((t, g) => t + (g.h.suitableTotal || 0), 0),   // all unlockable ones of the queue (the target box when the games run together)
       firstUnlockMs,                            // when the first unlock comes
       unlockWindowMs,                           // when the last one comes: all unlocks are done by then
-      unlockRatio: share > 0 ? Math.min(1, unlockWindowMs / share) : 1,   // that, as a part of this game's share of the run (1 = the unlocks use all of it)
+      unlockRatio: shownShare > 0 ? Math.min(1, unlockWindowMs / shownShare) : 1,   // that, as a part of this game's share of the run (1 = the unlocks use all of it)
       finishedFlag: !!timing.finishedFlag,      // the playtime has already passed the completion time
       // The interface shows this as an "N achievements overdue" note.
       accumulation: Math.min(accumulation, head.queueList.length),
       appid: +appid,
       gameTitle: head.h.gameTitle,
-      totalSum: head.queueList.length,          // to be unlocked (the target applied)
+      totalSum: shown.length,                   // to be unlocked (the target applied); all games of the queue when they run together
       suitableTotal: head.h.suitableTotal,      // all of the unlockable ones
       totalAchievements: head.h.totalAchievements,
       unlockedState: head.h.unlockedState,
@@ -3598,9 +3623,9 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       autoSpan: built.auto,
       queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0),
       model: pick.model,
-      averageIntervalMs: head.queueList.length ? Math.round(unlockWindowMs / head.queueList.length) : 0,
+      averageIntervalMs: shown.length ? Math.round(unlockWindowMs / shown.length) : 0,
       // Full list: the interface draws the "Unlock order" table from this.
-      queueList: head.queueList.map((a) => ({ name: a.name, rarityPct: a.rarityPct, pos: a.pos, timeValue: a.timeValue })),
+      queueList: shown.map((a) => ({ name: a.name, rarityPct: a.rarityPct, pos: a.pos, timeValue: a.timeValue, gameTitle: a.gameTitle || null, appid: a.appid || null })),
     };
   } catch (e) { return { ok: false, error: e.message }; }
 });
@@ -3650,9 +3675,12 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
 
     const firstGame = willRun[0];
     const firstReady = prepared[firstGame.appid];
-    const firstShare = Math.max(60000, Math.round(duration * ((firstReady.queueList.length || 1) / totalCount)));
+    // the games at the same time: Steam counts at most 32 games being played at once
+    const parallel = !!plan.parallel && willRun.length > 1;
+    if (parallel && willRun.length > 32) return { ok: false, error: 'En fazla 32 oyun aynı anda oynatılabilir.' };
+    const firstShare = parallel ? duration : Math.max(60000, Math.round(duration * ((firstReady.queueList.length || 1) / totalCount)));
     const currentTime = Date.now();
-    motor.play([firstGame.appid], 'realistic');
+    motor.play(parallel ? willRun.map((o) => o.appid) : [firstGame.appid], 'realistic');
     const d = {
       gameEntries: willRun,
       gameIndex: 0,
@@ -3668,11 +3696,15 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
       upNextTime: 0,
       activeIds: {
         appid: firstGame.appid, gameTitle: firstGame.name,
-        queueList: placeRealisticTimes(firstReady.queueList, firstShare, pick.model,
+        queueList: parallel
+          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList,
+              accumulation: computeRealisticAccum(o.appid, prepared[o.appid], pick), timing: realisticTimeSetting(o.appid, pick) })), duration, pick.model)
+          : placeRealisticTimes(firstReady.queueList, firstShare, pick.model,
                                            computeRealisticAccum(firstGame.appid, firstReady, pick),
                                            realisticTimeSetting(firstGame.appid, pick)),
         indexNum: 0, openedGames: 0, failure: 0,
         startPoint: currentTime, finishTime: currentTime + firstShare,
+        parallel,
       },
     };
     // the average gap is measured on the unlock times that were really placed (a finished game ends its unlocks early), as the preview does

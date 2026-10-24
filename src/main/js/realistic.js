@@ -228,8 +228,14 @@
         return;
       }
       const activeId = grStatus.runningFlag ? grStatus.appid : (grQueue[0] && grQueue[0].appid);
+      const together = grStatus.runningFlag && grStatus.parallel;
       el.innerHTML = grQueue.map(g=>{
-        const on = g.appid === activeId;
+        const on = together || g.appid === activeId;
+        // the 100% completion time of THIS game: typed here for every game of the queue; empty shows the estimate it falls back to
+        const tcOwn = grTcRead(g.appid);
+        const tcBox = '<input data-grtc="'+g.appid+'" type="number" min="0" max="20000" step="0.5" title="'+esc(t('%100 Bitiş Süresi'))+'" value="'+(tcOwn > 0 ? tcOwn : '')+'" placeholder="'+esc(String(Math.round(grTcAndDifficulty(g).tcHours)))+'"'
+          + ' style="width:46px;height:22px;flex-shrink:0;border-radius:8px;border:1px solid '+(tcOwn > 0 ? '#2B3345' : '#1D2432')+';background:#090C12;color:'+(tcOwn > 0 ? GRC.title : '#7F879B')+';font-family:Geist Mono,monospace;font-size:11px;text-align:center;padding:0 2px">'
+          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B;flex-shrink:0;margin-left:-6px">'+esc(durationUnit('', 'sa').trim())+'</span>';
         const achEt = g.hasStats ? 'BAŞARIM' : 'SAAT';
         const achFg = g.hasStats ? GRC.sub : GRC.warn;
         return '<div data-grrow="'+g.appid+'" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:1px solid '
@@ -240,13 +246,24 @@
           + '<span style="font-size:12px;font-weight:600;color:'+(on?GRC.title:'#B9C0D6')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
           + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+esc(grWriteHours(g.playtimeMin))+'</span>'
           + '</div>'
+          + tcBox
           + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+achFg
           + ';border:1px solid '+achFg+';border-radius:12px;padding:2px 7px;flex-shrink:0">'+achEt+'</span>'
           + '<button data-grdel="'+g.appid+'" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center" class="h-stop">&#8722;</button>'
           + '</div>';
       }).join('');
     }
+    // the completion time box of a game in the list: kept for that game, the plan is rebuilt; a click in the box does not move the game to the front
+    grEl('grLibrary').addEventListener('change', async (e)=>{
+      const box = e.target.closest('[data-grtc]'); if (!box) return;
+      const id = +box.getAttribute('data-grtc');
+      const hour = Math.max(0, Math.min(20000, parseFloat(box.value) || 0));
+      await grTcWrite(id, hour);
+      grPaintLibrary(); grPaintAccount();
+      grFetchPlan();
+    });
     grEl('grLibrary').addEventListener('click', (e)=>{
+      if (e.target.closest('[data-grtc]')) return;
       const remove = e.target.closest('[data-grdel]');
       if (remove){
         if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Çalışırken sıra değiştirilemez.'); return; }
@@ -321,6 +338,7 @@
         randomInterval: !!grVal('grRandomGap', true),
         ultraRareSkip: !!grVal('grSkipUltraRare', false),
         autoOrder: !!grVal('grAuto', true),
+        parallel: !!grVal('grParallel', true),
         continueHours: !!grVal('grKeepHours', true),
         accelerateDelayed: !!grVal('grCatchUp', true),
         speedMultiplier: +grVal('grSpeed', 1) || 1,
@@ -444,7 +462,7 @@
       grPlan.queueList.forEach((a, i)=>{
         // Divider when the rarity changes: the "isDivider" row in the template.
         const et = grRarityLabel(a.rarityPct, a.pos);
-        if (et !== lastLabel){
+        if (et !== lastLabel && !grPlan.parallel){
           lastLabel = et;
           html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 2px 6px">'
             + '<span style="flex:1;height:1px;background:#1D2432"></span>'
@@ -458,7 +476,8 @@
           + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">#'+(i+1)+'</span>'
           + '<div style="width:33px;height:33px;flex-shrink:0;border-radius:11px;border:1px solid '+(wasOpened?GRC.ok:'#2B3345')+';background:#101621;display:flex;align-items:center;justify-content:center">'
           + '<span style="width:10px;height:10px;background:'+(wasOpened?GRC.ok:colorVal)+';transform:rotate(45deg)"></span></div>'
-          + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(wasOpened?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')+'</span>'
+          + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(wasOpened?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')
+          + (grPlan.parallel && a.gameTitle ? '<span style="font-weight:400;font-size:11px;color:#8B8F9E"> · '+esc(a.gameTitle)+'</span>' : '')+'</span>'
           + '<span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+colorVal+';border:1px solid '+colorVal+';border-radius:12px;padding:2px 8px;flex-shrink:0">'+esc(grRarityLabel(a.rarityPct, a.pos))+'</span>'
           + '<span style="width:52px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+colorVal+';text-align:right">'
           + (Number.isFinite(a.rarityPct) ? fmtPercent(localDecimal(a.rarityPct, 1)) : '-')+'</span>'
@@ -484,8 +503,10 @@
     // the sentence on the page says this, not the whole duration, so every setting that matters shows.
     // The ratio comes from the first game's share of the run and is applied to the whole duration, so the sentence "N achievements in ..." stays true for every game of the queue.
     function grUnlockWindowMs(durationMs){
+      // the run the engine plans: a slower pace makes it longer than the duration field
+      const run = (grPlan && grPlan.spanMs > 0) ? grPlan.spanMs : durationMs;
       const r = grPlan && grPlan.unlockRatio;
-      return (r > 0 && r < 0.995) ? Math.max(60000, Math.round(durationMs * r)) : durationMs;
+      return (r > 0 && r < 0.995) ? Math.max(60000, Math.round(run * r)) : run;
     }
 
     // ---- target + HLTB calculations ----
@@ -495,7 +516,8 @@
       const suitable = grPlan ? (grPlan.suitableTotal || 0) : 0;
       const auto = !!grVal('grTargetAuto', true);
 
-      grSet('grTargetTotal', String(suitable));
+      // with the games at the same time the target is the whole queue's
+      grSet('grTargetTotal', String(grPlan && grPlan.parallel ? (grPlan.suitableQueue || suitable) : suitable));
 
       const crRaw = grVal('grCR', '2.0');
       const { tcHours: tc, difficultyValue: diff, manuallyEntered: manuallyEntered, playedHours: playtimeHours } = grTcAndDifficulty(game);
@@ -518,7 +540,7 @@
       ['grTarget', 'grTargetSep', 'grTargetTotal'].forEach((id)=>{
         const el = grEl(id); if (el) el.style.color = goalColor;
       });
-      const goal = auto ? planned : Math.max(0, Math.min(suitable, +grEl('grTarget').value || 0));
+      const goal = auto ? planned : Math.max(0, Math.min(grPlan && grPlan.parallel ? (grPlan.suitableQueue || suitable) : suitable, +grEl('grTarget').value || 0));
       grWritePlanSentence(grUnlockWindowMs(durationMs), (grPlan && grPlan.queueTotal) || goal || planned);
 
       // Backlog note
@@ -620,7 +642,7 @@
     // The switches that are ON until the user turns them off. Painting and clicking used to disagree about two of them (grCatchUp, grAutoDuration):
     // the switch showed "on", and the first click wrote "on" again, so it seemed to do nothing.
     // grCatchUp is ON by default: if there is no backlog it changes nothing anyway.
-    const grToggleDefault = (k) => k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grAutoDuration';
+    const grToggleDefault = (k) => k === 'grAuto' || k === 'grRandomGap' || k === 'grKeepHours' || k === 'grCatchUp' || k === 'grAutoDuration' || k === 'grParallel';
     function grPaintToggle(){
       document.querySelectorAll('#tab-realistic .gr-toggle').forEach(el=>{
         const k = el.getAttribute('data-grset');
@@ -639,7 +661,7 @@
         grPaintToggle();
         // Turning the automatic duration on again takes back a duration typed earlier in this session
         if (k === 'grAutoDuration' && newItem) grDurationTouched = false;
-        if (k === 'grSkipUltraRare' || k === 'grAutoDuration' || k === 'grCatchUp') grFetchPlan();
+        if (k === 'grSkipUltraRare' || k === 'grAutoDuration' || k === 'grCatchUp' || k === 'grParallel') grFetchPlan();
         else if (k === 'grShowNoAch') grPaintSearch();
         else grPaintList();
         grPaintAccount();
@@ -794,13 +816,15 @@
       if ((runBusy.realistic || 0) > Date.now()) return;     // the question is already open
       runBegin('realistic', 120000);
       const durationMs = grDurationMs();
+      // what the question tells the user is the run the engine plans (a slower pace makes it longer than the field)
+      const runMs = (grPlan && grPlan.spanMs > 0) ? grPlan.spanMs : durationMs;
       const pick = grOptions();
       const goal = grPlan ? grPlan.totalSum : 0;
       const firsts = (grPlan && grPlan.queueList ? grPlan.queueList.slice(0,5) : [])
         .map(a=>'  · '+a.name+(Number.isFinite(a.rarityPct)?(' ('+fmtPercent(localDecimal(a.rarityPct, 1))+')'):'')).join('\n');
       const ok = await edgeConfirm({
         tag:'Gerçekçi Mod',
-        title: goal ? tf('# başarım # süreye yayılacak', goal, grDurationLabel(durationMs)) : tf('Başarımlar # süreye yayılacak', grDurationLabel(durationMs)),
+        title: goal ? tf('# başarım # süreye yayılacak', goal, grDurationLabel(runMs)) : tf('Başarımlar # süreye yayılacak', grDurationLabel(runMs)),
         body: grQueue.map(g=>g.name).join(', ')
               + '\n\n' + t('Oyun sayısı:') + ' ' + grQueue.length
               + '\n' + t('Dağıtım:') + ' ' + t(GR_MODEL_NAME[pick.model] || GR_MODEL_NAME.linear)
@@ -861,6 +885,8 @@
           }
           grPaintLibrary();
           grPaintList();
+          // The list on screen was read before the run (everything locked); Steam has the new state now, so the next run is shown as it will really be
+          if (d && d.isFinished) grFetchPlan();
           return;
         }
 

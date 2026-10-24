@@ -382,6 +382,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `grCatchUpShare` | `20` | Percentage of the session the catch-up burst gets |
 | `grFinishedRatio` | `50` | How far the schedule compresses on a finished game |
 | `grKeepHours` | `true` | Keep collecting hours after the unlocks finish |
+| `grParallel` | `true` | Play the games of the queue at the same time (each over the whole run, the duration is the longest game); off plays them one after the other |
 | `grSkipUltraRare` | `false` | Skip achievements under 5% entirely |
 | `grScheduleEnabled` | `false` | Start Realistic Mode by itself inside the time range below, repeating the account's last start |
 | `grScheduleFrom` | `22:00` | Start of the range |

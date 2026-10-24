@@ -1523,5 +1523,8 @@
  "Bu hesaba özel": "Nur dieses Konto",
  "Her hesabın kendi değeri var; değişiklik yalnızca açık hesabı etkiler.": "Jedes Konto hat eigene Werte; eine Änderung hier betrifft nur das geöffnete Konto.",
  "Kaldığı yerden sürdürüldü: #": "Dort fortgesetzt, wo es aufgehört hat: #",
- "Diğer hesaplarda çalışıyor": "Läuft auf anderen Konten"
+ "Diğer hesaplarda çalışıyor": "Läuft auf anderen Konten",
+ "Oyunları aynı anda oynat": "Spiele gleichzeitig spielen",
+ "Açıkken sıradaki oyunların hepsi birlikte açık kalır (en fazla 32), saat yükselticideki gibi; her oyunun başarımları kendi planına göre aynı süre içinde açılır ve süre en uzun oyununki kadardır. Kapalıyken oyunlar sırayla oynatılır ve süreleri toplanır.": "Wenn aktiv, bleiben alle Spiele der Warteschlange gemeinsam geöffnet (bis zu 32), wie im Stunden-Booster; die Errungenschaften jedes Spiels werden nach seinem eigenen Plan in derselben Zeit freigeschaltet, und die Dauer ist die des längsten Spiels. Wenn inaktiv, laufen die Spiele nacheinander und ihre Dauern werden addiert.",
+ "En fazla 32 oyun aynı anda oynatılabilir.": "Es können höchstens 32 Spiele gleichzeitig laufen."
 }
