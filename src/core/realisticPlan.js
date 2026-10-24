@@ -100,7 +100,9 @@ function placeRealisticTimes(queue, durationMs, model, accumulation, setting) {
   const n = queue.length;
   if (!n) return queue;
   const a = setting || {};
-  const speed = Math.max(0.1, Math.min(4, +a.speedMultiplier || 1));
+  // Faster than 1 squeezes the unlocks into the start of the run (the rest of it keeps collecting hours). Slower than 1 is NOT applied here: it made the unlocks run past
+  // the end of the run, which then stopped with "N not unlocked"; planGames makes the run itself that much longer instead.
+  const speed = Math.max(0.1, Math.min(1, +a.speedMultiplier || 1));
   const ultra = Math.max(1, Math.min(10, +a.ultraMultiplier || 3));
   const compensationShare = Math.max(0.02, Math.min(0.9, +a.compensationShare || 0.2));
   // If the game is already finished (playtime >= completion time) there is no point imitating the learning curve:
@@ -215,18 +217,22 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
     return { appid, h, total, left, tc, difficulty, denominator, playedHours, expected, behind, goal: 0, queueList: [] };
   });
   const auto = !!(pick.autoSpan && autoSpanAllowed);
+  // Games at the same time (parallel, the default): they are all open together, like the Hour Booster, and every game has the whole run for its own plan, so the
+  // run is as long as its longest game. One after the other: each game gets its part of the run and the run is the sum.
+  const parallel = !!pick.parallel && games.length > 1;
   let spanMs = Math.max(60000, +givenSpanMs || HOUR);
   if (auto) {
     let hours = 0;
     games.forEach((g) => {
       const count = pick.goalAuto ? g.left : Math.min(g.left, pick.goalValue > 0 ? pick.goalValue : g.left);
-      hours += autoHoursForGame(g, count, !!pick.accelerateDelayed);
+      const h = autoHoursForGame(g, count, !!pick.accelerateDelayed);
+      hours = parallel ? Math.max(hours, h) : hours + h;
     });
     spanMs = Math.round(Math.min(MAX_SPAN_MS, Math.max(MIN_SPAN_MS, hours * HOUR)));
   }
   const totalLeft = games.reduce((t, g) => t + g.left, 0) || 1;
   games.forEach((g) => {
-    const share = spanMs * (g.left / totalLeft);          // this game's part of the run
+    const share = parallel ? spanMs : spanMs * (g.left / totalLeft);          // this game's part of the run
     const fixed = pick.goalByGame && pick.goalByGame[g.appid];
     if (fixed != null) {
       // A run that is being resumed after a restart: exactly what was left of the target of this game, whatever the other options say
@@ -238,12 +244,28 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
     }
     g.queueList = g.h.queueList.slice(0, g.goal);
   });
-  return { spanMs, auto, games };
+  // A slower pace (speed over 1) stretches the whole run: the same achievements over that many times the time. The targets above are worked out on the time before it.
+  // Not for a run that has to fit a given time (the schedule's range, or what is left of a resumed run, which was already stretched when it started).
+  const stretch = Math.max(1, Math.min(4, +pick.speedMultiplier || 1));
+  if (stretch > 1 && autoSpanAllowed) spanMs = Math.round(Math.min(MAX_SPAN_MS, spanMs * stretch));
+  return { spanMs, auto, parallel, games };
+}
+
+// The run of games played at the same time as ONE timeline: every game is placed over the whole span with its own backlog and timing, every item keeps the game it belongs
+// to, and the lists are merged by time (a stable sort keeps a game's own order, so its ultra rare ones still come after its others).
+//   games : [{ appid, gameTitle, queueList, accumulation, timing }]
+function mergeParallel(games, spanMs, model) {
+  const all = [];
+  games.forEach((g) => {
+    placeRealisticTimes(g.queueList, spanMs, model, g.accumulation, g.timing);
+    g.queueList.forEach((x, i) => all.push(Object.assign(x, { appid: g.appid, gameTitle: g.gameTitle, order: i })));
+  });
+  return all.sort((a, b) => (a.timeValue - b.timeValue) || (a.appid === b.appid ? a.order - b.order : 0));
 }
 
 module.exports = {
   realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes,
-  tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, autoHoursForGame, planGames,
+  tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, autoHoursForGame, planGames, mergeParallel,
   BACKLOG_MAX_HOURS, BACKLOG_MIN_PER_ACHIEVEMENT,
   DELAY_UPPER_LIMIT, ULTRA_POS, STORY_POS, RARITY_BANDS, MIN_SPAN_MS, MAX_SPAN_MS,
 };

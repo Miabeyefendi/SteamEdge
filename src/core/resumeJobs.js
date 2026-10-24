@@ -85,9 +85,12 @@ function describeJobs(slot, now) {
     if (r && !slot.grScheduleStarted && Array.isArray(r.gameEntries) && r.activeIds) {
       // What is still to be unlocked in each game: the rest of the list of the game that is open, the whole list of the games that wait
       const games = [];
+      // the games at the same time: one merged list, what is left of it is counted per game
+      const leftTogether = r.activeIds.parallel ? new Map() : null;
+      if (leftTogether) (r.activeIds.queueList || []).slice(r.activeIds.indexNum || 0).forEach((x) => leftTogether.set(+x.appid, (leftTogether.get(+x.appid) || 0) + 1));
       r.gameEntries.forEach((g, i) => {
         if (i < r.gameIndex) return;
-        const left = i === r.gameIndex
+        const left = leftTogether ? (leftTogether.get(+g.appid) || 0) : i === r.gameIndex
           ? Math.max(0, ((r.activeIds.queueList || []).length) - (r.activeIds.indexNum || 0))
           : ((r.preparing && r.preparing[g.appid] && r.preparing[g.appid].queueList) || []).length;
         const appid = wholeId(g.appid);

@@ -1523,5 +1523,8 @@
  "Bu hesaba özel": "僅限此帳號",
  "Her hesabın kendi değeri var; değişiklik yalnızca açık hesabı etkiler.": "每個帳號都有自己的設定值；在這裡所做的變更只會影響目前開啟的帳號。",
  "Kaldığı yerden sürdürüldü: #": "已從中斷處繼續：#",
- "Diğer hesaplarda çalışıyor": "在其他帳號上執行中"
+ "Diğer hesaplarda çalışıyor": "在其他帳號上執行中",
+ "Oyunları aynı anda oynat": "同時執行所有遊戲",
+ "Açıkken sıradaki oyunların hepsi birlikte açık kalır (en fazla 32), saat yükselticideki gibi; her oyunun başarımları kendi planına göre aynı süre içinde açılır ve süre en uzun oyununki kadardır. Kapalıyken oyunlar sırayla oynatılır ve süreleri toplanır.": "開啟時，佇列中的所有遊戲會一起保持開啟（最多 32 款），如同時數提升；每款遊戲的成就依各自的計畫在同一段時間內解鎖，時長為最長那款遊戲的時長。關閉時，遊戲會依序執行，時長相加。",
+ "En fazla 32 oyun aynı anda oynatılabilir.": "最多只能同時執行 32 款遊戲。"
 }

@@ -1523,5 +1523,8 @@
  "Bu hesaba özel": "Только этот аккаунт",
  "Her hesabın kendi değeri var; değişiklik yalnızca açık hesabı etkiler.": "У каждого аккаунта свои значения; изменение здесь затрагивает только открытый аккаунт.",
  "Kaldığı yerden sürdürüldü: #": "Продолжено с того же места: #",
- "Diğer hesaplarda çalışıyor": "Работает на других аккаунтах"
+ "Diğer hesaplarda çalışıyor": "Работает на других аккаунтах",
+ "Oyunları aynı anda oynat": "Запускать игры одновременно",
+ "Açıkken sıradaki oyunların hepsi birlikte açık kalır (en fazla 32), saat yükselticideki gibi; her oyunun başarımları kendi planına göre aynı süre içinde açılır ve süre en uzun oyununki kadardır. Kapalıyken oyunlar sırayla oynatılır ve süreleri toplanır.": "Если включено, все игры очереди остаются открытыми вместе (до 32), как в накрутке часов; достижения каждой игры открываются по её собственному плану за одно и то же время, а длительность равна длительности самой долгой игры. Если выключено, игры идут по очереди, и их длительности складываются.",
+ "En fazla 32 oyun aynı anda oynatılabilir.": "Одновременно можно запускать не больше 32 игр."
 }

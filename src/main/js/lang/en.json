@@ -1523,5 +1523,8 @@
  "Bu hesaba özel": "This account only",
  "Her hesabın kendi değeri var; değişiklik yalnızca açık hesabı etkiler.": "Every account has its own values; a change made here affects only the account that is open.",
  "Kaldığı yerden sürdürüldü: #": "Resumed where it left off: #",
- "Diğer hesaplarda çalışıyor": "Running on other accounts"
+ "Diğer hesaplarda çalışıyor": "Running on other accounts",
+ "Oyunları aynı anda oynat": "Play the games at the same time",
+ "Açıkken sıradaki oyunların hepsi birlikte açık kalır (en fazla 32), saat yükselticideki gibi; her oyunun başarımları kendi planına göre aynı süre içinde açılır ve süre en uzun oyununki kadardır. Kapalıyken oyunlar sırayla oynatılır ve süreleri toplanır.": "When on, all games in the queue stay open together (up to 32), as in the Hour Booster; each game's achievements unlock on its own plan within the same time, and the duration is that of the longest game. When off, the games are played one after the other and their durations add up.",
+ "En fazla 32 oyun aynı anda oynatılabilir.": "At most 32 games can be played at the same time."
 }
