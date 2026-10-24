@@ -7,22 +7,26 @@ const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
 const code = src.slice(src.indexOf('const SELL_GAP_MS'), src.indexOf('// ================== MY LISTINGS, BOOSTER PACKS'));
+const engineForCode = src.slice(src.indexOf('function engineFor(steamID)'), src.indexOf("ipcMain.handle('engine:achievements'"));
 
 (async () => {
   const handlers = {};
   const gates = [];
   const sent = [];
+  const sentOther = [];
   let release = null;
   const ctx = {
     ipcMain: { handle: (name, fn) => { handlers[name] = fn; } },
-    engineReady: true, activeSteamID: '111', Date, console,
+    engineReady: true, activeSteamID: '111', Date, console, String,
+    // a second account, connected: a sale that names it goes to ITS engine
+    accounts: new Map([['222', { ready: true, engine: { sellItem: (asset) => { sentOther.push(asset); return Promise.resolve({ success: true }); } } }]]),
     engine: { sellItem: (asset) => { sent.push(asset); return new Promise((r) => { if (asset === 'slow') release = () => r({ success: true }); else r({ success: true }); }); } },
     marketGate: (fn, gap) => { gates.push(gap); return fn(); },
     saleErrorType: () => 'general', addStat: () => {}, ct: (x) => x,
     inventorySources: require(path.resolve(__dirname, '..', '..', 'src', 'core', 'inventorySources.js')),
   };
   vm.createContext(ctx);
-  vm.runInContext(code, ctx);
+  vm.runInContext(engineForCode + '\n' + code, ctx);
   const sell = handlers['engine:sellItem'];
 
   let r = await sell({}, { assetId: 'a1', priceCents: 10, amount: 1 });
@@ -62,5 +66,10 @@ const code = src.slice(src.indexOf('const SELL_GAP_MS'), src.indexOf('// =======
   ctx.engineReady = false;
   r = await sell({}, { assetId: 'a3', priceCents: 10, amount: 1 });
   check('without a connection nothing is sent', !r.ok && r.typeName === 'limit');
+  r = await sell({}, { assetId: 'b9', priceCents: 10, amount: 1, steamID: '222' });
+  check('a sale that names its account lists on that account, not on the one on screen', r.ok && sentOther.join() === 'b9' && !sent.includes('b9'), JSON.stringify(sentOther));
+  ctx.engineReady = true;
+  r = await sell({}, { assetId: 'b10', priceCents: 10, amount: 1, steamID: '999' });
+  check('the account it started on is gone: nothing is listed, and NOT on the account on screen', !r.ok && !sent.includes('b10') && !sentOther.includes('b10'), JSON.stringify(r));
   process.exit(failures ? 1 : 0);
 })();

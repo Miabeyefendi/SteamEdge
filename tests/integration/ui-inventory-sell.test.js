@@ -12,7 +12,7 @@ const items = Array.from({ length: 14 }, (_, i) => ({ assetId: String(i + 1), or
 const games = ['Alpha Game', 'Beta Game With A Much Longer Name Than Usual', 'Gamma Game', 'Delta', 'Epsilon Game'].map((name, i) => ({ appid: 10 * (i + 1), name, remaining: 1 + i, playtimeMin: 500 - 20 * i }));
 const answers = {
   'engine:saleFee': () => new Promise(() => {}),
-  'engine:sellItem': (_e, a) => { calls.push(['sell', a.assetId, Date.now()]); return a.assetId === '3' ? { ok: false, error: 'Steam said no', typeName: 'skip' } : { ok: true, result: { needs_mobile_confirmation: a.assetId === '2' } }; },
+  'engine:sellItem': (_e, a) => { calls.push(['sell', a.assetId, Date.now(), a.steamID || null]); return a.assetId === '3' ? { ok: false, error: 'Steam said no', typeName: 'skip' } : { ok: true, result: { needs_mobile_confirmation: a.assetId === '2' } }; },
   'settings:get': () => settings, 'settings:defaults': () => { const d = { ...DEFAULTS }; delete d.settingsVersion; return d; }, 'settings:info': () => ({ saveTime: null }),
   'settings:save': (_e, patch) => { Object.assign(settings, patch); return { ok: true, settings, saveTime: Date.now(), appliedOne: [], pauseMs: 5000 }; },
   'settings:set': (_e, patch) => { Object.assign(settings, patch); return settings; },
@@ -83,6 +83,8 @@ app.whenReady().then(async () => {
   check('the panel stays until it is closed', (await js("!!document.getElementById('salePanel')")) === true);
   await js("document.querySelector('#salePanel [data-sg=close]').click()");
   check('Close removes the panel', (await js("!document.getElementById('salePanel')")) === true);
+  const sellCalls = calls.filter((c) => c[0] === 'sell');
+  check('every listing of the sale names the account it started on (a batch that waits must not go to another account)', sellCalls.length > 0 && sellCalls.every((c) => c[3] === '76561198000000000'), JSON.stringify(sellCalls.map((c) => c[3])));
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;
   app.exit(failures ? 1 : 0);

@@ -2279,14 +2279,21 @@ ipcMain.handle('engine:itemOrders', async (_e, hashName) => {
   catch (e) { return { ok: false, error: e.message }; }
 });
 
+// The engine of the account a request names (a bulk operation keeps the account it started on), or of the account on screen.
+// A named account that is not connected (or was removed) gives no engine: the request must not fall through to another account.
+function engineFor(steamID) {
+  if (steamID) { const s = accounts.get(String(steamID)); return s && s.ready && s.engine ? s.engine : null; }
+  return engineReady && engine ? engine : null;
+}
 ipcMain.handle('engine:achievements', async (_e, arg) => {
   const appid = (arg && typeof arg === 'object') ? arg.appid : arg;
   const isFresh = !!(arg && typeof arg === 'object' && arg.freshFlag);
-  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  const eng = engineFor(arg && typeof arg === 'object' ? arg.steamID : null);
+  if (!eng) return { ok: false, error: 'Bağlı değil.' };
   // taze=true: throw away the schema/value cache, read again from Steam. The verification after a bulk
   // operation uses this; reading from the cache would give back our own guess.
-  if (isFresh) { try { engine.invalidateStats(appid); } catch (_) {} }
-  try { return { ok: true, data: await engine.getAchievements(appid) }; }
+  if (isFresh) { try { eng.invalidateStats(appid); } catch (_) {} }
+  try { return { ok: true, data: await eng.getAchievements(appid) }; }
   catch (e) { return { ok: false, error: e.message }; }
 });
 
@@ -2441,10 +2448,13 @@ ipcMain.handle('state:set', (_e, { key, value }) => {
 });
 // Unlocked/locked achievements: a permanent record of what we did, in which game and when.
 ipcMain.handle('state:achLog', (_e, entry) => {
-  const v = activeAccountData();
-  v.achLog.unshift({ ...entry, ts: Date.now() });
+  // a bulk operation names the account it runs on: the log entry belongs there even if another account is on screen now
+  const owner = entry && entry.steamID && accounts.has(String(entry.steamID)) ? String(entry.steamID) : activeSteamID;
+  const v = owner === activeSteamID ? activeAccountData() : accountData(owner);
+  const { steamID: _owner, ...rest } = entry || {};
+  v.achLog.unshift({ ...rest, ts: Date.now() });
   if (v.achLog.length > 2000) v.achLog.length = 2000;
-  pruneAccountRecords(v); writeAccountDataDelayed(activeSteamID);
+  pruneAccountRecords(v); writeAccountDataDelayed(owner);
   return { ok: true };
 });
 ipcMain.handle('state:achLogGet', (_e, appid) => {
@@ -2460,9 +2470,10 @@ ipcMain.handle('state:clear', () => {
   return { ok: true };
 });
 
-ipcMain.handle('engine:setAchievements', async (_e, { appid, changes }) => {
-  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  try { return { ok: true, result: await engine.setAchievements(appid, changes) }; }
+ipcMain.handle('engine:setAchievements', async (_e, { appid, changes, steamID }) => {
+  const eng = engineFor(steamID);
+  if (!eng) return { ok: false, error: 'Bağlı değil.' };
+  try { return { ok: true, result: await eng.setAchievements(appid, changes) }; }
   catch (e) { return { ok: false, error: e.message }; }
 });
 
@@ -2526,11 +2537,13 @@ const SELL_REPEAT_MS = 10 * 60 * 1000;
 const sellInFlight = new Set();
 const sellDone = new Map();
 // appid and contextId say where the item lives (a game's backpack); without them it is a Steam community item (753, 6).
-ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount, appid, contextId }) => {
-  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.', typeName: 'limit' };
+ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount, appid, contextId, steamID: owner }) => {
+  // the account the sale started on: a batch that waited minutes must not list on the account that is on screen now
+  const eng = engineFor(owner);
+  if (!eng) return { ok: false, error: 'Bağlı değil.', typeName: 'limit' };
   const source = inventorySources.validSource(appid == null ? null : { appid, contextId });
   if (!source) return { ok: false, error: ct('Geçersiz envanter.'), typeName: 'skip' };
-  const steamID = activeSteamID;
+  const steamID = owner && accounts.has(String(owner)) ? String(owner) : activeSteamID;
   const key = steamID + ':' + (source.appid === inventorySources.COMMUNITY.appid ? '' : source.appid + ':') + String(assetId);
   const earlier = sellDone.get(key);
   if (sellInFlight.has(key) || (earlier && Date.now() - earlier < SELL_REPEAT_MS)) {
@@ -2538,7 +2551,7 @@ ipcMain.handle('engine:sellItem', async (_e, { assetId, priceCents, amount, appi
   }
   sellInFlight.add(key);
   try {
-    const result = await marketGate(() => engine.sellItem(assetId, priceCents, amount || 1, source.appid, source.contextId), SELL_GAP_MS);
+    const result = await marketGate(() => eng.sellItem(assetId, priceCents, amount || 1, source.appid, source.contextId), SELL_GAP_MS);
     sellDone.set(key, Date.now());
     // The statistic is the number of items "put on sale": a listing was made, whether it sold is not known. The amount is
     // what the seller will keep (Steam's cut deducted); "Average sale" is computed from it.
@@ -2559,9 +2572,12 @@ ipcMain.handle('market:myListings', async () => {
   try { return { ok: true, data: await marketGate(() => engine.getMyListings()) }; }
   catch (e) { return { ok: false, error: (e && e.message) || 'Pazar ilanları alınamadı.' }; }
 });
-ipcMain.handle('market:removeListing', async (_e, listingId) => {
-  if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
-  try { await marketGate(() => engine.removeListing(listingId)); log('info', 'market listing removed: ' + listingId); return { ok: true }; }
+ipcMain.handle('market:removeListing', async (_e, arg) => {
+  // { listingId, steamID }: the account the listings were read from (the old form, a bare id, means the account on screen)
+  const listingId = arg && typeof arg === 'object' ? arg.listingId : arg;
+  const eng = engineFor(arg && typeof arg === 'object' ? arg.steamID : null);
+  if (!eng) return { ok: false, error: 'Bağlı değil.' };
+  try { await marketGate(() => eng.removeListing(listingId)); log('info', 'market listing removed: ' + listingId); return { ok: true }; }
   catch (e) { return { ok: false, error: (e && e.message) || 'İlan iptal edilemedi.', rateLimited: !!(e && e.rateLimited) }; }
 });
 ipcMain.handle('engine:unpackBooster', async (_e, { assetId, appid }) => {

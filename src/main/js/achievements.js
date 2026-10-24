@@ -522,17 +522,20 @@
       // fails it is reverted. (Before, nothing seemed to
       // happen until the reply came.)
       const prevAchieved = ach.achieved, prevTime = ach.unlockTime;
+      // the game and the account of this change: another game picked while Steam answers must not get the log line (see acBulk)
+      const runAppid = acAppid, runData = acData;
+      const runAccount = (typeof imuProfile === 'object' && imuProfile && imuProfile.steamID) || (appSettings && appSettings.steamID) || null;
       ach.achieved = unlock;
       if (unlock && !ach.unlockTime) ach.unlockTime = Date.now();
-      acData.unlocked = acData.achievements.filter(a=>a.achieved).length;
+      runData.unlocked = runData.achievements.filter(a=>a.achieved).length;
       acBusy.add(apiName);
       renderAchievements();
 
-      const res = await E.setAchievements(acAppid, [{ apiName, unlock }]).catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
+      const res = await E.setAchievements(runAppid, [{ apiName, unlock }], runAccount).catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
       acBusy.delete(apiName);
       if (!res.ok){
         ach.achieved = prevAchieved; ach.unlockTime = prevTime;   // undo
-        acData.unlocked = acData.achievements.filter(a=>a.achieved).length;
+        runData.unlocked = runData.achievements.filter(a=>a.achieved).length;
         renderAchievements();
         edgeConfirm({ tag:'Hata', danger:true, title:'Başarım değiştirilemedi',
                       body: res.error || 'Steam isteği reddetti.', confirmText:'Tamam', singleButton:true });
@@ -540,10 +543,10 @@
       }
       acSelected.delete(apiName);   // the operation is done, no selection mark should remain
       // Permanent log - what we unlocked stays recorded even after the app closes (retention from Ayarlar).
-      window.imu.state.achLog({ appid: acAppid, game: acData.gameName, apiName, name: ach.name, unlock }).catch(()=>{});
-      acData.unlocked = acData.achievements.filter(a=>a.achieved).length;
+      window.imu.state.achLog({ appid: runAppid, game: runData.gameName, apiName, name: ach.name, unlock, steamID: runAccount }).catch(()=>{});
+      runData.unlocked = runData.achievements.filter(a=>a.achieved).length;
       notify('ach', unlock?'Başarım Açıldı':'Başarım Kilitlendi', ach.name);
-      pushFeed('card', unlock?'Başarım açıldı':'Başarım kilitlendi', acData.gameName+' · '+ach.name, 'Başarılı');
+      pushFeed('card', unlock?'Başarım açıldı':'Başarım kilitlendi', runData.gameName+' · '+ach.name, 'Başarılı');
       renderAchievements();
       return true;
     }
@@ -587,6 +590,10 @@
       });
       if (!okBulk) return;
 
+      // The game and the account of this run are fixed now. Picking another game or another account while it runs used to send the rest of the list to THAT
+      // game (many games share achievement names such as ACH_WIN_...) or to that account.
+      const runAppid = acAppid, runData = acData;
+      const runAccount = (typeof imuProfile === 'object' && imuProfile && imuProfile.steamID) || (appSettings && appSettings.steamID) || null;
       targets.forEach(a=>acBusy.add(a.apiName));
       acRunning = true; acStopRequested = false;
       const failures = [];
@@ -608,20 +615,20 @@
           }
           const a = targets[i];
           paintRunBox(i, targets.length, t('gönderiliyor:') + ' ' + a.name);
-          const r = await E.setAchievements(acAppid, [{ apiName:a.apiName, unlock }])
+          const r = await E.setAchievements(runAppid, [{ apiName:a.apiName, unlock }], runAccount)
                            .catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
           acBusy.delete(a.apiName);
           if (r.ok){
             ok++; repeatedError = 0;
             a.achieved = unlock; if (unlock && !a.unlockTime) a.unlockTime = Date.now();
             a.lastError = null;
-            window.imu.state.achLog({ appid: acAppid, game: acData.gameName, apiName: a.apiName, name: a.name, unlock }).catch(()=>{});
+            window.imu.state.achLog({ appid: runAppid, game: runData.gameName, apiName: a.apiName, name: a.name, unlock, steamID: runAccount }).catch(()=>{});
           } else {
             fail++; repeatedError++;
             a.lastError = r.error || t('Steam isteği reddetti.');
             failures.push({ displayName: a.name, failure: a.lastError });
           }
-          acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
+          runData.unlocked = runData.achievements.filter(x=>x.achieved).length;
           paintRunBox(i+1, targets.length, fail ? tf('# başarılı, # hata', ok, fail) : null);
           renderAchievements();
 
@@ -654,7 +661,7 @@
       let verifyNote = '';
       if (ok > 0){
         paintRunBox(targets.length, targets.length, t('Steam ile doğrulanıyor'));
-        const isFresh = await E.achievements(acAppid, true).catch(()=>null);
+        const isFresh = await E.achievements(runAppid, true, runAccount).catch(()=>null);
         hideRunBox();
         if (isFresh && isFresh.ok && isFresh.data && Array.isArray(isFresh.data.achievements)){
           const actual = new Map(isFresh.data.achievements.map(x=>[x.apiName, x.achieved]));
@@ -668,7 +675,7 @@
             ok -= mismatched; fail += mismatched;
             verifyNote = tf('# başarım Steam tarafında kaydedilmemiş, işaretleri düzeltildi.', mismatched);
           }
-          acData.unlocked = acData.achievements.filter(x=>x.achieved).length;
+          runData.unlocked = runData.achievements.filter(x=>x.achieved).length;
         }
       }
       renderAchievements();
@@ -693,7 +700,7 @@
       const summary = fail ? tf('# başarılı, # hata', ok, fail) : tf('# başarım', ok);
       notify('ach', unlock?'Başarımlar Açıldı':'Başarımlar Kilitlendi', summary);
       pushFeed(fail?'error':'card', unlock?'Toplu başarım açma':'Toplu başarım kilitleme',
-               acData.gameName + ' · ' + summary, fail?'Hata':'Başarılı');
+               runData.gameName + ' · ' + summary, fail?'Hata':'Başarılı');
     }
 
     // ---- ITEM 8: running state, progress and stopping ----

@@ -69,12 +69,13 @@
         body: 'İlan Steam pazarından kaldırılır; eşyalar envanterine geri döner.', confirmText: 'İptal Et', cancelText: 'Vazgeç' });
       if (!ok) return;
       mlBusy = true;
+      const owner = (typeof imuProfile === 'object' && imuProfile && imuProfile.steamID) || (appSettings && appSettings.steamID) || null;
       const cancelBtn = mlBack && mlBack.querySelector('[data-mlcancel]');
       const failures = [];
       let done = 0;
       for (const l of todo){
         if (cancelBtn) cancelBtn.textContent = tf('İptal ediliyor · # / #', done, todo.length);
-        const r = await window.imu.market.removeListing(l.listingId).catch(e => ({ ok: false, error: e && e.message }));
+        const r = await window.imu.market.removeListing(l.listingId, owner).catch(e => ({ ok: false, error: e && e.message }));
         if (r && r.ok){ done++; if (l.assetId && typeof listedAssets !== 'undefined') listedAssets.delete(l.assetId); }
         else {
           failures.push(l.name + ': ' + ((r && r.error) || ''));

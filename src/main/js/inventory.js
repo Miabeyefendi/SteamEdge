@@ -1304,7 +1304,9 @@
         });
         if (!ok) return;
       }
-      saleTask = { source: sourceOf(sellable[0]), plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
+      // the account the items belong to: the batches of a sale can wait minutes, the account on screen may change meanwhile
+      const owner = (typeof imuProfile === 'object' && imuProfile && imuProfile.steamID) || (appSettings && appSettings.steamID) || null;
+      saleTask = { owner, source: sourceOf(sellable[0]), plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
                       failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, isAsking: false, continueNow: false, done: false };
       salePanel = saleTask;
       drawSaleStatus();
@@ -1317,7 +1319,7 @@
         const p = g.plan[g.i];
         p.st = 'send'; drawSaleStatus();
         // The main process spaces the requests (market gate, 1.5 s apart) and refuses to send the same asset twice.
-        const r = await E.sellItem(p.assetId, p.seller, 1, p.app, p.ctx).catch(e=>({ ok:false, error:(e && e.message), typeName:'general' }));
+        const r = await E.sellItem(p.assetId, p.seller, 1, p.app, p.ctx, g.owner).catch(e=>({ ok:false, error:(e && e.message), typeName:'general' }));
         g.i++;
         if (r && r.ok){
           g.successful++; g.consecutive = 0;

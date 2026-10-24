@@ -139,7 +139,7 @@ contextBridge.exposeInMainWorld('imu', {
   // Own active market listings (list and take back)
   market: {
     myListings: () => ipcRenderer.invoke('market:myListings'),
-    removeListing: (listingId) => ipcRenderer.invoke('market:removeListing', listingId),
+    removeListing: (listingId, steamID) => ipcRenderer.invoke('market:removeListing', steamID ? { listingId, steamID } : listingId),
   },
   // Writes the inventory rows the page built into a CSV file the user picks
   inventory: {
@@ -186,7 +186,8 @@ contextBridge.exposeInMainWorld('imu', {
     onHistoryOne: (cb) => ipcRenderer.on('history:one', (_e, d) => cb(d)),
     onHistoryProgress: (cb) => ipcRenderer.on('history:progress', (_e, d) => cb(d)),
     itemOrders: (hashName) => ipcRenderer.invoke('engine:itemOrders', hashName),
-    sellItem: (assetId, priceCents, amount, appid, contextId) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount, appid, contextId }),
+    // steamID: the account the sale started on (its batches can wait minutes; the account on screen may have changed by then)
+    sellItem: (assetId, priceCents, amount, appid, contextId, steamID) => ipcRenderer.invoke('engine:sellItem', { assetId, priceCents, amount, appid, contextId, steamID }),
     unpackBooster: (assetId, appid) => ipcRenderer.invoke('engine:unpackBooster', { assetId, appid }),
     // Steam's own fee calculation: the amounts the buyer pays (cents) -> what the seller keeps
     saleFee: (totals) => ipcRenderer.invoke('engine:saleFee', totals),
@@ -196,8 +197,9 @@ contextBridge.exposeInMainWorld('imu', {
     vanity: () => ipcRenderer.invoke('engine:vanity'),
     // With taze=true the 5 minute schema cache is skipped; used after a bulk operation
     // to verify what Steam actually saved.
-    achievements: (appid, isFresh) => ipcRenderer.invoke('engine:achievements', { appid, freshFlag: isFresh }),
-    setAchievements: (appid, changes) => ipcRenderer.invoke('engine:setAchievements', { appid, changes }),
+    // steamID (optional): the account a running bulk operation belongs to, so a switch to another account in the middle does not send the rest there
+    achievements: (appid, isFresh, steamID) => ipcRenderer.invoke('engine:achievements', { appid, freshFlag: isFresh, steamID }),
+    setAchievements: (appid, changes, steamID) => ipcRenderer.invoke('engine:setAchievements', { appid, changes, steamID }),
     startFarm: (mode, games, durationMs) => ipcRenderer.send('engine:startFarm', { mode, games, durationMs }),
     stopFarm: () => ipcRenderer.send('engine:stopFarm'),
     onTick: (cb) => ipcRenderer.on('farm:tick', (_e, data) => cb(data)),
