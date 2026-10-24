@@ -110,7 +110,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); }
+    showWindow();
   });
 }
 
@@ -151,6 +151,7 @@ function makeAuthSend(slotId) {
   };
 }
 let tray = null;
+let trayHasIcon = false;
 let isQuitting = false;
 let psbId = null;
 
@@ -475,7 +476,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
       icon: fs.existsSync(NOTIF_ICON) ? NOTIF_ICON : undefined,
       silent: true,   // we play the sound ourselves (the tone chosen in the settings)
     });
-    n.on('click', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
+    n.on('click', () => showWindow());
     n.show();
     log('debug', 'notification sent: ' + (title || ''));
     return { ok: true };
@@ -617,14 +618,24 @@ function applyChatSettings(eng) {
   } catch (_) {}
 }
 
+// One way to bring the window back, whatever state it is in: hidden to the tray, minimised by Windows (Win+D, Win+M) or both. Before, the tray click, the tray menu,
+// the second copy and the notification each did a part of this and a minimised window could stay minimised.
+function showWindow() {
+  if (!win || win.isDestroyed()) return;
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
 function ensureTray() {
   if (tray) return;
   try {
     const img = nativeImage.createFromPath(path.join(__dirname, 'src', 'assets', 'icon.png'));
+    trayHasIcon = !img.isEmpty();          // an empty image makes a tray entry nobody can see: the minimise button must not hide the window behind it
     tray = new Tray(img.isEmpty() ? nativeImage.createEmpty() : img.resize({ width: 16, height: 16 }));
     tray.setToolTip('SteamEdge');
     setupTrayMenu();
-    tray.on('click', () => { if (win) { win.isVisible() ? win.hide() : (win.show(), win.focus()); } });
+    tray.on('click', () => { if (win && !win.isDestroyed()) { (win.isVisible() && !win.isMinimized()) ? win.hide() : showWindow(); } });
   } catch (_) {}
 }
 // When the language changes the menu is rebuilt; it used to stay in Turkish in every language.
@@ -632,7 +643,7 @@ function setupTrayMenu() {
   if (!tray) return;
   try {
     tray.setContextMenu(Menu.buildFromTemplate([
-      { label: ct('Pencereyi göster'), click: () => { if (win) { win.show(); win.focus(); } } },
+      { label: ct('Pencereyi göster'), click: () => showWindow() },
       { type: 'separator' },
       // the dictionary key "Exit" (Turkish source text) means "sign out" in the navigation; this entry closes the app.
       { label: ct("SteamEdge'i kapat"), click: () => { isQuitting = true; app.quit(); } },
@@ -916,7 +927,7 @@ function createWindow() {
 ipcMain.on('win:minimize', () => {
   if (!win) return;
   ensureTray();
-  if (tray && !tray.isDestroyed()) win.hide(); else win.minimize();
+  if (tray && trayHasIcon && !tray.isDestroyed()) win.hide(); else win.minimize();
 });
 ipcMain.on('win:maximize', () => { if (win) win.isMaximized() ? win.unmaximize() : win.maximize(); });
 ipcMain.on('win:close', () => win && win.close());
@@ -3522,6 +3533,9 @@ function realisticOptions(s) {
     finishedRatio: Math.max(0.05, Math.min(1, +g.finishedRatio || 0.5)),
     tcHours: Math.max(1, +g.tcHours || 0) || 20,
     difficultyValue: Math.max(0.1, +g.difficultyValue || 0) || 1,
+    // set only by a run that was started with the automatic duration and is now being resumed (resumeJobs keeps the options): its duration already is the time the unlocks take,
+    // so the "finished game" compression must not be laid on it a second time
+    autoSpanApplied: !!g.autoSpanApplied,
     playtime: (g.playtime && typeof g.playtime === 'object') ? g.playtime : {},
   };
 }
@@ -3613,7 +3627,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     // automatic duration.
     const plan = await realisticPrepareAll(motor, listing, pick, givenSpan, !fromSchedule);
     const duration = plan.spanMs;
-    pick.autoSpanApplied = plan.auto;
+    pick.autoSpanApplied = plan.auto || pick.autoSpanApplied;
     const prepared = {};
     const gameList = [];
     plan.games.forEach((g) => {
@@ -3661,6 +3675,9 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
         startPoint: currentTime, finishTime: currentTime + firstShare,
       },
     };
+    // the average gap is measured on the unlock times that were really placed (a finished game ends its unlocks early), as the preview does
+    const placedEnd = Math.max(...d.activeIds.queueList.map((x) => x.timeValue || 0), 0);
+    d.averageIntervalMs = totalTarget && firstShare > 0 ? Math.round(duration * Math.min(1, placedEnd / firstShare) / totalTarget) : d.averageIntervalMs;
     s.realistic = d;
     // what the schedule repeats: the setup of the last start made by hand
     if (!fromSchedule) {
