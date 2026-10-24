@@ -7,6 +7,20 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.7.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.2)
+
+The app now runs on the newest Electron (45.0.0) and the dependency warnings are gone.
+
+### Changed
+
+- **Electron 41 / 42 is now 45.0.0.** The 42.11.3 that 1.7.1 shipped had four published vulnerabilities (pointer lock attributed to the wrong frame, two cases of trusting GPU-supplied frame geometry, a certificate mitigation). 45.0.0 is the newest stable release and has none of them. The 53 tests pass on it.
+- **Two build and proxy dependencies updated inside their version range** (`npm audit fix`): `undici` 7.30.0 to 7.30.1 (used by the build tool only) and `ip-address` 10.7.3 to 10.7.4 (used by the proxy support). `npm audit` now reports 0 vulnerabilities.
+- The build no longer requires `libEGL.dll` and `libGLESv2.dll` when Electron does not ship them: Electron 45 links them into `electron.exe`, so the old check refused to package. It still stops if a file that Electron does ship is missing.
+- The package is 300 MB, the same as 1.7.1.
+
+
+SHA-256 (`SteamEdge-v1.7.2-win-x64.rar`): `8ea5faece85bc21a9cc086b091b612a15c8e037f04940f3cd25555f4551b22b9`
+
 ## [1.7.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.1)
 
 Realistic Mode now counts the hours a game has already been played, shows what its settings really do, and the minimise button sends the window to the tray.

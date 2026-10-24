@@ -176,7 +176,7 @@ function trimLocales(target) {
 // compositing and with hardware acceleration off, on a copy of Electron without them.
 //   dxcompiler.dll, dxil.dll   the shader compiler of WebGPU, which the app does not use (26 MB)
 //   vk_swiftshader*            a software Vulkan, only for pages that ask for WebGL on a machine with no usable graphics (5.5 MB)
-// ffmpeg.dll, libEGL.dll, libGLESv2.dll, d3dcompiler_47.dll and the .pak and .dat files stay: without them Electron does not start or draws nothing.
+// ffmpeg.dll, libEGL.dll and libGLESv2.dll (before Electron 45), d3dcompiler_47.dll and the .pak and .dat files stay: without them Electron does not start or draws nothing.
 const UNUSED = ['dxcompiler.dll', 'dxil.dll', 'vk_swiftshader.dll', 'vk_swiftshader_icd.json'];
 const MUST_STAY = ['ffmpeg.dll', 'libEGL.dll', 'libGLESv2.dll', 'd3dcompiler_47.dll', 'icudtl.dat', 'resources.pak', 'snapshot_blob.bin', 'v8_context_snapshot.bin'];
 function trimUnused(target) {
@@ -187,7 +187,10 @@ function trimUnused(target) {
     gain += fs.statSync(p).size;
     fs.unlinkSync(p);
   }
+  // Only what Electron itself ships has to be there: Electron 45 links ANGLE (libEGL, libGLESv2) into electron.exe, its distribution has no such files any more
+  const shipped = path.join(ROOT, 'node_modules', 'electron', 'dist');
   for (const name of MUST_STAY) {
+    if (!fs.existsSync(path.join(shipped, name))) continue;
     if (!fs.existsSync(path.join(target, name))) throw new Error(name + ' is missing from the package - the app would not start');
   }
   console.log('  unused   : ' + UNUSED.join(', ') + ' removed (' + (gain / 1024 / 1024).toFixed(1) + ' MB)');
