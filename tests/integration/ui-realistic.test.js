@@ -39,7 +39,7 @@ Object.assign(answers, {
     planner.placeRealisticTimes(head.queueList, share, pick.model, 0, planner.realisticTimeSetting(arg.appid, pick));
     return { ok: true, accumulation: 0, appid: arg.appid, gameTitle: 'Game', totalSum: head.queueList.length, suitableTotal: head.h.suitableTotal, totalAchievements: head.h.totalAchievements, unlockedState: 0,
       protectedFlag: 0, ultraSkipped: 0, parallel: built.parallel, suitableQueue: built.games.reduce((t, g) => t + g.h.suitableTotal, 0), spanMs: built.spanMs, autoSpan: built.auto, queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0), model: pick.model,
-      averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), firstUnlockMs: Math.min(...head.queueList.map((a) => a.timeValue)), unlockWindowMs: Math.max(...head.queueList.map((a) => a.timeValue)), unlockRatio: Math.min(1, Math.max(...head.queueList.map((a) => a.timeValue)) / share), queueList: head.queueList.map((a, i) => ({ name: a.name, rarityPct: a.rarityPct, pos: i / head.queueList.length, timeValue: a.timeValue })) };
+      averageIntervalMs: Math.round(share / Math.max(1, head.queueList.length)), firstUnlockMs: Math.min(...head.queueList.map((a) => a.timeValue)), unlockWindowMs: Math.max(...head.queueList.map((a) => a.timeValue)), unlockRatio: Math.min(1, Math.max(...head.queueList.map((a) => a.timeValue)) / share), queueList: head.queueList.map((a, i) => ({ appid: arg.appid, name: a.name, rarityPct: a.rarityPct, pos: i / head.queueList.length, timeValue: a.timeValue })) };
   },
   'realistic:start': (_e, arg) => { calls.push(['start', arg]); return { ok: true, totalSum: 50, gameCount: 2, gameTitle: 'Alpha Game' }; },
 });
@@ -107,7 +107,7 @@ app.whenReady().then(async () => {
   await js("window.__feed = []; window.__notes = []; (() => { const pf = window.pushFeed; window.pushFeed = (...a) => { window.__feed.push(a.slice(0, 2).join('|')); return pf && pf(...a); }; const nf = window.notify; window.notify = (...a) => { window.__notes.push(a[1]); return nf && nf(...a); }; })()");
   const running = { runningFlag: true, appid: 10, gameTitle: 'Alpha Game', totalSum: 50, openedGames: 3, failure: 0, startPoint: Date.now(), finishTime: Date.now() + 3600000, upNext: 'Achievement 3', upNextPct: 70, upNextPos: 0.1, upNextTime: Date.now() + 60000, gameCount: 1, gameIndex: 0, averageIntervalMs: 60000 };
   send('realistic:tick', running); await wait(500);
-  check('a running tick: the clock counts down from about an hour and Stop is enabled, Start is closed', (await js("document.getElementById('grClockM').textContent")) === '59' && (await js("document.getElementById('grStop').disabled")) === false && (await js("document.getElementById('grStart').disabled")) === true, await js("document.getElementById('grClockH').textContent + ':' + document.getElementById('grClockM').textContent"));
+  check('a running tick: the clock counts down from about an hour and Stop is enabled, Start is closed', ['59', '00'].includes(await js("document.getElementById('grClockM').textContent")) && (await js("document.getElementById('grStop').disabled")) === false && (await js("document.getElementById('grStart').disabled")) === true, await js("document.getElementById('grClockH').textContent + ':' + document.getElementById('grClockM').textContent"));
   check('the progress shows 3 / 50', (await js("document.getElementById('grOpened').textContent")) === '3 / 50', await js("document.getElementById('grOpened').textContent"));
   // the user presses Stop, the engine answers with the finished tick
   await js("window.__feed.length = 0; window.__notes.length = 0; document.getElementById('grStop').click()");
@@ -147,17 +147,33 @@ app.whenReady().then(async () => {
   // the difficulty was set to easy above: the longest game is 60 h x that factor; the sum would add the 20 hour game on top
   check('together the run is as long as the longest game (60 h x the difficulty), not the sum of the two', Math.abs(Number(await field('grRH')) - 60 * p.optionList.difficultyValue) <= 1, (await field('grRH')) + ' h, difficulty ' + p.optionList.difficultyValue);
   check('the target box counts the whole queue (50 + 20)', (await js("document.getElementById('grTargetTotal').textContent")) === '70', await js("document.getElementById('grTargetTotal').textContent"));
-  // every game of the list has its own 100% completion time box
-  const boxes = await js("[...document.querySelectorAll('#grLibrary [data-grtc]')].map((b) => b.getAttribute('data-grtc') + '=' + b.value)");
-  check('every game in the list has its own completion time box with its own value', JSON.stringify(boxes) === JSON.stringify(['10=60', '20=20']) || JSON.stringify(boxes) === JSON.stringify(['20=20', '10=60']), JSON.stringify(boxes));
+  // clicking a game SELECTS it: the order stays, its completion time is in the panel box with its name, its achievements are the list
   const orderBefore = JSON.stringify(settings.grQueue);
   before2 = calls.filter((c) => c[0] === 'plan').length;
-  await js("(() => { const b = document.querySelector('#grLibrary [data-grtc=\"20\"]'); b.focus(); b.value = '5'; b.dispatchEvent(new Event('change', { bubbles: true })); })()");
+  await js("document.querySelector('#grLibrary [data-grrow=\"20\"]').click()");
   await wait(1200);
   p = lastPlan();
-  check('typing 5 hours in the box of the second game keeps it for THAT game and rebuilds the plan with it', settings.grTcGame && settings.grTcGame['20'] === 5 && p.optionList.tcByGame['20'] === 5 && p.optionList.tcByGame['10'] === 60 && calls.filter((c) => c[0] === 'plan').length > before2, JSON.stringify(settings.grTcGame) + ' / ' + JSON.stringify(p.optionList.tcByGame));
+  check('click on the second game: the order of the queue does not change', JSON.stringify(settings.grQueue) === orderBefore, JSON.stringify(settings.grQueue));
+  check('click on the second game: the plan is asked for THAT game (the whole queue still planned)', p.appid === 20 && JSON.stringify(p.queueIds) === orderBefore && calls.filter((c) => c[0] === 'plan').length > before2, p.appid + ' ' + JSON.stringify(p.queueIds));
+  check('click on the second game: it is the one framed in the list', (await js("[...document.querySelectorAll('#grLibrary [data-grsel]')].map((r) => r.getAttribute('data-grrow')).join()")) === '20');
+  check('the completion time box shows the value and the name of THIS game', (await field('grTcMain')) === '20' && (await js("document.getElementById('grTcGameName').textContent")) === 'Beta Game', (await field('grTcMain')) + ' / ' + (await js("document.getElementById('grTcGameName').textContent")));
+  await js("document.getElementById('grLvlAdv').click()"); await wait(400);
+  check('the advanced panel has the same box: the value and the name of the selected game', (await field('grTc')) === '20' && (await js("document.getElementById('grTcGameName2').textContent")) === 'Beta Game', (await field('grTc')) + ' / ' + (await js("document.getElementById('grTcGameName2').textContent")));
+  await js("document.getElementById('grLvlSimple').click()"); await wait(300);
+  check('there is no hour box in the rows any more', (await js("document.querySelectorAll('#grLibrary input').length")) === 0);
+  before2 = calls.filter((c) => c[0] === 'plan').length;
+  await js("(() => { const b = document.getElementById('grTcMain'); b.value = '5'; b.dispatchEvent(new Event('change')); })()");
+  await wait(1200);
+  p = lastPlan();
+  check('typing 5 hours in the panel box keeps it for the SELECTED game and rebuilds the plan', settings.grTcGame && settings.grTcGame['20'] === 5 && p.optionList.tcByGame['20'] === 5 && p.optionList.tcByGame['10'] === 60 && calls.filter((c) => c[0] === 'plan').length > before2, JSON.stringify(settings.grTcGame));
   await shot('realistic-parallel');
-  check('and it does not move that game to the front of the queue', JSON.stringify(settings.grQueue) === orderBefore, JSON.stringify(settings.grQueue));
+  check('and the queue order is still the same', JSON.stringify(settings.grQueue) === orderBefore, JSON.stringify(settings.grQueue));
+  // while the games run together: every game is marked as playing and a click still selects
+  send('realistic:tick', Object.assign({}, running, { parallel: true })); await wait(400);
+  check('running together: every game of the list is marked as playing', (await js("document.querySelectorAll('#grLibrary [data-grplaying]').length")) === 2, String(await js("document.querySelectorAll('#grLibrary [data-grplaying]').length")));
+  await js("document.querySelector('#grLibrary [data-grrow=\"10\"]').click()"); await wait(800);
+  check('running: a click on a game still selects it (its achievements are shown)', lastPlan().appid === 10 && JSON.stringify(settings.grQueue) === orderBefore);
+  send('realistic:tick', { runningFlag: false, isFinished: true, openedGames: 1, failure: 0, totalSum: 50, cause: 'Durduruldu' }); await wait(600);
   // the run ends: the page reads the plan again (it showed the list read before the first run)
   before2 = calls.filter((c) => c[0] === 'plan').length;
   send('realistic:tick', running); await wait(300);

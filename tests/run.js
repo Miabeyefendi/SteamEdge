@@ -24,7 +24,8 @@ for (const [group, runner] of groups) {
     if (wanted.length && !wanted.includes(group) && !wanted.some((w) => file.includes(w))) continue;
     total++;
     const data = fs.mkdtempSync(path.join(os.tmpdir(), 'steamedge-test-'));
-    const args = runner === 'node' ? [path.join(dir, file)] : [electronCli, path.join(dir, file), '--user-data-dir=' + data];
+    // --mute-audio: the page tests send notifications and play their sounds; a test run must not make noise on the machine it runs on
+    const args = runner === 'node' ? [path.join(dir, file)] : [electronCli, path.join(dir, file), '--user-data-dir=' + data, '--mute-audio'];
     let r = spawnSync(process.execPath, args, { cwd: ROOT, encoding: 'utf8', timeout: 180000 });
     // Electron sometimes dies with an access violation while it quits, after the test has already printed its results:
     // that is not a failed check, so such a run is repeated once

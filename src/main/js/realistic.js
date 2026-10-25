@@ -24,6 +24,10 @@
     // If the user touched the duration field by hand the automatic assignment does not kick in.
     let grDurationTouched = false;
     let grPlanRequest = 0;            // request counter to prevent race conditions
+    // The game on screen. Clicking a game in the list SELECTS it (its achievements, its completion time); the order of the queue stays as it is.
+    // Clicking used to move the game to the front, so the order jumped around and with the games at the same time the list showed every game mixed together.
+    let grSelectedId = null;
+    function grSel(){ return grQueue.find(g=>g.appid===grSelectedId) || grQueue[0] || null; }
     let grStopAsked = false;          // the Stop button was pressed here: the feed line and the "finished" notice of that stop are not written a second time when the engine confirms it
 
     const GRC = { brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
@@ -227,18 +231,14 @@
           + '</div>';
         return;
       }
-      const activeId = grStatus.runningFlag ? grStatus.appid : (grQueue[0] && grQueue[0].appid);
-      const together = grStatus.runningFlag && grStatus.parallel;
+      const sel = grSel();
       el.innerHTML = grQueue.map(g=>{
-        const on = together || g.appid === activeId;
-        // the 100% completion time of THIS game: typed here for every game of the queue; empty shows the estimate it falls back to
-        const tcOwn = grTcRead(g.appid);
-        const tcBox = '<input data-grtc="'+g.appid+'" type="number" min="0" max="20000" step="0.5" title="'+esc(t('%100 Bitiş Süresi'))+'" value="'+(tcOwn > 0 ? tcOwn : '')+'" placeholder="'+esc(String(Math.round(grTcAndDifficulty(g).tcHours)))+'"'
-          + ' style="width:46px;height:22px;flex-shrink:0;border-radius:8px;border:1px solid '+(tcOwn > 0 ? '#2B3345' : '#1D2432')+';background:#090C12;color:'+(tcOwn > 0 ? GRC.title : '#7F879B')+';font-family:Geist Mono,monospace;font-size:11px;text-align:center;padding:0 2px">'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B;flex-shrink:0;margin-left:-6px">'+esc(durationUnit('', 'sa').trim())+'</span>';
+        const on = !!sel && g.appid === sel.appid;
+        // a game that is being played now: all of them when the games run together, the current one when they run one after the other
+        const playing = !!grStatus.runningFlag && (grStatus.parallel ? true : g.appid === grStatus.appid);
         const achEt = g.hasStats ? 'BAŞARIM' : 'SAAT';
         const achFg = g.hasStats ? GRC.sub : GRC.warn;
-        return '<div data-grrow="'+g.appid+'" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:1px solid '
+        return '<div data-grrow="'+g.appid+'"'+(on ? ' data-grsel="1"' : '')+(playing ? ' data-grplaying="1"' : '')+' style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:1px solid '
           + (on?GRC.brand:'#1D2432')+';background:'+(on?'#101621':'#0D1118')+';cursor:pointer;margin-bottom:5px" class="h-bd">'
           + '<div style="width:30px;height:30px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
           + gameThumb(g.appid) + '</div>'
@@ -246,24 +246,14 @@
           + '<span style="font-size:12px;font-weight:600;color:'+(on?GRC.title:'#B9C0D6')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
           + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+esc(grWriteHours(g.playtimeMin))+'</span>'
           + '</div>'
-          + tcBox
+          + (playing ? '<span title="'+esc(t('çalışıyor'))+'" style="width:8px;height:8px;border-radius:50%;background:'+GRC.ok+';box-shadow:0 0 0 3px rgba(95,179,36,.18);flex-shrink:0"></span>' : '')
           + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+achFg
           + ';border:1px solid '+achFg+';border-radius:12px;padding:2px 7px;flex-shrink:0">'+achEt+'</span>'
           + '<button data-grdel="'+g.appid+'" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center" class="h-stop">&#8722;</button>'
           + '</div>';
       }).join('');
     }
-    // the completion time box of a game in the list: kept for that game, the plan is rebuilt; a click in the box does not move the game to the front
-    grEl('grLibrary').addEventListener('change', async (e)=>{
-      const box = e.target.closest('[data-grtc]'); if (!box) return;
-      const id = +box.getAttribute('data-grtc');
-      const hour = Math.max(0, Math.min(20000, parseFloat(box.value) || 0));
-      await grTcWrite(id, hour);
-      grPaintLibrary(); grPaintAccount();
-      grFetchPlan();
-    });
     grEl('grLibrary').addEventListener('click', (e)=>{
-      if (e.target.closest('[data-grtc]')) return;
       const remove = e.target.closest('[data-grdel]');
       if (remove){
         if (grStatus.runningFlag){ if (typeof toast === 'function') toast('Gerçekçi Mod').fail('Çalışırken sıra değiştirilemez.'); return; }
@@ -273,11 +263,13 @@
         return;
       }
       const row = e.target.closest('[data-grrow]');
-      if (row && !grStatus.runningFlag){
-        // Move the clicked game to the front of the order: the preview shows its plan.
+      if (row){
+        // Select the clicked game (also while a run goes): its achievements and its completion time are shown, the order of the queue does not change.
         const id = +row.getAttribute('data-grrow');
-        const i = grQueue.findIndex(x=>x.appid===id);
-        if (i > 0){ const [g] = grQueue.splice(i,1); grQueue.unshift(g); grSaveQueue(); grPaintLibrary(); grFetchPlan(); }
+        if (id === (grSel() && grSel().appid)) return;
+        grSelectedId = id;
+        grPaintLibrary(); grPaintAccount(); grPaintList(); grPaintSpeed();
+        grFetchPlan();
       }
     });
 
@@ -325,7 +317,7 @@
       return { tcHours: tcValue, difficultyValue: difficulty, manuallyEntered: manual > 0, playedHours: playedHours };
     }
     function grOptions(){
-      const { tcHours: tcHours, difficultyValue: difficulty } = grTcAndDifficulty(grQueue[0]);
+      const { tcHours: tcHours, difficultyValue: difficulty } = grTcAndDifficulty(grSel());
       const playtime = {}, tcByGame = {};
       grQueue.forEach(g=>{ playtime[g.appid] = g.playtimeMin || 0; tcByGame[g.appid] = grTcAndDifficulty(g).tcHours; });
       const auto = !!grVal('grTargetAuto', true);
@@ -351,7 +343,7 @@
 
     // ---- plan preview ----
     async function grFetchPlan(){
-      const initial = grQueue[0];
+      const initial = grSel();
       if (!initial){
         grPlan = null;
         grPaintList(); grPaintAccount();
@@ -392,10 +384,12 @@
 
     // ---- middle panel ----
     function grPaintList(){
-      const game = grQueue[0];
+      const game = grSel();
       const isRunning = !!grStatus.runningFlag;
-      const hasAchievements = !!(grPlan && grPlan.totalSum);
-      const noAchievements = !!(game && grPlan && !grPlan.totalSum);
+      // the achievements of the SELECTED game: with the games at the same time the plan is one merged list of all of them
+      const selList = !grPlan || !grPlan.queueList ? [] : (grPlan.parallel && game && grPlan.queueList.some(a=>a.appid) ? grPlan.queueList.filter(a=>a.appid===game.appid) : grPlan.queueList);
+      const hasAchievements = selList.length > 0;
+      const noAchievements = !!(game && grPlan && !selList.length);
 
       // Top summary strip
       // Steam's achievement schema sometimes gives no game name and the engine falls back to something like 'App 1091500'.
@@ -434,24 +428,31 @@
 
       // Next-in-line card
       if (hasAchievements || isRunning){
-        const position = isRunning ? grStatus.upNext : (grPlan.queueList[0] && grPlan.queueList[0].name);
-        const orderPct = isRunning ? grStatus.upNextPct : (grPlan.queueList[0] && grPlan.queueList[0].rarityPct);
-        const orderPos = isRunning ? grStatus.upNextPos : (grPlan.queueList[0] && grPlan.queueList[0].pos);
+        // while the games run together the next unlock can be in any of them: its game is named
+        const position = isRunning ? (grStatus.upNext && grStatus.parallel && grStatus.gameTitle ? grStatus.upNext + ' · ' + grStatus.gameTitle : grStatus.upNext) : (selList[0] && selList[0].name);
+        const orderPct = isRunning ? grStatus.upNextPct : (selList[0] && selList[0].rarityPct);
+        const orderPos = isRunning ? grStatus.upNextPos : (selList[0] && selList[0].pos);
         const rank = isRunning ? (grStatus.openedGames + 1) : 1;
         grSet('grNextName', grStatus.achievementsDone ? t('Başarımlar bitti') : (position || '-'));
         grSet('grNextMeta', grStatus.achievementsDone
           ? t('Süre sonuna kadar saat toplanıyor')
-          : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : (grPlan.firstUnlockMs || grPlan.averageIntervalMs)), rank));
+          : tf('yaklaşık # içinde açılacak · sıra: #', grIntervalLabel(isRunning ? grStatus.averageIntervalMs : ((selList[0] && selList[0].timeValue) || grPlan.firstUnlockMs || grPlan.averageIntervalMs)), rank));
         const pctEl = grEl('grNextPct');
         pctEl.textContent = Number.isFinite(orderPct) ? fmtPercent(localDecimal(orderPct, 1)) : '-';
         pctEl.style.color = grPctColor(orderPct, orderPos);
         pctEl.style.borderColor = grPctColor(orderPct, orderPos);
+      } else {
+        // nothing to unlock in this game: say so, the "reading the schema" line of the request must not stay on screen
+        grSet('grNextName', '-');
+        grSet('grNextMeta', game && grPlan ? t('Açılacak başarım yok.') : (game ? t('Başarım şeması okunuyor…') : t('Önce soldan bir oyun ekle.')));
+        const pctEl = grEl('grNextPct'); if (pctEl){ pctEl.textContent = '-'; pctEl.style.color = '#7F879B'; pctEl.style.borderColor = '#2B3345'; }
       }
 
       // Unlock order table
-      grSet('grOpenedCount', opened + ' / ' + sumTotal);
+      const openedHere = grPlan && grPlan.parallel && game ? grOpened.filter(a=>a.appid===game.appid).length : opened;
+      grSet('grOpenedCount', openedHere + ' / ' + (grPlan && grPlan.parallel ? selList.length + openedHere : sumTotal));
       const el = grEl('grList');
-      if (!grPlan || !grPlan.queueList || !grPlan.queueList.length){
+      if (!selList.length){
         el.innerHTML = '<div style="padding:36px 0;text-align:center;font-size:12px;color:#7F879B">'
           + (grQueue.length ? 'Açılacak başarım yok.' : 'Soldan oyun ekle, açılma sırası burada görünecek.') + '</div>';
         return;
@@ -459,10 +460,10 @@
       const openedNames = new Set(grOpened.map(a=>a.name));
       let html = '';
       let lastLabel = null;
-      grPlan.queueList.forEach((a, i)=>{
+      selList.forEach((a, i)=>{
         // Divider when the rarity changes: the "isDivider" row in the template.
         const et = grRarityLabel(a.rarityPct, a.pos);
-        if (et !== lastLabel && !grPlan.parallel){
+        if (et !== lastLabel){
           lastLabel = et;
           html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 2px 6px">'
             + '<span style="flex:1;height:1px;background:#1D2432"></span>'
@@ -476,8 +477,7 @@
           + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">#'+(i+1)+'</span>'
           + '<div style="width:33px;height:33px;flex-shrink:0;border-radius:11px;border:1px solid '+(wasOpened?GRC.ok:'#2B3345')+';background:#101621;display:flex;align-items:center;justify-content:center">'
           + '<span style="width:10px;height:10px;background:'+(wasOpened?GRC.ok:colorVal)+';transform:rotate(45deg)"></span></div>'
-          + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(wasOpened?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')
-          + (grPlan.parallel && a.gameTitle ? '<span style="font-weight:400;font-size:11px;color:#8B8F9E"> · '+esc(a.gameTitle)+'</span>' : '')+'</span>'
+          + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(wasOpened?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')+'</span>'
           + '<span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+colorVal+';border:1px solid '+colorVal+';border-radius:12px;padding:2px 8px;flex-shrink:0">'+esc(grRarityLabel(a.rarityPct, a.pos))+'</span>'
           + '<span style="width:52px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+colorVal+';text-align:right">'
           + (Number.isFinite(a.rarityPct) ? fmtPercent(localDecimal(a.rarityPct, 1)) : '-')+'</span>'
@@ -511,7 +511,9 @@
 
     // ---- target + HLTB calculations ----
     function grPaintAccount(){
-      const game = grQueue[0];
+      const game = grSel();
+      grSet('grTcGameName', game ? game.name : '');
+      grSet('grTcGameName2', game ? game.name : '');
       const durationMs = grDurationMs();
       const suitable = grPlan ? (grPlan.suitableTotal || 0) : 0;
       const auto = !!grVal('grTargetAuto', true);
@@ -614,7 +616,7 @@
         const el = grEl(id);
         if (el && document.activeElement !== el) el.value = String(grVal(keyName, defaultVal));
       });
-      const game = grQueue[0];
+      const game = grSel();
       const not = grEl('grSpeedNote');
       if (!not) return;
       if (!game){ not.textContent = t('Önce soldan bir oyun ekle.'); return; }
@@ -694,7 +696,7 @@
     ['grTcMain', 'grTc'].forEach((id)=>{
       const el = grEl(id); if (!el) return;
       el.addEventListener('change', async ()=>{
-        const game = grQueue[0];
+        const game = grSel();
         const hour = Math.max(0, Math.min(20000, parseFloat(el.value) || 0));
         el.value = hour > 0 ? String(hour) : '';
         if (game) await grTcWrite(game.appid, hour);
@@ -870,7 +872,10 @@
     }
     if (window.imu.realistic && window.imu.realistic.onTick){
       window.imu.realistic.onTick((d)=>{
+        const wasRunning = !!grStatus.runningFlag, wasTogether = !!grStatus.parallel;
         grStatus = d || { runningFlag:false };
+        // the list marks the games being played: it is drawn again when a run starts or the way it runs changes
+        if (!!grStatus.runningFlag !== wasRunning || !!grStatus.parallel !== wasTogether) grPaintLibrary();
         paintRunButtons();
         if (grTimerUI){ clearInterval(grTimerUI); grTimerUI = null; }
 
@@ -899,7 +904,7 @@
     }
     if (window.imu.realistic && window.imu.realistic.onOpened){
       window.imu.realistic.onOpened((a)=>{
-        grOpened.push({ name:a.name, rarityPct:a.rarityPct, ts:Date.now() });
+        grOpened.push({ name:a.name, rarityPct:a.rarityPct, appid:a.appid, ts:Date.now() });
         pushFeed('card', 'Başarım açıldı', a.name + (a.gameTitle ? (' · ' + a.gameTitle) : ''), 'Başarılı');
         grPaintList();
       });
