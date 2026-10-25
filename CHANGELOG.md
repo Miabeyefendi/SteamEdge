@@ -7,6 +7,25 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.7.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.6)
+
+Realistic Mode with a long queue froze the window and could not show most games: a real queue of 17 games with 18,000 achievements was measured and fixed, and the games at the same time are now played five at a time.
+
+### Fixed
+
+- **The achievement list stayed on "Reading the achievement schema..." for most games.** Some games name their achievements with a bare number ("1", "2"...); the schema reader kept those as numbers and drawing the list stopped at the first one. In the measured queue 14 of 17 games had such names (1,066 achievements). Names are now always read as text.
+- **The window froze for seconds while a run went on.** The list drew every achievement of the selected game: 2,400 rows took 1.4 seconds to lay out and were drawn again twice on every unlock. It now draws the first 150 and counts the rest ("... and 2,250 more achievements"); the game picture is no longer loaded again on every unlock.
+- **A click on a game in the queue took 5 seconds or more.** Every click asked for the whole plan again, which read the schema of every game of the queue (2 MB for 17 games). With the games at the same time the plan already holds every game, so a click now shows the game at once (87 ms at most for all 17).
+
+### Changed
+
+- **Realistic Mode plays at most five games at the same time.** With "Play the games at the same time" on, the queue is cut into groups of five in its order: the games of a group are open together, each unlocks on its own plan within the time of the group, a group lasts as long as its longest game, and then the next five games take its place. The games being played are the ones marked with the green dot. All 17 games of a queue used to be open at once and sent their unlocks to Steam together; a queue longer than 32 games was refused, and now it simply runs in more groups.
+- `npm test` runs 60 tests. `realistic-sweep` covers the groups (20 and 33 games, the switch from one group to the next, every unlock sent while its game is open), `ui-realistic` a list of 2,400 achievements with numbers as names and a click that does not ask for the plan again, `steam-engine` the schema with a numeric achievement name.
+
+**As always:** never share your `settings/` folder - it holds your Steam login token.
+
+SHA-256 (`SteamEdge-v1.7.6-win-x64.rar`): `2d8ffd17329cc0eb2698893a62d53acbc2f8d59bb85927daf97d24d2a434ff5a`
+
 ## [1.7.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.5)
 
 A scenario check of every job (card farming, the Hour Booster and its sync, Realistic Mode, bulk achievements, market sales, the key queue) found six defects; they are fixed, the Realistic Mode list works per game again, and each scenario is now a test.

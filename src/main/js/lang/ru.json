@@ -1525,6 +1525,6 @@
  "Kaldığı yerden sürdürüldü: #": "Продолжено с того же места: #",
  "Diğer hesaplarda çalışıyor": "Работает на других аккаунтах",
  "Oyunları aynı anda oynat": "Запускать игры одновременно",
- "Açıkken sıradaki oyunların hepsi birlikte açık kalır (en fazla 32), saat yükselticideki gibi; her oyunun başarımları kendi planına göre aynı süre içinde açılır ve süre en uzun oyununki kadardır. Kapalıyken oyunlar sırayla oynatılır ve süreleri toplanır.": "Если включено, все игры очереди остаются открытыми вместе (до 32), как в накрутке часов; достижения каждой игры открываются по её собственному плану за одно и то же время, а длительность равна длительности самой долгой игры. Если выключено, игры идут по очереди, и их длительности складываются.",
- "En fazla 32 oyun aynı anda oynatılabilir.": "Одновременно можно запускать не больше 32 игр."
+ "Açıkken sıradaki oyunlar beşer beşer birlikte açık kalır, saat yükselticideki gibi: bir gruptaki oyunların başarımları kendi planına göre aynı süre içinde açılır, grubun süresi en uzun oyununki kadardır, sonra sıradaki beş oyun gelir. Kapalıyken oyunlar tek tek sırayla oynatılır ve süreleri toplanır.": "Если включено, игры очереди открыты одновременно по пять, как в бустере часов: достижения игр группы открываются по своему плану за одно и то же время, группа длится столько, сколько её самая долгая игра, затем идут следующие пять игр. Если выключено, игры запускаются по очереди, и их длительности складываются.",
+ "… ve # başarım daha": "… и ещё достижений: #"
 }

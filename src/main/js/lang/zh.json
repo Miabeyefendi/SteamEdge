@@ -1525,6 +1525,6 @@
  "Kaldığı yerden sürdürüldü: #": "已從中斷處繼續：#",
  "Diğer hesaplarda çalışıyor": "在其他帳號上執行中",
  "Oyunları aynı anda oynat": "同時執行所有遊戲",
- "Açıkken sıradaki oyunların hepsi birlikte açık kalır (en fazla 32), saat yükselticideki gibi; her oyunun başarımları kendi planına göre aynı süre içinde açılır ve süre en uzun oyununki kadardır. Kapalıyken oyunlar sırayla oynatılır ve süreleri toplanır.": "開啟時，佇列中的所有遊戲會一起保持開啟（最多 32 款），如同時數提升；每款遊戲的成就依各自的計畫在同一段時間內解鎖，時長為最長那款遊戲的時長。關閉時，遊戲會依序執行，時長相加。",
- "En fazla 32 oyun aynı anda oynatılabilir.": "最多只能同時執行 32 款遊戲。"
+ "Açıkken sıradaki oyunlar beşer beşer birlikte açık kalır, saat yükselticideki gibi: bir gruptaki oyunların başarımları kendi planına göre aynı süre içinde açılır, grubun süresi en uzun oyununki kadardır, sonra sıradaki beş oyun gelir. Kapalıyken oyunlar tek tek sırayla oynatılır ve süreleri toplanır.": "開啟時，佇列中的遊戲每五個一組同時開啟，就像時數提升器：同組遊戲的成就依各自的計畫在同一段時間內解鎖，一組的時長等於其中最長的遊戲，之後輪到下五個遊戲。關閉時，遊戲依序逐一進行，時長相加。",
+ "… ve # başarım daha": "… 還有 # 個成就"
 }

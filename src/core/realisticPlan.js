@@ -5,6 +5,7 @@
 const HOUR = 3600000;
 const MIN_SPAN_MS = 15 * 60000;
 const MAX_SPAN_MS = 999 * HOUR;          // the most the duration field can hold
+const TOGETHER_MAX = 5;                  // games played at the same time in Realistic Mode: more of them sent so many unlocks to Steam at once
 
 // The proportional time (0..1) of the i-th unlock in the session according to the model.
 // linear : even intervals
@@ -217,22 +218,33 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
     return { appid, h, total, left, tc, difficulty, denominator, playedHours, expected, behind, goal: 0, queueList: [] };
   });
   const auto = !!(pick.autoSpan && autoSpanAllowed);
-  // Games at the same time (parallel, the default): they are all open together, like the Hour Booster, and every game has the whole run for its own plan, so the
-  // run is as long as its longest game. One after the other: each game gets its part of the run and the run is the sum.
+  // Games at the same time (parallel, the default): like the Hour Booster, but at most TOGETHER_MAX of them. The queue is cut into groups of that many in its order;
+  // the games of a group are open together and each has the whole time of the group for its own plan (the group is as long as its longest game), and the groups
+  // come one after the other. One after the other: each game gets its part of the run and the run is the sum.
   const parallel = !!pick.parallel && games.length > 1;
+  const fixedOf = (g) => pick.goalByGame && pick.goalByGame[g.appid];
+  const runs = (g) => (fixedOf(g) != null ? Math.floor(+fixedOf(g) || 0) > 0 : g.left > 0);
+  const playing = games.filter(runs);
+  const groups = [];
+  if (parallel) for (let i = 0; i < playing.length; i += TOGETHER_MAX) groups.push(playing.slice(i, i + TOGETHER_MAX));
+  const hoursOf = (g) => autoHoursForGame(g, pick.goalAuto ? g.left : Math.min(g.left, pick.goalValue > 0 ? pick.goalValue : g.left), !!pick.accelerateDelayed);
+  // the weight of a group in the run: its longest game (the hours it needs, or with a given duration the most achievements)
+  const weights = groups.map((grp) => Math.max(...grp.map((g) => (auto ? hoursOf(g) : g.left)), 0));
   let spanMs = Math.max(60000, +givenSpanMs || HOUR);
   if (auto) {
-    let hours = 0;
-    games.forEach((g) => {
-      const count = pick.goalAuto ? g.left : Math.min(g.left, pick.goalValue > 0 ? pick.goalValue : g.left);
-      const h = autoHoursForGame(g, count, !!pick.accelerateDelayed);
-      hours = parallel ? Math.max(hours, h) : hours + h;
-    });
+    const hours = parallel ? weights.reduce((t, w) => t + w, 0) : games.reduce((t, g) => t + hoursOf(g), 0);
     spanMs = Math.round(Math.min(MAX_SPAN_MS, Math.max(MIN_SPAN_MS, hours * HOUR)));
   }
+  const weightSum = weights.reduce((t, w) => t + w, 0) || 1;
+  let from = 0;
+  groups.forEach((grp, i) => {
+    const part = groups.length > 1 ? weights[i] / weightSum : 1;
+    grp.forEach((g) => { g.slotFrom = from; g.slotPart = part; });
+    from += part;
+  });
   const totalLeft = games.reduce((t, g) => t + g.left, 0) || 1;
   games.forEach((g) => {
-    const share = parallel ? spanMs : spanMs * (g.left / totalLeft);          // this game's part of the run
+    const share = parallel ? spanMs * (g.slotPart || 0) : spanMs * (g.left / totalLeft);          // this game's part of the run
     const fixed = pick.goalByGame && pick.goalByGame[g.appid];
     if (fixed != null) {
       // A run that is being resumed after a restart: exactly what was left of the target of this game, whatever the other options say
@@ -248,17 +260,21 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
   // Not for a run that has to fit a given time (the schedule's range, or what is left of a resumed run, which was already stretched when it started).
   const stretch = Math.max(1, Math.min(4, +pick.speedMultiplier || 1));
   if (stretch > 1 && autoSpanAllowed) spanMs = Math.round(Math.min(MAX_SPAN_MS, spanMs * stretch));
-  return { spanMs, auto, parallel, games };
+  // where each game is placed in the run (mergeParallel) and when each group starts (the engine opens the games of a group then)
+  games.forEach((g) => { g.slotStart = Math.round(spanMs * (g.slotFrom || 0)); g.slotMs = Math.round(spanMs * (g.slotPart || 0)); });
+  return { spanMs, auto, parallel, games, groups: groups.map((grp) => ({ appids: grp.map((g) => g.appid), startMs: grp[0].slotStart, spanMs: grp[0].slotMs })) };
 }
 
 // The run of games played at the same time as ONE timeline: every game is placed over the whole span with its own backlog and timing, every item keeps the game it belongs
 // to, and the lists are merged by time (a stable sort keeps a game's own order, so its ultra rare ones still come after its others).
 //   games : [{ appid, gameTitle, queueList, accumulation, timing }]
+// With the games in groups (slotStart, slotMs from planGames) every game is placed over the time of its group instead.
 function mergeParallel(games, spanMs, model) {
   const all = [];
   games.forEach((g) => {
-    placeRealisticTimes(g.queueList, spanMs, model, g.accumulation, g.timing);
-    g.queueList.forEach((x, i) => all.push(Object.assign(x, { appid: g.appid, gameTitle: g.gameTitle, order: i })));
+    const start = g.slotMs ? g.slotStart || 0 : 0;
+    placeRealisticTimes(g.queueList, g.slotMs || spanMs, model, g.accumulation, g.timing);
+    g.queueList.forEach((x, i) => all.push(Object.assign(x, { appid: g.appid, gameTitle: g.gameTitle, order: i, timeValue: (x.timeValue || 0) + start })));
   });
   return all.sort((a, b) => (a.timeValue - b.timeValue) || (a.appid === b.appid ? a.order - b.order : 0));
 }
@@ -266,6 +282,6 @@ function mergeParallel(games, spanMs, model) {
 module.exports = {
   realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes,
   tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, autoHoursForGame, planGames, mergeParallel,
-  BACKLOG_MAX_HOURS, BACKLOG_MIN_PER_ACHIEVEMENT,
+  BACKLOG_MAX_HOURS, BACKLOG_MIN_PER_ACHIEVEMENT, TOGETHER_MAX,
   DELAY_UPPER_LIMIT, ULTRA_POS, STORY_POS, RARITY_BANDS, MIN_SPAN_MS, MAX_SPAN_MS,
 };

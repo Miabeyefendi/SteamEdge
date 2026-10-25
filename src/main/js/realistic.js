@@ -235,7 +235,7 @@
       el.innerHTML = grQueue.map(g=>{
         const on = !!sel && g.appid === sel.appid;
         // a game that is being played now: all of them when the games run together, the current one when they run one after the other
-        const playing = !!grStatus.runningFlag && (grStatus.parallel ? true : g.appid === grStatus.appid);
+        const playing = !!grStatus.runningFlag && (grStatus.parallel ? (!grStatus.playingIds || grStatus.playingIds.includes(g.appid)) : g.appid === grStatus.appid);
         const achEt = g.hasStats ? 'BAŞARIM' : 'SAAT';
         const achFg = g.hasStats ? GRC.sub : GRC.warn;
         return '<div data-grrow="'+g.appid+'"'+(on ? ' data-grsel="1"' : '')+(playing ? ' data-grplaying="1"' : '')+' style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;border:1px solid '
@@ -268,8 +268,11 @@
         const id = +row.getAttribute('data-grrow');
         if (id === (grSel() && grSel().appid)) return;
         grSelectedId = id;
+        // the games at the same time: the plan is one for the whole queue, the clicked game's figures come with it (asking again read every game's schema, 5 s and 2 MB a click)
+        const own = grPlan && grPlan.perGame && grPlan.perGame[id];
+        if (own) grPlan = Object.assign({}, grPlan, own);
         grPaintLibrary(); grPaintAccount(); grPaintList(); grPaintSpeed();
-        grFetchPlan();
+        if (!own) grFetchPlan();
       }
     });
 
@@ -383,6 +386,7 @@
     }
 
     // ---- middle panel ----
+    const GR_LIST_MAX = 150;
     function grPaintList(){
       const game = grSel();
       const isRunning = !!grStatus.runningFlag;
@@ -403,7 +407,8 @@
       grSet('grGameName', kutupAd || (engineValid ? engineName : null) || engineName || '-');
       const art = grEl('grGameArt');
       const artId = isRunning ? grStatus.appid : (game && game.appid);
-      art.innerHTML = artId ? gameThumb(artId) : '';
+      // the picture is put in only when the game changes: with the games at the same time the game of the next unlock changes all the time and the image was loaded again each time
+      if (art.dataset.appid !== String(artId || '')){ art.dataset.appid = String(artId || ''); art.innerHTML = artId ? gameThumb(artId) : ''; }
       const opened = isRunning ? grStatus.openedGames : 0;
       const sumTotal = isRunning ? grStatus.totalSum : (grPlan ? grPlan.totalSum : 0);
       grSet('grOpened', opened + ' / ' + sumTotal);
@@ -460,7 +465,8 @@
       const openedNames = new Set(grOpened.map(a=>a.name));
       let html = '';
       let lastLabel = null;
-      selList.forEach((a, i)=>{
+      // A game can have thousands of achievements (2,400 rows took 1.4 s to lay out and were drawn again on every unlock): the first ones are drawn, the rest is counted
+      selList.slice(0, GR_LIST_MAX).forEach((a, i)=>{
         // Divider when the rarity changes: the "isDivider" row in the template.
         const et = grRarityLabel(a.rarityPct, a.pos);
         if (et !== lastLabel){
@@ -485,6 +491,9 @@
           + (wasOpened ? 'AÇILDI' : grTimeLabel(a.timeValue))+'</span>'
           + '</div>';
       });
+      if (selList.length > GR_LIST_MAX){
+        html += '<div style="padding:12px 0;text-align:center;font-size:11px;color:#7F879B">' + esc(tf('… ve # başarım daha', selList.length - GR_LIST_MAX)) + '</div>';
+      }
       el.innerHTML = html;
     }
 
@@ -872,10 +881,10 @@
     }
     if (window.imu.realistic && window.imu.realistic.onTick){
       window.imu.realistic.onTick((d)=>{
-        const wasRunning = !!grStatus.runningFlag, wasTogether = !!grStatus.parallel;
+        const wasRunning = !!grStatus.runningFlag, wasTogether = !!grStatus.parallel, wasPlaying = String(grStatus.playingIds || '');
         grStatus = d || { runningFlag:false };
         // the list marks the games being played: it is drawn again when a run starts or the way it runs changes
-        if (!!grStatus.runningFlag !== wasRunning || !!grStatus.parallel !== wasTogether) grPaintLibrary();
+        if (!!grStatus.runningFlag !== wasRunning || !!grStatus.parallel !== wasTogether || String(grStatus.playingIds || '') !== wasPlaying) grPaintLibrary();
         paintRunButtons();
         if (grTimerUI){ clearInterval(grTimerUI); grTimerUI = null; }
 
@@ -906,6 +915,8 @@
       window.imu.realistic.onOpened((a)=>{
         grOpened.push({ name:a.name, rarityPct:a.rarityPct, appid:a.appid, ts:Date.now() });
         pushFeed('card', 'Başarım açıldı', a.name + (a.gameTitle ? (' · ' + a.gameTitle) : ''), 'Başarılı');
-        grPaintList();
+        // the tick that follows every unlock draws the list anyway; here only when it marks a row of the game on screen
+        const sel = grSel();
+        if (!grStatus.parallel || (sel && sel.appid === a.appid)) grPaintList();
       });
     }

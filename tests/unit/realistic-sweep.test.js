@@ -120,19 +120,38 @@ function common(r, opt) {
   // ---- the user's case: many short games already played past their completion time ----
   const zups = Array.from({ length: 8 }, (_, i) => ({ appid: 100 + i, total: 30, tc: 2, played: 2.5 }));
   let r = await runOnce('8 short games played past 2 hours, together', zups, { parallel: true }, 2 * HOUR);
-  say('8 finished short games together: the run is a few hours, not the sum of them', r.res.ok && r.plannedSpan <= 3 * HOUR + 1000, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : JSON.stringify(r.res));
+  const eightOne = r.res.ok ? r.plannedSpan : 0;
+  say('8 finished short games together: two groups of at most five, a few hours, not the sum of eight', r.res.ok && r.plannedSpan <= 2 * 3 * HOUR + 1000, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : JSON.stringify(r.res));
   r = await runOnce('8 short games played past 2 hours, one after the other', zups, { parallel: false }, 2 * HOUR);
-  say('the same one after the other adds up (each game a short catch-up)', r.res.ok && r.plannedSpan > 3 * HOUR, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : '');
+  say('the same one after the other adds up (each game a short catch-up), longer than the two groups', r.res.ok && r.plannedSpan > eightOne, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : '');
   // the estimate the page sends when no completion time was typed: playtime x 2 (medium game). It never counts as finished, so the duration is long; per game it is
   // still the same as one game's
   const unknown = Array.from({ length: 20 }, (_, i) => ({ appid: 200 + i, total: 30, tc: 5, played: 2.5 }));
   r = await runOnce('20 games without a typed completion time, together', unknown, { parallel: true }, 2 * HOUR);
   const one = planner.planGames([{ appid: 1, h: { queueList: [], suitableTotal: 30, totalAchievements: 30, unlockedState: 0 } }], Object.assign({}, BASE, { tcByGame: { 1: 5 }, playtime: { 1: 150 } }), 2 * HOUR, true);
-  say('20 games together last as long as one of them (' + (one.spanMs / HOUR).toFixed(2) + ' h), not 20 times it', r.res.ok && Math.abs(r.plannedSpan - one.spanMs) < 60000, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : JSON.stringify(r.res));
-  // 33 games together: Steam's limit
+  say('20 games together: four groups of five, each as long as one game (' + (one.spanMs / HOUR).toFixed(2) + ' h), not 20 times it', r.res.ok && Math.abs(r.plannedSpan - 4 * one.spanMs) < 60000, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : JSON.stringify(r.res));
+  say('20 games together: never more than five games are played at once', r.res.ok && r.h.plays.every((p) => p.ids.length <= 5) && r.h.plays.length === 4, JSON.stringify(r.h.plays.map((p) => p.ids.length)));
+  // 33 games together: seven groups (5 x 6 + 3), the queue is not refused any more
   const many = Array.from({ length: 33 }, (_, i) => ({ appid: 300 + i, total: 5, tc: 2, played: 0 }));
   r = await runOnce('33 games together', many, { parallel: true }, 2 * HOUR);
-  say('33 games together are refused with the reason (Steam counts 32)', !r.res.ok && /32/.test(String(r.res.error)), JSON.stringify(r.res));
+  say('33 games together run in seven groups, at most five at once, and every game gets its turn', r.res.ok && r.h.plays.length === 7 && r.h.plays.every((p) => p.ids.length <= 5) && new Set(r.h.plays.flatMap((p) => p.ids)).size === 33, JSON.stringify(r.res.ok ? r.h.plays.map((p) => p.ids.length) : r.res));
+
+  // ---- groups: the games of a group are open in its time, and each unlock comes while its own game is open ----
+  const h3 = createHarness();
+  const seven = [21, 22, 23, 24, 25, 26, 27];
+  seven.forEach((id) => h3.game(id, 12, 0));
+  h3.account('a');
+  const st = await h3.api.realisticStartFor('a', { appid: 21, gameEntries: seven, spanMs: 4 * HOUR, optionList: Object.assign({}, BASE, { autoSpan: false, goalAuto: false, goalValue: 0, parallel: true, tcByGame: {}, playtime: {} }) }, false);
+  const d3 = h3.accounts.get('a').realistic;
+  say('groups: the first five games are opened at the start, and the page is told which', st.ok && h3.plays.length === 1 && h3.plays[0].ids.join() === '21,22,23,24,25' && String(h3.lastTick().playingIds) === '21,22,23,24,25', JSON.stringify(h3.plays) + ' ' + JSON.stringify(h3.lastTick().playingIds));
+  const open = [];
+  const unlocksSeen = h3.unlocks.length;
+  for (let k = 0; k < 5 * 60; k++) { await h3.advance(60000); open.push([h3.now, (h3.plays[h3.plays.length - 1] || { ids: [] }).ids.slice()]); }
+  const openAt = (t) => { let last = []; open.forEach(([at, ids]) => { if (at <= t) last = ids; }); return last; };
+  say('groups: the last two games take the place of the first five when their time comes', h3.plays.length === 2 && h3.plays[1].ids.join() === '26,27', JSON.stringify(h3.plays.map((p) => p.ids.join())));
+  say('groups: every unlock went to a game that was open at that moment', h3.unlocks.slice(unlocksSeen).every((u) => openAt(u.at).includes(u.appid)), JSON.stringify(h3.unlocks.filter((u) => !openAt(u.at).includes(u.appid)).slice(0, 3)));
+  say('groups: all 84 achievements of the seven games were unlocked and the run ended without a timer left', h3.unlocks.length === 84 && !h3.accounts.get('a').realistic && h3.timers.length === 0, h3.unlocks.length + ' unlocked, timers ' + h3.timers.length + ', running ' + !!h3.accounts.get('a').realistic);
+  void d3;
 
   // ---- a second run after the first ended: only what is still locked, and the numbers say so ----
   const h2 = createHarness();

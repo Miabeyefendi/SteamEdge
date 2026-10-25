@@ -1156,7 +1156,8 @@ class SteamEngine {
     // top level is keyed by appid; grab the object that has a "stats" child
     let appObj = root[String(appid)] || Object.values(root).find((v) => v && typeof v === 'object' && v.stats);
     const statsSchema = (appObj && appObj.stats) || {};
-    const loc = (v) => (typeof v === 'string' ? v : (v && (v.turkish || v.english || Object.values(v)[0])) || '');
+    // the binary schema stores a value that looks like a number as an integer (some games name their achievements "1", "2"...): every name is made text here
+    const loc = (v) => { const x = (v && typeof v === 'object') ? (v.turkish || v.english || Object.values(v)[0]) : v; return x == null ? '' : String(x); };
     const defs = [];
     for (const statId of Object.keys(statsSchema)) {
       const st = statsSchema[statId];
@@ -1167,8 +1168,8 @@ class SteamEngine {
         const disp = b.display || {};
         defs.push({
           statId: +statId, finishAt: +endIdx,
-          apiName: b.name || (statId + '_' + endIdx),
-          name: loc(disp.name) || b.name || '?',
+          apiName: b.name != null && b.name !== '' ? String(b.name) : (statId + '_' + endIdx),
+          name: loc(disp.name) || loc(b.name) || '?',
           desc: loc(disp.desc) || '',
           icon: disp.icon || null, iconGray: disp.icon_gray || null,
           // Steam schema fields:
