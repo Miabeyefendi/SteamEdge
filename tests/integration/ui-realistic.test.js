@@ -180,6 +180,22 @@ app.whenReady().then(async () => {
   send('realistic:tick', { runningFlag: false, isFinished: true, openedGames: 50, failure: 0, totalSum: 50, cause: 'Süre doldu' }); await wait(1200);
   check('when a run ends the plan is read again from Steam (the next run shows only what is still locked)', calls.filter((c) => c[0] === 'plan').length > before2);
 
+  // A real queue: games with thousands of achievements, some of them named with a bare number. The list draws a part of it and counts the rest, and a click
+  // on another game of a plan of the games together takes that game's figures from the plan instead of reading every schema again.
+  const big = await js(`(() => {
+    const list = [];
+    for (let k = 0; k < 2400; k++) list.push({ appid: 10, name: k % 7 === 0 ? k : 'Ach ' + k, rarityPct: 50, pos: k / 2400, timeValue: k * 1000 });
+    for (let k = 0; k < 40; k++) list.push({ appid: 20, name: k, rarityPct: 50, pos: k / 40, timeValue: k * 1000 });
+    grPlan = Object.assign({}, grPlan, { parallel: true, queueList: list, perGame: { 10: { appid: 10, suitableTotal: 2400, totalAchievements: 2500 }, 20: { appid: 20, suitableTotal: 40, totalAchievements: 41 } } });
+    grSelectedId = 20; grPaintList();
+    const t = performance.now(); grSelectedId = 10; grPaintList();
+    return { ms: Math.round(performance.now() - t), rows: document.querySelectorAll('#grList > div').length, more: document.getElementById('grList').textContent.includes('2250') };
+  })()`);
+  check('2,400 achievements: the list draws a part and says how many more there are (numbers as names do not break it)', big && big.rows < 200 && big.more, JSON.stringify(big));
+  before2 = calls.filter((c) => c[0] === 'plan').length;
+  await js("document.querySelector('#grLibrary [data-grrow=\"20\"]').click()"); await wait(600);
+  check('the games together: a click shows the game from the plan it already has, nothing is asked again', calls.filter((c) => c[0] === 'plan').length === before2 && (await js("grPlan.suitableTotal")) === 40 && (await js("document.querySelectorAll('#grList > div').length")) > 30);
+
   // The rarity label follows what the engine does: a proportion of the game's own achievements (very common 20%, common 30%, uncommon 20%, rare 20%, ultra rare 10%)
   const labels = await js("[0, 0.1, 0.2, 0.49, 0.5, 0.69, 0.7, 0.89, 0.9, 0.99].map((p) => grRarityLabel(4.9, p)).concat([grRarityLabel(4.9, undefined), grRarityLabel(60, null), grRarityLabel(null, undefined), grPctColor(4.9, 0.95) !== grPctColor(4.9, 0.1)])");
   check('by place in the game: 0 to 20% very common, 20 to 50% common, 50 to 70% uncommon, 70 to 90% rare, the last tenth ultra rare', labels && labels.slice(0, 10).join() === 'Çok yaygın,Çok yaygın,Yaygın,Yaygın,Az bulunur,Az bulunur,Nadir,Nadir,Ultra nadir,Ultra nadir', labels && labels.slice(0, 10).join());

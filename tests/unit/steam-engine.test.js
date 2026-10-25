@@ -69,5 +69,22 @@ global.fetch = async (url, opts = {}) => {
   e.user.licenses = [{ package_id: 11, time_created: now }]; e.user.getProductInfo = async () => { throw new Error('no answer'); };
   threw = null; try { await e.getRecentAppIds(14); } catch (x) { threw = x; } check('a failed lookup throws (the caller then skips nothing)', !!threw);
   threw = null; try { await e.redeemKey('TIMEOUT'); } catch (x) { threw = x; } check('a request with no Steam answer throws', !!threw);
+
+  // The binary schema keeps a value that looks like a number as an integer: some games name their achievements "1", "2"... The names must come out as text
+  // (a number broke the Realistic Mode list of 14 of 17 games of a real queue).
+  const kv = [];
+  const str = (s) => kv.push(Buffer.from(s + '\0', 'utf8'));
+  const obj = (k, fn) => { kv.push(Buffer.from([0])); str(k); fn(); kv.push(Buffer.from([8])); };
+  const int = (k, v) => { kv.push(Buffer.from([2])); str(k); const b = Buffer.alloc(4); b.writeInt32LE(v); kv.push(b); };
+  const text = (k, v) => { kv.push(Buffer.from([1])); str(k); str(v); };
+  obj('480', () => obj('stats', () => obj('1', () => { text('type', 'ACHIEVEMENTS'); obj('bits', () => {
+    obj('0', () => { int('name', 7); obj('display', () => { obj('name', () => { int('english', 12); }); }); });
+    obj('1', () => { text('name', 'ACH_WIN'); obj('display', () => { obj('name', () => { text('english', 'Winner'); }); }); });
+  }); })));
+  kv.push(Buffer.from([8]));
+  e.steamID = '76561198000000000';
+  e._sendRecv = async () => ({ schema: Buffer.concat(kv), stats: [], crc_stats: 1, eresult: 1 });
+  const raw = await e._getUserStatsRaw(480);
+  check('an achievement named with a bare number gets its names as text', raw && raw.defs[0].apiName === '7' && raw.defs[0].name === '12' && raw.defs[1].name === 'Winner', JSON.stringify(raw && raw.defs.map((d) => [d.apiName, d.name])));
   process.exit(failures ? 1 : 0);
 })();

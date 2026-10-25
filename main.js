@@ -1181,7 +1181,7 @@ function accountJobDetail(s) {
     pack('hours', s.hoursFarm.games || (s.sequentialRequest && s.sequentialRequest.games) || []);
   }
   if (s && s.realistic && s.realistic.activeIds) pack('realistic', s.realistic.activeIds.parallel
-    ? s.realistic.gameEntries.map((g) => ({ appid: g.appid, name: g.name }))
+    ? s.realistic.gameEntries.filter((g) => !s.realistic.playingIds || s.realistic.playingIds.includes(g.appid)).map((g) => ({ appid: g.appid, name: g.name }))
     : [{ appid: s.realistic.activeIds.appid, name: s.realistic.activeIds.gameTitle }]);
   return out;
 }
@@ -3257,7 +3257,34 @@ function realisticClear(steamID) {
   const s = accounts.get(steamID);
   if (!s) return;
   if (s.realistic && s.realistic.timer) clearTimeout(s.realistic.timer);
+  if (s.realistic && s.realistic.groupTimer) clearTimeout(s.realistic.groupTimer);
   s.realistic = null;
+}
+
+// The games at the same time are played in groups (at most TOGETHER_MAX, src/core/realisticPlan.js): the group whose time it is now is open, and when the time of
+// the next one comes its games take its place.
+function realisticPlayGroup(steamID, d) {
+  const s = accounts.get(steamID);
+  if (!s || s.realistic !== d || !d.groups || !d.groups.length) return;
+  const elapsed = Date.now() - d.startPoint;
+  let i = 0;
+  while (i + 1 < d.groups.length && elapsed >= d.groups[i + 1].startMs) i++;
+  // the last unlocks of a group can come a few seconds after its time (the random gap, a drop): its games stay open until they are sent
+  const next = d.activeIds && d.activeIds.queueList[d.activeIds.indexNum];
+  if (d.groupIndex >= 0 && i > d.groupIndex && next && d.groups[d.groupIndex].appids.includes(next.appid)) {
+    if (d.groupTimer) clearTimeout(d.groupTimer);
+    d.groupTimer = setTimeout(() => realisticPlayGroup(steamID, d), 5000);
+    return;
+  }
+  if (d.groupIndex !== i) {
+    d.groupIndex = i;
+    d.playingIds = d.groups[i].appids.slice();
+    try { if (s.engine) s.engine.play(d.playingIds, 'realistic'); } catch (_) {}
+    if (i > 0) log('info', '[' + accountName(steamID) + '] realistic mode: group ' + (i + 1) + '/' + d.groups.length + ' opened (' + d.playingIds.join(', ') + ')');
+    realisticNotify(steamID);
+  }
+  if (d.groupTimer) clearTimeout(d.groupTimer);
+  d.groupTimer = i + 1 < d.groups.length ? setTimeout(() => realisticPlayGroup(steamID, d), Math.max(1000, d.groups[i + 1].startMs - elapsed)) : null;
 }
 
 // The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
@@ -3271,6 +3298,7 @@ function realisticNotify(steamID, extra) {
   accountBroadcast(steamID)('realistic:tick', Object.assign({
     runningFlag: !!d,
     parallel: !!(a && a.parallel),
+    playingIds: d && a && a.parallel ? (d.playingIds || null) : null,     // the games of the group being played now
     appid: a ? ((nextItem && nextItem.appid) || a.appid) : null,
     gameTitle: a ? ((nextItem && nextItem.gameTitle) || a.gameTitle) : null,
     // toplam/acilan describe the WHOLE session; the queue can hold more than one game.
@@ -3614,7 +3642,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
     // the games at the same time: the preview is the merged timeline of all of them over the whole run, the one the engine runs
     const together = built.parallel ? built.games.filter((g) => g.queueList.length) : null;
     const shown = together && together.length > 1
-      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList,
+      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs,
           accumulation: computeRealisticAccum(g.appid, g.h, pick), timing: realisticTimeSetting(g.appid, pick) })), built.spanMs, pick.model)
       : head.queueList;
     const shownShare = shown === head.queueList ? share : built.spanMs;
@@ -3645,6 +3673,12 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
       queueTotal: built.games.reduce((t, g) => t + g.queueList.length, 0),
       model: pick.model,
       averageIntervalMs: shown.length ? Math.round(unlockWindowMs / shown.length) : 0,
+      // the games at the same time: the figures of every game, so a click on another game of the queue shows its own without asking for the whole plan again
+      perGame: shown === head.queueList ? null : Object.fromEntries(built.games.map((g) => [g.appid, {
+        appid: g.appid, gameTitle: g.h.gameTitle, suitableTotal: g.h.suitableTotal, totalAchievements: g.h.totalAchievements, unlockedState: g.h.unlockedState,
+        protectedFlag: g.h.protectedFlag, ultraSkipped: g.h.ultraSkipped, rarityMissing: !!g.h.rarityMissing,
+        accumulation: Math.min(computeRealisticAccum(g.appid, g.h, pick), g.queueList.length), finishedFlag: !!realisticTimeSetting(g.appid, pick).finishedFlag,
+      }])),
       // Full list: the interface draws the "Unlock order" table from this.
       queueList: shown.map((a) => ({ name: a.name, rarityPct: a.rarityPct, pos: a.pos, timeValue: a.timeValue, gameTitle: a.gameTitle || null, appid: a.appid || null })),
     };
@@ -3677,7 +3711,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     const prepared = {};
     const gameList = [];
     plan.games.forEach((g) => {
-      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList });
+      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs });
       gameList.push({ appid: g.appid, name: g.h.gameTitle });
     });
     if (!gameList.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
@@ -3696,12 +3730,12 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
 
     const firstGame = willRun[0];
     const firstReady = prepared[firstGame.appid];
-    // the games at the same time: Steam counts at most 32 games being played at once
+    // the games at the same time: in groups of at most TOGETHER_MAX, the first group is opened now (realisticPlayGroup)
     const parallel = !!plan.parallel && willRun.length > 1;
-    if (parallel && willRun.length > 32) return { ok: false, error: 'En fazla 32 oyun aynı anda oynatılabilir.' };
+    const groups = parallel ? plan.groups.map((g) => Object.assign({}, g, { appids: g.appids.filter((id) => willRun.some((o) => o.appid === id)) })).filter((g) => g.appids.length) : [];
     const firstShare = parallel ? duration : Math.max(60000, Math.round(duration * ((firstReady.queueList.length || 1) / totalCount)));
     const currentTime = Date.now();
-    motor.play(parallel ? willRun.map((o) => o.appid) : [firstGame.appid], 'realistic');
+    if (!parallel) motor.play([firstGame.appid], 'realistic');
     const d = {
       gameEntries: willRun,
       gameIndex: 0,
@@ -3715,10 +3749,11 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
       finishTime: currentTime + duration,
       timer: null,
       upNextTime: 0,
+      groups, groupIndex: -1, groupTimer: null, playingIds: null,
       activeIds: {
         appid: firstGame.appid, gameTitle: firstGame.name,
         queueList: parallel
-          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList,
+          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList, slotStart: prepared[o.appid].slotStart, slotMs: prepared[o.appid].slotMs,
               accumulation: computeRealisticAccum(o.appid, prepared[o.appid], pick), timing: realisticTimeSetting(o.appid, pick) })), duration, pick.model)
           : placeRealisticTimes(firstReady.queueList, firstShare, pick.model,
                                            computeRealisticAccum(firstGame.appid, firstReady, pick),
@@ -3732,6 +3767,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     const placedEnd = Math.max(...d.activeIds.queueList.map((x) => x.timeValue || 0), 0);
     d.averageIntervalMs = totalTarget && firstShare > 0 ? Math.round(duration * Math.min(1, placedEnd / firstShare) / totalTarget) : d.averageIntervalMs;
     s.realistic = d;
+    realisticPlayGroup(steamID, d);
     // what the schedule repeats: the setup of the last start made by hand
     if (!fromSchedule) {
       accountData(steamID).grLastRun = { gameEntries: listing, spanMs: duration, optionList: (arg && arg.optionList) || null };

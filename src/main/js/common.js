@@ -110,7 +110,7 @@
     // Quotes are escaped too: the output of this function is used as an attribute value in many places
     // (src="'+esc(x)+'"), if the quote was not escaped the value could break out of the attribute.
     const ESC_CHAR = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-    function esc(s){ return (s||'').replace(/[&<>"']/g, c => ESC_CHAR[c]); }
+    function esc(s){ return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ESC_CHAR[c]); }
 
     // ================= FAVORITE GAMES =================
     // A star on a game in the Hour Booster, Realistic Mode and Achievements lists puts it at the top of those lists. The list
