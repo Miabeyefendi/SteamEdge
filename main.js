@@ -3288,7 +3288,7 @@ function realisticPlayGroup(steamID, d) {
 }
 
 // The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
-const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames, mergeParallel } = require('./src/core/realisticPlan');
+const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames, mergeParallel, FAST_GAP_MS } = require('./src/core/realisticPlan');
 
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
@@ -3333,7 +3333,7 @@ function realisticNextDelay(d) {
     const deviation = g * 0.4;
     g = g - deviation + Math.random() * deviation * 2;
   }
-  return Math.max(3000, Math.round(g));   // at least 3 seconds
+  return Math.max(FAST_GAP_MS, Math.round(g));   // never faster than Steam's pace (it was 3 s, which held the overdue ones of a finished game for hours)
 }
 
 async function realisticStep(steamID) {
@@ -3642,7 +3642,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
     // the games at the same time: the preview is the merged timeline of all of them over the whole run, the one the engine runs
     const together = built.parallel ? built.games.filter((g) => g.queueList.length) : null;
     const shown = together && together.length > 1
-      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs,
+      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs, paced: g.paced,
           accumulation: computeRealisticAccum(g.appid, g.h, pick), timing: realisticTimeSetting(g.appid, pick) })), built.spanMs, pick.model)
       : head.queueList;
     const shownShare = shown === head.queueList ? share : built.spanMs;
@@ -3711,7 +3711,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     const prepared = {};
     const gameList = [];
     plan.games.forEach((g) => {
-      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs });
+      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs, paced: g.paced });
       gameList.push({ appid: g.appid, name: g.h.gameTitle });
     });
     if (!gameList.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
@@ -3753,7 +3753,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
       activeIds: {
         appid: firstGame.appid, gameTitle: firstGame.name,
         queueList: parallel
-          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList, slotStart: prepared[o.appid].slotStart, slotMs: prepared[o.appid].slotMs,
+          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList, slotStart: prepared[o.appid].slotStart, slotMs: prepared[o.appid].slotMs, paced: prepared[o.appid].paced,
               accumulation: computeRealisticAccum(o.appid, prepared[o.appid], pick), timing: realisticTimeSetting(o.appid, pick) })), duration, pick.model)
           : placeRealisticTimes(firstReady.queueList, firstShare, pick.model,
                                            computeRealisticAccum(firstGame.appid, firstReady, pick),

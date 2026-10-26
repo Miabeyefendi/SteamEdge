@@ -1526,5 +1526,6 @@
  "Diğer hesaplarda çalışıyor": "Running on other accounts",
  "Oyunları aynı anda oynat": "Play the games at the same time",
  "Açıkken sıradaki oyunlar beşer beşer birlikte açık kalır, saat yükselticideki gibi: bir gruptaki oyunların başarımları kendi planına göre aynı süre içinde açılır, grubun süresi en uzun oyununki kadardır, sonra sıradaki beş oyun gelir. Kapalıyken oyunlar tek tek sırayla oynatılır ve süreleri toplanır.": "When on, the games of the queue stay open together five at a time, as in the Hour Booster: the achievements of the games of a group unlock on their own plans within the same time, a group lasts as long as its longest game, then the next five games come. When off, the games are played one after the other and their durations add up.",
- "… ve # başarım daha": "… and # more achievements"
+ "… ve # başarım daha": "… and # more achievements",
+ "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: played for # hours, past its completion time. All # achievements left count as overdue and unlock one a second."
 }

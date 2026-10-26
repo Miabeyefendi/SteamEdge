@@ -1315,7 +1315,10 @@ class SteamEngine {
     return this._keepGameOpen(appid, () => this._setAchievementsInner(appid, changes));
   }
 
-  async _setAchievementsInner(appid, changes) {
+  // Steam checks every write against the crc of the stats it holds and answers with the new crc. The old code kept the crc it had read, so the second write to a game
+  // was refused (EResult 8), the cache was dropped and the third went through: about half of a run's unlocks failed (measured, 1.7.6). The answer's crc is kept now,
+  // and a write refused on a crc read before the last write is tried once more on a fresh read.
+  async _setAchievementsInner(appid, changes, again) {
     const raw = await this._statsCached(appid);
     if (!raw) throw new Error(translation.t('Bu oyunun başarım şeması yok'));
     const byName = new Map(raw.defs.map((d) => [d.apiName, d]));
@@ -1348,10 +1351,13 @@ class SteamEngine {
     const eresult = resp && typeof resp.eresult !== 'undefined' ? resp.eresult : 2;
     if (eresult !== 1) {
       this.invalidateStats(appid);   // the crc may have gone stale, fetch fresh on the next attempt
+      if (eresult === 8 && !again) return this._setAchievementsInner(appid, changes, true);
       throw new Error(translation.tf('Steam kaydı reddetti (EResult #)', eresult));
     }
     // Update the values we wrote in the cache too so the next operation computes from the right base
     dirty.forEach((val, statId) => raw.statValues.set(statId >>> 0, val));
+    if (resp.crc_stats != null) raw.crc = resp.crc_stats >>> 0;
+    else this.invalidateStats(appid);
     return { ok: true, changed: changes.length };
   }
 

@@ -54,7 +54,7 @@ check('achievements the game protects or the setting skips are not counted: 40 o
 // ---- a finished game (played longer than the completion time) ----
 const finishedPick = Object.assign({}, base, { playtime: { 1: 100 * 60 } });
 plan = planGames([{ appid: 1, h: game(50, 0) }], finishedPick, 2 * HOUR, true);
-check('a game played for 100 hours (past its 60) plans 2.5 hours of catch-up, not 60 hours again', near(plan.spanMs, 2.5 * HOUR, 60000), (plan.spanMs / HOUR).toFixed(2) + ' h');
+check('a game played for 100 hours (past its 60): its 50 achievements are all overdue and go one a second, so the run is the shortest one (15 minutes), not 60 hours again', plan.spanMs === 15 * 60000, (plan.spanMs / HOUR).toFixed(2) + ' h');
 const timing = realisticTimeSetting(1, Object.assign({ autoSpanApplied: plan.auto }, finishedPick));
 check('and the "finished game" compression is not laid on top of the automatic duration', timing.finishedFlag === true && timing.finishedRatio === 1);
 const timingHand = realisticTimeSetting(1, Object.assign({ autoSpanApplied: false }, finishedPick));
@@ -151,10 +151,10 @@ check('the ultra rare weight is the setting, everything else weighs the same', r
   let r = planGames([{ appid: 1, h: game(50, 0) }], tc26, 2 * HOUR, true);
   check('a game never played still gets its whole 26 hours', near(r.spanMs, 26 * HOUR, 60000), (r.spanMs / HOUR).toFixed(2) + ' h');
   r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 26 * 60 } }), 2 * HOUR, true);
-  check('the same game played for 26 hours plans a few hours of catch-up, not another 26', r.spanMs >= HOUR && r.spanMs <= 3 * HOUR, (r.spanMs / HOUR).toFixed(2) + ' h');
+  check('the same game played for 26 hours: no hours of catch-up, the shortest run, not another 26', r.spanMs === 15 * 60000, (r.spanMs / HOUR).toFixed(2) + ' h');
   check('and it still unlocks everything that is left', r.games[0].goal === 50);
   r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 13 * 60 } }), 2 * HOUR, true);
-  check('half played: the 25 achievements behind get minutes, the other 25 get their real hours (1.25 + 13)', near(r.spanMs, 14.25 * HOUR, 60000), (r.spanMs / HOUR).toFixed(2) + ' h');
+  check('half played: the 25 achievements behind get a second each, the other 25 get their real 13 hours', near(r.spanMs, 13 * HOUR + 25000, 2000), (r.spanMs / HOUR).toFixed(3) + ' h');
   r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 26 * 60 }, accelerateDelayed: false }), 2 * HOUR, true);
   check('with the catch-up switched off nothing is shortened', near(r.spanMs, 26 * HOUR, 60000), (r.spanMs / HOUR).toFixed(2) + ' h');
   r = planGames([{ appid: 1, h: game(50, 0) }], Object.assign({}, tc26, { playtime: { 1: 200 * 60 } }), 2 * HOUR, true);

@@ -6,6 +6,7 @@ const HOUR = 3600000;
 const MIN_SPAN_MS = 15 * 60000;
 const MAX_SPAN_MS = 999 * HOUR;          // the most the duration field can hold
 const TOGETHER_MAX = 5;                  // games played at the same time in Realistic Mode: more of them sent so many unlocks to Steam at once
+const FAST_GAP_MS = 1000;                // the pace of the overdue achievements: one a second (measured: 200 writes down to 0.3 s apart, none refused)
 
 // The proportional time (0..1) of the i-th unlock in the session according to the model.
 // linear : even intervals
@@ -181,16 +182,16 @@ function hoursForCount(count, total, tcHours, difficulty) {
   return (count / total) * tcHours * difficulty;
 }
 
-// The achievements a game's playtime already pays for (its backlog) are not "earned" again over hours of play: the playtime is already behind them. They only have to look
-// like a catch-up, so the automatic duration gives them a few minutes each, at most BACKLOG_MAX_HOURS for the whole game, instead of the hours a new player would need.
-// A game played for 26 of its 26 hours therefore plans two to three hours, not another 26.
-const BACKLOG_MIN_PER_ACHIEVEMENT = 3;
-const BACKLOG_MAX_HOURS = 3;
+// The achievements a game's playtime already pays for (its backlog) are not "earned" again over hours of play: the playtime is already behind them, a real player
+// has them. With "Speed up overdue achievements" they go out at FAST_GAP_MS each, as fast as Steam takes them; only what the playtime does not cover yet gets the time
+// of the completion time. A game played for 6 of its 2 hours therefore plans its 2,000 achievements in about half an hour, not 3 hours (1.7.6: 3 minutes each, at most
+// 3 hours a game, and in groups of five 3 hours a group).
 function autoHoursForGame(g, count, catchUp) {
   const backlog = catchUp ? Math.min(count, g.behind) : 0;
-  const catchUpHours = Math.min(BACKLOG_MAX_HOURS, (backlog * BACKLOG_MIN_PER_ACHIEVEMENT) / 60);
-  return catchUpHours + hoursForCount(count - backlog, g.total, g.tc, g.difficulty);
+  return (backlog * FAST_GAP_MS) / HOUR + hoursForCount(count - backlog, g.total, g.tc, g.difficulty);
 }
+// A game whose playtime has passed its completion time, with the overdue ones sped up: all that is left goes at Steam's pace (see mergeParallel)
+const pacedGame = (g, catchUp) => !!catchUp && g.playedHours > 0 && g.playedHours >= g.tc;
 
 // Decides, for the whole queue at once, how many achievements each game unlocks and how long the run lasts.
 //   entries : [{ appid, h }] in queue order, h = the game's full list of unlockable achievements (common to rare), see prepareRealisticQueue
@@ -228,8 +229,14 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
   const groups = [];
   if (parallel) for (let i = 0; i < playing.length; i += TOGETHER_MAX) groups.push(playing.slice(i, i + TOGETHER_MAX));
   const hoursOf = (g) => autoHoursForGame(g, pick.goalAuto ? g.left : Math.min(g.left, pick.goalValue > 0 ? pick.goalValue : g.left), !!pick.accelerateDelayed);
-  // the weight of a group in the run: its longest game (the hours it needs, or with a given duration the most achievements)
-  const weights = groups.map((grp) => Math.max(...grp.map((g) => (auto ? hoursOf(g) : g.left)), 0));
+  // the weight of a group in the run: its longest game (the hours it needs, or with a given duration the most achievements). The finished games of a group share one
+  // pace (Steam counts the writes of the account, not of a game), so theirs add up.
+  const catchUp = !!pick.accelerateDelayed;
+  const weights = groups.map((grp) => {
+    const paced = grp.filter((g) => pacedGame(g, catchUp)), others = grp.filter((g) => !pacedGame(g, catchUp));
+    const sum = paced.reduce((t, g) => t + (auto ? hoursOf(g) : g.left), 0);
+    return Math.max(sum, ...others.map((g) => (auto ? hoursOf(g) : g.left)), 0);
+  });
   let spanMs = Math.max(60000, +givenSpanMs || HOUR);
   if (auto) {
     const hours = parallel ? weights.reduce((t, w) => t + w, 0) : games.reduce((t, g) => t + hoursOf(g), 0);
@@ -262,6 +269,8 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
   if (stretch > 1 && autoSpanAllowed) spanMs = Math.round(Math.min(MAX_SPAN_MS, spanMs * stretch));
   // where each game is placed in the run (mergeParallel) and when each group starts (the engine opens the games of a group then)
   games.forEach((g) => { g.slotStart = Math.round(spanMs * (g.slotFrom || 0)); g.slotMs = Math.round(spanMs * (g.slotPart || 0)); });
+  // the finished games of a group take turns at Steam's pace (mergeParallel); an automatic run only, a duration typed by hand is spread over as before
+  if (auto) groups.forEach((grp) => grp.forEach((g) => { g.paced = pacedGame(g, catchUp); }));
   return { spanMs, auto, parallel, games, groups: groups.map((grp) => ({ appids: grp.map((g) => g.appid), startMs: grp[0].slotStart, spanMs: grp[0].slotMs })) };
 }
 
@@ -269,11 +278,21 @@ function planGames(entries, pick, givenSpanMs, autoSpanAllowed) {
 // to, and the lists are merged by time (a stable sort keeps a game's own order, so its ultra rare ones still come after its others).
 //   games : [{ appid, gameTitle, queueList, accumulation, timing }]
 // With the games in groups (slotStart, slotMs from planGames) every game is placed over the time of its group instead.
+// The finished games of a group (paced) take turns: one of each in queue order, then the next round, one a FAST_GAP_MS for the whole group, so a game that runs out
+// leaves the pace to the others and the group ends when its achievements do (each game at its own share of the pace ran the big ones past the group's time).
 function mergeParallel(games, spanMs, model) {
   const all = [];
+  const groupsAt = new Map();
+  games.filter((g) => g.paced).forEach((g) => { const k = g.slotStart || 0; if (!groupsAt.has(k)) groupsAt.set(k, []); groupsAt.get(k).push(g); });
+  groupsAt.forEach((grp) => {
+    let n = 0;
+    for (let round = 0; grp.some((g) => round < g.queueList.length); round++) {
+      grp.forEach((g) => { if (round < g.queueList.length) g.queueList[round].timeValue = (++n) * FAST_GAP_MS; });
+    }
+  });
   games.forEach((g) => {
     const start = g.slotMs ? g.slotStart || 0 : 0;
-    placeRealisticTimes(g.queueList, g.slotMs || spanMs, model, g.accumulation, g.timing);
+    if (!g.paced) placeRealisticTimes(g.queueList, g.slotMs || spanMs, model, g.accumulation, g.timing);
     g.queueList.forEach((x, i) => all.push(Object.assign(x, { appid: g.appid, gameTitle: g.gameTitle, order: i, timeValue: (x.timeValue || 0) + start })));
   });
   return all.sort((a, b) => (a.timeValue - b.timeValue) || (a.appid === b.appid ? a.order - b.order : 0));
@@ -282,6 +301,6 @@ function mergeParallel(games, spanMs, model) {
 module.exports = {
   realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes,
   tcFor, realisticTimeSetting, computeRealisticAccum, hoursForCount, autoHoursForGame, planGames, mergeParallel,
-  BACKLOG_MAX_HOURS, BACKLOG_MIN_PER_ACHIEVEMENT, TOGETHER_MAX,
+  TOGETHER_MAX, FAST_GAP_MS,
   DELAY_UPPER_LIMIT, ULTRA_POS, STORY_POS, RARITY_BANDS, MIN_SPAN_MS, MAX_SPAN_MS,
 };
