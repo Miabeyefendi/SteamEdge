@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.7.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.9)
+
+Two defects found while every job was checked live on a real account after 1.7.8; both are fixed. The rest of the checks found nothing.
+
+### Fixed
+
+- **"Start with Windows" could start the wrong program, or nothing.** Every start of any copy of SteamEdge wrote the Windows start-up entry for itself. A copy with the setting off (a new version just extracted, before its `settings` folder was copied over) removed the entry of the copy you actually start, and a run from the source put the bare Electron there, which opens an empty window at the next sign-in (that happened during the checks). Now only the built app touches the entry, and turning the setting off removes it only when it belongs to this copy. **If "Start with Windows" is on, start SteamEdge once after updating:** it writes its own entry again.
+- **Changing "Reconnect if the connection drops" during a drop waited out the old wait.** With 3 or 10 attempts the app waits five minutes after the quick attempts; switching to unlimited in the meantime only took effect after those minutes. It now tries at once with the new setting.
+
+### Checked live, no defect
+
+On a real account (a copy of its settings, through a local proxy that cut the network on command): every page opens without an error; the Hour Booster and Realistic Mode are resumed after the app is closed and started again (Realistic Mode with the right number left and no failure); switching between two accounts while a job runs; reconnecting set to off (no attempt, the Reconnect button connects in 2 seconds); a five minute drop with 3 attempts (connected 3 seconds after the network was back); the Realistic Mode schedule starts a run inside its time range.
+
+### Changed
+
+- `npm test` runs 62 tests. New: `login-item` (the start-up entry: a run from the source, the setting on, off in another copy, off in this copy).
+
+**As always:** never share your `settings/` folder - it holds your Steam login token.
+
+SHA-256 (`SteamEdge-v1.7.9-win-x64.rar`): `a585e150a0b9422b20a336d44c896552a412572b355fa43aa7cf9bcaad88d47a`
+
 ## [1.7.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.8)
 
 The Steam connection comes back after a drop: the app no longer stays on "reconnecting" for hours. This release also carries 1.7.7, which was never published: overdue achievements at Steam's pace and the unlocks that failed half of the time.
