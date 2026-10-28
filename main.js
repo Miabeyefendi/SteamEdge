@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, powerMonitor, Notification, dialog, session, safeStorage } = require('electron');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
@@ -435,10 +435,11 @@ let settings = { ...DEFAULT_SETTINGS };
 // used to be two separate settings: when a level was chosen and the file stayed off nothing was recorded.
 const LOG_FILE = path.join(CACHE_DIR, 'steamedge.log');   // the log file is on the cache side
 const LOG_RANK = { error: 0, warn: 1, info: 2, debug: 3 };
-function log(level, msg) {
+// always: written whatever the level (not when the log is off). The connection lines are: "reconnecting" for hours left nothing to read at the default level.
+function log(level, msg, always) {
   const levelNum = settings.logLevel;
   const want = LOG_RANK[levelNum] != null ? LOG_RANK[levelNum] : 0;
-  if ((LOG_RANK[level] != null ? LOG_RANK[level] : 0) > want) return;
+  if (!always && (LOG_RANK[level] != null ? LOG_RANK[level] : 0) > want) return;
   const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${msg}`;
   if (level === 'error') console.error(line); else console.log(line);
   if (levelNum === 'off') return;
@@ -1585,6 +1586,9 @@ function stopAccountJobs(s, steamID) {
 function bindConnectionState(eng, steamID) {
   eng.onStatus = (status, extra) => {
     const s = accounts.get(steamID);
+    // An engine that is not the account's any more says nothing about it: an old one that still reported "reconnecting" set the account to "not connected"
+    // while the new one worked. (During connectAccount the new one is not s.engine yet; its statuses count.)
+    if (s && s.engine && s.engine !== eng && !s.connecting) return;
     if (s) {
       // The counters must not count the downtime: first the time up to that moment is written.
       if (status !== 'connected') statsHour(steamID);
@@ -1605,13 +1609,22 @@ function bindConnectionState(eng, steamID) {
     const message = status === 'dropped'
       ? ('Steam connection dropped: ' + (extra.cause || '?'))
       : status === 'connecting'
-        ? ('reconnecting (attempt ' + extra.attemptCount + ', in ' + Math.round((extra.waitMs || 0) / 1000) + ' s)')
+        ? (extra.trying
+            ? ('reconnecting: attempt ' + extra.attemptCount + ' started (deadline ' + Math.round((extra.deadlineMs || 0) / 1000) + ' s)')
+            : ('reconnecting (attempt ' + extra.attemptCount + ', in ' + Math.round((extra.waitMs || 0) / 1000) + ' s)' + (extra.lastFailure ? ', last: ' + extra.lastFailure : '')))
         : status === 'abandoned'
           ? ('reconnecting stopped' + (extra.permanent ? (' (permanent: ' + (extra.cause || '?') + ')') : (' (' + (extra.attemptCount || 0) + ' attempts)')))
           : status === 'connected' && extra.reconnected
             ? ('reconnected, ' + (extra.gameEntries || 0) + ' games reopened')
             : 'connected';
-    log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message);
+    log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message, true);
+    // The first session of an account whose first logon failed (no network at start) and that the engine's own loop opened later: what connectAccount does
+    // after a logon is done now
+    if (status === 'connected' && extra.first && s && s.engine === eng) {
+      resumeKeyQueue(steamID);
+      resumeAfterConnect(steamID);
+      syncActive();
+    }
     const s2 = accounts.get(steamID);
     if (s2) s2.connectionStatus = { condition: status, ts: Date.now(), ...extra };
     sendRaw('engine:status', { steamID, condition: status, messageText: message, activeIds: steamID === activeSteamID, limitValue: eng.reconnectLimit, ...extra });
@@ -1834,6 +1847,11 @@ async function connectAccount(entry) {
   s.accountName = entry.accountName;
   if (entry.locked) return { ok: false, error: 'Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.' };
   if (s.ready && s.engine) return { ok: true, persona: s.engine.persona, steamID: s.engine.steamID };
+  // The engine of the account is reconnecting on its own (a drop, or a first logon that failed): a page that asked for the connection gets "not connected"
+  // and no second engine. A second one logged on next to the first; Steam drops one of two sessions of an account (LogonSessionReplaced), and the two fought.
+  if (s.engine && s.engine.reconnecting && s.engine.reconnecting()) return { ok: false, error: 'Bağlı değil.' };
+  // An engine that gave up (the attempt limit, another session) is shut down before a new one is made, so it can never come back next to it.
+  if (s.engine && !s.ready) { try { s.engine.logOff(); } catch (_) {} }
   // DO NOT OPEN A SECOND LOGON FOR THE SAME ACCOUNT. The old code short-circuited only if the session was
   // COMPLETE; when `accounts:connectAll` at startup and the pages' `engine:connect`
   // call clashed, two SteamEngines logged on at once. When Steam sees a second client
@@ -1844,7 +1862,7 @@ async function connectAccount(entry) {
   // First logon: one attempt if reconnecting is off, three if on (2 s, 4 s apart). Drops after the logon
   // is established are caught by the engine's own loop (with the limit in Settings).
   const tries = settings.reconnectPolicy === 'off' ? 1 : 3;
-  let lastErr = null;
+  let lastErr = null, lastEngine = null;
   await windowOpened;
   const SteamEngine = steamEngineClass();
   for (let i = 0; i < tries; i++) {
@@ -1852,6 +1870,7 @@ async function connectAccount(entry) {
     // The currency does NOT come from the SETTING but from the account's wallet (the 'wallet' event at logon fills it).
     // The currency is read from the Steam market session; it cannot be chosen in the settings.
     const eng = new SteamEngine();
+    lastEngine = eng;
     eng.reconnectLimit = reconnectLimit();
     eng.parentalPin = accountData(entry.steamID).parentalPin || '';
     try { eng.setProxy(accountData(entry.steamID).proxyUrl); }
@@ -1893,6 +1912,13 @@ async function connectAccount(entry) {
     }
   }
   s.ready = false;
+  // The first logon failed (no network when the app started, Steam down). Before 1.7.8 the account then stayed unconnected until the app was restarted; now the
+  // last engine keeps trying in the background as after a drop, and when it logs on bindConnectionState does what is done above (status 'connected', first).
+  if (lastEngine && settings.reconnectPolicy !== 'off') {
+    s.engine = lastEngine;
+    lastEngine.startReconnecting(entry.refreshToken, settings.offlineMode);
+    log('warn', `[${entry.accountName}] first logon failed, trying again in the background`, true);
+  }
   return { ok: false, error: lastErr ? lastErr.message : 'Bağlanılamadı.' };
   })();
   try { return await s.connecting; }
@@ -4739,8 +4765,15 @@ function realisticScheduleTick() {
   });
 }
 
+// The computer woke up or was unlocked: an account that is not connected tries at once instead of waiting out its backoff (or an attempt made before the
+// sleep). A few seconds first: the network adapter needs them after a wake.
+function nudgeReconnect() {
+  setTimeout(() => accounts.forEach((s) => { if (s.engine && !s.ready && s.engine.retryNow) s.engine.retryNow(); }), 5000);
+}
+
 app.whenReady().then(() => {
   const setup = isSetupConsistent();
+  try { powerMonitor.on('resume', nudgeReconnect); powerMonitor.on('unlock-screen', nudgeReconnect); } catch (_) {}
   if (!setup.ok) {
     log('error', 'mixed installation: version=' + setup.fileVersion + ' running=' + setup.runningItem);
     // The settings have not loaded yet; the language comes from the early setting read before the window opened.

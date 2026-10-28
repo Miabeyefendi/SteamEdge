@@ -11,6 +11,7 @@ function engine(online) {
   e.onStatus = (s, x) => log.status.push([s, x]);
   e._refreshToken = 'tok'; e._playing = [570]; e.reconnectLimit = 3;
   e.isConnected = false; e._reconnectAttempt = 2; e.gaveUp = true; e.permanentDisconnect = false; e._reconnectTimer = null; e._wasShutDown = false;
+  e._everConnected = true;          // it was connected before the drop (1.7.8: a first session is reported as first, not as reconnected)
   return { e, log };
 }
 

@@ -383,16 +383,20 @@ class SteamEngine {
     if (this._wasShutDown || this._reconnectTimer || this._attemptTimer) return;
     if (!this._refreshToken) return;
     const bound = this.reconnectLimit;
-    if (bound != null && this._reconnectAttempt >= bound) {
+    // "Off" in the settings: no attempt at all
+    if (bound === 0) {
       this.gaveUp = true;
       this._reportStatus('abandoned', { permanent: false, attemptCount: this._reconnectAttempt, limitValue: bound });
       return;
     }
+    // A limit (10 or 3 attempts) is the number of quick attempts; after them the loop goes on every SLOW_WAIT_MS. It used to stop for good: with 3 attempts
+    // a drop longer than a minute left the account disconnected until the app was restarted (measured on a real account, 1.7.8).
+    const slow = bound != null && this._reconnectAttempt >= bound;
     this._reconnectAttempt++;
     // Exponential backoff up to a minute: Steam does not accept right away after transient problems and trying every second makes it worse, but five minutes
     // (before 1.7.8) left the app waiting long after the network was back.
-    const wait = Math.min(SteamEngine.RECONNECT_MAX_WAIT_MS, 5000 * Math.pow(2, Math.min(6, this._reconnectAttempt - 1)));
-    this._reportStatus('connecting', { attemptCount: this._reconnectAttempt, waitMs: wait, nextAt: Date.now() + wait, lastFailure: this._lastFailure || null });
+    const wait = slow ? SteamEngine.SLOW_WAIT_MS : Math.min(SteamEngine.RECONNECT_MAX_WAIT_MS, 5000 * Math.pow(2, Math.min(6, this._reconnectAttempt - 1)));
+    this._reportStatus('connecting', { attemptCount: this._reconnectAttempt, waitMs: wait, nextAt: Date.now() + wait, slow, lastFailure: this._lastFailure || null });
     this._reconnectTimer = setTimeout(() => {
       this._reconnectTimer = null;
       this._attemptNow();
@@ -411,7 +415,7 @@ class SteamEngine {
       this._attemptTimer = null;
       if (this._wasShutDown || this.isConnected) return;
       if (this._recoverIfOnline()) return;
-      this._lastFailure = 'deneme yanıtsız kaldı';
+      this._lastFailure = 'no answer by the deadline';
       this._replaceUser();
       this._scheduleReconnect();
     }, SteamEngine.ATTEMPT_TIMEOUT_MS);
@@ -1613,6 +1617,8 @@ SteamEngine.PERMANENT_DISCONNECT = new Set([5, 15, 26, 27, 34]);
 // An attempt that has not logged on by then is thrown away with its steam-user instance; the wait between attempts grows up to the second value.
 SteamEngine.ATTEMPT_TIMEOUT_MS = 60000;
 SteamEngine.RECONNECT_MAX_WAIT_MS = 60000;
+// After the quick attempts of a limit in the settings (10 or 3): one attempt every five minutes, never given up
+SteamEngine.SLOW_WAIT_MS = 5 * 60000;
 // Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
 SteamEngine.OWNER_ORDER = ['realistic', 'card', 'hours', 'sequential', 'general'];
