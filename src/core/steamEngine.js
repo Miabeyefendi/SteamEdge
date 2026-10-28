@@ -16,7 +16,7 @@ class SteamEngine {
     // run, two logon attempts happen at once and one dropped with "Already attempting to log
     // on"; the attempt limit and the "Off" option in Settings also did not reach steam-user's
     // own attempts.
-    this.user = new SteamUser({ autoRelogin: false });
+    this.user = this._newUser();
     this._proxy = null;          // set by setProxy: { url, socks } - every request of this account then goes through it
     this.cookies = null;
     this.steamID = null;
@@ -83,6 +83,43 @@ class SteamEngine {
   // the `l=english` parameter does the same for calls without a cookie.
   // Routes this account's Steam connection and web requests through a proxy (see proxyFetch.js). Call it before logOn;
   // an empty value means a direct connection. Throws on an unusable address instead of silently going direct.
+  // One steam-user instance with the listeners every instance needs. A fresh one replaces an instance stuck in an attempt (see _attemptNow): steam-user retries a
+  // connection it cannot make on its own without a word, and a second logOn on such an instance throws on the next tick, outside of any try.
+  _newUser() {
+    const user = new SteamUser({ autoRelogin: false });
+    if (this._proxy) user.setOption(this._proxy.socks ? 'socksProxy' : 'httpProxy', this._proxy.url.replace(/^socks5:/, 'socks5h:'));
+    // The account's wallet currency - decides which currency we fetch Steam prices in.
+    // (Used when Settings > General > Currency is "Otomatik".)
+    user.on('wallet', (_hasWallet, currency) => {
+      const code = SteamEngine.currencyName(currency);
+      // The wallet currency is the FINAL source - it always overrides the earlier guess. (It used to
+      // say `this._currency || code`; since _currency is 'TRY' in the constructor the
+      // condition never held and prices were fetched in TRY even for a USD account.)
+      if (code) { this.walletCurrency = code; this._currency = code; }
+    });
+    // Incoming friend messages. Nobody could reply while running headless; now the app
+    // shows a notification and, if wanted, sends a one-time automatic reply.
+    user.on('friendMessage', (senderID, message) => {
+      const from = senderID && senderID.getSteamID64 ? senderID.getSteamID64() : String(senderID);
+      let persona = null;
+      try { const u = this.user.users && this.user.users[from]; persona = (u && u.player_name) || null; } catch (_) {}
+      let replied = false;
+      if (this._autoReply) {
+        const last = this._repliedAt.get(from) || 0;
+        if (Date.now() - last >= this._autoReply.cooldownMs) {
+          this._repliedAt.set(from, Date.now());
+          try { this.user.chat.sendFriendMessage(senderID, this._autoReply.text); replied = true; } catch (_) {}
+        }
+      }
+      if (this.onChatMessage) {
+        try { this.onChatMessage({ from, persona, message: String(message || ''), replied, ts: Date.now() }); } catch (_) {}
+      }
+    });
+    user.on('accountInfo', (name) => { if (user === this.user) this.persona = name; });
+    if (this._listenerSetUp) this._attachRunListeners(user);
+    return user;
+  }
+
   setProxy(text) {
     const p = parseProxy(text);
     if (!p.ok) throw new Error(translation.t(p.error));
@@ -230,35 +267,9 @@ class SteamEngine {
         this.user.webLogOn();
       });
       this.user.once('accountInfo', (name) => { this.persona = name; done.info = true; maybe(); });
-      // The account's wallet currency - decides which currency we fetch Steam prices in.
-      // (Used when Settings > General > Currency is "Otomatik".)
-      this.user.on('wallet', (_hasWallet, currency) => {
-        const code = SteamEngine.currencyName(currency);
-        // The wallet currency is the FINAL source - it always overrides the earlier guess. (It used to
-        // say `this._currency || code`; since _currency is 'TRY' in the constructor the
-        // condition never held and prices were fetched in TRY even for a USD account.)
-        if (code) { this.walletCurrency = code; this._currency = code; }
-      });
-      // Incoming friend messages. Nobody could reply while running headless; now the app
-      // shows a notification and, if wanted, sends a one-time automatic reply.
-      this.user.on('friendMessage', (senderID, message) => {
-        const from = senderID && senderID.getSteamID64 ? senderID.getSteamID64() : String(senderID);
-        let persona = null;
-        try { const u = this.user.users && this.user.users[from]; persona = (u && u.player_name) || null; } catch (_) {}
-        let replied = false;
-        if (this._autoReply) {
-          const last = this._repliedAt.get(from) || 0;
-          if (Date.now() - last >= this._autoReply.cooldownMs) {
-            this._repliedAt.set(from, Date.now());
-            try { this.user.chat.sendFriendMessage(senderID, this._autoReply.text); replied = true; } catch (_) {}
-          }
-        }
-        if (this.onChatMessage) {
-          try { this.onChatMessage({ from, persona, message: String(message || ''), replied, ts: Date.now() }); } catch (_) {}
-        }
-      });
       this.user.once('webSession', (_sid, cookies) => {
         this.cookies = cookies;
+        this._currencyChecked = true;
         // As soon as the web session opens, verify the market's own currency (see below) - if the wallet
         // event is late or never arrives the prices are still fetched in the right currency.
         this.detectMarketCurrency().catch(() => {});
@@ -271,6 +282,7 @@ class SteamEngine {
       this._refreshToken = refreshToken;
       this._offlineChoice = !!offline;
       this.isConnected = true;
+      this._everConnected = true;
       this._reconnectAttempt = 0;
       this.gaveUp = false; this.permanentDisconnect = false;
       this._setupDisconnectListeners();
@@ -284,13 +296,19 @@ class SteamEngine {
     if (this.onStatus) { try { this.onStatus(status, extra || {}); } catch (_) {} }
   }
 
-  // Drop/error listeners. Flagged so they are not added again every time logOn is called.
+  // Drop/error listeners. Flagged so they are not added again every time logOn is called; an instance made later (_newUser) gets them too.
   _setupDisconnectListeners() {
     if (this._listenerSetUp) return;
     this._listenerSetUp = true;
+    this._attachRunListeners(this.user);
+  }
 
+  // Every listener checks that its instance is still the one in use: an instance that was replaced says nothing any more.
+  _attachRunListeners(user) {
     const broke = (cause, eresult) => {
-      if (this._wasShutDown) return;
+      if (user !== this.user || this._wasShutDown) return;
+      const wasUp = this.isConnected;
+      this._clearAttempt();
       this.isConnected = false;
       this.cookies = null;             // the web session dropped too, it will be fetched again
       // Drops where trying again is pointless or harmful: the logon token is no longer valid
@@ -302,18 +320,26 @@ class SteamEngine {
         this._reportStatus('abandoned', { permanent: true, eresult: +eresult, cause: String(cause || '') });
         return;
       }
-      this._reportStatus('dropped', { cause: String(cause || ''), eresult: eresult || null });
+      // A drop of a working connection is told once; an attempt that failed while the connection is down only moves on to the next one (it used to say
+      // "dropped" again on every failed attempt, a notification each time).
+      if (wasUp) this._reportStatus('dropped', { cause: String(cause || ''), eresult: eresult || null });
+      this._lastFailure = String(cause || '');
       this._scheduleReconnect();
     };
 
-    this.user.on('disconnected', (eresult, msg) => broke(msg || ('EResult ' + eresult), eresult));
-    this.user.on('error', (e) => broke((e && e.message) || 'bilinmeyen hata', e && e.eresult));
+    user.on('disconnected', (eresult, msg) => broke(msg || ('EResult ' + eresult), eresult));
+    user.on('error', (e) => broke((e && e.message) || 'bilinmeyen hata', e && e.eresult));
 
     // After reconnecting, the web session and the games do NOT come back on their own.
-    this.user.on('loggedOn', () => {
+    user.on('loggedOn', () => {
+      if (user !== this.user) return;
+      this._clearAttempt();
+      if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
       this.isConnected = true;
       this._reconnectAttempt = 0;
       this.gaveUp = false; this.permanentDisconnect = false;
+      const first = !this._everConnected;
+      this._everConnected = true;
       try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
       try {
         this.user.setPersona(this._offlineChoice ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
@@ -323,10 +349,13 @@ class SteamEngine {
       if (this._playing && this._playing.length) {
         try { this.user.gamesPlayed(this._playing); } catch (_) {}
       }
-      this._reportStatus('connected', { reconnected: true, gameEntries: (this._playing || []).length });
+      this._reportStatus('connected', { reconnected: !first, first, gameEntries: (this._playing || []).length });
     });
-    this.user.on('webSession', (_sid, cookies) => {
+    user.on('webSession', (_sid, cookies) => {
+      if (user !== this.user) return;
       this.cookies = cookies;
+      // a session first opened by the background loop (no network when the app started) still has to verify the market currency once
+      if (!this._currencyChecked) { this._currencyChecked = true; this.detectMarketCurrency().catch(() => {}); }
       this.parentalState = null;
       if (this.parentalPin) {
         this.unlockParental(this.parentalPin)
@@ -336,8 +365,22 @@ class SteamEngine {
     });
   }
 
+  _clearAttempt() {
+    if (this._attemptTimer) { clearTimeout(this._attemptTimer); this._attemptTimer = null; }
+  }
+
+  // Throws away an instance that is busy or stuck and puts a fresh one in its place. Its listeners go first, so nothing it does later reaches us; an error it
+  // raises later has a listener that ignores it (an 'error' without one would stop the app).
+  _replaceUser() {
+    const old = this.user;
+    try { old.removeAllListeners(); } catch (_) {}
+    try { old.on('error', () => {}); } catch (_) {}
+    try { old.logOff(); } catch (_) {}
+    this.user = this._newUser();
+  }
+
   _scheduleReconnect() {
-    if (this._wasShutDown || this._reconnectTimer) return;
+    if (this._wasShutDown || this._reconnectTimer || this._attemptTimer) return;
     if (!this._refreshToken) return;
     const bound = this.reconnectLimit;
     if (bound != null && this._reconnectAttempt >= bound) {
@@ -346,17 +389,34 @@ class SteamEngine {
       return;
     }
     this._reconnectAttempt++;
-    // Exponential backoff, at most 5 minutes. Steam does not accept right away after
-    // transient problems; trying every second makes it worse.
-    const wait = Math.min(300000, 5000 * Math.pow(2, Math.min(6, this._reconnectAttempt - 1)));
-    this._reportStatus('connecting', { attemptCount: this._reconnectAttempt, waitMs: wait });
+    // Exponential backoff up to a minute: Steam does not accept right away after transient problems and trying every second makes it worse, but five minutes
+    // (before 1.7.8) left the app waiting long after the network was back.
+    const wait = Math.min(SteamEngine.RECONNECT_MAX_WAIT_MS, 5000 * Math.pow(2, Math.min(6, this._reconnectAttempt - 1)));
+    this._reportStatus('connecting', { attemptCount: this._reconnectAttempt, waitMs: wait, nextAt: Date.now() + wait, lastFailure: this._lastFailure || null });
     this._reconnectTimer = setTimeout(() => {
       this._reconnectTimer = null;
-      if (this._wasShutDown) return;
-      if (this._recoverIfOnline()) return;       // steam-user logged on again by itself while we waited
-      try { this.user.logOn({ refreshToken: this._refreshToken }); }
-      catch (_) { this._scheduleReconnect(); }
+      this._attemptNow();
     }, wait);
+  }
+
+  // One attempt, with a deadline. Before 1.7.8 the loop called logOn and waited for an answer; steam-user retries a connection it cannot make on its own and
+  // says nothing, so when no answer came the loop never tried again and the strip said "reconnecting" for hours. Now an attempt that has not logged on by the
+  // deadline is thrown away with its instance and the next one is scheduled; logOn is never called on an instance that is still busy.
+  _attemptNow() {
+    if (this._wasShutDown || this.isConnected) return;
+    if (this._recoverIfOnline()) return;       // steam-user logged on again by itself while we waited
+    if (this.user.steamID || this.user._connecting) this._replaceUser();
+    this._reportStatus('connecting', { attemptCount: this._reconnectAttempt || 1, trying: true, deadlineMs: SteamEngine.ATTEMPT_TIMEOUT_MS });
+    this._attemptTimer = setTimeout(() => {
+      this._attemptTimer = null;
+      if (this._wasShutDown || this.isConnected) return;
+      if (this._recoverIfOnline()) return;
+      this._lastFailure = 'deneme yanıtsız kaldı';
+      this._replaceUser();
+      this._scheduleReconnect();
+    }, SteamEngine.ATTEMPT_TIMEOUT_MS);
+    try { this.user.logOn({ refreshToken: this._refreshToken }); }
+    catch (_) { this._clearAttempt(); this._replaceUser(); this._scheduleReconnect(); }
   }
 
   // The session can be back without our own attempt having done it: steam-user logs on again by itself after some drops, and an error that arrives
@@ -368,35 +428,56 @@ class SteamEngine {
     this.isConnected = true;
     this._reconnectAttempt = 0;
     this.gaveUp = false; this.permanentDisconnect = false;
+    this._clearAttempt();
     if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
+    const first = !this._everConnected;
+    this._everConnected = true;
     try { this.user.webLogOn(); } catch (_) {}
     if (this._playing && this._playing.length) { try { this.user.gamesPlayed(this._playing); } catch (_) {} }
-    this._reportStatus('connected', { reconnected: true, gameEntries: (this._playing || []).length });
+    this._reportStatus('connected', { reconnected: !first, first, gameEntries: (this._playing || []).length });
     return true;
   }
 
   // Restarts a loop that gave up: the user said "Reconnect" or the attempt limit was raised
-  // in the settings. manual: also tries after a permanent drop (the user may have closed the other session).
+  // in the settings. manual: also tries after a permanent drop (the user may have closed the other session), and at once.
   tryReconnect(manual) {
     if (this._wasShutDown || this.isConnected) return;
     if (this.permanentDisconnect && !manual) return;
     this.gaveUp = false; this.permanentDisconnect = false;
     this._reconnectAttempt = 0;
     if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
+    this._clearAttempt();
     const bound = this.reconnectLimit;
     if (bound === 0 && !manual) return;
-    // If requested by hand one attempt is made even when the limit is 0 (off).
-    if (bound === 0) {
-      this._reconnectAttempt = 1;
-      this._reportStatus('connecting', { attemptCount: 1, waitMs: 1000 });
-      this._reconnectTimer = setTimeout(() => {
-        this._reconnectTimer = null;
-        if (this._wasShutDown) return;
-        try { this.user.logOn({ refreshToken: this._refreshToken }); } catch (_) {}
-      }, 1000);
-      return;
-    }
+    if (manual) { this._reconnectAttempt = 1; this._attemptNow(); return; }
     this._scheduleReconnect();
+  }
+
+  // The computer woke up or was unlocked: the network is usually back, and a minute of backoff (or an attempt that began before the sleep and will never answer)
+  // only delays it. A loop that gave up (limit, permanent drop) is left alone.
+  retryNow() {
+    if (!this.reconnecting()) return;
+    if (this._attemptTimer) { this._clearAttempt(); this._replaceUser(); }
+    if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
+    this._reconnectAttempt = 1;
+    this._attemptNow();
+  }
+
+  // The first logon failed (no network when the app started, Steam down): keep trying in the background as after a drop. Before 1.7.8 the app gave up after
+  // three tries in six seconds and never connected until it was restarted.
+  startReconnecting(refreshToken, offline) {
+    this._refreshToken = refreshToken;
+    this._offlineChoice = !!offline;
+    this.isConnected = false;
+    this._replaceUser();                 // the instance of the failed logon may still be busy
+    this._setupDisconnectListeners();
+    this._startPulse();
+    this._scheduleReconnect();
+  }
+
+  // Whether this engine still has a loop of its own that will bring the session back (main must not open a second logon for the account then).
+  reconnecting() {
+    return !this._wasShutDown && !this.isConnected && !this.gaveUp && !!this._refreshToken;
   }
 
   // Heartbeat: we say "I am connected" but are the games really open? steam-user's own
@@ -406,6 +487,8 @@ class SteamEngine {
     this._pulseTimer = setInterval(() => {
       if (this._wasShutDown) return;
       if (this._recoverIfOnline()) return;           // not connected on our side, a session on Steam's: it is back
+      // the last safety: not connected, not given up, and neither a wait nor an attempt under way means the loop has stopped somewhere; start it again
+      if (this.reconnecting() && !this._reconnectTimer && !this._attemptTimer) { this._scheduleReconnect(); return; }
       const trulyConnected = !!(this.user && this.user.steamID);
       if (this.isConnected && !trulyConnected) {
         this.isConnected = false;
@@ -423,6 +506,7 @@ class SteamEngine {
   _stopPulse() {
     if (this._pulseTimer) { clearInterval(this._pulseTimer); this._pulseTimer = null; }
     if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
+    this._clearAttempt();
   }
 
   // The game name arrives in the badge page embedded with JavaScript string escapes:
@@ -1526,6 +1610,9 @@ SteamEngine.UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 // Since the games are reported without 'force', reconnecting does not close that game;
 // Steam does not count idling at that time, and when the game closes the heartbeat reports the games again.
 SteamEngine.PERMANENT_DISCONNECT = new Set([5, 15, 26, 27, 34]);
+// An attempt that has not logged on by then is thrown away with its steam-user instance; the wait between attempts grows up to the second value.
+SteamEngine.ATTEMPT_TIMEOUT_MS = 60000;
+SteamEngine.RECONNECT_MAX_WAIT_MS = 60000;
 // Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
 SteamEngine.OWNER_ORDER = ['realistic', 'card', 'hours', 'sequential', 'general'];
