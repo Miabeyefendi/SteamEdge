@@ -7,23 +7,54 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
-## [1.7.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.7)
+## [1.7.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.8)
 
-Realistic Mode now unlocks the achievements of a game played past its completion time at Steam's pace instead of spreading them over hours, and half of a run's unlocks no longer fail: both were measured on a real account.
+The Steam connection comes back after a drop: the app no longer stays on "reconnecting" for hours. This release also carries 1.7.7, which was never published: overdue achievements at Steam's pace and the unlocks that failed half of the time.
 
 ### Fixed
 
+- **After a drop the app could stay on "Steam connection lost, retrying in N s (attempt 1)" for hours, and never reconnect.** Three causes, all fixed:
+  - The reconnect loop started an attempt and waited for Steam to answer. The Steam library retries a connection it cannot make on its own, without a word, and an attempt begun while the network was dead could never answer at all; with no answer the loop never tried again and the strip kept its old text. Every attempt now has a deadline of a minute: one that has not logged on by then is thrown away together with its connection, and a fresh one is made. A new attempt is never started on a connection that is still busy (that raised an error outside of the loop). The longest wait between attempts is one minute instead of five, and the heartbeat starts the loop again if it ever finds the account disconnected with nothing under way.
+  - Opening a page during a drop made a second connection for the same account next to the one that was reconnecting. Steam keeps one session per account and dropped one of the two, and the old one, still "reconnecting", set the account back to "not connected" while the new one worked. A page now waits for the account's own connection, and a connection that is not the account's any more is ignored.
+  - When the app started without network (for example started with Windows before the Wi-Fi), it tried three times in six seconds and gave up for good. It now keeps trying in the background, and when it connects it resumes the jobs that were left as if it had connected at once.
+- **With "Reconnect if the connection drops" set to 10 or 3 attempts, a drop longer than a minute left the account disconnected for good.** The attempts ran out while the network was still down and the loop stopped until the app was restarted (measured on a real account with 3 attempts: given up after 99 seconds, the network back at 121 seconds never used). The limit is now the number of quick attempts: after them the app goes on trying every five minutes, and at once when the computer wakes up. "Off" still makes no attempt.
+- **When the network came back, the app could wait out a long backoff before it tried.** While it waits for the next attempt it now looks every 15 seconds whether Steam answers at all (one small web request); when it saw the network down and Steam answers again, it logs on at once. When the network was up all along (Steam itself not taking the logon, maintenance) the wait is kept, so Steam is not pressed.
+- **Realistic Mode lost an achievement to a drop.** An unlock sent just as the connection dropped got no answer, was counted as failed and skipped for good (it happened on a real account in a 60 second drop). A write that gets no answer is now sent again 30 seconds later, at most three times, and while the connection is down the run waits for it; only Steam's own refusal counts as a failure.
+- **A bulk unlock on the Achievements page stopped at a drop.** Every write during the drop counted as an error and three in a row stopped the whole run. It now waits for the connection (up to ten minutes, Stop still works), says so, and sends the same achievement again.
+- **After a wake from sleep or an unlock the app waited out its backoff.** It now tries at once (a few seconds after the wake, for the network adapter).
+- **The strip showed a fixed "retrying in 60 s" while the time ran out.** It now counts down to the next attempt and says "Connecting (attempt N)..." while one is under way. A failed attempt while the network is down no longer says "connection lost" again with a notification each time; the drop is told once.
+- **Nothing was written about a drop.** At the default log level the connection lines were dropped, so a drop that never came back left nothing to read. The connection lines (drop, every attempt with its reason, back) are now always written to `cache/steamedge.log`.
+
+#### Measured
+
+On a real account, through a local proxy that cut the network on command (the reconnect setting of that account: 3 attempts):
+
+| Drop | 1.7.7 | 1.7.8 |
+|---|---|---|
+| 60 s, connections refused | not run | connected 2 s after the network was back |
+| 60 s, a network that answers nothing | strip stuck on "retrying in 5 s (attempt 1)" for the whole drop, connected 15 s after | counted down, connected 15 s after |
+| the same, a page asks for the connection in the middle | a second connection tried for 100 s | no second connection, connected 15 s after |
+| the app started with no network, back after 2 minutes | never connected, no strip | connected 5 s after the network was back, jobs resumed |
+| 5 minutes, 3 attempts | not run (its code stops after the third attempt) | connected 2 s after the network was back |
+| Hour Booster running, 60 s drop | | connected after 2 s, both games played again |
+| Realistic Mode running, 60 s drop | | connected after 15 s, the unlocks went on (39 then 94), none failed |
+| a wake from sleep after a drop | | connected 2 s after the wake |
+
+The library (174 games), the achievements (1,043) and the inventory (70 items) loaded after a reconnect. A stand-in for the Steam library (in the tests) also shows the case a proxy cannot make: an attempt that never answers left 1.7.7 on "attempt 1" for good; 1.7.8 connects 15 seconds after the network is back.
+
+### From 1.7.7 (not published on its own)
+
 - **About half of the unlocks of a run failed with "Steam refused the write (EResult 8)".** Steam checks every write against a checksum of the game's stats and answers with the new one; the app kept the checksum it had read, so the second write to a game was refused, the third went through on a fresh read, and so on. A failed achievement was not tried again. Measured on a real account: 3 of the first 8 writes refused before the fix, 0 of 200 after it. The new checksum is kept now, and a write refused on a stale one is tried once more on a fresh read. This also fixes bulk unlocks on the Achievements page.
 - **A game played past its completion time still took hours.** A short game (2 hours to finish) played for 6 hours has nothing left that a player would still be earning: every achievement left is overdue. They were given 3 minutes each, at most 3 hours a game, and with the five games of a group 3 hours a group; on top of that the engine never sent two unlocks less than 3 seconds apart. With "Speed up overdue achievements" on (the default) the overdue ones now go out one a second, and the finished games of a group take turns at that pace (one of each in queue order), since Steam counts the writes of the account, not of a game; a group ends when its achievements do. The measured queue of 17 short games with 11,276 achievements left planned 12 hours (four groups of 3 hours) and now plans 3 hours 8 minutes, the groups one right after the other. A game that is not finished yet keeps the rest of its completion time for what its playtime does not cover. The side panel says when a game counts as finished.
+- The pace of one a second has room to spare: 200 writes were sent down to 0.3 seconds apart (as fast as Steam answers) without a single one refused.
 
 ### Changed
 
-- The pace of one a second has room to spare: 200 writes were sent down to 0.3 seconds apart (as fast as Steam answers) without a single one refused.
-- `npm test` runs 60 tests. `realistic-sweep` covers ten finished games with 2,000 achievements left (about 33 minutes, never two unlocks closer than a second, all unlocked), `steam-engine` two writes to one game in a row and a write on a stale checksum, `realistic-plan` the new catch-up times.
+- `npm test` runs 61 tests. New: `reconnect` (a drop of three hours, attempts that never answer, a wake, a first logon without network, the attempt limit, a stopped loop, another session taking the account over), with a stand-in for the Steam library that behaves as the real one around a connection (`tests/unit/fake-steam-user.js`). From 1.7.7: `realistic-sweep` ten finished games with 2,000 achievements left, `steam-engine` two writes to one game in a row and a write on a stale checksum, `realistic-plan` the new catch-up times.
 
 **As always:** never share your `settings/` folder - it holds your Steam login token.
 
-SHA-256 (`SteamEdge-v1.7.7-win-x64.rar`): `4ee43aee83433cc14672ff615c5d11aa2f33ddbd1a3f1203c593bd7f31bc296e`
+SHA-256 (`SteamEdge-v1.7.8-win-x64.rar`): `7cdec38aa34b8569018d7038a8f2cf2f42b89ac707b84f2908d2a10538942ecb`
 
 ## [1.7.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.7.6)
 
