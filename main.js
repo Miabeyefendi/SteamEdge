@@ -578,8 +578,22 @@ function reconnectLimit() {
   const n = parseInt(v, 10);
   return n > 0 ? n : null;
 }
+// The Windows start-up entry ("Start with Windows"). It used to be written on every start of any copy: a run from the source (npm start, the tests) put the
+// Electron of node_modules there, and a copy with the setting off (a new version just extracted, its settings not copied over yet) removed the entry of the
+// copy the user starts. Now only a packaged app touches it, and turning it off removes it only when it is this copy's.
+function applyLoginItem() {
+  if (!app.isPackaged) return;
+  try {
+    if (settings.autoLaunch) { app.setLoginItemSettings({ openAtLogin: true }); return; }
+    const current = app.getLoginItemSettings();
+    const items = (current && current.launchItems) || [];
+    const mine = (p) => String(p || '').replace(/"/g, '').toLowerCase() === String(process.execPath).toLowerCase();
+    if (items.length ? items.some((x) => mine(x.path)) : current.openAtLogin) app.setLoginItemSettings({ openAtLogin: false });
+  } catch (_) {}
+}
+
 function applySettings() {
-  try { app.setLoginItemSettings({ openAtLogin: !!settings.autoLaunch }); } catch (_) {}
+  applyLoginItem();
   updateSleepBlocker();
   applyFitZoom();
   // The reconnect limit to all engines. If an engine has run out of attempts and given up
@@ -4103,6 +4117,9 @@ function applySettingPatch(patch, forAccount) {
     log('info', 'login token protection ' + (settings.protectTokens ? 'on' : 'off'));
   }
   applySettings();
+  // The reconnect setting changed while an account waits for its next attempt (up to five minutes after the quick attempts of a limit): it tries now with the
+  // new setting instead of finishing the old wait. (A loop that gave up is started again by applySettings.)
+  if (changed.includes('reconnectPolicy')) accounts.forEach((s) => { if (s.engine && !s.ready && s.engine.retryNow) s.engine.retryNow(); });
   if (changed.includes('resumeJobs')) resumeSaveSoon();      // switched on: what runs now is written; switched off: the file goes
   if (changed.includes('language')) { translation.pickLang(settings.language); setupTrayMenu(); }
   // If the retention period was shortened the extra records are deleted right away (it does not wait for startup).
