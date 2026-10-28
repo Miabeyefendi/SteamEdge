@@ -33,8 +33,11 @@ function createHarness() {
   };
   h.engine = (opts) => {
     const o = opts || {};
-    const e = { stopped: [], setAchievements: async (appid, list) => {
+    const e = { stopped: [], isConnected: true, setAchievements: async (appid, list) => {
       if (o.failOn && o.failOn.includes(appid + ':' + list[0].apiName)) throw new Error('EResult 8');
+      // a write that gets no answer once (the connection dropped under it): the next try goes through
+      const flaky = o.flakyOn && o.flakyOn.indexOf(appid + ':' + list[0].apiName);
+      if (flaky != null && flaky >= 0) { o.flakyOn.splice(flaky, 1); throw new Error('Steam did not answer in time'); }
       const sch = h.schemas.get(appid);
       const a = sch && sch.find((x) => x.apiName === list[0].apiName);
       h.unlocks.push({ appid, apiName: list[0].apiName, at: h.now, wasOpen: !!(a && a.achieved) });

@@ -34,7 +34,7 @@ const MIN = 60000, H = 3600000;
 async function setup() {
   timers = [];
   const { FakeSteamUser, net } = createFakeSteam();
-  const SteamEngine = loadEngine(FakeSteamUser, process.env.ENGINE_FILE);
+  const SteamEngine = loadEngine(FakeSteamUser, process.env.ENGINE_FILE, net);
   const eng = new SteamEngine();
   const statuses = [];
   eng.onStatus = (st, x) => statuses.push(Object.assign({ st, at: now }, x));
@@ -81,7 +81,7 @@ const connectedAfter = async (t, limit) => { const start = now; while (now - sta
   timers = [];
   {
     const { FakeSteamUser, net } = createFakeSteam();
-    const SteamEngine = loadEngine(FakeSteamUser, process.env.ENGINE_FILE);
+    const SteamEngine = loadEngine(FakeSteamUser, process.env.ENGINE_FILE, net);
     const eng = new SteamEngine();
     const statuses = [];
     eng.onStatus = (st, x) => statuses.push(Object.assign({ st }, x));
@@ -120,7 +120,7 @@ const connectedAfter = async (t, limit) => { const start = now; while (now - sta
   check('3 attempts: after them it does not give up, it goes on every five minutes (before 1.7.8 it stopped for good)', !t.eng.gaveUp && t.count('abandoned') === 0 && tries.length > 20 && tries.slice(4).every((x) => x.slow && x.waitMs === 5 * MIN), tries.length + ' waits, last ' + JSON.stringify(tries.slice(-1)[0] && { n: tries.slice(-1)[0].attemptCount, w: tries.slice(-1)[0].waitMs }));
   t.net.restore();
   took = await connectedAfter(t, 10 * MIN);
-  check('the network is back after two hours: connected within the five minutes', took != null && took <= 5 * MIN + 5000, took == null ? 'never' : (took / 1000) + ' s');
+  check('the network is back after two hours: it sees Steam answer again and connects within half a minute, not at the next five minute attempt', took != null && took <= 35000, took == null ? 'never' : (took / 1000) + ' s');
   t = await setup();
   t.eng.reconnectLimit = 3;
   t.net.drop(false);
@@ -129,6 +129,15 @@ const connectedAfter = async (t, limit) => { const start = now; while (now - sta
   t.eng.retryNow();
   took = await connectedAfter(t, MIN);
   check('in the five minute waits a wake still tries at once', took != null && took <= 5000, took == null ? 'never' : (took / 1000) + ' s');
+
+  // ---- the network was up all along (Steam itself does not take the logon): the probe does not press it ----
+  t = await setup();
+  t.eng.reconnectLimit = 3;
+  t.net.drop(true);              // attempts hang
+  t.net.up = true;               // but the web answers: not a dead network
+  await advance(60 * MIN);
+  const attempts = t.statuses.filter((x) => x.st === 'connecting' && x.trying).length;
+  check('a network that answers while the logon does not: the attempts keep their pace (3 quick, then every five minutes), no more', attempts <= 3 + 12 + 1, attempts + ' attempts in an hour');
 
   // ---- reconnecting off in the settings ----
   t = await setup();

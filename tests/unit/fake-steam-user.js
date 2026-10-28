@@ -80,8 +80,8 @@ function createFakeSteam() {
 }
 
 // Loads a copy of steamEngine.js (the file given, or the one of the repository) with the fake in place of steam-user. The market currency check is a web
-// request; it is switched off.
-function loadEngine(FakeSteamUser, file) {
+// request; it is switched off. With net given, "does Steam answer" (the probe of the reconnect loop) asks the fake network instead of the real one.
+function loadEngine(FakeSteamUser, file, net) {
   const Module = require('module');
   const root = path.resolve(__dirname, '..', '..');
   const src = require('fs').readFileSync(file || path.join(root, 'src', 'core', 'steamEngine.js'), 'utf8')
@@ -95,6 +95,7 @@ function loadEngine(FakeSteamUser, file) {
   m._compile(src, m.filename);
   const SteamEngine = m.exports;
   SteamEngine.prototype.detectMarketCurrency = async () => {};
+  if (net) SteamEngine.prototype._steamReachable = async () => net.up;
   return SteamEngine;
 }
 

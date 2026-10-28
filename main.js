@@ -2500,9 +2500,10 @@ ipcMain.handle('state:clear', () => {
 
 ipcMain.handle('engine:setAchievements', async (_e, { appid, changes, steamID }) => {
   const eng = engineFor(steamID);
-  if (!eng) return { ok: false, error: 'Bağlı değil.' };
+  // notConnected / refused: a bulk run waits for the connection and sends a write again that got no answer, but not one that Steam refused
+  if (!eng) return { ok: false, error: 'Bağlı değil.', notConnected: true };
   try { return { ok: true, result: await eng.setAchievements(appid, changes) }; }
-  catch (e) { return { ok: false, error: e.message }; }
+  catch (e) { return { ok: false, error: e.message, refused: !!(e && (e.protectedFlag || /EResult/.test(String(e.message || '')))), notConnected: !eng.isConnected }; }
 });
 
 // ---- SALE ----
@@ -3404,6 +3405,20 @@ async function realisticStep(steamID) {
       addFeed(steamID, { kind: 'card', title: 'Başarım açıldı', text: goal.name + ' · ' + goalTitle, status: 'Başarılı' });
     }
   } catch (e) {
+    if (s.realistic !== d) return;
+    // A write that did not get Steam's answer (the connection dropped under it, a timeout) is not a refusal: the same achievement is sent again, at most
+    // three times, instead of being counted as failed and skipped for good (a 60 s drop on a real account lost one that way). While the connection is down it
+    // waits for it and that does not count as a try. A refusal (an EResult, a protected achievement) is final.
+    const refused = !!(e && (e.protectedFlag || /EResult/.test(String(e.message || ''))));
+    const connectionDown = !s.ready || !(s.engine && s.engine.isConnected);
+    if (!refused) {
+      if (!connectionDown) goal.retries = (goal.retries || 0) + 1;
+      if (connectionDown || goal.retries < 3) {
+        log('warn', '[' + accountName(steamID) + '] realistic mode: no answer for ' + goal.name + ' (' + (e && e.message) + '), sent again in 30 s', true);
+        d.timer = setTimeout(() => realisticStep(steamID), 30000);
+        return;
+      }
+    }
     a.failure++; d.totalErrors++;
     log('warn', '[' + accountName(steamID) + '] realistic mode: could not unlock -> ' + goal.name + ': ' + (e && e.message));
   }

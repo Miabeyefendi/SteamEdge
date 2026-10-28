@@ -297,7 +297,7 @@ Aynı anda birden çok hesap bağlanabilir. Her biri kendi motorunu, kendi kuyru
 
 ### Bağlantı
 
-Bağlantı koptuğunda SteamEdge kendiliğinden yeniden bağlanır, çalışan işler kaldığı yerden sürer. **Bağlantı koparsa yeniden bağlan** (Ayarlar > Gelişmiş & Veri) sınırı belirler: sınırsız, 10 deneme, 3 deneme ya da kapalı. Steam oturumu kalıcı olarak kapatırsa (ör. hesap başka yerde açıldıysa) deneme durur ve şerit bir Yeniden bağlan düğmesi sunar.
+Bağlantı koptuğunda SteamEdge kendiliğinden yeniden bağlanır, çalışan işler kaldığı yerden sürer. **Bağlantı koparsa yeniden bağlan** (Ayarlar > Gelişmiş & Veri) sınırı belirler: sınırsız, 10 deneme, 3 deneme ya da kapalı. 10 ya da 3 deneme hızlı denemelerin sayısıdır: onlardan sonra vazgeçmez, 5 dakikada bir denemeye devam eder; bilgisayar uyanınca hemen dener. Steam oturumu kalıcı olarak kapatırsa (ör. hesap başka yerde açıldıysa) deneme durur ve şerit bir Yeniden bağlan düğmesi sunar.
 
 ---
 

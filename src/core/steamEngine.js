@@ -317,6 +317,7 @@ class SteamEngine {
       // it says directly that it gave up, together with the reason.
       if (SteamEngine.PERMANENT_DISCONNECT.has(+eresult)) {
         this.gaveUp = true; this.permanentDisconnect = true;
+        this._stopProbe();
         this._reportStatus('abandoned', { permanent: true, eresult: +eresult, cause: String(cause || '') });
         return;
       }
@@ -334,6 +335,7 @@ class SteamEngine {
     user.on('loggedOn', () => {
       if (user !== this.user) return;
       this._clearAttempt();
+      this._stopProbe();
       if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
       this.isConnected = true;
       this._reconnectAttempt = 0;
@@ -386,6 +388,7 @@ class SteamEngine {
     // "Off" in the settings: no attempt at all
     if (bound === 0) {
       this.gaveUp = true;
+      this._stopProbe();
       this._reportStatus('abandoned', { permanent: false, attemptCount: this._reconnectAttempt, limitValue: bound });
       return;
     }
@@ -401,6 +404,42 @@ class SteamEngine {
       this._reconnectTimer = null;
       this._attemptNow();
     }, wait);
+    this._startProbe();
+  }
+
+  // While it waits for the next attempt (up to a minute, five after the quick attempts of a limit) the loop looks every PROBE_MS whether Steam answers at all
+  // (one small web request through the account's proxy). When it saw the network down and Steam answers again, the attempt is made at once: before, a network
+  // back after the quick attempts of a limit waited up to five minutes for it (measured on a real account). When the network was up all along (Steam itself
+  // does not take the logon, maintenance) the wait is left as it is, so Steam is not pressed.
+  _startProbe() {
+    if (this._probeTimer) return;
+    this._probeSawDown = false;
+    this._probeTimer = setInterval(async () => {
+      if (!this._reconnectTimer || this._probing || this._wasShutDown) return;
+      this._probing = true;
+      let up = false;
+      try { up = await this._steamReachable(); } catch (_) { up = false; }
+      this._probing = false;
+      if (!up) { this._probeSawDown = true; return; }
+      if (this._probeSawDown && this._reconnectTimer && !this.isConnected) {
+        this._probeSawDown = false;
+        clearTimeout(this._reconnectTimer); this._reconnectTimer = null;
+        this._lastFailure = 'network back';
+        this._attemptNow();
+      }
+    }, SteamEngine.PROBE_MS);
+  }
+
+  _stopProbe() {
+    if (this._probeTimer) { clearInterval(this._probeTimer); this._probeTimer = null; }
+  }
+
+  // Whether Steam's web API answers at all (any HTTP status), through the account's proxy
+  async _steamReachable() {
+    try {
+      const r = await this._fetch('https://api.steampowered.com/ISteamWebAPIUtil/GetServerInfo/v1/', { signal: AbortSignal.timeout(8000) });
+      return !!(r && r.status);
+    } catch (_) { return false; }
   }
 
   // One attempt, with a deadline. Before 1.7.8 the loop called logOn and waited for an answer; steam-user retries a connection it cannot make on its own and
@@ -433,6 +472,7 @@ class SteamEngine {
     this._reconnectAttempt = 0;
     this.gaveUp = false; this.permanentDisconnect = false;
     this._clearAttempt();
+    this._stopProbe();
     if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
     const first = !this._everConnected;
     this._everConnected = true;
@@ -511,6 +551,7 @@ class SteamEngine {
     if (this._pulseTimer) { clearInterval(this._pulseTimer); this._pulseTimer = null; }
     if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
     this._clearAttempt();
+    this._stopProbe();
   }
 
   // The game name arrives in the badge page embedded with JavaScript string escapes:
@@ -1619,6 +1660,8 @@ SteamEngine.ATTEMPT_TIMEOUT_MS = 60000;
 SteamEngine.RECONNECT_MAX_WAIT_MS = 60000;
 // After the quick attempts of a limit in the settings (10 or 3): one attempt every five minutes, never given up
 SteamEngine.SLOW_WAIT_MS = 5 * 60000;
+// While waiting for an attempt: how often it looks whether Steam answers again
+SteamEngine.PROBE_MS = 15000;
 // Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
 SteamEngine.OWNER_ORDER = ['realistic', 'card', 'hours', 'sequential', 'general'];

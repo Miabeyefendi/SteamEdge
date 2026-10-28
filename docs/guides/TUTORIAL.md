@@ -297,7 +297,7 @@ Several accounts can be connected at once. Each keeps its own engine, its own qu
 
 ### Connection
 
-When the connection drops, SteamEdge reconnects on its own and running jobs continue where they were. **Reconnect if the connection drops** (Settings > Advanced & data) sets the limit: unlimited, 10 attempts, 3 attempts or off. If Steam ends the session for good, for example because the account signed in somewhere else, retrying stops and a banner offers a Reconnect button.
+When the connection drops, SteamEdge reconnects on its own and running jobs continue where they were. **Reconnect if the connection drops** (Settings > Advanced & data) sets the limit: unlimited, 10 attempts, 3 attempts or off. A limit of 10 or 3 is the number of quick attempts: after them it does not give up but keeps trying every five minutes, and at once when the computer wakes up. If Steam ends the session for good, for example because the account signed in somewhere else, retrying stops and a banner offers a Reconnect button.
 
 ---
 

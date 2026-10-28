@@ -46,10 +46,14 @@ Object.assign(answers, {
 const schema = (appid) => ({ gameName: 'Game ' + appid, rarityOk: true, total: 6, unlocked: 0, achievements: Array.from({ length: 6 }, (_, i) => ({ apiName: 'ACH_WIN_' + i, name: 'Win ' + i, desc: '', achieved: !!(achievedBy[appid] && achievedBy[appid].has('ACH_WIN_' + i)), protectedFlag: false, rarityPct: 80 - i * 10, icon: null })) });
 const achievedBy = {};
 const sets = [], logs = [];
+let dropCalls = 0, noAnswerOnce = null;      // the connection is down for that many writes / one write gets no answer
 Object.assign(answers, {
   'engine:ownedGames': () => ({ ok: true, games: [{ appid: 10, name: 'First Game', playtimeForever: 60, hasStats: true }, { appid: 20, name: 'Second Game', playtimeForever: 60, hasStats: true }] }),
   'engine:achievements': (_e, arg) => ({ ok: true, data: schema(arg.appid) }),
-  'engine:setAchievements': (_e, arg) => { sets.push([arg.appid, arg.steamID || null, arg.changes[0].apiName]); (achievedBy[arg.appid] = achievedBy[arg.appid] || new Set()).add(arg.changes[0].apiName); return { ok: true, result: {} }; },
+  'engine:setAchievements': (_e, arg) => {
+    if (dropCalls > 0) { dropCalls--; return { ok: false, error: 'Bağlı değil.', notConnected: true }; }
+    if (noAnswerOnce && noAnswerOnce === arg.changes[0].apiName) { noAnswerOnce = null; return { ok: false, error: 'Steam did not answer in time', refused: false, notConnected: false }; }
+    sets.push([arg.appid, arg.steamID || null, arg.changes[0].apiName]); (achievedBy[arg.appid] = achievedBy[arg.appid] || new Set()).add(arg.changes[0].apiName); return { ok: true, result: {} }; },
   'state:achLog': (_e, entry) => { logs.push(entry); return { ok: true }; },
 });
 const preload = fs.readFileSync(ROOT + '/preload.js', 'utf8');
@@ -89,6 +93,20 @@ app.whenReady().then(async () => {
   check('every unlock names the account the run started on', sets.every((x) => x[1] === '76561198000000000'), JSON.stringify(sets.map((x) => x[1])));
   check('the log lines are for the first game and that account', logs.length === 6 && logs.every((l) => l.appid === 10 && l.steamID === '76561198000000000'), JSON.stringify(logs.map((l) => l.appid)));
   check('nothing of the second game was unlocked', !achievedBy[20]);
+
+  // the connection drops in the middle of a run (three writes find it down) and one write gets no answer: the run waits, sends the same ones again and does
+  // not stop with "three errors in a row" (1.7.7 counted each as an error and stopped)
+  await wait(1500);
+  await js("document.querySelectorAll('.e-modal-back').forEach(m=>m.remove())");
+  const before = sets.length;
+  dropCalls = 3; noAnswerOnce = 'ACH_WIN_3';
+  await js("document.getElementById('acAllUnlock').click()");
+  await wait(600);
+  await js("document.querySelector('.e-modal-ft .ok').click()");
+  for (let i = 0; i < 300 && sets.length < before + 6; i++) await wait(200);
+  await wait(2500);
+  const second = sets.slice(before);
+  check('a drop during the run: all six of the second game were unlocked after the connection came back, the run did not stop', second.length === 6 && second.every((x) => x[0] === 20) && new Set(second.map((x) => x[2])).size === 6 && dropCalls === 0 && noAnswerOnce === null, JSON.stringify(second.map((x) => x[2])));
   log('console errors ' + JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;
   app.exit(failures ? 1 : 0);

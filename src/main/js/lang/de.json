@@ -1528,5 +1528,6 @@
  "Açıkken sıradaki oyunlar beşer beşer birlikte açık kalır, saat yükselticideki gibi: bir gruptaki oyunların başarımları kendi planına göre aynı süre içinde açılır, grubun süresi en uzun oyununki kadardır, sonra sıradaki beş oyun gelir. Kapalıyken oyunlar tek tek sırayla oynatılır ve süreleri toplanır.": "Wenn aktiviert, bleiben die Spiele der Warteschlange zu fünft gleichzeitig geöffnet, wie beim Stunden-Booster: Die Errungenschaften der Spiele einer Gruppe werden nach ihrem eigenen Plan in derselben Zeit freigeschaltet, eine Gruppe dauert so lange wie ihr längstes Spiel, danach kommen die nächsten fünf Spiele. Wenn deaktiviert, werden die Spiele nacheinander gespielt und ihre Dauern addiert.",
  "… ve # başarım daha": "… und # weitere Errungenschaften",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: # Stunden gespielt, die Abschlusszeit ist überschritten. Alle # verbleibenden Errungenschaften gelten als überfällig und werden im Sekundentakt freigeschaltet.",
- "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Steam-Verbindung unterbrochen. Verbinde (Versuch #)..."
+ "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Steam-Verbindung unterbrochen. Verbinde (Versuch #)...",
+ "Steam bağlantısı bekleniyor...": "Warte auf die Steam-Verbindung..."
 }

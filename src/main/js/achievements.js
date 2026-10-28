@@ -615,8 +615,19 @@
           }
           const a = targets[i];
           paintRunBox(i, targets.length, t('gönderiliyor:') + ' ' + a.name);
-          const r = await E.setAchievements(runAppid, [{ apiName:a.apiName, unlock }], runAccount)
-                           .catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
+          // A write that got no answer (the connection dropped under it) is sent again, at most three times; while the account is not connected the run waits
+          // for it (up to ten minutes, the Stop button works). Before 1.7.8 every one of them counted as an error, and three in a row stopped the whole run.
+          let r = null, noAnswer = 0, waited = 0;
+          for (;;){
+            r = await E.setAchievements(runAppid, [{ apiName:a.apiName, unlock }], runAccount)
+                       .catch(e=>({ ok:false, error:(e&&e.message)||'error' }));
+            if (r.ok || r.refused || acStopRequested) break;
+            if (!r.notConnected && ++noAnswer >= 3) break;
+            if (r.notConnected && waited >= 10 * 60000) break;
+            paintRunBox(i, targets.length, t('Steam bağlantısı bekleniyor...'));
+            await new Promise(res=>setTimeout(res, 5000));
+            if (r.notConnected) waited += 5000;
+          }
           acBusy.delete(a.apiName);
           if (r.ok){
             ok++; repeatedError = 0;

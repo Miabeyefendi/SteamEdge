@@ -1528,5 +1528,6 @@
  "Açıkken sıradaki oyunlar beşer beşer birlikte açık kalır, saat yükselticideki gibi: bir gruptaki oyunların başarımları kendi planına göre aynı süre içinde açılır, grubun süresi en uzun oyununki kadardır, sonra sıradaki beş oyun gelir. Kapalıyken oyunlar tek tek sırayla oynatılır ve süreleri toplanır.": "Si está activado, los juegos de la cola se mantienen abiertos de cinco en cinco, como en el Potenciador de horas: los logros de los juegos de un grupo se desbloquean según su propio plan en el mismo tiempo, un grupo dura lo que su juego más largo y después vienen los cinco siguientes. Si está desactivado, los juegos se juegan uno tras otro y sus duraciones se suman.",
  "… ve # başarım daha": "… y # logros más",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: # horas jugadas, ya pasó su tiempo de finalización. Los # logros restantes cuentan como atrasados y se desbloquean uno por segundo.",
- "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Se perdió la conexión con Steam. Conectando (intento #)..."
+ "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Se perdió la conexión con Steam. Conectando (intento #)...",
+ "Steam bağlantısı bekleniyor...": "Esperando la conexión con Steam..."
 }
