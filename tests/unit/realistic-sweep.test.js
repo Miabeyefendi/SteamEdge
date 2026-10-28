@@ -123,7 +123,7 @@ function common(r, opt) {
   const eightOne = r.res.ok ? r.plannedSpan : 0;
   say('8 finished short games together: two groups of at most five, a few hours, not the sum of eight', r.res.ok && r.plannedSpan <= 2 * 3 * HOUR + 1000, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : JSON.stringify(r.res));
   r = await runOnce('8 short games played past 2 hours, one after the other', zups, { parallel: false }, 2 * HOUR);
-  say('the same one after the other adds up (each game a short catch-up), longer than the two groups', r.res.ok && r.plannedSpan > eightOne, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : '');
+  say('the same one after the other is never shorter than the two groups (the overdue ones go one a second either way)', r.res.ok && r.plannedSpan >= eightOne, r.res.ok ? (r.plannedSpan / HOUR).toFixed(2) + ' h' : '');
   // the estimate the page sends when no completion time was typed: playtime x 2 (medium game). It never counts as finished, so the duration is long; per game it is
   // still the same as one game's
   const unknown = Array.from({ length: 20 }, (_, i) => ({ appid: 200 + i, total: 30, tc: 5, played: 2.5 }));
@@ -135,6 +135,21 @@ function common(r, opt) {
   const many = Array.from({ length: 33 }, (_, i) => ({ appid: 300 + i, total: 5, tc: 2, played: 0 }));
   r = await runOnce('33 games together', many, { parallel: true }, 2 * HOUR);
   say('33 games together run in seven groups, at most five at once, and every game gets its turn', r.res.ok && r.h.plays.length === 7 && r.h.plays.every((p) => p.ids.length <= 5) && new Set(r.h.plays.flatMap((p) => p.ids)).size === 33, JSON.stringify(r.res.ok ? r.h.plays.map((p) => p.ids.length) : r.res));
+
+  // ---- the user's case: short games (2 hours to finish) played for 6, thousands of achievements left: all overdue, at Steam's pace, not 3 hours a group ----
+  const h4 = createHarness();
+  const finishedIds = Array.from({ length: 10 }, (_, i) => 40 + i);
+  finishedIds.forEach((id) => h4.game(id, 300, 100));
+  h4.account('a');
+  const fin = await h4.api.realisticStartFor('a', { appid: 40, gameEntries: finishedIds, spanMs: 2 * HOUR, optionList: Object.assign({}, BASE, { parallel: true, tcByGame: Object.fromEntries(finishedIds.map((id) => [id, 2])), playtime: Object.fromEntries(finishedIds.map((id) => [id, 6 * 60])) }) }, false);
+  const d4 = h4.accounts.get('a').realistic;
+  const plannedFin = d4 ? d4.finishTime - d4.startPoint : 0;
+  say('finished games: 2,000 overdue achievements plan about 2,000 seconds (one a second), not 2 x 3 hours', fin.ok && fin.totalSum === 2000 && plannedFin > 1900 * 1000 && plannedFin < 2100 * 1000, (plannedFin / 60000).toFixed(1) + ' min, ' + JSON.stringify(fin));
+  await h4.advance(3 * HOUR);
+  const gaps = h4.unlocks.slice(1).map((u, i) => u.at - h4.unlocks[i].at);
+  say('finished games: all 2,000 unlocked, never two closer than a second, the run ended', h4.unlocks.length === 2000 && Math.min(...gaps) >= 1000 && !h4.accounts.get('a').realistic, h4.unlocks.length + ' unlocked, closest ' + Math.min(...gaps) + ' ms, reason ' + (h4.lastTick() && h4.lastTick().cause));
+  const took = h4.unlocks[h4.unlocks.length - 1].at - h4.unlocks[0].at;
+  say('finished games: the last one came within a quarter of the plan after it (the random gap only slows it a little)', took < plannedFin * 1.25, (took / 60000).toFixed(1) + ' min of ' + (plannedFin / 60000).toFixed(1));
 
   // ---- groups: the games of a group are open in its time, and each unlock comes while its own game is open ----
   const h3 = createHarness();

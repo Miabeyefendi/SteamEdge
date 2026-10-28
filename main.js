@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, Notification, dialog, session, safeStorage } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell, Tray, Menu, nativeImage, powerSaveBlocker, powerMonitor, Notification, dialog, session, safeStorage } = require('electron');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
@@ -435,10 +435,11 @@ let settings = { ...DEFAULT_SETTINGS };
 // used to be two separate settings: when a level was chosen and the file stayed off nothing was recorded.
 const LOG_FILE = path.join(CACHE_DIR, 'steamedge.log');   // the log file is on the cache side
 const LOG_RANK = { error: 0, warn: 1, info: 2, debug: 3 };
-function log(level, msg) {
+// always: written whatever the level (not when the log is off). The connection lines are: "reconnecting" for hours left nothing to read at the default level.
+function log(level, msg, always) {
   const levelNum = settings.logLevel;
   const want = LOG_RANK[levelNum] != null ? LOG_RANK[levelNum] : 0;
-  if ((LOG_RANK[level] != null ? LOG_RANK[level] : 0) > want) return;
+  if (!always && (LOG_RANK[level] != null ? LOG_RANK[level] : 0) > want) return;
   const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${msg}`;
   if (level === 'error') console.error(line); else console.log(line);
   if (levelNum === 'off') return;
@@ -1585,6 +1586,9 @@ function stopAccountJobs(s, steamID) {
 function bindConnectionState(eng, steamID) {
   eng.onStatus = (status, extra) => {
     const s = accounts.get(steamID);
+    // An engine that is not the account's any more says nothing about it: an old one that still reported "reconnecting" set the account to "not connected"
+    // while the new one worked. (During connectAccount the new one is not s.engine yet; its statuses count.)
+    if (s && s.engine && s.engine !== eng && !s.connecting) return;
     if (s) {
       // The counters must not count the downtime: first the time up to that moment is written.
       if (status !== 'connected') statsHour(steamID);
@@ -1605,13 +1609,22 @@ function bindConnectionState(eng, steamID) {
     const message = status === 'dropped'
       ? ('Steam connection dropped: ' + (extra.cause || '?'))
       : status === 'connecting'
-        ? ('reconnecting (attempt ' + extra.attemptCount + ', in ' + Math.round((extra.waitMs || 0) / 1000) + ' s)')
+        ? (extra.trying
+            ? ('reconnecting: attempt ' + extra.attemptCount + ' started (deadline ' + Math.round((extra.deadlineMs || 0) / 1000) + ' s)')
+            : ('reconnecting (attempt ' + extra.attemptCount + ', in ' + Math.round((extra.waitMs || 0) / 1000) + ' s)' + (extra.lastFailure ? ', last: ' + extra.lastFailure : '')))
         : status === 'abandoned'
           ? ('reconnecting stopped' + (extra.permanent ? (' (permanent: ' + (extra.cause || '?') + ')') : (' (' + (extra.attemptCount || 0) + ' attempts)')))
           : status === 'connected' && extra.reconnected
             ? ('reconnected, ' + (extra.gameEntries || 0) + ' games reopened')
             : 'connected';
-    log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message);
+    log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message, true);
+    // The first session of an account whose first logon failed (no network at start) and that the engine's own loop opened later: what connectAccount does
+    // after a logon is done now
+    if (status === 'connected' && extra.first && s && s.engine === eng) {
+      resumeKeyQueue(steamID);
+      resumeAfterConnect(steamID);
+      syncActive();
+    }
     const s2 = accounts.get(steamID);
     if (s2) s2.connectionStatus = { condition: status, ts: Date.now(), ...extra };
     sendRaw('engine:status', { steamID, condition: status, messageText: message, activeIds: steamID === activeSteamID, limitValue: eng.reconnectLimit, ...extra });
@@ -1834,6 +1847,11 @@ async function connectAccount(entry) {
   s.accountName = entry.accountName;
   if (entry.locked) return { ok: false, error: 'Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.' };
   if (s.ready && s.engine) return { ok: true, persona: s.engine.persona, steamID: s.engine.steamID };
+  // The engine of the account is reconnecting on its own (a drop, or a first logon that failed): a page that asked for the connection gets "not connected"
+  // and no second engine. A second one logged on next to the first; Steam drops one of two sessions of an account (LogonSessionReplaced), and the two fought.
+  if (s.engine && s.engine.reconnecting && s.engine.reconnecting()) return { ok: false, error: 'Bağlı değil.' };
+  // An engine that gave up (the attempt limit, another session) is shut down before a new one is made, so it can never come back next to it.
+  if (s.engine && !s.ready) { try { s.engine.logOff(); } catch (_) {} }
   // DO NOT OPEN A SECOND LOGON FOR THE SAME ACCOUNT. The old code short-circuited only if the session was
   // COMPLETE; when `accounts:connectAll` at startup and the pages' `engine:connect`
   // call clashed, two SteamEngines logged on at once. When Steam sees a second client
@@ -1844,7 +1862,7 @@ async function connectAccount(entry) {
   // First logon: one attempt if reconnecting is off, three if on (2 s, 4 s apart). Drops after the logon
   // is established are caught by the engine's own loop (with the limit in Settings).
   const tries = settings.reconnectPolicy === 'off' ? 1 : 3;
-  let lastErr = null;
+  let lastErr = null, lastEngine = null;
   await windowOpened;
   const SteamEngine = steamEngineClass();
   for (let i = 0; i < tries; i++) {
@@ -1852,6 +1870,7 @@ async function connectAccount(entry) {
     // The currency does NOT come from the SETTING but from the account's wallet (the 'wallet' event at logon fills it).
     // The currency is read from the Steam market session; it cannot be chosen in the settings.
     const eng = new SteamEngine();
+    lastEngine = eng;
     eng.reconnectLimit = reconnectLimit();
     eng.parentalPin = accountData(entry.steamID).parentalPin || '';
     try { eng.setProxy(accountData(entry.steamID).proxyUrl); }
@@ -1893,6 +1912,13 @@ async function connectAccount(entry) {
     }
   }
   s.ready = false;
+  // The first logon failed (no network when the app started, Steam down). Before 1.7.8 the account then stayed unconnected until the app was restarted; now the
+  // last engine keeps trying in the background as after a drop, and when it logs on bindConnectionState does what is done above (status 'connected', first).
+  if (lastEngine && settings.reconnectPolicy !== 'off') {
+    s.engine = lastEngine;
+    lastEngine.startReconnecting(entry.refreshToken, settings.offlineMode);
+    log('warn', `[${entry.accountName}] first logon failed, trying again in the background`, true);
+  }
   return { ok: false, error: lastErr ? lastErr.message : 'Bağlanılamadı.' };
   })();
   try { return await s.connecting; }
@@ -2474,9 +2500,10 @@ ipcMain.handle('state:clear', () => {
 
 ipcMain.handle('engine:setAchievements', async (_e, { appid, changes, steamID }) => {
   const eng = engineFor(steamID);
-  if (!eng) return { ok: false, error: 'Bağlı değil.' };
+  // notConnected / refused: a bulk run waits for the connection and sends a write again that got no answer, but not one that Steam refused
+  if (!eng) return { ok: false, error: 'Bağlı değil.', notConnected: true };
   try { return { ok: true, result: await eng.setAchievements(appid, changes) }; }
-  catch (e) { return { ok: false, error: e.message }; }
+  catch (e) { return { ok: false, error: e.message, refused: !!(e && (e.protectedFlag || /EResult/.test(String(e.message || '')))), notConnected: !eng.isConnected }; }
 });
 
 // ---- SALE ----
@@ -3288,7 +3315,7 @@ function realisticPlayGroup(steamID, d) {
 }
 
 // The planning (when each achievement unlocks, how long the run lasts) is in src/core/realisticPlan.js: pure functions with their own tests.
-const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames, mergeParallel } = require('./src/core/realisticPlan');
+const { realisticModelRatio, realisticAccum, realisticRarityWeight, rarityPositions, isUltraRare, placeRealisticTimes, realisticTimeSetting, computeRealisticAccum, planGames, mergeParallel, FAST_GAP_MS } = require('./src/core/realisticPlan');
 
 function realisticNotify(steamID, extra) {
   const d = realisticStatus(steamID);
@@ -3333,7 +3360,7 @@ function realisticNextDelay(d) {
     const deviation = g * 0.4;
     g = g - deviation + Math.random() * deviation * 2;
   }
-  return Math.max(3000, Math.round(g));   // at least 3 seconds
+  return Math.max(FAST_GAP_MS, Math.round(g));   // never faster than Steam's pace (it was 3 s, which held the overdue ones of a finished game for hours)
 }
 
 async function realisticStep(steamID) {
@@ -3378,6 +3405,20 @@ async function realisticStep(steamID) {
       addFeed(steamID, { kind: 'card', title: 'Başarım açıldı', text: goal.name + ' · ' + goalTitle, status: 'Başarılı' });
     }
   } catch (e) {
+    if (s.realistic !== d) return;
+    // A write that did not get Steam's answer (the connection dropped under it, a timeout) is not a refusal: the same achievement is sent again, at most
+    // three times, instead of being counted as failed and skipped for good (a 60 s drop on a real account lost one that way). While the connection is down it
+    // waits for it and that does not count as a try. A refusal (an EResult, a protected achievement) is final.
+    const refused = !!(e && (e.protectedFlag || /EResult/.test(String(e.message || ''))));
+    const connectionDown = !s.ready || !(s.engine && s.engine.isConnected);
+    if (!refused) {
+      if (!connectionDown) goal.retries = (goal.retries || 0) + 1;
+      if (connectionDown || goal.retries < 3) {
+        log('warn', '[' + accountName(steamID) + '] realistic mode: no answer for ' + goal.name + ' (' + (e && e.message) + '), sent again in 30 s', true);
+        d.timer = setTimeout(() => realisticStep(steamID), 30000);
+        return;
+      }
+    }
     a.failure++; d.totalErrors++;
     log('warn', '[' + accountName(steamID) + '] realistic mode: could not unlock -> ' + goal.name + ': ' + (e && e.message));
   }
@@ -3642,7 +3683,7 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
     // the games at the same time: the preview is the merged timeline of all of them over the whole run, the one the engine runs
     const together = built.parallel ? built.games.filter((g) => g.queueList.length) : null;
     const shown = together && together.length > 1
-      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs,
+      ? mergeParallel(together.map((g) => ({ appid: g.appid, gameTitle: g.h.gameTitle, queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs, paced: g.paced,
           accumulation: computeRealisticAccum(g.appid, g.h, pick), timing: realisticTimeSetting(g.appid, pick) })), built.spanMs, pick.model)
       : head.queueList;
     const shownShare = shown === head.queueList ? share : built.spanMs;
@@ -3711,7 +3752,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     const prepared = {};
     const gameList = [];
     plan.games.forEach((g) => {
-      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs });
+      prepared[g.appid] = Object.assign({}, g.h, { queueList: g.queueList, slotStart: g.slotStart, slotMs: g.slotMs, paced: g.paced });
       gameList.push({ appid: g.appid, name: g.h.gameTitle });
     });
     if (!gameList.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
@@ -3753,7 +3794,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
       activeIds: {
         appid: firstGame.appid, gameTitle: firstGame.name,
         queueList: parallel
-          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList, slotStart: prepared[o.appid].slotStart, slotMs: prepared[o.appid].slotMs,
+          ? mergeParallel(willRun.map((o) => ({ appid: o.appid, gameTitle: o.name, queueList: prepared[o.appid].queueList, slotStart: prepared[o.appid].slotStart, slotMs: prepared[o.appid].slotMs, paced: prepared[o.appid].paced,
               accumulation: computeRealisticAccum(o.appid, prepared[o.appid], pick), timing: realisticTimeSetting(o.appid, pick) })), duration, pick.model)
           : placeRealisticTimes(firstReady.queueList, firstShare, pick.model,
                                            computeRealisticAccum(firstGame.appid, firstReady, pick),
@@ -4739,8 +4780,15 @@ function realisticScheduleTick() {
   });
 }
 
+// The computer woke up or was unlocked: an account that is not connected tries at once instead of waiting out its backoff (or an attempt made before the
+// sleep). A few seconds first: the network adapter needs them after a wake.
+function nudgeReconnect() {
+  setTimeout(() => accounts.forEach((s) => { if (s.engine && !s.ready && s.engine.retryNow) s.engine.retryNow(); }), 5000);
+}
+
 app.whenReady().then(() => {
   const setup = isSetupConsistent();
+  try { powerMonitor.on('resume', nudgeReconnect); powerMonitor.on('unlock-screen', nudgeReconnect); } catch (_) {}
   if (!setup.ok) {
     log('error', 'mixed installation: version=' + setup.fileVersion + ' running=' + setup.runningItem);
     // The settings have not loaded yet; the language comes from the early setting read before the window opened.

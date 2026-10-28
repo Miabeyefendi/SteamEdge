@@ -297,7 +297,7 @@ Se pueden conectar varias cuentas a la vez. Cada una mantiene su propio motor, s
 
 ### Conexión
 
-Cuando se cae la conexión, SteamEdge se reconecta solo y las tareas en marcha continúan donde estaban. **Reconectar si se pierde la conexión** (Ajustes > Avanzado y datos) fija el límite: sin límite, 10 intentos, 3 intentos o desactivado. Si Steam cierra la sesión definitivamente, por ejemplo porque la cuenta inició sesión en otro lugar, los intentos se detienen y un aviso ofrece un botón para reconectar.
+Cuando se cae la conexión, SteamEdge se reconecta solo y las tareas en marcha continúan donde estaban. **Reconectar si se pierde la conexión** (Ajustes > Avanzado y datos) fija el límite: sin límite, 10 intentos, 3 intentos o desactivado. 10 o 3 es el número de intentos rápidos: después no se rinde, sigue intentándolo cada cinco minutos, y al momento cuando el equipo despierta. Si Steam cierra la sesión definitivamente, por ejemplo porque la cuenta inició sesión en otro lugar, los intentos se detienen y un aviso ofrece un botón para reconectar.
 
 ---
 

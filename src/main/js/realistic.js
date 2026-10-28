@@ -560,7 +560,10 @@
         const one = (grPlan && grPlan.accumulation) || 0;
         if (one > 0 && grVal('grCatchUp', true)){
           not.style.display = 'block';
-          not.textContent = game
+          // a game played past its completion time: everything left is overdue and goes out at Steam's pace (realisticPlan.js FAST_GAP_MS), not over hours
+          not.textContent = game && grPlan.finishedFlag
+            ? tf('#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.', game.name, Math.round((game.playtimeMin||0)/60), grPlan.suitableTotal || one)
+            : game
             ? tf('#: # saat oynanmış, # başarım geride kalmış. Geride kalanlar oturumun ilk beşte birinde açılır, sonrası normal ritimde sürer.', game.name, Math.round((game.playtimeMin||0)/60), one)
             : tf('# başarım geride kalmış; oturumun ilk beşte birinde açılır.', one);
         } else not.style.display = 'none';

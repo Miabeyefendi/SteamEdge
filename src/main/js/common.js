@@ -1133,8 +1133,11 @@
     function connectionText(d){
       if (d.condition === 'dropped') return t('Steam bağlantısı koptu.') + (d.cause ? (' (' + t(d.cause) + ')') : '');
       if (d.condition === 'connecting'){
-        const sn = Math.max(1, Math.round((d.waitMs || 0) / 1000));
-        return d.limitValue
+        // an attempt under way, or the wait until the next one counted down from its time (a fixed "in 300 s" looked the same for hours)
+        if (d.trying) return tf('Steam bağlantısı koptu. Bağlanılıyor (deneme #)...', d.attemptCount || 1);
+        const sn = Math.max(1, Math.round(((d.nextAt ? d.nextAt - Date.now() : d.waitMs) || 0) / 1000));
+        // past the quick attempts of a limit the loop goes on every five minutes: "attempt 4 / 3" would read as a mistake
+        return d.limitValue && (d.attemptCount || 1) <= d.limitValue
           ? tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).', sn, d.attemptCount || 1, d.limitValue)
           : tf('Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).', sn, d.attemptCount || 1);
       }
@@ -1150,6 +1153,7 @@
       return '';
     }
     function connectionStrip(d){
+      stripLast = d;
       const status = d.condition;
       const message = connectionText(d);
       let el = document.getElementById('connectionStrip');
@@ -1187,7 +1191,7 @@
     // The strip says what the connection of the account on screen IS, not what the last event said: it hung on "reconnecting" after the connection had come back
     // when the event that said so was missed (it belonged to the account that was not on screen at that moment, or the account was changed in between).
     // The state is asked for from the main process whenever any account reports something, after a switch, and every 15 seconds while the strip shows.
-    let stripTimer = null;
+    let stripTimer = null, stripCountdown = null, stripLast = null;
     async function reconcileConnection(){
       const d = await window.imu.engine.connectionStatus().catch(()=>null);
       if (!d || d.condition === 'none') { connectionStrip({ condition: 'connected' }); return; }
@@ -1197,6 +1201,14 @@
       const shown = !!document.getElementById('connectionStrip');
       if (shown && !stripTimer) stripTimer = setInterval(reconcileConnection, 15000);
       if (!shown && stripTimer){ clearInterval(stripTimer); stripTimer = null; }
+      // the countdown to the next attempt goes down every second
+      if (shown && !stripCountdown) stripCountdown = setInterval(()=>{
+        const el = document.getElementById('connectionStrip');
+        if (!el || !stripLast || stripLast.condition !== 'connecting' || stripLast.trying || !stripLast.nextAt) return;
+        const span = el.querySelector('span:not(.e-pulse)');
+        if (span) span.textContent = connectionText(stripLast);
+      }, 1000);
+      if (!shown && stripCountdown){ clearInterval(stripCountdown); stripCountdown = null; }
     }
     if (window.imu.engine && window.imu.engine.onStatus){
       window.imu.engine.onStatus((d)=>{

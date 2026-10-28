@@ -58,8 +58,9 @@ const HOUR = 3600000;
 
 function fakeEngine(opts) {
   const o = opts || {};
-  const e = { played: [], stopped: [], setAchievements: async (appid, list) => {
+  const e = { played: [], stopped: [], isConnected: true, setAchievements: async (appid, list) => {
     if (o.failOn && o.failOn.includes(list[0].apiName)) throw new Error('EResult 8');
+    if (o.noAnswer && o.noAnswer[list[0].apiName] > 0) { o.noAnswer[list[0].apiName]--; throw new Error('Steam did not answer in time'); }
     unlocks.push([appid, list[0].apiName, now]);
   }, play: (ids, why) => e.played.push([ids.join(), why]), stop: (why) => e.stopped.push(why) };
   return e;
@@ -165,6 +166,28 @@ const lastTick = () => ticks[ticks.length - 1];
   await advance(4.1 * HOUR);
   check('failed unlock: the others still go out (2 of 3) and the failure is counted for the page', unlocks.length === 2 && lastTick().failure === 1 && lastTick().openedGames === 2, JSON.stringify(lastTick()).slice(0, 160));
   check('failed unlock: the run does not stay open', s.realistic === null);
+
+  // ---- 6b. a write that gets no answer (the connection dropped under it) is sent again, not skipped ----
+  reset();
+  s = account('a', { engine: fakeEngine({ noAnswer: { A1: 1 } }) });
+  d = makeRun(s, [{ appid: 10, name: 'Game', queueList: list(3, 1 * HOUR, 1 * HOUR) }], { continueHours: false }, 4 * HOUR);
+  await advance(4.1 * HOUR);
+  check('no answer once: the same achievement goes out again 30 s later, all 3 unlocked, nothing counted as failed (1.7.7 skipped it for good)', unlocks.map((u) => u[1]).join() === 'A0,A1,A2' && lastTick().failure === 0, unlocks.map((u) => u[1]).join() + ' failure ' + lastTick().failure);
+  reset();
+  s = account('a', { engine: fakeEngine({ noAnswer: { A1: 5 } }) });
+  d = makeRun(s, [{ appid: 10, name: 'Game', queueList: list(3, 1 * HOUR, 1 * HOUR) }], { continueHours: false }, 4 * HOUR);
+  await advance(4.1 * HOUR);
+  check('no answer three times while connected: then it counts as failed and the run goes on (no endless retry)', unlocks.map((u) => u[1]).join() === 'A0,A2' && lastTick().failure === 1, unlocks.map((u) => u[1]).join() + ' failure ' + lastTick().failure);
+  reset();
+  s = account('a', { engine: fakeEngine({ noAnswer: { A1: 1 } }) });
+  s.engine.isConnected = true;
+  d = makeRun(s, [{ appid: 10, name: 'Game', queueList: list(3, 1 * HOUR, 1 * HOUR) }], { continueHours: false }, 4 * HOUR);
+  await advance(1 * HOUR + 1000);
+  s.ready = false; s.engine.isConnected = false;          // the drop is seen: waiting for the connection is not a try
+  await advance(10 * 60000);
+  s.ready = true; s.engine.isConnected = true;
+  await advance(3.5 * HOUR);
+  check('the connection is down while it waits: it keeps waiting and sends it when it is back', unlocks.map((u) => u[1]).join() === 'A0,A1,A2' && lastTick().failure === 0, unlocks.map((u) => u[1]).join());
 
   // ---- 7. a queue of two games ----
   reset();

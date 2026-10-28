@@ -297,7 +297,7 @@ Mehrere Konten können gleichzeitig verbunden sein. Jedes hat seine eigene Verbi
 
 ### Verbindung
 
-Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufgaben machen weiter. **Bei Verbindungsabbruch neu verbinden** (Einstellungen > Erweitert & Daten) legt das Limit fest: unbegrenzt, 10 Versuche, 3 Versuche oder aus. Beendet Steam die Sitzung endgültig, etwa weil sich das Konto anderswo angemeldet hat, enden die Versuche und ein Banner bietet einen Neu-verbinden-Knopf.
+Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufgaben machen weiter. **Bei Verbindungsabbruch neu verbinden** (Einstellungen > Erweitert & Daten) legt das Limit fest: unbegrenzt, 10 Versuche, 3 Versuche oder aus. 10 oder 3 ist die Zahl der schnellen Versuche: danach gibt es nicht auf, sondern versucht es alle fünf Minuten weiter und sofort, wenn der Computer aufwacht. Beendet Steam die Sitzung endgültig, etwa weil sich das Konto anderswo angemeldet hat, enden die Versuche und ein Banner bietet einen Neu-verbinden-Knopf.
 
 ---
 

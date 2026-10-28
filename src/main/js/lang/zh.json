@@ -793,7 +793,7 @@
  "Envanterindeki bir öğenin en düşük ilanı Steam'in 24 saatlik ortalamasının Pazar > Fiyat düşüşü eşiği kadar altına inince bildirilir. Aynı öğe için günde en çok bir kez.": "當庫存中物品的最低上架價低於 Steam 24 小時平均價達「市集 > 價格下跌門檻」時通知你。同一物品每天最多一次。",
  "Aşağıda belirlediğin aralıkta hiçbir bildirim gösterilmez, hatalar dahil. Uygulama içindeki kayıtlar tutulmaya devam eder.": "在下方設定的時段內不顯示任何通知，錯誤也不例外。應用程式內的動態紀錄仍會持續記錄。",
  "Sessiz saatler açıkken bildirim gösterilmeyecek aralığın başı ve sonu.": "安靜時段開啟時，不顯示通知的時段起訖。",
- "İnternet giderse, Steam çökerse ya da bağlantı beklenmedik biçimde kesilirse oturum kendiliğinden yeniden kurulur ve çalışan işler kaldığı yerden sürer. Denemeler arasındaki bekleme her seferinde uzar (en fazla 5 dakika). Giriş anahtarı geçersiz olduysa ya da hesap başka bir oturumda açıldıysa yeniden denenmez; sebebi gösterilir.": "若網路中斷、Steam 當機或連線意外中斷，會自動恢復工作階段，執行中的工作從中斷處繼續。每次重試之間的等待會逐漸增加（最長 5 分鐘）。若登入權杖已失效或帳號被其他工作階段取代，則不會重試並告知原因。",
+ "İnternet giderse, Steam çökerse ya da bağlantı beklenmedik biçimde kesilirse oturum kendiliğinden yeniden kurulur ve çalışan işler kaldığı yerden sürer. Denemeler arasındaki bekleme her seferinde uzar (en fazla 1 dakika). 10 ya da 3 deneme seçiliyse o kadar denemeden sonra vazgeçmez, 5 dakikada bir denemeye devam eder; bilgisayar uyanınca hemen dener. Giriş anahtarı geçersiz olduysa ya da hesap başka bir oturumda açıldıysa yeniden denenmez; sebebi gösterilir.": "若網路中斷、Steam 當機或連線意外斷開，工作階段會自行重新建立，執行中的工作會從原處繼續。每次嘗試之間的等待會逐漸變長（最多 1 分鐘）。選擇 10 次或 3 次時，用完後不會放棄：之後每 5 分鐘再試一次，電腦喚醒時則立即嘗試。若登入權杖已失效或帳號在其他工作階段開啟，則不再重試，並顯示原因。",
  "Bu süre boyunca uygulamada tıklama ya da tuş basılmazsa tüm Steam oturumları kapatılır ve giriş ekranına dönülür. Bir hesapta kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışıyorsa oturum kapatılmaz. Bağlantı kopmasıyla ilgisi yoktur; onu yukarıdaki ayar belirler.": "若這段時間內應用程式沒有任何點擊或按鍵，會關閉所有 Steam 工作階段並返回登入畫面。只要有任一帳號正在執行卡牌掉落、時數提升或擬真模式就不會關閉。這與連線中斷無關，連線中斷由上方的設定處理。",
  "Olay kaydı, cache klasöründeki steamedge.log dosyasına yazılır. Sorun bildirirken bu dosyayı eklersen çözüm hızlanır. Ayrıntılı seviye diski daha çok kullanır; yalnızca sorun ararken seç.": "應用程式的事件記錄會寫入 cache 資料夾中的 steamedge.log。回報問題時附上此檔案可加快解決。詳細等級會佔用較多磁碟空間，僅在排查問題時使用。",
  "Steam pazarına giden fiyat ve satış geçmişi istekleri arasındaki en kısa süre. Düşük değer fiyatları daha hızlı getirir ama Steam'in istek sınırına (HTTP 429) takılma riskini artırır; takılırsan değeri yükselt.": "向 Steam 市集請求價格與銷售紀錄之間的最短間隔。數值越低取得價格越快，但越容易碰到 Steam 的請求上限（HTTP 429）；若發生，請調高。",
@@ -1526,5 +1526,8 @@
  "Diğer hesaplarda çalışıyor": "在其他帳號上執行中",
  "Oyunları aynı anda oynat": "同時執行所有遊戲",
  "Açıkken sıradaki oyunlar beşer beşer birlikte açık kalır, saat yükselticideki gibi: bir gruptaki oyunların başarımları kendi planına göre aynı süre içinde açılır, grubun süresi en uzun oyununki kadardır, sonra sıradaki beş oyun gelir. Kapalıyken oyunlar tek tek sırayla oynatılır ve süreleri toplanır.": "開啟時，佇列中的遊戲每五個一組同時開啟，就像時數提升器：同組遊戲的成就依各自的計畫在同一段時間內解鎖，一組的時長等於其中最長的遊戲，之後輪到下五個遊戲。關閉時，遊戲依序逐一進行，時長相加。",
- "… ve # başarım daha": "… 還有 # 個成就"
+ "… ve # başarım daha": "… 還有 # 個成就",
+ "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#：已遊玩 # 小時，超過完成時間。剩下的 # 個成就都算逾期，每秒解鎖一個。",
+ "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Steam 連線中斷。正在連線（第 # 次嘗試）...",
+ "Steam bağlantısı bekleniyor...": "正在等待 Steam 連線..."
 }

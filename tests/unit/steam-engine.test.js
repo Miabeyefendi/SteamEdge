@@ -85,6 +85,25 @@ global.fetch = async (url, opts = {}) => {
   e.steamID = '76561198000000000';
   e._sendRecv = async () => ({ schema: Buffer.concat(kv), stats: [], crc_stats: 1, eresult: 1 });
   const raw = await e._getUserStatsRaw(480);
+  // Steam answers every write with the new crc of the stats; the next write must carry it. With the crc read before, the second write to a game was refused (EResult 8)
+  // and half of a run failed (measured on a real account).
+  let steamCrc = 1, reads = 0;
+  const sentCrc = [];
+  e._sendRecv = async (emsg, _t, obj) => {
+    if (emsg === 818) { reads++; return { schema: Buffer.concat(kv), stats: [], crc_stats: steamCrc, eresult: 1 }; }
+    sentCrc.push(obj.crc_stats);
+    if (obj.crc_stats !== steamCrc) return { eresult: 8 };
+    steamCrc += 100;
+    return { eresult: 1, crc_stats: steamCrc };
+  };
+  e.invalidateStats();
+  e._playing = [480];
+  const writes = [];
+  for (const api of ['7', 'ACH_WIN']) writes.push(await e.setAchievements(480, [{ apiName: api, unlock: true }]).then((x) => x.ok, () => false));
+  check('two writes to one game in a row both go through, each with the crc Steam gave back', writes.join() === 'true,true' && sentCrc.join() === '1,101' && reads === 1, writes.join() + ' crc ' + sentCrc.join() + ' reads ' + reads);
+  steamCrc = 5000;     // the stats changed elsewhere (the game itself, another app): the crc held is stale
+  const third = await e.setAchievements(480, [{ apiName: '7', unlock: false }]).then((x) => x.ok, (x) => x.message);
+  check('a write refused on a stale crc is tried once more on a fresh read, and goes through', third === true && reads === 2, third + ' reads ' + reads);
   check('an achievement named with a bare number gets its names as text', raw && raw.defs[0].apiName === '7' && raw.defs[0].name === '12' && raw.defs[1].name === 'Winner', JSON.stringify(raw && raw.defs.map((d) => [d.apiName, d.name])));
   process.exit(failures ? 1 : 0);
 })();
