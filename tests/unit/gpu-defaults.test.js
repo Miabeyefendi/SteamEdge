@@ -52,7 +52,7 @@ check('the default is on and a change asks for a restart', /lowMemory: true,/.te
 const m1 = src.indexOf('function migrateSettings(v) {');
 const m2 = src.indexOf('  return hasChanged;\n}', m1) + '  return hasChanged;\n}'.length;
 check('migrateSettings is in main.js', m1 > 0 && m2 > m1);
-const mig = vm.createContext({ REMOVED_SETTINGS: [], nearestAchDelay: (x) => x, Number, String });
+const mig = vm.createContext({ REMOVED_SETTINGS: [], OLD_SETTING_VALUES: require('../../src/core/keyMigration').OLD_SETTING_VALUES, nearestAchDelay: (x) => x, Number, String, Object });
 vm.runInContext(src.slice(m1, m2) + ';this.run = migrateSettings;', mig);
 const old = { settingsVersion: 4, gpuComposition: true, density: 'auto' };
 const changed = mig.run(old);
