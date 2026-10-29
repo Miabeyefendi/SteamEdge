@@ -8,7 +8,7 @@ const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf
 let failures = 0;
 const check = (name, condition) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name); };
 const code = src.slice(src.indexOf('// { key, endsInMs } while the clock'), src.indexOf('// The same order the Card farming page uses')) + '\n'
-  + src.slice(src.indexOf('// Realistic Mode by itself:'), src.indexOf('app.whenReady().then(() => {\n  const setup'));
+  + src.slice(src.indexOf('// Realistic Mode by itself:'), src.indexOf('app.whenReady().then(() => {\n  // The second copy'));
 
 const day = (t) => { const d = new Date(t); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 const started = [], finished = [], logs = [], events = [];

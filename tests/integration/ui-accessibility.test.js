@@ -71,7 +71,7 @@ app.whenReady().then(async () => {
   const before = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
   await js("applyTheme('contrast')");
   await wait(500);
-  check('the high contrast theme is applied', (await js("document.documentElement.getAttribute('data-tema')")) === 'contrast');
+  check('the high contrast theme is applied', (await js("document.documentElement.getAttribute('data-theme')")) === 'contrast');
   const back = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).backgroundColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).borderTopColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
   check('a field is black with a white border and white text', back === 'rgb(0, 0, 0)|rgb(255, 255, 255)|rgb(255, 255, 255)', back + ' (was ' + before + ')');
   await shot('theme-contrast');

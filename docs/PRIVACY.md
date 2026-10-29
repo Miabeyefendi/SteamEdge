@@ -11,7 +11,7 @@
 | **Steam Guard codes** | Sent to Steam once and dropped. Not stored. The app holds none of your authenticator secrets (the old maFile feature was removed in 1.1.9), so it cannot approve mobile confirmations for you. |
 | **Session token** | After sign-in Steam gives the app a refresh token so it does not ask again. It is not your password. It is saved in `settings/session.json` and `settings/accounts.json`, next to the exe. **It is plain text by default.** Turn on *Settings > Privacy & security > Encrypt login tokens* to seal it with Windows DPAPI, so only your Windows user on this PC can read it. Web cookies live in memory only. |
 | **Cookie sign-in (fallback)** | If you use the cookie login instead of the normal one, `settings/web-session.json` keeps those cookies in plain text until you sign out. |
-| **Log file** | `cache/steamedge.log` holds events, never passwords, tokens or cookies. |
+| **Log files** | `logs/` holds events (`steamedge.log`), the drops and returns of the Steam connection (`connection.log`) and unexpected errors (`crash.log`), never passwords, tokens or cookies. |
 | **Exports** | The settings export leaves out tokens, proxy addresses (with their passwords) and the parental PIN. |
 
 **What goes over the network**

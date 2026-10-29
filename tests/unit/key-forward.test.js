@@ -1,4 +1,4 @@
-// A key the account already owns is passed on to the next connected account when "Sahip olunan anahtarı ilet" is on, goes through every
+// A key the account already owns is passed on to the next connected account when "Pass on keys for games already owned" is on, goes through every
 // account at most once, and is left alone when the setting is off.
 // Run with `npm test` (tests/run.js).
 const fs = require('fs');

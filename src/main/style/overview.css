@@ -89,11 +89,6 @@
   .activity-item{display:flex;align-items:flex-start;gap:10px;padding:9px 4px;border-radius:6px;transition:background .1s}
   .activity-item:hover{background:#1f2333}
   .activity-dot{width:6px;height:6px;border-radius:50%;flex:none;margin-top:5px}
-  .activity-item.cat-kart .activity-dot{background:#4f8ef7}
-  .activity-item.cat-saat .activity-dot{background:#4f8ef7}
-  .activity-item.cat-pazar .activity-dot{background:#a78bfa}
-  .activity-item.cat-envanter .activity-dot{background:#f59e0b}
-  .activity-item.cat-hata .activity-dot{background:#ef4444}
   .activity-text{font-size:12px;color:#94a3b8;line-height:1.5}
   .activity-text b{color:#cbd5e1;font-weight:600}
   .activity-time{margin-left:auto;font-size:11px;color:#7F879B;flex:none;padding-top:2px}

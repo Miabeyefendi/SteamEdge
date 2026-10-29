@@ -33,6 +33,6 @@ Some achievements are written by the game server, not the client, and Steam refu
 <details>
 <summary><b>It stopped working after an update. What now?</b></summary>
 
-Make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./guides/TUTORIAL.md#-troubleshooting) of the tutorial and the log at `cache/steamedge.log` (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach that log.
+Make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./guides/TUTORIAL.md#-troubleshooting) of the tutorial and the logs in the `logs/` folder (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach those logs.
 
 </details>

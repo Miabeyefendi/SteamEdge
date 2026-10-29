@@ -11,7 +11,7 @@
 | **Steam Guard kodları** | Steam'e bir kez gönderilir ve atılır. Saklanmaz. Uygulama doğrulayıcı sırlarını tutmaz (eski maFile özelliği 1.1.9'da kaldırıldı), bu yüzden mobil onayları senin yerine veremez. |
 | **Oturum anahtarı** | Giriş sonrası Steam uygulamaya yenileme anahtarı verir, böylece tekrar sormaz. Bu parolan değildir. exe'nin yanındaki `settings/session.json` ve `settings/accounts.json` içinde durur. **Varsayılan olarak düz metindir.** *Ayarlar > Gizlilik & Güvenlik > Giriş anahtarlarını şifrele* açılırsa Windows DPAPI ile mühürlenir; bu bilgisayarda yalnızca senin Windows kullanıcın okuyabilir. Web çerezleri yalnızca bellekte durur. |
 | **Çerezle giriş (yedek yol)** | Normal giriş yerine çerezle girersen `settings/web-session.json` bu çerezleri çıkış yapana kadar düz metin tutar. |
-| **Günlük dosyası** | `cache/steamedge.log` olayları tutar; parola, anahtar ya da çerez yazılmaz. |
+| **Günlük dosyaları** | `logs/` olayları (`steamedge.log`), Steam bağlantısının kopup gelmesini (`connection.log`) ve beklenmedik hataları (`crash.log`) tutar; parola, anahtar ya da çerez yazılmaz. |
 | **Dışa aktarma** | Ayar dışa aktarımı anahtarları, vekil adreslerini (parolalarıyla) ve ebeveyn PIN'ini dışarıda bırakır. |
 
 **Ağa ne gidiyor**

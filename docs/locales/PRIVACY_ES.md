@@ -11,7 +11,7 @@
 | **Códigos de Steam Guard** | Se envían una vez a Steam y se descartan. No se guardan. La app no tiene ningún secreto de tu autenticador (la antigua función maFile se eliminó en 1.1.9), así que no puede aprobar confirmaciones móviles por ti. |
 | **Token de sesión** | Tras iniciar sesión, Steam da a la app un token de renovación para no volver a pedirte la contraseña. No es tu contraseña. Se guarda en `settings/session.json` y `settings/accounts.json`, junto al exe. **Por defecto es texto plano.** Activa *Ajustes > Privacidad y seguridad > Cifrar los tokens de inicio de sesión* para sellarlo con Windows DPAPI: solo tu usuario de Windows en este PC podrá leerlo. Las cookies web solo viven en memoria. |
 | **Inicio con cookies (alternativa)** | Si usas el inicio con cookies en lugar del normal, `settings/web-session.json` guarda esas cookies en texto plano hasta que cierres sesión. |
-| **Archivo de registro** | `cache/steamedge.log` guarda eventos, nunca contraseñas, tokens ni cookies. |
+| **Archivos de registro** | `logs/` guarda eventos (`steamedge.log`), las caídas y regresos de la conexión con Steam (`connection.log`) y errores inesperados (`crash.log`), nunca contraseñas, tokens ni cookies. |
 | **Exportación** | La exportación de ajustes deja fuera los tokens, las direcciones de proxy (con sus contraseñas) y el PIN parental. |
 
 **Qué sale por la red**

@@ -100,7 +100,7 @@
       if (mlBack) return;
       const back = document.createElement('div');
       back.className = 'e-modal-back';
-      back.setAttribute('data-sayfa', 'inventory');
+      back.setAttribute('data-page', 'inventory');
       back.innerHTML = '<div class="e-modal" role="dialog" aria-modal="true" style="width:760px">'
         + '<div class="e-modal-hd"><span class="dot" style="background:#5624B3"></span><span class="ttl">' + esc(t('Aktif İlanlarım')) + '</span></div>'
         + '<div data-mlbody style="max-height:56vh;overflow-y:auto;padding:4px 18px 10px"></div>'

@@ -75,7 +75,7 @@
   function applyTheme(name) {
     try { localStorage.setItem('se_theme', name === 'auto' || PALETTE[name] ? name : 'dark'); } catch (_) {}
     const choice = resolve(name);
-    const previous = document.documentElement.getAttribute('data-tema') || 'dark';
+    const previous = document.documentElement.getAttribute('data-theme') || 'dark';
     if (previous === choice) return;
     // Returning from another theme reloads the page: the mapping cannot be undone, the source is dark.
     // If Settings is open it returns to the same section (the same key as the language change, see i18n.js).
@@ -84,7 +84,7 @@
       location.reload(); return;
     }
     matchUp = PALETTE[choice];
-    document.documentElement.setAttribute('data-tema', choice);
+    document.documentElement.setAttribute('data-theme', choice);
     document.documentElement.style.colorScheme = choice === 'white' ? 'light' : 'dark';
     rules();
     // In the white theme the light text colour turns dark; the text of the purple buttons and the white
@@ -103,7 +103,7 @@
   }
   window.applyTheme = applyTheme;
   window.themePalettes = PALETTE;      // read by the contrast test
-  let initial = 'auto'; try { initial = (localStorage.getItem('se_theme') || localStorage.getItem('se_tema')) || 'auto'; } catch (_) {}
+  let initial = 'auto'; try { initial = localStorage.getItem('se_theme') || 'auto'; } catch (_) {}
   if (resolve(initial) !== 'dark') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(initial));
     else applyTheme(initial);

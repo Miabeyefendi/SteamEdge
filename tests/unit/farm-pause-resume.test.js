@@ -1,6 +1,6 @@
 // Card farming paused for another job (hour boosting, sequential idling, Realistic Mode) and given back when it ends: the normal case, the job ending while the
 // Steam connection is down (the farm used to stay paused for good and blocked the schedule and the resume of jobs), another job still running, and the
-// connection coming back with nothing paused.
+// connection coming back with nothing paused. And every connection status written to connection.log as one line.
 // Run with `npm test` (tests/run.js).
 const fs = require('fs');
 const path = require('path');
@@ -13,10 +13,10 @@ const code = cut('function accountBoostRunning(s)', '// The kinds of job that ru
   + cut('function delayFarm(steamID, reasonWhy)', '// Stops all jobs of an account')
   + cut('function bindConnectionState(eng, steamID)', '// The "Reconnect" button in the interface');
 
-const started = [], events = [];
+const started = [], events = [], conn = [];
 const accounts = new Map();
 const ctx = {
-  accounts, activeSteamID: 'a', engineReady: false, log: () => {}, accountName: (i) => i,
+  accounts, activeSteamID: 'a', engineReady: false, log: () => {}, logger: { connection: (id, ev, fields) => conn.push([id, ev, fields || null]) }, accountName: (i) => i,
   accountEvent: (id, e) => events.push([id, e.typeName]),
   startCardFarm: (id, mode, games, durationMs, extra) => { started.push({ id, mode, games, extra }); accounts.get(id).farm = { running: true, mode, games, durationMs, location: () => ({}), stop() { this.running = false; } }; },
   keyChanged: (id) => events.push([id, 'keysChanged']),
@@ -73,4 +73,17 @@ events.length = 0;
 eng.onStatus('dropped', { cause: 'x' });
 eng.onStatus('connected', { reconnected: true, gameEntries: 0 });
 check('keys: the connection is back -> the "Not connected" line goes at once and the queue is woken', s.keys.error === null && woke && events.some((e) => e[1] === 'keysChanged'));
+// every status reaches connection.log as one line (src/core/logger.js): the drop with its cause, the wait, the attempt, the return with the attempts it took
+({ s, eng } = account());
+conn.length = 0;
+eng.onStatus('dropped', { cause: 'NoConnection' });
+eng.onStatus('connecting', { attemptCount: 1, waitMs: 5000, lastFailure: 'NoConnection' });
+eng.onStatus('connecting', { trying: true, attemptCount: 1, deadlineMs: 60000 });
+eng.onStatus('connecting', { trying: true, attemptCount: 2, deadlineMs: 60000 });
+eng.onStatus('connected', { reconnected: true, gameEntries: 3 });
+eng.onStatus('abandoned', { attemptCount: 10 });
+check('connection.log: dropped, waiting, attempt, attempt, reconnected, abandoned', conn.map((c) => c[1]).join() === 'dropped,waiting,attempt,attempt,reconnected,abandoned', conn.map((c) => c[1]).join());
+const back = conn.find((c) => c[1] === 'reconnected');
+check('the return says how many attempts and games', back[2].attempts === 2 && back[2].games === 3 && back[2].downMs >= 0, JSON.stringify(back[2]));
+check('the drop carries its cause', conn[0][2].cause === 'NoConnection' && conn[0][0] === 'a');
 process.exit(failures ? 1 : 0);

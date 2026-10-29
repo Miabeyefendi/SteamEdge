@@ -1,5 +1,5 @@
 // The minimise button and the tray: the window goes to the notification area, and every way back (tray click, tray menu, a second copy, a notification) brings it
-// back whatever state it is in (hidden, minimised by Windows, or both).
+// back whatever state it is in (hidden, minimised by Windows, or both), maximized first when it started in the tray from a maximized window.
 // Run with `npm test` (tests/run.js).
 const fs = require('fs');
 const path = require('path');
@@ -26,7 +26,7 @@ function setup(trayWorks, iconFound) {
   const handlers = {};
   const trayHandlers = {};
   const ctx = {
-    win: fakeWindow(), tray: null, trayHasIcon: false, path, __dirname: '/app',
+    win: fakeWindow(), tray: null, trayHasIcon: false, maximizeOnShow: false, path, __dirname: '/app',
     nativeImage: { createFromPath: () => ({ isEmpty: () => iconFound === false, resize: () => ({}) }), createEmpty: () => ({}) },
     Tray: function () { if (!trayWorks) throw new Error('no tray'); this.destroyed = false; this.setToolTip = () => {}; this.on = (ev, fn) => { trayHandlers[ev] = fn; }; this.isDestroyed = () => this.destroyed; },
     setupTrayMenu: () => {},
@@ -78,4 +78,17 @@ check('a destroyed window is left alone', !threw);
 t = setup(true); t.ctx.win = null; threw = false;
 try { t.handlers['win:minimize'](); t.ctx.api.showWindow(); } catch (_) { threw = true; }
 check('no window at all: the button and the way back do nothing and do not throw', !threw);
+// started in the tray by Windows from a window saved maximized: maximize() would have shown it at start, so the first way back does it
+t = setup(true);
+t.ctx.win.visible = false; t.ctx.win.maximize = () => t.ctx.win.calls.push('maximize');
+t.ctx.maximizeOnShow = true;
+t.ctx.api.showWindow();
+check('a window started in the tray comes back maximized, once', t.ctx.win.calls.join() === 'maximize,show,focus' && t.ctx.maximizeOnShow === false, t.ctx.win.calls.join());
+t.ctx.win.calls.length = 0; t.ctx.api.showWindow();
+check('the next time it is only shown', !t.ctx.win.calls.includes('maximize'), t.ctx.win.calls.join());
+// A second copy (the app started again while it sits in the tray) only hands over to the first one. app.quit() does not stop 'ready': up to 1.7.9 the
+// whole start ran in the second copy, a window and a logon of every account next to the first copy's (measured: its "started" line, its GPU process).
+const ready = src.slice(src.indexOf('app.whenReady().then(() => {'));
+check('a second copy returns before anything of the start runs', /const singleInstance = app\.requestSingleInstanceLock\(\);/.test(src)
+  && /^app\.whenReady\(\)\.then\(\(\) => \{\n(\s*\/\/[^\n]*\n)*\s*if \(!singleInstance\) return;/.test(ready));
 process.exit(failures ? 1 : 0);

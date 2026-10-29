@@ -130,7 +130,7 @@ async function main() {
   console.log('\nDONE.');
   console.log('  folder : ' + TARGET);
   console.log('  size   : ' + (size / 1024 / 1024).toFixed(1) + ' MB'
-    + (trimmed.kazanc || unused ? '  (' + ((trimmed.kazanc + unused) / 1024 / 1024).toFixed(1) + ' MB smaller from trimming locales and unused files)' : ''));
+    + (trimmed.gain || unused ? '  (' + ((trimmed.gain + unused) / 1024 / 1024).toFixed(1) + ' MB smaller from trimming locales and unused files)' : ''));
   console.log('  exe    : ' + pkg.productName + '.exe');
 }
 
@@ -151,7 +151,7 @@ const KEPT_LOCALES = [
 ];
 function trimLocales(target) {
   const dir = path.join(target, 'locales');
-  if (!fs.existsSync(dir)) return { silinen: 0, kazanc: 0 };
+  if (!fs.existsSync(dir)) return { removed: 0, gain: 0 };
   const keep = new Set(KEPT_LOCALES.map((d) => d + '.pak'));
   let removed = 0;
   let gain = 0;
@@ -169,7 +169,7 @@ function trimLocales(target) {
   }
   console.log('  locale   : ' + removed + ' files deleted (' + (gain / 1024 / 1024).toFixed(1)
     + ' MB), remaining: ' + remaining.join(', '));
-  return { silinen: removed, kazanc: gain };
+  return { removed, gain };
 }
 
 // Electron ships files the app never loads. They were tried out: the app starts and draws its pages with the processor compositing, with the graphics card

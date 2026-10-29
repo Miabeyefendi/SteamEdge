@@ -53,13 +53,16 @@ SteamEdge/
     resume.json                Aufgaben, die beim Beenden der App liefen; wird alle halbe Minute neu geschrieben, solange eine läuft
     accounts/<steamID>.json    pro Konto: Statistik, Warteschlangen, Schlüssel-Warteschlange, Voreinstellungen, Errungenschaftsprotokoll
     stats.json, state.json     nur von älteren Versionen: einmal gelesen, nie wieder geschrieben
-    *.bak, *.bozuk             automatische Sicherungskopie und beiseitegelegte defekte Datei
+    *.bak, *.corrupt           automatische Sicherungskopie und beiseitegelegte defekte Datei
   cache/
     prices.json                Marktpreise, 24 Stunden gültig
     history.json               erzielte Verkaufsdurchschnitte, 72 Stunden gültig
     no-achievements.json            Spiele ohne Errungenschaften
     chromium/                  Bild- und Seitencache
-    steamedge.log              das Protokoll für einen Fehlerbericht
+  logs/
+    steamedge.log              Ereignisse auf der in den Einstellungen gewählten Stufe: das Protokoll für einen Fehlerbericht
+    connection.log             jeder Abbruch, Wiederverbindungsversuch und jede Rückkehr der Steam-Verbindung, je eine Zeile
+    crash.log                  Fehler, die sonst nichts abgefangen hat, auf jeder Stufe geschrieben
 ```
 
 > **Empfindlich ist `settings/`.** In `session.json` liegt ein Token, das ausreicht, um dein Konto zu benutzen. Es gehört nicht in ein geteiltes Backup, ein hochgeladenes Archiv oder einen Screenshot. Ist **Anmelde-Token verschlüsseln** an (Einstellungen > Datenschutz & Sicherheit), liegen die Token verschlüsselt vor; halte `settings/` trotzdem privat.
@@ -311,6 +314,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `language` | `en` | Sprache der Oberfläche: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Mit Windows starten |
+| `startInTray` | `true` | Startet Windows die App (`autoLaunch`), bleibt das Fenster zu und die App läuft im Infobereich; startest du sie selbst, öffnet sich das Fenster immer |
 | `theme` | `auto` | Farbdesign: `auto` (hoher Kontrast, wenn das System ihn verlangt, sonst dunkel), `dark`, `midnight` (Mitternachtslila), `white`, `contrast` (Hoher Kontrast) |
 | `density` | `auto` | Abstände und Zeilenhöhe: `auto` (kompakt, solange das Fenster niedrig ist), `comfortable`, `compact` |
 | `uiScale` | `100` | Oberflächenmaßstab in Prozent: `80`, `90`, `100`, `110`, `125`, `150`. Ein Fenster, das für das Layout in diesem Maßstab zu klein ist, verkleinert ihn auf das, was passt |
@@ -407,11 +411,11 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `reconnectPolicy` | `unlimited` | Neu verbinden nach Abbruch: `unlimited` (unbegrenzt), `10`, `3`, `off` (aus) |
 | `sessionTimeout` | `never` | Schließt alle Sitzungen nach so vielen Minuten ohne Eingabe (30, 120 oder 480). Laufende Aufgaben zählen nicht als Leerlauf; nur deine eigene Eingabe setzt den Timer zurück. Läuft er ab, trennen alle Konten, die aktive Sitzung wird vergessen und der Anmeldebildschirm öffnet sich |
 | `apiRequestDelayMs` | `350` | Kürzester Abstand zwischen Marktanfragen. Niedriger ist schneller, aber näher an Steams Ratenlimit (HTTP 429) |
-| `logLevel` | `error` | Was in `cache/steamedge.log` landet: `off`, `error`, `warn`, `info`, `debug` |
+| `logLevel` | `error` | Was in `logs/steamedge.log` landet: `off`, `error`, `warn`, `info`, `debug`. `off` stoppt auch `logs/connection.log` |
 
 ### Wo die Einstellungen liegen
 
-Allgemeines in `settings/settings.json`. Alles, was zu einem Konto gehört, also die Auswahl des Stunden-Boosters, Warteschlange und Voreinstellungen des realistischen Modus, das Errungenschaftsprotokoll und die Statistik, liegt in `settings/accounts/<steamID>.json`. Zwischenspeicher sind davon getrennt unter `cache/` und können jederzeit gelöscht werden, ohne dass Einstellungen verloren gehen. Jede JSON-Datei wird zuerst in eine temporäre Datei geschrieben und dann in einem Schritt ausgetauscht, die vorherige intakte Kopie bleibt daneben als `.bak`. Lässt sich eine Datei nicht lesen, wird die `.bak` benutzt; ist auch sie defekt, bleibt die Datei unangetastet, eine Kopie wird als `.bozuk` beiseitegelegt, die App meldet es beim Start und die betroffenen Daten beginnen mit den Standardwerten. `stats.json` und `state.json` gibt es nur in Ordnern älterer Versionen; ihr Inhalt wandert beim ersten Mal in die Kontodatei, danach werden sie nie wieder geschrieben.
+Allgemeines in `settings/settings.json`. Alles, was zu einem Konto gehört, also die Auswahl des Stunden-Boosters, Warteschlange und Voreinstellungen des realistischen Modus, das Errungenschaftsprotokoll und die Statistik, liegt in `settings/accounts/<steamID>.json`. Zwischenspeicher sind davon getrennt unter `cache/` und können jederzeit gelöscht werden, ohne dass Einstellungen verloren gehen. Jede JSON-Datei wird zuerst in eine temporäre Datei geschrieben und dann in einem Schritt ausgetauscht, die vorherige intakte Kopie bleibt daneben als `.bak`. Lässt sich eine Datei nicht lesen, wird die `.bak` benutzt; ist auch sie defekt, bleibt die Datei unangetastet, eine Kopie wird als `.corrupt` beiseitegelegt, die App meldet es beim Start und die betroffenen Daten beginnen mit den Standardwerten. `stats.json` und `state.json` gibt es nur in Ordnern älterer Versionen; ihr Inhalt wandert beim ersten Mal in die Kontodatei, danach werden sie nie wieder geschrieben.
 
 ---
 
@@ -423,7 +427,7 @@ Es läuft bereits eine Kopie. SteamEdge erlaubt nur eine Instanz. Sieh im Task-M
 
 ### Die Kontoplakette bleibt leer und nichts lädt
 
-Die Steam-Sitzung ist nicht zustande gekommen. Unter der oberen Leiste erscheint ein Band, wenn die Verbindung abbricht oder wiederholt wird. Hält das an, prüfe zuerst, ob Steam selbst erreichbar ist, und sieh dann in `cache/steamedge.log` nach dem Grund. Hat Steam die Sitzung endgültig beendet, sagt das Banner das und bietet einen Neu-verbinden-Knopf.
+Die Steam-Sitzung ist nicht zustande gekommen. Unter der oberen Leiste erscheint ein Band, wenn die Verbindung abbricht oder wiederholt wird. Hält das an, prüfe zuerst, ob Steam selbst erreichbar ist, und sieh dann unter Einstellungen > Erweitert & Daten > **Verbindungsverlauf** oder in `logs/connection.log` nach dem Grund. Hat Steam die Sitzung endgültig beendet, sagt das Banner das und bietet einen Neu-verbinden-Knopf.
 
 ### Der Massenverkauf hat mittendrin aufgehört
 
@@ -451,7 +455,7 @@ Die Abschlusszeit ist zu hoch. Leer gelassen wird sie aus deiner Spielzeit gesch
 
 ### SteamEdge meldet, dass eine Datei nicht gelesen werden konnte
 
-Ist eine Einstellungs- oder Datendatei beschädigt, stellt SteamEdge die automatische `.bak`-Kopie wieder her. Ist auch sie beschädigt, bleibt die Datei, wie sie ist, eine Kopie wird daneben mit der Endung `.bozuk` beiseitegelegt, die betroffenen Daten beginnen mit den Standardwerten und die App meldet es beim Start. Nichts wird überschrieben, du kannst die Datei also von Hand zurücklegen.
+Ist eine Einstellungs- oder Datendatei beschädigt, stellt SteamEdge die automatische `.bak`-Kopie wieder her. Ist auch sie beschädigt, bleibt die Datei, wie sie ist, eine Kopie wird daneben mit der Endung `.corrupt` beiseitegelegt, die betroffenen Daten beginnen mit den Standardwerten und die App meldet es beim Start. Nichts wird überschrieben, du kannst die Datei also von Hand zurücklegen.
 
 ### Inventar-, Markt- oder Abzeichenseiten bleiben bei einem Konto mit Familienansicht leer
 
@@ -467,7 +471,7 @@ Der Einstellungsordner wurde bei aktivem **Anmelde-Token verschlüsseln** auf ei
 
 ### Ein Protokoll für einen Fehlerbericht sammeln
 
-Das Protokoll ist `cache/steamedge.log` neben der ausführbaren Datei, oder aus den Einstellungen zu öffnen. Es hält Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Es enthält **weder** dein Passwort **noch** dein Sitzungstoken, ist also sicher anzuhängen; sieh es trotzdem durch, bevor du es veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Datei an. Das Protokoll ist begrenzt: ab 2 MB wird es als `steamedge.log.1` beiseitegelegt und eine neue Datei beginnt, sodass immer ein älterer Teil erhalten bleibt.
+Die Protokolle liegen im Ordner `logs/` neben der ausführbaren Datei; Einstellungen > Erweitert & Daten > **Protokolldatei** > Öffnen öffnet ihn. `steamedge.log` hält Ereignisse fest, `connection.log` jeden Abbruch und jede Rückkehr der Steam-Verbindung, `crash.log` Fehler, die sonst nichts abgefangen hat. Es hält Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Es enthält **weder** dein Passwort **noch** dein Sitzungstoken, ist also sicher anzuhängen; sieh es trotzdem durch, bevor du es veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Dateien an. Jede Datei ist begrenzt: ab 2 MB (bei den anderen beiden 1 MB) wird sie als `<Name>.1` beiseitegelegt und eine neue Datei beginnt, sodass immer ein älterer Teil erhalten bleibt.
 
 ---
 

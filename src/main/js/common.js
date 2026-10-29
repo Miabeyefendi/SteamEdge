@@ -6,25 +6,25 @@
     const designed = { overview: document.getElementById('tab-overview'), card: document.getElementById('tab-card'), inventory: document.getElementById('tab-inventory'), hours: document.getElementById('tab-hours'), realistic: document.getElementById('tab-realistic'), achievements: document.getElementById('tab-achievements'), keys: document.getElementById('tab-keys'), chat: document.getElementById('tab-chat'), settings: document.getElementById('tab-settings') };
     const empty = document.getElementById('tab-empty');
     const emptyName = document.getElementById('emptyName');
-    // Opening a tab. The body used to be directly inside the nav link's click listener; since the Sohbet button in the top bar
+    // Opening a tab. The body used to be directly inside the nav link's click listener; since the Chat button in the top bar
     // has no counterpart in the sidebar it was moved to a separate function. The nav links call it too,
     // so there is only one path left.
     async function openTab(tab, sourceConnection) {
       // A page that is switched off (Settings > Modules) is not opened by any road (menu, overview tile, start page, search): the overview opens instead.
       if (!moduleOn(tab)) { tab = 'overview'; sourceConnection = document.querySelector('.nav a[data-tab="overview"]'); }
-      // If leaving the Ayarlar tab, the unsaved changes warning (settings.js)
+      // If leaving the Settings tab, the unsaved changes warning (settings.js)
       const leavingSettings = !designed.settings.classList.contains('hidden');
       if (leavingSettings && typeof confirmLeaveSettings === 'function') {
         const ok = await confirmLeaveSettings();
         if (!ok) return;
       }
       if (tab === 'exit') { window.imu.logout(); return; }
-      // Open windows that belong to another page close (see edgeConfirm > o.sayfa).
-      document.querySelectorAll('.e-modal-back[data-sayfa]').forEach(m=>{
-        if (m.getAttribute('data-sayfa') !== tab && typeof m._shutdownInner === 'function') m._shutdownInner(false);
+      // Open windows that belong to another page close (see edgeConfirm > o.pageName).
+      document.querySelectorAll('.e-modal-back[data-page]').forEach(m=>{
+        if (m.getAttribute('data-page') !== tab && typeof m._shutdownInner === 'function') m._shutdownInner(false);
       });
       document.querySelectorAll('.nav a').forEach(x => x.classList.remove('active'));
-      // Sohbet has no link in the sidebar; then none of them stays marked.
+      // Chat has no link in the sidebar; then none of them stays marked.
       if (sourceConnection) sourceConnection.classList.add('active');
       setRailTop(tab);
       Object.values(designed).forEach(s => s.classList.add('hidden'));
@@ -82,7 +82,7 @@
     function redrawHeavyList(tab){
       if (!suspendedTabs.has(tab)) return;
       suspendedTabs.delete(tab);
-      try { HEAVY_LISTS[tab].draw(); } catch (_) { /* sayfa henüz yüklenmemiş - kendi load'u çizecek */ }
+      try { HEAVY_LISTS[tab].draw(); } catch (_) { /* the page has not loaded yet - its own load draws it */ }
     }
 
     // ---- shared helpers (all pages use them) ----
@@ -141,24 +141,24 @@
     // ================= THEMED CONFIRM MODAL =================
     // The native confirm() box opened Windows' grey window (outside the theme). This is the theme matching
     // counterpart that does the same job. It returns a Promise: true if confirmed.
-    //   opts.sormaAyari → shows a "Bir daha sorma" checkbox. If it is ticked and confirmed this setting
+    //   opts.askSetting → shows a "Don't ask again" checkbox. If it is ticked and confirmed this setting
     //   is written false (e.g. achConfirmSingle) and later calls return true WITHOUT asking. The user can turn
-    //   the setting back on from Ayarlar. A separate "dontAsk_" key used to be written and
+    //   the setting back on from Settings. A separate "dontAsk_" key used to be written and
     //   two settings held the same state.
     function edgeConfirm(opts){
       const o = opts || {};
       const key = o.askSetting || null;
-      // If "bir daha sorma" was said before, do not show at all
+      // If "Don't ask again" was said before, do not show at all
       if (key && typeof appSettings === 'object' && appSettings && appSettings[key] === false) return Promise.resolve(true);
 
       return new Promise((resolve)=>{
         const back = document.createElement('div');
         back.className = 'e-modal-back';
         const accent = o.danger ? '#B32453' : '#5624B3';
-        // o.sayfa: the window belongs to a page; if the user moves to another tab it closes
+        // o.pageName: the window belongs to a page; if the user moves to another tab it closes
         // on its own (counts as cancelled). The Inventory "fetch prices now?" question used to open on top of
         // another page after the tab was changed.
-        if (o.pageName) back.setAttribute('data-sayfa', o.pageName);
+        if (o.pageName) back.setAttribute('data-page', o.pageName);
         back.innerHTML =
           '<div class="e-modal" role="dialog" aria-modal="true">'
           + '<div class="e-modal-hd"><span class="dot" style="background:'+accent+'"></span>'
@@ -521,7 +521,7 @@
       } catch(_){}
     }
 
-    // "Arka Planda Topla" (farmSilent) - when the window is not visible the per-second interface refreshes
+    // "Farm in the background" (farmSilent) - when the window is not visible the per-second interface refreshes
     // are skipped; since the card farming/hour boosting engine is on the main side it is not affected.
     // The 1 s render loops in the page JS files pass through this gate.
     // G10: while the window is hidden/minimised per-second refreshes are ALWAYS skipped, the setting
@@ -579,7 +579,7 @@
     document.addEventListener('visibilitychange', () => {
       runBeat();
       if (document.hidden){
-        // When "Arka Planda Topla" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
+        // When "Farm in the background" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
         // That was the promise of the setting ("lowest processor and memory use"); before, it only skipped
         // per-second drawing and did nothing on the memory side.
         if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) flushHeavyLists(null);
@@ -619,7 +619,7 @@
 
     // ---- Steam profile (avatar/name/level) ----
     // The profile can only be fetched AFTER the Steam session is established and opening a session takes
-    // seconds. During that time a dash stood in the top right and in the account card in Ayarlar.
+    // seconds. During that time a dash stood in the top right and in the account card in Settings.
     // Now the last known profile is kept in the account's own file (main.js > engine:profile)
     // and comes instantly with the settings: the screen opens full on the first frame, when the connection is made
     // fresh data is written over it. The custom address comes last, with a separate request.
@@ -791,13 +791,13 @@
       window.addEventListener('resize', hide);
     })();
 
-    // ---- top bar: Ayarlar (gear) ----
+    // ---- top bar: Settings (gear) ----
     document.getElementById('tbSettings').onclick = () => {
       document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
       openSettingsPage();
     };
 
-    // ---- top bar: Sohbet ----
+    // ---- top bar: Chat ----
     // It has no counterpart in the sidebar, it opens the tab directly. The badge holds the number of unread
     // messages; it is reset while the chat screen is open.
     let chPending = 0;
@@ -922,7 +922,7 @@
           try {
             const u = new URL(v);
             if (u.origin === 'https://steamcommunity.com') shown = u.pathname + u.search + u.hash;
-          } catch (_) { /* adres degilse oldugu gibi gosterilir */ }
+          } catch (_) { /* not an address: shown as it is */ }
         }
         // An empty dash looks "broken"; a row with no value should write the reason.
         e.textContent = shown || (identities ? 'tanımlı değil' : 'hesap bağlı değil');
@@ -1099,7 +1099,7 @@
       const signature = JSON.stringify(accts.map(a => [a.steamID, a.accountName, a.active, a.connected, a.running, a.jobs, a.finished && a.finished.ts]));
       if (signature === acctListSignature && list.children.length) return;
       acctListSignature = signature;
-      // Badges: "Aktif" = shown in the interface, green dot = card/hour running in the background
+      // Badges: "Active" = shown in the interface, green dot = card/hour running in the background
       list.innerHTML = accts.map(a=>'<div class="acct-row'+(a.active?' active':'')+'" data-id="'+esc(a.steamID)+'">'
         + '<span class="nmwrap"><span class="nm">'+esc(a.accountName||a.steamID)+'</span>'
         + (jobLine(a) ? '<span class="sub'+(a.running?' on':'')+'">'+esc(jobLine(a))+'</span>' : '') + '</span>'
@@ -1269,7 +1269,7 @@
       // Recent drops are account specific too
       if (typeof recentDrops !== 'undefined') recentDrops.length = 0;
     }
-    // The visible tab is found from the DOM. Ayarlar and Sohbet have no link in the sidebar,
+    // The visible tab is found from the DOM. Settings and Chat have no link in the sidebar,
     // Realistic Mode was not in the list either: while these were open Overview was loaded when the account changed,
     // and the visible page stayed in the skeleton.
     function reloadActiveTab(){

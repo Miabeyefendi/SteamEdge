@@ -97,7 +97,7 @@
       const c = document.getElementById('gStatCards'); if (!c) return;
       const set = (id, v, html) => { const e=document.getElementById(id); if(e){ if(html) e.innerHTML=v; else e.textContent=v; } };
 
-      // Toplam Kart
+      // Total cards
       const totalCards = dropGames.reduce((s,g)=>s+g.remaining,0);
       c.textContent = cardsLoaded ? totalCards.toLocaleString(localCode()) : '-';
       set('gStatCardsSub', cardsLoaded ? (dropGames.length+' oyunda kart var') : 'Kart Düşür sekmesinde yenile');
@@ -106,7 +106,7 @@
       set('gStatGames', (hoursLoaded && ownedGames.length) ? ownedGames.length.toLocaleString(localCode()) : '-');
       set('gStatGamesSub', cardsLoaded ? tf('# oyun toplamaya hazır', dropGames.length) : '-');
 
-      // Envanter & Pazar - value + net after Steam's cut
+      // Inventory & Market - value + net after Steam's cut
       // The fallback branch is REQUIRED: when the account changes resetPageCaches() makes invMerged null but if the
       // box is not written the PREVIOUS ACCOUNT's value stayed on screen.
       // The tile is about the Steam inventory, whichever inventory the Inventory page shows
@@ -291,11 +291,11 @@
     }
 
     // ITEM 16: The panel used to assume a SINGLE task - if cards were running hours were not visible,
-    // the achievement bulk operation was never visible and "Detay" always went to the Kart tab.
-    // Now every running job is in its own row, with its own progress and its own Detay link.
+    // the achievement bulk operation was never visible and "Details" always went to the Card Farming tab.
+    // Now every running job is in its own row, with its own progress and its own Details link.
     // The visible size of the panel was enlarged in 1.1.10: cover 85x40 -> 116x54, title 14 -> 15,
     // numbers 13 -> 15, bar 6 -> 8 pixels. On a 2K screen the row stayed small and
-    // what is more the row's own "Detay" button was a SECOND button doing the same job as the Detay at the bottom of the panel.
+    // what is more the row's own "Details" button was a SECOND button doing the same job as the Details at the bottom of the panel.
     // The one in the row was removed; the one at the bottom already follows the task being shown.
     //
     // What was added is only DISPLAY: the percentage number, the session's start time. None fetches new
@@ -538,7 +538,7 @@
         + pathStr + '</svg>';
     }
 
-    // `sira` is either a rank number text (#1, #2) or a DETAIL_ICON key.
+    // `position` is either a rank number text (#1, #2) or a DETAIL_ICON key.
     function detailRow(position, name, rightSide, percent, colorVal, emphasis){
       const colored = emphasis ? GC.sub : GC.muted;
       const begin = DETAIL_ICON[position]
@@ -806,7 +806,7 @@
 
     // Overview is already the visible tab at startup - load the first data without a click.
     loadOverview();
-    // The language change reloaded the page: take the user back to the Ayarlar section they left (i18n.js).
+    // The language change reloaded the page: take the user back to the Settings section they left (i18n.js).
     try {
       const returnVal = sessionStorage.getItem(I18N_RETURN_KEY);
       if (returnVal) { sessionStorage.removeItem(I18N_RETURN_KEY); openSettingsPage(returnVal); }

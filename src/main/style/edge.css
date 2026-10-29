@@ -481,8 +481,8 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 /* ---- Contrast ---- */
 /* The high contrast theme (theme.js, palette "contrast") draws everything in black, white and bright accents; focus must be unmissable and
    the edges of controls show. */
-:root[data-tema="contrast"] .edge *:focus-visible{outline:3px solid #FFFF66;outline-offset:2px}
-:root[data-tema="contrast"] .e-toggle,:root[data-tema="contrast"] #tab-settings div[data-set]{border-color:#fff!important}
+:root[data-theme="contrast"] .edge *:focus-visible{outline:3px solid #FFFF66;outline-offset:2px}
+:root[data-theme="contrast"] .e-toggle,:root[data-theme="contrast"] #tab-settings div[data-set]{border-color:#fff!important}
 /* When the system asks for forced colours (Windows contrast themes) the system palette is used: the switches would otherwise be two filled boxes
    of the same colour, and the focus ring must follow the system's highlight. */
 @media (forced-colors: active){
@@ -521,8 +521,8 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 .e-secmark{display:none;margin-left:8px;font-size:11px;vertical-align:middle}
 .e-secmark.dirty{display:inline-block;width:7px;height:7px;border-radius:50%;background:#B37E24}
 .e-secmark.saved{display:inline-block;color:#5FB324;font-weight:700}
-:root[data-tema="contrast"] .e-palette,:root[data-tema="contrast"] .e-pal-found{border-color:#fff}
-:root[data-tema="contrast"] .e-pal-item.on{outline:2px solid #FFFF66;outline-offset:-2px}
+:root[data-theme="contrast"] .e-palette,:root[data-theme="contrast"] .e-pal-found{border-color:#fff}
+:root[data-theme="contrast"] .e-pal-item.on{outline:2px solid #FFFF66;outline-offset:-2px}
 @media (forced-colors: active){ .e-pal-item.on{outline:2px solid Highlight;outline-offset:-2px} .e-secmark.dirty{background:Highlight} }
 
 /* ---- What runs on which account (common.js paintRunChip) ---- */

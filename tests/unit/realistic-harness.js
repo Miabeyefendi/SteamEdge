@@ -61,7 +61,7 @@ function createHarness() {
   };
   vm.createContext(ctx);
   // the real prepareRealisticQueue of main.js, fed by the fake schema
-  const prepCode = src.slice(src.indexOf('async function prepareRealisticQueue(motor, appid, options)'), src.indexOf('// The completed form of the incoming options'));
+  const prepCode = src.slice(src.indexOf('async function prepareRealisticQueue(eng, appid, options)'), src.indexOf('// The completed form of the incoming options'));
   vm.runInContext(code + '\n' + prepCode + '\n' + startCode + '\n;this.api = { realisticStep, realisticNextGame, realisticFinish, realisticNotify, realisticNextDelay, realisticStatus, realisticOptions, realisticStartFor, prepareRealisticQueue };', ctx);
   h.api = ctx.api;
   h.ctx = ctx;
