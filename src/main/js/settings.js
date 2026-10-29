@@ -25,6 +25,7 @@
       if (typeof initI18n === 'function') initI18n(appSettings.language);
       // The chip in the top bar was drawn from the first answer of the account list, before the language was known
       if (typeof paintRunChip === 'function') paintRunChip();
+      if (typeof paintVisibility === 'function') paintVisibility();
       // The last known profile comes with the settings too (main.js > account file). So that the name,
       // avatar and level can be written to the screen before the Steam session is even set up, this is the first job.
       if (typeof cachedProfile === 'function') cachedProfile();
@@ -140,7 +141,7 @@
       { keyField: 'quietHoursEnabled', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifSound', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifyChat', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
-      { keyField: 'hideGameName', ruleCondition: () => !rawValue('offlineMode'), not: '"Çevrimdışı görün" açıkken oyun adı zaten görünmez.' },
+      { keyField: 'hideGameName', ruleCondition: () => rawValue('personaState') !== 'invisible', not: 'Hesap görünürlüğü Görünmez iken oyun adı zaten görünmez.' },
       { keyField: 'grScheduleFrom', ruleCondition: () => !!rawValue('grScheduleEnabled'), not: '"Gerçekçi Mod zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'grScheduleTo', ruleCondition: () => !!rawValue('grScheduleEnabled'), not: '"Gerçekçi Mod zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'farmScheduleFrom', ruleCondition: () => !!rawValue('farmScheduleEnabled'), not: '"Kart düşürme zamanlayıcısı" kapalıyken kullanılmaz.' },

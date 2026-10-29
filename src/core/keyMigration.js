@@ -313,6 +313,9 @@ function migrateKeys(v) {
   return v;
 }
 
+// Setting values older versions wrote in Turkish (migrateSettings in main.js).
+const OLD_SETTING_VALUES = { reconnectPolicy: { sinirsiz: 'unlimited', kapali: 'off' } };
+
 // File names older versions wrote: a whole name, or the suffix of a broken file that was set aside (readJson in main.js).
 const OLD_FILE_NAMES = { 'basarimsiz.json': 'no-achievements.json' };
 const OLD_SUFFIXES = { '.bozuk': '.corrupt' };
@@ -336,4 +339,4 @@ function renameOldFiles(dir) {
   return renamed;
 }
 
-module.exports = { migrateKeys, renameOldFiles, OLD_TO_NEW };
+module.exports = { migrateKeys, renameOldFiles, OLD_TO_NEW, OLD_SETTING_VALUES };

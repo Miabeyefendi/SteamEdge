@@ -116,7 +116,7 @@ Dein Steam-Inventar, Duplikate als eine Zeile, filterbar nach Spiel, Name, Typ, 
 
 ### Stunden-Booster
 
-Links die ganze Bibliothek, durchsuchbar (es werden höchstens 300 Zeilen gleichzeitig gezeichnet, zum Eingrenzen also suchen); in der Mitte die aktive Warteschlange. Rechts: **Stundenabgleich** (Ziel und Verfahren), das Gleichzeitig-Limit (2, 8, 16, 32 oder eigen), die Dauer mit Schnellwahl (6, 12, 18, 24 Stunden, ∞ oder eigen), Verhaltensschalter und Offline erscheinen. Eine gewählte Dauer beendet die Sitzung, wenn sie abläuft; ∞ läuft, bis du stoppst. Eine Auswahl lässt sich als Vorlage speichern.
+Links die ganze Bibliothek, durchsuchbar (es werden höchstens 300 Zeilen gleichzeitig gezeichnet, zum Eingrenzen also suchen); in der Mitte die aktive Warteschlange. Rechts: **Stundenabgleich** (Ziel und Verfahren), das Gleichzeitig-Limit (2, 8, 16, 32 oder eigen), die Dauer mit Schnellwahl (6, 12, 18, 24 Stunden, ∞ oder eigen) und Verhaltensschalter. Eine gewählte Dauer beendet die Sitzung, wenn sie abläuft; ∞ läuft, bis du stoppst. Eine Auswahl lässt sich als Vorlage speichern.
 
 ### Realistischer Modus
 
@@ -395,14 +395,14 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 
 | Schlüssel | Standard | Wirkung |
 |---|---|---|
-| `offlineMode` | `false` | Während des Laufs offline erscheinen |
-| `hideGameName` | `false` | Zeigen, dass du online bist, aber nicht welches Spiel |
+| `personaState` | `online` | Was Freunde auf Steam sehen, in der oberen Leiste gewählt: `online`, `away` oder `invisible`. Pro Konto gespeichert und bei jeder Anmeldung und Wiederverbindung erneut gesendet |
+| `hideGameName` | `false` | Unsichtbar, solange ein Spiel läuft, damit das Spiel nicht zu sehen ist; danach wieder die gewählte Sichtbarkeit |
 | `parentalPin` | leer | PIN der Steam-Familienansicht des Kontos, zum Entsperren der Webseiten. Pro Konto gespeichert, nie exportiert |
 | `protectTokens` | `false` | Gespeicherte Anmelde-Token mit Windows DPAPI verschlüsselt ablegen. Gilt nur für diesen Windows-Benutzer und Computer, wird nicht exportiert |
 | `proxyUrl` | leer | Proxy des Kontos: `http://`, `https://` oder `socks5://`, optional mit `Benutzer:Passwort@`. Das Passwort liegt in der Datei des Kontos, verschlüsselt, wenn **Anmelde-Token verschlüsseln** an ist. Pro Konto gespeichert, wird nicht exportiert |
 | `loginProxyUrl` | leer | Proxy der Anmeldung (`http://`, `https://` oder `socks5://`). Klartext in der Einstellungsdatei, wird nicht exportiert |
 
-> Offline zu erscheinen ändert, was Freunde sehen. Es kann auch ändern, ob Steam dich als spielend zählt; teste es, bevor du dich in einer langen Sitzung darauf verlässt.
+> Unsichtbar zu sein ändert, was Freunde sehen. Es kann auch ändern, ob Steam dich als spielend zählt; teste es, bevor du dich in einer langen Sitzung darauf verlässt.
 
 ### Erweitert
 

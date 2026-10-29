@@ -116,7 +116,7 @@ Your Steam inventory, merged so duplicates count as one row, filterable by game,
 
 ### Hours Booster
 
-Your whole library on the left, searchable (at most 300 rows are drawn at a time, so search to narrow it); the active queue in the middle. On the right: **Hour sync** (target and method), the concurrent limit (2, 8, 16, 32 or custom), the duration with presets (6, 12, 18 or 24 hours, ∞ or custom), behaviour toggles and appear offline. A set duration stops the session when it runs out; ∞ runs until you stop it. A selection can be saved as a preset.
+Your whole library on the left, searchable (at most 300 rows are drawn at a time, so search to narrow it); the active queue in the middle. On the right: **Hour sync** (target and method), the concurrent limit (2, 8, 16, 32 or custom), the duration with presets (6, 12, 18 or 24 hours, ∞ or custom) and behaviour toggles. A set duration stops the session when it runs out; ∞ runs until you stop it. A selection can be saved as a preset.
 
 ### Realistic Mode
 
@@ -396,14 +396,14 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 
 | Key | Default | What it does |
 |---|---|---|
-| `offlineMode` | `false` | Appear offline while running |
-| `hideGameName` | `false` | Share that you are online but not which game |
+| `personaState` | `online` | What friends see on Steam, chosen in the top bar: `online`, `away` or `invisible`. Stored per account and sent again at every logon and reconnect |
+| `hideGameName` | `false` | Invisible while a game is open, so the game does not show; back to the chosen visibility when it closes |
 | `parentalPin` | empty | Steam Family View PIN of the account, used to unlock web pages. Stored per account, never exported |
 | `protectTokens` | `false` | Store the saved sign-in tokens encrypted with Windows DPAPI. Specific to this Windows user and computer, never exported |
 | `proxyUrl` | empty | Proxy of the account: `http://`, `https://` or `socks5://`, with an optional `user:password@`. The password is stored in the account's file, sealed when **Encrypt login tokens** is on. Stored per account, never exported |
 | `loginProxyUrl` | empty | Proxy the sign-in goes through (`http://`, `https://` or `socks5://`). Plain text in the settings file, never exported |
 
-> Appearing offline changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
+> Invisible changes what friends see. It can also change whether Steam counts you as playing, so test it before relying on it for a long session.
 
 ### Advanced
 

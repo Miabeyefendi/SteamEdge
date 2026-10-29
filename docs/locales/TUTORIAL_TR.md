@@ -116,7 +116,7 @@ Steam envanterin; kopyalar tek satırda birleşir, oyuna, ada, türe, duruma ve 
 
 ### Saat Yükseltici
 
-Solda aranabilir tüm kütüphane (aynı anda en fazla 300 satır çizilir, daraltmak için ara), ortada aktif kuyruk. Sağda: **Saat eşitleme** (hedef ve yöntem), eşzamanlı limit (2, 8, 16, 32 ya da özel), hazır süreler (6, 12, 18, 24 saat, ∞ ya da özel), davranış anahtarları ve çevrimdışı görünme. Süre seçilirse oturum süre dolunca durur; ∞ sen durdurana kadar sürer. Seçim hazır ayar olarak kaydedilebilir.
+Solda aranabilir tüm kütüphane (aynı anda en fazla 300 satır çizilir, daraltmak için ara), ortada aktif kuyruk. Sağda: **Saat eşitleme** (hedef ve yöntem), eşzamanlı limit (2, 8, 16, 32 ya da özel), hazır süreler (6, 12, 18, 24 saat, ∞ ya da özel) ve davranış anahtarları. Süre seçilirse oturum süre dolunca durur; ∞ sen durdurana kadar sürer. Seçim hazır ayar olarak kaydedilebilir.
 
 ### Gerçekçi Mod
 
@@ -395,14 +395,14 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
-| `offlineMode` | `false` | Çalışırken çevrimdışı görün |
-| `hideGameName` | `false` | Çevrimiçi olduğunu paylaş ama hangi oyunu değil |
+| `personaState` | `online` | Arkadaşlarının Steam'de ne gördüğü, üst çubuktan seçilir: `online`, `away` ya da `invisible`. Hesap başına saklanır, her girişte ve yeniden bağlanmada yeniden gönderilir |
+| `hideGameName` | `false` | Oyun açıkken görünmez olursun, oyun görünmez; oyun kapanınca seçtiğin görünürlüğe dönersin |
 | `parentalPin` | boş | Web sayfalarının kilidini açmak için hesabın Steam Aile Görünümü PIN'i. Hesaba özel saklanır, dışa aktarılmaz |
 | `protectTokens` | `false` | Kayıtlı giriş anahtarlarını Windows DPAPI ile şifreli sakla. Bu Windows kullanıcısına ve bilgisayara özeldir, dışa aktarılmaz |
 | `proxyUrl` | boş | Hesabın vekili: `http://`, `https://` ya da `socks5://`, isteğe bağlı `kullanıcı:parola@` ile. Parola hesabın dosyasında saklanır; **Giriş anahtarlarını şifrele** açıkken şifrelenir. Hesap başına saklanır, dışa aktarılmaz |
 | `loginProxyUrl` | boş | Girişin geçtiği vekil (`http://`, `https://` ya da `socks5://`). Ayar dosyasında düz metin, dışa aktarılmaz |
 
-> Çevrimdışı görünmek arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
+> Görünmez olmak arkadaşlarının gördüğünü değiştirir. Steam'in seni oynuyor sayıp saymadığını da etkileyebilir; uzun bir oturumda buna güvenmeden önce dene.
 
 ### Gelişmiş
 
