@@ -18,13 +18,14 @@ const update = require('./src/services/updater');
 // The text the main process produces is in the interface language too: tray menu, file dialogs, desktop
 // notifications and the error messages returned to the interface (the dictionary is shared with the interface).
 const translation = require('./src/core/translation');
-const { migrateKeys } = require('./src/core/keyMigration');
+const { migrateKeys, renameOldFiles } = require('./src/core/keyMigration');
 const { parseProxy, setActiveProxy } = require('./src/core/proxyFetch');
 const { startLocalProxy } = require('./src/core/localProxy');
 const windowFit = require('./src/core/windowFit');
 const inventorySources = require('./src/core/inventorySources');
 const resumeJobs = require('./src/core/resumeJobs');
 const { toCsv } = require('./src/utils/csv');
+const { createLogger } = require('./src/core/logger');
 const ct = translation.t;
 // The `error` and `failure` text in every reply returned to the interface is translated to the selected language. Instead of
 // wrapping every return point one by one, it is done here: a newly added error message gets
@@ -96,7 +97,8 @@ if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
 // account (LogonSessionReplaced) - the engine was left disconnected, and pages like Achievements/Inventory
 // opened empty with "Not connected.". Now the second instance closes right away and
 // the existing window is brought to the front.
-if (!app.requestSingleInstanceLock()) {
+const singleInstance = app.requestSingleInstanceLock();
+if (!singleInstance) {
   // DO NOT EXIT SILENTLY. The previous version closed here without writing anything: the user typed `npm start`,
   // only Chromium's cache warnings showed in the console and the app ended immediately. Since the OLD
   // window stayed on screen it was not clear that the new code never ran.
@@ -153,6 +155,11 @@ function makeAuthSend(slotId) {
 let tray = null;
 let trayHasIcon = false;
 let isQuitting = false;
+// What the Windows start-up entry passes with "Start in the tray" (applyLoginItem). Only the first window of the run stays hidden; starting the
+// app again by hand brings it up (second-instance).
+const START_HIDDEN_ARG = '--start-in-tray';
+let startHidden = process.argv.includes(START_HIDDEN_ARG);
+let maximizeOnShow = false;   // a window saved maximized that started hidden: maximize() would show it, so it waits for the first showWindow
 let psbId = null;
 
 // ================== DATA FOLDERS (PORTABLE) ==================
@@ -162,7 +169,8 @@ let psbId = null;
 //   SteamEdge/
 //     SteamEdge.exe
 //     settings/     settings, saved accounts, session, statistics, remembered data
-//     cache/        price cache, log file, Chromium cache
+//     cache/        price cache, Chromium cache
+//     logs/         log files (src/core/logger.js)
 //
 // If it was installed in a read-only place (e.g. Program Files) the write attempt fails;
 // in that case it silently falls back to AppData and the app still works.
@@ -182,8 +190,15 @@ const PORTABLE_ROOT = portableRoot();
 const DATA_ROOT = PORTABLE_ROOT || app.getPath('userData');
 const CONFIG_DIR = path.join(DATA_ROOT, 'settings');
 const CACHE_DIR = path.join(DATA_ROOT, 'cache');
+const LOG_DIR = path.join(DATA_ROOT, 'logs');
 try { fs.mkdirSync(CONFIG_DIR, { recursive: true }); } catch (_) {}
 try { fs.mkdirSync(CACHE_DIR, { recursive: true }); } catch (_) {}
+// Set up before anything can log. The level is read on every line: `settings` is only loaded further down, until then errors only.
+const logger = createLogger({ dir: LOG_DIR, level: () => settings.logLevel, legacyDir: CACHE_DIR });
+// Files an older version wrote under a Turkish name get the current one before anything reads them
+[CONFIG_DIR, path.join(CONFIG_DIR, 'accounts'), CACHE_DIR].forEach((dir) => renameOldFiles(dir));
+// The companions of every JSON file (see writeJson/readJson): its backup, a broken copy set aside, an unfinished write
+const JSON_SIDE_FILES = ['', '.bak', '.corrupt', '.tmp'];
 // Chromium's own cache is also moved under cache/; otherwise folders like
 // "Cache", "GPUCache", "Local Storage" were scattered next to the exe.
 try { app.setPath('userData', path.join(CACHE_DIR, 'chromium')); } catch (_) {}
@@ -245,7 +260,7 @@ function readJson(fileEntry) {
       return { ok: true, dataBlock: payloadData, fromBackup: true };
     } catch (_) {
       // Do not delete the broken file, set it aside so it can be inspected, and forbid writing over it
-      try { fs.copyFileSync(fileEntry, fileEntry + '.bozuk'); } catch (_) {}
+      try { fs.copyFileSync(fileEntry, fileEntry + '.corrupt'); } catch (_) {}
       corruptFiles.add(fileEntry);
       log('warn', path.basename(fileEntry) + ' COULD NOT BE RECOVERED, it will not be overwritten');
       return { ok: false, corrupt: true };
@@ -261,6 +276,7 @@ const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 const DEFAULT_SETTINGS = {
   // General
   autoLaunch: false,        // start with Windows
+  startInTray: true,        // started by Windows: the window stays closed, the app runs in the tray (only with autoLaunch)
   closeToTray: false,       // minimise to the system tray on close
   preventSleep: false,      // prevent sleep while the app is open
   resumeJobs: true,         // a job that was running when the app ended starts again where it left off (src/core/resumeJobs.js)
@@ -431,36 +447,28 @@ const DEFAULT_SETTINGS = {
 let settings = { ...DEFAULT_SETTINGS };
 
 // ---- levelled logging (Settings > Advanced > "Log file") ----
-// A single choice: off / errors / warnings / events / verbose. The level and "write to file"
-// used to be two separate settings: when a level was chosen and the file stayed off nothing was recorded.
-const LOG_FILE = path.join(CACHE_DIR, 'steamedge.log');   // the log file is on the cache side
-const LOG_RANK = { error: 0, warn: 1, info: 2, debug: 3 };
-// always: written whatever the level (not when the log is off). The connection lines are: "reconnecting" for hours left nothing to read at the default level.
-function log(level, msg, always) {
-  const levelNum = settings.logLevel;
-  const want = LOG_RANK[levelNum] != null ? LOG_RANK[levelNum] : 0;
-  if (!always && (LOG_RANK[level] != null ? LOG_RANK[level] : 0) > want) return;
-  const line = `[${new Date().toISOString()}] ${level.toUpperCase()} ${msg}`;
-  if (level === 'error') console.error(line); else console.log(line);
-  if (levelNum === 'off') return;
-  try {
-    fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
-    // rotate when it goes over 2 MB (a single backup) - so the disk does not bloat
-    try { if (fs.statSync(LOG_FILE).size > 2 * 1024 * 1024) fs.renameSync(LOG_FILE, LOG_FILE + '.1'); } catch (_) {}
-    fs.appendFileSync(LOG_FILE, line + '\n');
-  } catch (_) {}
-}
+// A single choice: off / errors / warnings / events / verbose. The files, their folder and rotation are in src/core/logger.js.
+// always: written whatever the level (not when the log is off).
+function log(level, msg, always) { logger.log(level, msg, always); }
 // NOTE: Currency conversion was REMOVED ENTIRELY. Amounts are fetched from the Steam Community Market
 // in the account's own market currency and shown exactly in that currency. Conversion caused the number
 // the user saw on Steam and the number seen in the app to differ.
 
 ipcMain.handle('log:write', (_e, { level, msg }) => { log(level || 'info', '[ui] ' + msg); return true; });
-// Says so if the log file does not exist yet (logging off or no event written); the
+// Says so if the folder or file does not exist yet (logging off or nothing written); the
 // button used to silently do nothing.
-ipcMain.handle('log:open', async () => {
-  if (!fs.existsSync(LOG_FILE)) return { ok: false, error: 'Kayıt dosyası henüz oluşmadı.' };
-  const errorInfo = await shell.openPath(LOG_FILE);
+async function openLogPath(p, missing) {
+  if (!fs.existsSync(p)) return { ok: false, error: missing };
+  const errorInfo = await shell.openPath(p);
   return errorInfo ? { ok: false, error: errorInfo } : { ok: true };
+}
+ipcMain.handle('log:open', () => openLogPath(LOG_DIR, 'Kayıt klasörü henüz oluşmadı.'));
+ipcMain.handle('log:openConnection', () => openLogPath(logger.files.connection, 'Bağlantı kaydı henüz oluşmadı.'));
+// Settings > Connection history: the last 24 hours of the account on screen, from the same lines connection.log holds
+const CONNECTION_SUMMARY_MS = 24 * 3600 * 1000;
+ipcMain.handle('log:connectionSummary', () => {
+  if (!activeSteamID) return { ok: false };
+  return { ok: true, spanMs: CONNECTION_SUMMARY_MS, ...logger.connectionSummary(activeSteamID, CONNECTION_SUMMARY_MS) };
 });
 
 // Desktop notification - sent from the main process instead of the HTML5 Notification in the renderer.
@@ -557,7 +565,7 @@ function loadSettings() {
   }
   translation.pickLang(settings.language);
 }
-// Returns false if it fails: if the file could not be read (broken) writing is deliberately blocked and "Kaydet"
+// Returns false if it fails: if the file could not be read (broken) writing is deliberately blocked and "Save"
 // must tell the user so, not say "saved".
 function saveSettings() { return writeJson(SETTINGS_FILE, settings, true); }
 // "Uyku modunu engelle": only while a job runs on an account. Previously when the setting was on the
@@ -581,10 +589,11 @@ function reconnectLimit() {
 // The Windows start-up entry ("Start with Windows"). It used to be written on every start of any copy: a run from the source (npm start, the tests) put the
 // Electron of node_modules there, and a copy with the setting off (a new version just extracted, its settings not copied over yet) removed the entry of the
 // copy the user starts. Now only a packaged app touches it, and turning it off removes it only when it is this copy's.
+// With "Start in the tray" the entry carries START_HIDDEN_ARG: the first window stays hidden (see createWindow).
 function applyLoginItem() {
   if (!app.isPackaged) return;
   try {
-    if (settings.autoLaunch) { app.setLoginItemSettings({ openAtLogin: true }); return; }
+    if (settings.autoLaunch) { app.setLoginItemSettings({ openAtLogin: true, args: settings.startInTray ? [START_HIDDEN_ARG] : [] }); return; }
     const current = app.getLoginItemSettings();
     const items = (current && current.launchItems) || [];
     const mine = (p) => String(p || '').replace(/"/g, '').toLowerCase() === String(process.execPath).toLowerCase();
@@ -639,6 +648,7 @@ function applyChatSettings(eng) {
 function showWindow() {
   if (!win || win.isDestroyed()) return;
   if (win.isMinimized()) win.restore();
+  if (maximizeOnShow) { maximizeOnShow = false; win.maximize(); }
   win.show();
   win.focus();
 }
@@ -684,18 +694,8 @@ function sendRaw(channel, data) {
 // The log is kept independent of the debug setting; otherwise when someone says "an error showed up on screen"
 // there is nothing to look at.
 
-function writeCrash(category, e) {
-  const rowEl = `[${new Date().toISOString()}] CRASH ${category} ${(e && e.stack) || (e && e.message) || e}`;
-  console.error(rowEl);
-  try {
-    fs.mkdirSync(CACHE_DIR, { recursive: true });
-    try { if (fs.statSync(LOG_FILE).size > 2 * 1024 * 1024) fs.renameSync(LOG_FILE, LOG_FILE + '.1'); } catch (_) {}
-    fs.appendFileSync(LOG_FILE, rowEl + '\n');
-  } catch (_) {}
-}
-
-process.on('uncaughtException', (e) => { writeCrash('uncaughtException', e); });
-process.on('unhandledRejection', (e) => { writeCrash('unhandledRejection', e); });
+process.on('uncaughtException', (e) => { logger.crash('uncaughtException', e); });
+process.on('unhandledRejection', (e) => { logger.crash('unhandledRejection', e); });
 
 // ---- LOGIN TOKEN PROTECTION ----
 // The refresh tokens in session.json and accounts.json are enough to use the Steam account. With "Seal login tokens"
@@ -914,9 +914,14 @@ function createWindow() {
   win.once('ready-to-show', () => {
     // Showing and maximizing fire move and resize events too; they are the app's own doing, not a choice of the user.
     windowSaveBlockedUntil = Date.now() + 1500;
-    if (saved && saved.maximized) win.maximize();
+    // Started by Windows with "Start in the tray": the panel loads and the accounts connect, the window waits for the tray icon. Not without
+    // a saved session (the login screen needs the user) and not without an icon to bring it back with.
+    const hidden = startHidden && sess && tray && trayHasIcon && !tray.isDestroyed();
+    startHidden = false;
+    if (hidden) maximizeOnShow = !!(saved && saved.maximized);
+    else if (saved && saved.maximized) win.maximize();
     applyFitZoom();      // before the window shows: a zoom left over from an earlier session must not flash on screen
-    win.show();
+    if (hidden) log('info', 'started in the tray'); else win.show();
     setTimeout(() => resolveWindowOpened(), 50);
   });
   ['resize', 'move', 'maximize', 'unmaximize'].forEach((ev) => win.on(ev, saveWindowStateSoon));
@@ -1093,12 +1098,12 @@ ipcMain.handle('accounts:remove', async (_e, steamID) => {
     accounts.delete(steamID);
   }
   resumeStore.forget(steamID);          // what it had left running is not started again for an account that is gone
-  const bek = pendingWrite.get(steamID);
-  if (bek) { clearTimeout(bek); pendingWrite.delete(steamID); }
+  const pending = pendingWrite.get(steamID);
+  if (pending) { clearTimeout(pending); pendingWrite.delete(steamID); }
   // The account's own data should go too, otherwise when the same account is added again the old
   // queue/statistics come back and the user thinks they deleted it.
   accountDataAll.delete(steamID);
-  ['', '.bak', '.bozuk', '.tmp'].forEach((extra) => {
+  JSON_SIDE_FILES.forEach((extra) => {
     try { fs.unlinkSync(accountFile(steamID) + extra); } catch (_) {}
   });
   list.splice(idx, 1);
@@ -1561,7 +1566,7 @@ function delayFarm(steamID, reasonWhy) {
   });
   return true;
 }
-// zorla: resume even if hour boosting continues (the "pause" setting was turned off).
+// forceIt: resume even if hour boosting continues (the "pause" setting was turned off).
 function resumeFarm(steamID, forceIt) {
   const s = accounts.get(steamID);
   if (!s || !s.pendingFarm || s.realistic) return;
@@ -1631,7 +1636,24 @@ function bindConnectionState(eng, steamID) {
           : status === 'connected' && extra.reconnected
             ? ('reconnected, ' + (extra.gameEntries || 0) + ' games reopened')
             : 'connected';
-    log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message, true);
+    log(status === 'dropped' || status === 'abandoned' ? 'warn' : 'info', '[' + steamID + '] ' + message);
+    // connection.log keeps every one of these whatever the level (the countdown between attempts is one "waiting" line, not one per second)
+    if (status === 'dropped') {
+      if (s) { s.droppedAt = Date.now(); s.lastAttempt = 0; }
+      logger.connection(steamID, 'dropped', { cause: extra.cause });
+    } else if (status === 'connecting') {
+      if (extra.trying && s) s.lastAttempt = extra.attemptCount || 0;
+      logger.connection(steamID, extra.trying ? 'attempt' : 'waiting', extra.trying
+        ? { attempt: extra.attemptCount, deadlineMs: extra.deadlineMs }
+        : { attempt: extra.attemptCount, nextMs: extra.waitMs, cause: extra.lastFailure });
+    } else if (status === 'abandoned') {
+      logger.connection(steamID, 'abandoned', { attempts: extra.attemptCount || 0, permanent: !!extra.permanent, cause: extra.cause });
+    } else if (status === 'connected') {
+      logger.connection(steamID, extra.reconnected ? 'reconnected' : 'connected', extra.reconnected
+        ? { games: extra.gameEntries || 0, attempts: (s && s.lastAttempt) || 0, downMs: s && s.droppedAt ? Date.now() - s.droppedAt : null }
+        : null);
+      if (s) { s.droppedAt = null; s.lastAttempt = 0; }
+    }
     // The first session of an account whose first logon failed (no network at start) and that the engine's own loop opened later: what connectAccount does
     // after a logon is done now
     if (status === 'connected' && extra.first && s && s.engine === eng) {
@@ -1674,7 +1696,7 @@ ipcMain.handle('engine:connectionStatus', () => {
 const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // Keys that come through settings:set but actually belong to the account.
 // We sort them out here so the renderer side does not change.
-// 'profil': the last known name/avatar/level/custom address. It goes to the interface together with the settings,
+// 'profileInfo': the last known name/avatar/level/custom address. It goes to the interface together with the settings,
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
@@ -2284,7 +2306,7 @@ const MAX_PRICE_TRIES = 3;
 // "fetch prices now?", the prices come instantly anyway.
 //
 // THE AVERAGE IN THE SAME ROUND TOO: while an item's lowest price is fetched its average is also fetched
-// (Ayarlar > "Fetch the average alongside the price"). If turned off the average only comes with the
+// (Settings > "Fetch the average alongside the price"). If turned off the average only comes with the
 // "Average" button in Inventory - then a single request is made per item.
 ipcMain.handle('engine:pricesFor', (_e, arg) => {
   const hashNames = Array.isArray(arg) ? arg : (arg && arg.hashNames);
@@ -2332,7 +2354,7 @@ ipcMain.handle('engine:achievements', async (_e, arg) => {
   const isFresh = !!(arg && typeof arg === 'object' && arg.freshFlag);
   const eng = engineFor(arg && typeof arg === 'object' ? arg.steamID : null);
   if (!eng) return { ok: false, error: 'Bağlı değil.' };
-  // taze=true: throw away the schema/value cache, read again from Steam. The verification after a bulk
+  // freshFlag: throw away the schema/value cache, read again from Steam. The verification after a bulk
   // operation uses this; reading from the cache would give back our own guess.
   if (isFresh) { try { eng.invalidateStats(appid); } catch (_) {} }
   try { return { ok: true, data: await eng.getAchievements(appid) }; }
@@ -2561,9 +2583,9 @@ ipcMain.handle('engine:saleFee', async (_e, totals) => {
 // a new account can be stopped after 10-15 listings, an old account can list 80+ at
 // once. Continuing after hitting the limit only piles up errors;
 // the safest way is to stop and tell the user.
-//   limit : Steam stopped listing (too many listings awaiting confirmation, too many requests, wallet cap)
-//   atla  : this item cannot be listed (it already has a listing awaiting confirmation, not in the inventory); move on to the next
-//   genel : reason unclear; if it happens twice in a row it is treated like a limit
+//   limit  : Steam stopped listing (too many listings awaiting confirmation, too many requests, wallet cap)
+//   skip   : this item cannot be listed (it already has a listing awaiting confirmation, not in the inventory); move on to the next
+//   general: reason unclear; if it happens twice in a row it is treated like a limit
 function saleErrorType(e) {
   const m = String((e && (e.steamMessage || e.message)) || '');
   const http = e && e.httpStatus;
@@ -3093,7 +3115,7 @@ function runSyncStep(steamID) {
 }
 
 // Starts simultaneous hour boosting. request: { appids, durationMs, games, proceeding }
-// devam: { baslangic } - when a setting changes the job is resumed with the same start and total duration.
+// proceeding: { startPoint } - when a setting changes the job is resumed with the same start and total duration.
 function boostStart(steamID, request) {
   const s = accounts.get(steamID);
   if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
@@ -3342,7 +3364,7 @@ function realisticNotify(steamID, extra) {
     playingIds: d && a && a.parallel ? (d.playingIds || null) : null,     // the games of the group being played now
     appid: a ? ((nextItem && nextItem.appid) || a.appid) : null,
     gameTitle: a ? ((nextItem && nextItem.gameTitle) || a.gameTitle) : null,
-    // toplam/acilan describe the WHOLE session; the queue can hold more than one game.
+    // totalSum/openedGames describe the WHOLE session; the queue can hold more than one game.
     totalSum: d ? d.totalGoal : 0,
     openedGames: d ? d.totalUnlocked : 0,
     failure: d ? d.totalErrors : 0,
@@ -3359,7 +3381,7 @@ function realisticNotify(steamID, extra) {
 }
 
 // Computes when the next unlock will happen. It waits according to the target time the model gives;
-// with "Rastgele aralik" on a +-40% deviation is added on top - so that no fixed rhythm forms.
+// with "Randomised gaps" on a +-40% deviation is added on top - so that no fixed rhythm forms.
 function realisticNextDelay(d) {
   const a = d.activeIds;
   const remainingCount = a.queueList.length - a.indexNum;
@@ -3531,11 +3553,6 @@ function realisticFinish(steamID, cause) {
 // is written to disk and that game never shows up in this page's list again.
 // BY APPID and independent of the account: achievements are a property of the game, not of the account.
 const NO_ACHIEVEMENTS_FILE = path.join(CACHE_DIR, 'no-achievements.json');
-// Renamed from the Turkish file name used up to 1.3.x; move it once so the learned list is kept.
-try {
-  const oldFile = path.join(CACHE_DIR, 'basarimsiz.json');
-  if (fs.existsSync(oldFile) && !fs.existsSync(NO_ACHIEVEMENTS_FILE)) fs.renameSync(oldFile, NO_ACHIEVEMENTS_FILE);
-} catch (_) {}
 let noAchievementsSet = new Set();
 function loadNoAchievements() {
   const r = readJson(NO_ACHIEVEMENTS_FILE);
@@ -3567,9 +3584,9 @@ ipcMain.handle('realistic:noAchievementsClear', () => {
 });
 
 // The engine's achievement call gives no game name; the library list of the account that owns the engine does.
-function ownedGameName(motor, appid) {
+function ownedGameName(eng, appid) {
   for (const [id, s] of accounts) {
-    if (s.engine !== motor) continue;
+    if (s.engine !== eng) continue;
     const owned = (accountData(id).lists || {}).owned;
     const g = Array.isArray(owned) ? owned.find((x) => +x.appid === +appid) : null;
     return g && g.name ? g.name : null;
@@ -3577,8 +3594,8 @@ function ownedGameName(motor, appid) {
   return null;
 }
 
-async function prepareRealisticQueue(motor, appid, options) {
-  const data = await motor.getAchievements(appid);
+async function prepareRealisticQueue(eng, appid, options) {
+  const data = await eng.getAchievements(appid);
   const everything = (data && Array.isArray(data.achievements)) ? data.achievements : null;
   if (!everything || !everything.length) {
     markNoAchievements(appid);
@@ -3612,7 +3629,7 @@ async function prepareRealisticQueue(motor, appid, options) {
   const clipped = (goal > 0 && goal < suitable.length) ? suitable.slice(0, goal) : suitable;
   return {
     ok: true,
-    gameTitle: data.gameName || ownedGameName(motor, appid) || ('App ' + appid),
+    gameTitle: data.gameName || ownedGameName(eng, appid) || ('App ' + appid),
     queueList: clipped.map((a) => ({ apiName: a.apiName, name: a.name, rarityPct: a.rarityPct, pos: a.pos, ultra: a.ultra })),
     rarityMissing,
     suitableTotal: suitable.length,
@@ -3662,11 +3679,11 @@ function realisticOptions(s) {
 
 // Prepares every game of a queue and plans them together: the duration and the share of each game depend on all of them.
 // The lists come back whole (prepareRealisticQueue is called without a target); planGames trims them.
-async function realisticPrepareAll(motor, listing, pick, givenSpanMs, autoSpanAllowed) {
+async function realisticPrepareAll(eng, listing, pick, givenSpanMs, autoSpanAllowed) {
   const entries = [];
   const dropped = {};
   for (const id of listing) {
-    const h = await prepareRealisticQueue(motor, id, Object.assign({}, pick, { goalValue: 0 }));
+    const h = await prepareRealisticQueue(eng, id, Object.assign({}, pick, { goalValue: 0 }));
     if (!h.ok) { dropped[id] = h; continue; }
     entries.push({ appid: id, h });
   }
@@ -3740,12 +3757,12 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
-// Start. oyunlar: [appid, ...] - the queue. A single game goes through the same path.
+// Start. gameEntries: [appid, ...] - the queue. A single game goes through the same path.
 async function realisticStartFor(steamID, arg, fromSchedule) {
   const s = accounts.get(steamID);
   if (!s || !s.ready || !s.engine) return { ok: false, error: 'Bağlı değil.' };
   if (s.realistic) return { ok: false, error: 'Zaten çalışıyor.' };
-  const motor = s.engine;
+  const eng = s.engine;
   const { appid, hours: hour, spanMs: durationMs } = arg || {};
   const pick = realisticOptions(arg && arg.optionList);
   const givenSpan = Math.max(60000, +durationMs || (Math.max(1, +hour || 1) * 3600000));
@@ -3760,7 +3777,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     // remove it from the list anyway, there is no point stopping the queue or boosting hours.
     // A run the schedule starts keeps the span it was given (it has to fit what is left of its time range); any other run may get the
     // automatic duration.
-    const plan = await realisticPrepareAll(motor, listing, pick, givenSpan, !fromSchedule);
+    const plan = await realisticPrepareAll(eng, listing, pick, givenSpan, !fromSchedule);
     const duration = plan.spanMs;
     pick.autoSpanApplied = plan.auto || pick.autoSpanApplied;
     const prepared = {};
@@ -3790,7 +3807,7 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     const groups = parallel ? plan.groups.map((g) => Object.assign({}, g, { appids: g.appids.filter((id) => willRun.some((o) => o.appid === id)) })).filter((g) => g.appids.length) : [];
     const firstShare = parallel ? duration : Math.max(60000, Math.round(duration * ((firstReady.queueList.length || 1) / totalCount)));
     const currentTime = Date.now();
-    if (!parallel) motor.play([firstGame.appid], 'realistic');
+    if (!parallel) eng.play([firstGame.appid], 'realistic');
     const d = {
       gameEntries: willRun,
       gameIndex: 0,
@@ -4131,20 +4148,20 @@ function applySettingPatch(patch, forAccount) {
   log('info', 'settings saved: ' + changed.concat(scopedChanged).join(', ') + (appliedItem.length ? (' (applied to ' + appliedItem.length + ' jobs)') : ''));
   return { ok: true, changedOne: changed.concat(scopedChanged), appliedOne: appliedItem };
 }
-// Instant controls on pages (the Hour Booster switches, "bir daha sorma" in the confirmation window
+// Instant controls on pages (the Hour Booster switches, "Don't ask again" in the confirmation window
 // and the like) write from here: these are preferences that are applied with a single click anyway.
 ipcMain.handle('settings:set', (_e, patch, forAccount) => {
   applySettingPatch(patch, forAccount);
   return accountSettingsAdded(publicSettings());
 });
-// The "Kaydet" button of the Settings page. The page keeps changes in a draft, only the changed keys
+// The "Save" button of the Settings page. The page keeps changes in a draft, only the changed keys
 // come here. The reply also says which jobs will be resumed with the new setting.
 ipcMain.handle('settings:save', (_e, patch, forAccount) => {
   const r = applySettingPatch(patch, forAccount);
   return { ...r, settings: accountSettingsAdded(publicSettings()), saveTime: settingSaveTime, pauseMs: SETTINGS_DEBOUNCE_MS };
 });
 // "Reset to defaults" no longer writes anything: the defaults are loaded into the page's draft,
-// applied if the user presses Kaydet. It used to write instantly and it also pulled the language to Turkish.
+// applied if the user presses Save. It used to write instantly and it also pulled the language to Turkish.
 ipcMain.handle('settings:defaults', () => {
   const v = { ...DEFAULT_SETTINGS };
   delete v.settingsVersion;
@@ -4253,7 +4270,7 @@ function applySettingsToJobs(changed, onlyAccount) {
   return summary;
 }
 ipcMain.handle('settings:clearPriceCache', () => {
-  ['', '.bak', '.bozuk', '.tmp'].forEach((extra) => {
+  JSON_SIDE_FILES.forEach((extra) => {
     try { fs.unlinkSync(PRICE_FILE + extra); } catch (_) {}
     try { fs.unlinkSync(HISTORY_FILE + extra); } catch (_) {}
   });
@@ -4380,16 +4397,20 @@ ipcMain.handle('settings:wipeAll', () => {
   // Settings side
   resumeStore.clear();
   ['session.json', 'web-session.json', 'accounts.json', 'settings.json', 'stats.json', 'state.json'].forEach((f) => {
-    ['', '.bak', '.bozuk', '.tmp'].forEach((extra) => {
+    JSON_SIDE_FILES.forEach((extra) => {
       try { fs.unlinkSync(path.join(CONFIG_DIR, f + extra)); } catch (_) {}
     });
   });
   // All of the per-account stores
   try { fs.rmSync(ACCOUNT_DIR, { recursive: true, force: true }); } catch (_) {}
   accountDataAll.clear(); corruptFiles.clear();
-  // Cache side (prices.json and the log file are now under cache/)
-  ['prices.json', 'history.json', 'steamedge.log', 'steamedge.log.1'].forEach((f) => {
+  // Cache side, and the log files (logs/)
+  ['prices.json', 'history.json'].forEach((f) => {
     try { fs.unlinkSync(path.join(CACHE_DIR, f)); } catch (_) {}
+  });
+  Object.values(logger.files).forEach((f) => {
+    try { fs.unlinkSync(f); } catch (_) {}
+    try { fs.unlinkSync(f + '.1'); } catch (_) {}
   });
   settings = { ...DEFAULT_SETTINGS }; lifeStats = null; priceCache = new Map();
   activeSteamID = null;
@@ -4481,6 +4502,7 @@ app.on('before-quit', () => {
   // Let the last minute of running jobs and the pending account writes land on disk.
   accounts.forEach((s, id) => { try { statsHour(id); } catch (_) {} });
   flushPendingWrites();
+  logger.connection('-', 'stopped');   // a drop still open ends here in the connection history, not at the next start
 });
 // If a data file could not be read at startup TELL the user. It used to silently fall back to the default,
 // then the first change wrote over the intact file; the user could never learn
@@ -4495,7 +4517,7 @@ function reportReadErrors() {
   }
   if (lost.length) {
     bodyEl += ct('Şu dosyalar okunamadı ve yedekleri de yoktu:') + '\n  ' + lost.map(ct).join('\n  ')
-      + '\n\n' + ct('Bu veriler varsayılana döndürüldü. Bozuk dosyalar ".bozuk" uzantısıyla settings klasöründe duruyor, üzerlerine yazılmadı.')
+      + '\n\n' + ct('Bu veriler varsayılana döndürüldü. Bozuk dosyalar ".corrupt" uzantısıyla settings klasöründe duruyor, üzerlerine yazılmadı.')
       + '\n\n' + ct('Bunun sebebi genellikle uygulama kayıt yaparken bilgisayarın kapanmasıdır.');
   }
   try {
@@ -4804,6 +4826,9 @@ function nudgeReconnect() {
 }
 
 app.whenReady().then(() => {
+  // The second copy: app.quit() above does not stop 'ready', and up to 1.7.9 the whole start ran in it before it ended (a window, the logon of every
+  // saved account begun next to the first copy's). Started in the tray, the app is easy to start a second time.
+  if (!singleInstance) return;
   const setup = isSetupConsistent();
   try { powerMonitor.on('resume', nudgeReconnect); powerMonitor.on('unlock-screen', nudgeReconnect); } catch (_) {}
   if (!setup.ok) {
@@ -4829,6 +4854,7 @@ app.whenReady().then(() => {
     return;
   }
   loadSettings(); applySettings(); loadStats(); loadState(); loadPriceCache(); loadHistoryCache();
+  logger.connection('-', 'started');   // after the settings: the connection log follows the "Log file" switch; it also closes a drop the last run ended in
   resumeStartUp();                  // before the accounts connect: what an earlier run left running is read first
   if (settings.protectTokens) rewriteTokenFiles();   // a login made while the app was not running may still be plain text
   createWindow(); ensureTray();

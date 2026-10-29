@@ -579,10 +579,10 @@ class SteamEngine {
   // 2 games -> 40 rows, 5 cards -> 100 cards.
   // Now the page count is read from the pagination box, the loop is also broken if the same appid set
   // comes again, and the result is made unique by appid.
-  // If `detay` is given it returns { oyunlar, bitenler }: bitenler are the games whose badge row says "No card drops
+  // If `withFinished` is given it returns { gameEntries, finishedOnes }: finishedOnes are the games whose badge row says "No card drops
   // remaining". The card watcher only removes a game from the queue when Steam SAYS so;
   // not appearing in the list alone does not mean "finished" (the scrape may be incomplete).
-  async getDropGames(detay) {
+  async getDropGames(withFinished) {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const found = new Map();          // appid -> { appid, name, remaining }
     const finished = new Set();
@@ -645,7 +645,7 @@ class SteamEngine {
     }
     const gameList = [...found.values()];
     found.forEach((_, id) => finished.delete(id));
-    return detay ? { gameEntries: gameList, finishedOnes: finished } : gameList;
+    return withFinished ? { gameEntries: gameList, finishedOnes: finished } : gameList;
   }
 
   // Own Steam profile: avatar, display name and account level - straight from the protocol
@@ -737,7 +737,7 @@ class SteamEngine {
     const key = (a) => a.classid + '_' + a.instanceid;
 
     // item_class ids confirmed against this account's real inventory dump.
-    // NOTE: badges ("Rozet") are NOT inventory items - they're a separate Steam profile feature
+    // NOTE: badges are NOT inventory items - they're a separate Steam profile feature
     // and can never appear here, so the UI disables that filter.
     const TYPE_MAP = {
       item_class_2: 'card',
@@ -1038,7 +1038,7 @@ class SteamEngine {
     });
     const j = await r.json().catch(() => null);
     // The error detail is kept: the main process looks at Steam's message and the HTTP status and sorts it as "limit"
-    // (stop), "atla" (this item cannot be listed, move on to the next) or a general error.
+    // (stop), "skip" (this item cannot be listed, move on to the next) or a general error.
     if (!j) {
       const e = new Error(translation.tf('Pazar yanıtı okunamadı (HTTP #)', r.status));
       e.httpStatus = r.status;
@@ -1384,7 +1384,7 @@ class SteamEngine {
     const rarityMap = rarity.map;
     const achievements = raw.defs.map((d) => {
       const val = raw.statValues.get(d.statId >>> 0) || 0;
-      // the korumali flag is carried to the interface (it is added to the object below)
+      // the protectedFlag is carried to the interface (it is added to the object below)
       const achieved = !!((val >> d.finishAt) & 1);
       const pct = rarityMap[d.apiName];
       return {

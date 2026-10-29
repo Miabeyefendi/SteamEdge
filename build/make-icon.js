@@ -22,7 +22,7 @@ app.whenReady().then(() => {
 
   const pngs = SIZES.map((n) => ({
     n,
-    veri: source.resize({ width: n, height: n, quality: 'best' }).toPNG(),
+    data: source.resize({ width: n, height: n, quality: 'best' }).toPNG(),
   }));
 
   const header = Buffer.alloc(6);
@@ -40,12 +40,12 @@ app.whenReady().then(() => {
     entries.writeUInt8(0, o + 3);                      // reserved
     entries.writeUInt16LE(1, o + 4);                   // planes
     entries.writeUInt16LE(32, o + 6);                  // bit depth
-    entries.writeUInt32LE(p.veri.length, o + 8);
+    entries.writeUInt32LE(p.data.length, o + 8);
     entries.writeUInt32LE(offset, o + 12);
-    offset += p.veri.length;
+    offset += p.data.length;
   });
 
-  fs.writeFileSync(TARGET, Buffer.concat([header, entries, ...pngs.map((p) => p.veri)]));
+  fs.writeFileSync(TARGET, Buffer.concat([header, entries, ...pngs.map((p) => p.data)]));
   console.log('yazildi:', TARGET, '(' + SIZES.join(', ') + ' px, ' +
               (fs.statSync(TARGET).size / 1024).toFixed(1) + ' KB)');
   app.exit(0);

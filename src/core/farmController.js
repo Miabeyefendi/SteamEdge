@@ -120,7 +120,7 @@ class FarmController {
     this.emit('farm:tick', { running: false, cause: cause || 'user', wasRunning: wasRunning });
   }
 
-  // The current list from the badge watcher. `bitenler`: games for which Steam CONFIRMS no cards are left
+  // The current list from the badge watcher. `finished`: games for which Steam CONFIRMS no cards are left
   // ("No card drops remaining" on the badge row). A game that is missing from the list but not marked
   // as finished is not removed: the scrape may have been incomplete.
   updateGames(current, finished) {

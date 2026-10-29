@@ -70,20 +70,6 @@
   .kfoot{display:flex;align-items:center;gap:22px;justify-content:flex-end;margin-top:18px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);font-size:12.5px;color:var(--text-2)}
   .kfoot .dg{display:inline-flex;align-items:center;gap:6px}.kfoot .dg .d{width:7px;height:7px;border-radius:50%;background:var(--green)}
   /* ---- Card Farming v2 (template-driven redesign) ---- */
-  .kart-layout{display:flex;gap:var(--gap);flex:1;min-height:0}
-  .kart-left{width:260px;flex:none;display:flex;flex-direction:column;gap:12px}
-  .kart-left .modes{display:flex;flex-direction:column;gap:5px}
-  .kart-left .mode-c{display:flex;align-items:center;gap:10px;padding:9px 12px}
-  .kart-left .mode-c .mi{flex:none;width:30px;height:30px;border-radius:8px;background:var(--card);display:flex;align-items:center;justify-content:center}
-  .kart-left .mode-c.sel .mi{background:rgba(74,155,255,.15);color:var(--blue)}
-  .kart-left .mode-c .mt{margin-top:0;font-size:12px}
-  .kart-left .mode-c .md{display:none}
-  .kart-right{flex:1;display:flex;flex-direction:column;gap:12px;min-width:0;overflow-y:auto;max-height:var(--box-6)}
-  .kart-right::-webkit-scrollbar{width:3px}
-  .kart-hero-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .kart-hero-game{display:flex;align-items:start;gap:14px}
-  .kart-hero-game img{width:64px;height:64px;border-radius:10px;border:1px solid var(--line);object-fit:cover;flex:none}
-  .kart-timer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;padding:14px;background:rgba(74,155,255,.06);border:1px solid rgba(74,155,255,.15);border-radius:10px}
   .kt-box .kt-lbl{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px}
   .kt-box .kt-val{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:3px}
   .kt-box .kt-sub{font-size:11px;color:var(--muted);margin-top:1px}
@@ -93,7 +79,6 @@
   .drop-slot.current{background:rgba(74,155,255,.2);border:1px dashed var(--blue);color:var(--blue)}
   body.e-beat .drop-slot.current{opacity:.45}
   .drop-slot.empty{background:var(--card2);border:1px solid var(--line);color:var(--muted2)}
-  .kart-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .ks-box{background:var(--card2);border-radius:var(--radius-sm);padding:10px;text-align:center}
   .ks-box .ks-val{font-size:17px;font-weight:800}
   .ks-box .ks-lbl{font-size:11px;color:var(--muted2);margin-top:2px}
@@ -111,8 +96,3 @@
   .kq-pill{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;flex:none}
   .kq-pill.live{background:rgba(95,208,116,.12);color:var(--green);border:1px solid rgba(95,208,116,.25)}
   .kq-pill.next{background:rgba(74,155,255,.1);color:var(--blue);border:1px solid rgba(74,155,255,.2)}
-  .kart-acts{display:flex;gap:8px;margin-top:14px}
-  .kart-acts .ka{flex:1;height:var(--btn-sm);display:flex;align-items:center;justify-content:center;gap:5px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--card2);color:var(--muted);transition:all .15s}
-  .kart-acts .ka:hover{border-color:var(--line-2);color:var(--txt)}
-  .kart-acts .ka.skip{background:rgba(74,155,255,.1);border-color:rgba(74,155,255,.2);color:var(--blue)}
-  .kart-acts .ka.ka-stop{color:var(--red)}

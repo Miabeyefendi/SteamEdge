@@ -34,8 +34,8 @@
     function paint(el, s){ el.style.background = s.bg; el.style.color = s.fg; el.style.borderColor = s.bd; }
 
     // Applies the Settings > Card farming preferences to the page (default mode, duration, queue order).
-    // It does not overwrite what the user changed by hand on the page; BUT a value changed with Kaydet in Ayarlar
-    // (degisen) is always applied, because the user explicitly chose it a moment ago. The mode of a running
+    // It does not overwrite what the user changed by hand on the page; BUT a value changed with Save in Settings
+    // (changed) is always applied, because the user explicitly chose it a moment ago. The mode of a running
     // queue does not change (the order is set up in the engine); the main process applies a duration change to the running job
     // too (see main.js > applySettingsToJobs).
     let farmUserTouched = false;
@@ -72,7 +72,7 @@
       renderCards();
     }
 
-    // ---- persistence of queue preferences (main.js state.json, retention from Ayarlar) ----
+    // ---- persistence of queue preferences (main.js state.json, retention from Settings) ----
     // The order the user made by hand and the games they removed from the queue should come back
     // even after the app closes. Appids that are no longer owned are filtered out on load.
     const CARD_STATE_KEY = 'cards.queue';

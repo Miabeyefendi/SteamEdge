@@ -33,6 +33,6 @@ Algunos logros los escribe el servidor del juego, no el cliente, y Steam no perm
 <details>
 <summary><b>Dejó de funcionar tras una actualización, ¿ahora qué?</b></summary>
 
-Asegúrate de haber extraído la nueva versión en una carpeta nueva y vacía, copiando solo `settings/`; extraer encima de la carpeta antigua mezcla archivos de dos versiones. Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resolución-de-problemas) de la guía, y luego el registro en `cache/steamedge.log`. Si sigue roto, abre un informe de error y adjunta ese registro.
+Asegúrate de haber extraído la nueva versión en una carpeta nueva y vacía, copiando solo `settings/`; extraer encima de la carpeta antigua mezcla archivos de dos versiones. Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resolución-de-problemas) de la guía, y luego los registros de la carpeta `logs/`. Si sigue roto, abre un informe de error y adjunta esos registros.
 
 </details>

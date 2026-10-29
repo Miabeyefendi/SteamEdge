@@ -53,13 +53,16 @@ SteamEdge/
     resume.json                jobs that were running when the app ended, written again every half minute while one runs
     accounts/<steamID>.json    per-account data: statistics, queues, key queue, presets, achievement log
     stats.json, state.json     older versions only: read once, never written again
-    *.bak, *.bozuk             automatic backup copy and set-aside damaged file
+    *.bak, *.corrupt           automatic backup copy and set-aside damaged file
   cache/
     prices.json                market prices, 24 hour lifetime
     history.json               realised sale averages, 72 hour lifetime
     no-achievements.json            games found to have no achievements
     chromium/                  image and page cache
-    steamedge.log              the log to attach to a bug report
+  logs/
+    steamedge.log              events at the level chosen in Settings: the log to attach to a bug report
+    connection.log             every drop, reconnect attempt and return of the Steam connection, one line each
+    crash.log                  errors nothing else caught, written at any level
 ```
 
 > **`settings/` is the sensitive one.** `session.json` holds a token that is enough to use your account. Do not put it in a backup you share, an archive you upload or a screenshot. With **Encrypt login tokens** on (Settings > Privacy & security) the tokens are stored encrypted, but keep `settings/` private anyway.
@@ -311,6 +314,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
+| `startInTray` | `true` | When Windows starts the app (`autoLaunch`) the window stays closed and the app runs in the tray; starting it yourself always opens the window |
 | `theme` | `auto` | Colour theme: `auto` (high contrast when the system asks for it, dark otherwise), `dark`, `midnight` (Midnight Purple), `white`, `contrast` (High contrast) |
 | `density` | `auto` | Spacing and row height: `auto` (compact while the window is short), `comfortable`, `compact` |
 | `uiScale` | `100` | Interface scale in percent: `80`, `90`, `100`, `110`, `125`, `150`. A window too small for the layout at that scale shrinks it to what fits |
@@ -408,11 +412,11 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3`, `off` |
 | `sessionTimeout` | `never` | Close every session after this many idle minutes (30, 120 or 480). Running jobs do not count as idle; only your own interaction resets the timer. When it fires, all accounts disconnect, the active session is forgotten and the sign-in screen opens |
 | `apiRequestDelayMs` | `350` | Shortest gap between market requests. Lower is faster but closer to Steam's rate limit (HTTP 429) |
-| `logLevel` | `error` | What goes into `cache/steamedge.log`: `off`, `error`, `warn`, `info`, `debug` |
+| `logLevel` | `error` | What goes into `logs/steamedge.log`: `off`, `error`, `warn`, `info`, `debug`. `off` stops `logs/connection.log` too |
 
 ### Where the settings are stored
 
-General settings in `settings/settings.json`. Anything that belongs to one account, the hours booster selection, the Realistic Mode queue and presets, the achievement log and the statistics, lives in `settings/accounts/<steamID>.json`. Caches are separate, under `cache/`, and can be deleted at any time without losing configuration. Every JSON file is written to a temporary file and swapped in at once, with the previous good copy kept beside it as `.bak`. If a file cannot be read the `.bak` is used; if that is damaged too, the file is left untouched, a copy is set aside as `.bozuk`, the app tells you at startup and the affected data starts from defaults. `stats.json` and `state.json` exist only in folders from older versions; their content moves into the account file the first time and they are never written again.
+General settings in `settings/settings.json`. Anything that belongs to one account, the hours booster selection, the Realistic Mode queue and presets, the achievement log and the statistics, lives in `settings/accounts/<steamID>.json`. Caches are separate, under `cache/`, and can be deleted at any time without losing configuration. Every JSON file is written to a temporary file and swapped in at once, with the previous good copy kept beside it as `.bak`. If a file cannot be read the `.bak` is used; if that is damaged too, the file is left untouched, a copy is set aside as `.corrupt`, the app tells you at startup and the affected data starts from defaults. `stats.json` and `state.json` exist only in folders from older versions; their content moves into the account file the first time and they are never written again.
 
 ---
 
@@ -424,7 +428,7 @@ Another copy is already running. SteamEdge allows one instance. Check for `Steam
 
 ### The account badge stays empty and nothing loads
 
-The Steam session did not come up. A banner appears under the top bar when the connection drops or is retrying; if Steam ended the session for good, the banner says so and offers a Reconnect button. If it persists, check that Steam itself is reachable, then look at `cache/steamedge.log` for the reason.
+The Steam session did not come up. A banner appears under the top bar when the connection drops or is retrying; if Steam ended the session for good, the banner says so and offers a Reconnect button. If it persists, check that Steam itself is reachable, then look at Settings > Advanced & data > **Connection history** or `logs/connection.log` for the reason.
 
 ### Bulk selling stopped halfway
 
@@ -452,7 +456,7 @@ The completion time is too high. Left empty it is estimated from your playtime, 
 
 ### SteamEdge says a file could not be read
 
-If a settings or data file is damaged, SteamEdge restores the automatic `.bak` copy. If that is damaged too, the file is left exactly as it is, a copy is set aside next to it with the `.bozuk` extension, the affected data starts from defaults and the app tells you at startup. Nothing is overwritten, so you can put the file back by hand.
+If a settings or data file is damaged, SteamEdge restores the automatic `.bak` copy. If that is damaged too, the file is left exactly as it is, a copy is set aside next to it with the `.corrupt` extension, the affected data starts from defaults and the app tells you at startup. Nothing is overwritten, so you can put the file back by hand.
 
 ### Inventory, market or badge pages stay empty on a Family View account
 
@@ -468,7 +472,7 @@ The settings folder was copied to another computer or Windows user while **Encry
 
 ### Collecting a log for a bug report
 
-The log is `cache/steamedge.log` next to the executable, or open it from Settings. By default only errors are written; set Settings > Advanced & data > **Log file** to **Verbose (debug)**, reproduce the problem, then attach the file. It records connection events, queue decisions and errors. It does **not** contain your password or session token, so it is safe to attach; skim it anyway before you post it. The log is capped: past 2 MB it is moved aside as `steamedge.log.1` and a new file starts, so one older part is always kept.
+The logs are in the `logs/` folder next to the executable; Settings > Advanced & data > **Log file** > Open opens it. `steamedge.log` holds events, `connection.log` every drop and return of the Steam connection, `crash.log` errors nothing else caught. By default only errors are written; set Settings > Advanced & data > **Log file** to **Verbose (debug)**, reproduce the problem, then attach the files. It records connection events, queue decisions and errors. It does **not** contain your password or session token, so it is safe to attach; skim it anyway before you post it. Each file is capped: past 2 MB (1 MB for the other two) it is moved aside as `<name>.1` and a new file starts, so one older part is always kept.
 
 ---
 

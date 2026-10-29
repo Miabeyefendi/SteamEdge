@@ -11,7 +11,7 @@ const e3 = new E(); e3.setProxy(''); ok('engine direct', !e3.user.options.httpPr
 let thrown = null; try { new E().setProxy('ftp://x:1'); } catch (e) { thrown = e; } ok('engine rejects bad address', !!thrown);
 // scheduler functions from main.js
 const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
-const a = src.indexOf('// ---- CARD FARMING SCHEDULE ----'), b = src.indexOf('app.whenReady().then(() => {\n  const setup');
+const a = src.indexOf('// ---- CARD FARMING SCHEDULE ----'), b = src.indexOf('app.whenReady().then(() => {\n  // The second copy');
 const block = src.slice(a, b);
 const logs = [], events = [], started = [], stopped = [];
 const now = { v: new Date(2026, 9, 10, 23, 0) };

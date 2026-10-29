@@ -33,6 +33,6 @@ Bazı başarımları oyun sunucusu yazar, istemci değil; Steam hiçbir istemcin
 <details>
 <summary><b>Güncellemeden sonra bozuldu, ne yapmalıyım?</b></summary>
 
-Yeni sürümün boş ve yeni bir klasöre çıkarıldığından, yalnızca `settings/` klasörünün kopyalandığından emin ol; eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır. Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `cache/steamedge.log` dosyasına bak. Hâlâ bozuksa bir hata bildirimi aç ve o kaydı ekle.
+Yeni sürümün boş ve yeni bir klasöre çıkarıldığından, yalnızca `settings/` klasörünün kopyalandığından emin ol; eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır. Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `logs/` klasöründeki kayıtlara bak. Hâlâ bozuksa bir hata bildirimi aç ve o kayıtları ekle.
 
 </details>

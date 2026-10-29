@@ -53,13 +53,16 @@ SteamEdge/
     resume.json                tareas que estaban en marcha al cerrar la app; se reescribe cada medio minuto mientras haya una
     accounts/<steamID>.json    datos por cuenta: estadísticas, colas, cola de claves, presets, registro de logros
     stats.json, state.json     solo de versiones antiguas: se leen una vez y no se vuelven a escribir
-    *.bak, *.bozuk             copia de seguridad automática y archivo dañado apartado
+    *.bak, *.corrupt           copia de seguridad automática y archivo dañado apartado
   cache/
     prices.json                precios de mercado, 24 horas de vida
     history.json               medias de ventas realizadas, 72 horas de vida
     no-achievements.json            juegos sin logros detectados
     chromium/                  caché de imágenes y páginas
-    steamedge.log              el registro que adjuntar a un informe de fallo
+  logs/
+    steamedge.log              eventos al nivel elegido en Ajustes: el registro que adjuntar a un informe de fallo
+    connection.log             cada caída, intento de reconexión y regreso de la conexión con Steam, una línea cada uno
+    crash.log                  errores que nada más capturó, escritos con cualquier nivel
 ```
 
 > **`settings/` es la carpeta sensible.** `session.json` contiene un token que basta para usar tu cuenta. No lo metas en una copia de seguridad que compartas, en un archivo que subas ni en una captura de pantalla. Con **Cifrar los tokens de inicio de sesión** activado (Ajustes > Privacidad y seguridad) los tokens se guardan cifrados, pero mantén `settings/` en privado de todos modos.
@@ -311,6 +314,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 |---|---|---|
 | `language` | `en` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Arrancar con Windows |
+| `startInTray` | `true` | Cuando Windows arranca la app (`autoLaunch`), la ventana no se abre y la app funciona en la bandeja; si la arrancas tú, la ventana siempre se abre |
 | `theme` | `auto` | Tema de color: `auto` (alto contraste si el sistema lo pide, oscuro en otro caso), `dark`, `midnight` (Púrpura medianoche), `white`, `contrast` (Alto contraste) |
 | `density` | `auto` | Espaciado y altura de fila: `auto` (compacto mientras la ventana es baja), `comfortable`, `compact` |
 | `uiScale` | `100` | Escala de la interfaz en porcentaje: `80`, `90`, `100`, `110`, `125`, `150`. Una ventana demasiado pequeña para el diseño a esa escala la reduce a lo que cabe |
@@ -407,11 +411,11 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `reconnectPolicy` | `unlimited` | Reconexión tras perder la conexión: `unlimited` (sin límite), `10`, `3`, `off` (desactivado) |
 | `sessionTimeout` | `never` | Cierra todas las sesiones tras estos minutos sin actividad (30, 120 u 480). Las tareas en marcha no cuentan como inactividad; solo tu propia interacción reinicia el contador. Al cumplirse, todas las cuentas se desconectan, se olvida la sesión activa y se abre la pantalla de inicio de sesión |
 | `apiRequestDelayMs` | `350` | Intervalo mínimo entre peticiones al mercado. Más bajo es más rápido pero más cerca del límite de Steam (HTTP 429) |
-| `logLevel` | `error` | Qué se escribe en `cache/steamedge.log`: `off`, `error`, `warn`, `info`, `debug` |
+| `logLevel` | `error` | Qué se escribe en `logs/steamedge.log`: `off`, `error`, `warn`, `info`, `debug`. `off` también detiene `logs/connection.log` |
 
 ### Dónde se guardan los ajustes
 
-Los ajustes generales en `settings/settings.json`. Todo lo que pertenece a una cuenta, la selección del impulsor de horas, la cola y los preajustes del Modo realista, el registro de logros y las estadísticas, vive en `settings/accounts/<steamID>.json`. Las cachés van aparte, bajo `cache/`, y se pueden borrar en cualquier momento sin perder configuración. Cada archivo JSON se escribe primero en un archivo temporal y se intercambia de una vez, y la copia anterior intacta se conserva al lado como `.bak`. Si un archivo no se puede leer se usa el `.bak`; si también está dañado, el archivo no se toca, se aparta una copia como `.bozuk`, la aplicación te lo dice al arrancar y los datos afectados empiezan con los valores predeterminados. `stats.json` y `state.json` solo existen en carpetas de versiones antiguas; su contenido pasa al archivo de la cuenta la primera vez y no se vuelven a escribir.
+Los ajustes generales en `settings/settings.json`. Todo lo que pertenece a una cuenta, la selección del impulsor de horas, la cola y los preajustes del Modo realista, el registro de logros y las estadísticas, vive en `settings/accounts/<steamID>.json`. Las cachés van aparte, bajo `cache/`, y se pueden borrar en cualquier momento sin perder configuración. Cada archivo JSON se escribe primero en un archivo temporal y se intercambia de una vez, y la copia anterior intacta se conserva al lado como `.bak`. Si un archivo no se puede leer se usa el `.bak`; si también está dañado, el archivo no se toca, se aparta una copia como `.corrupt`, la aplicación te lo dice al arrancar y los datos afectados empiezan con los valores predeterminados. `stats.json` y `state.json` solo existen en carpetas de versiones antiguas; su contenido pasa al archivo de la cuenta la primera vez y no se vuelven a escribir.
 
 ---
 
@@ -423,7 +427,7 @@ Ya hay otra copia en marcha. SteamEdge permite una sola instancia. Busca `SteamE
 
 ### La insignia de cuenta se queda vacía y no carga nada
 
-La sesión de Steam no llegó a levantarse. Aparece un aviso bajo la barra superior cuando la conexión se cae o se está reintentando. Si persiste, comprueba que Steam sea alcanzable y luego mira `cache/steamedge.log` para ver el motivo. Si Steam cerró la sesión definitivamente, el aviso lo dice y ofrece un botón para reconectar.
+La sesión de Steam no llegó a levantarse. Aparece un aviso bajo la barra superior cuando la conexión se cae o se está reintentando. Si persiste, comprueba que Steam sea alcanzable y luego mira Ajustes > Avanzado y datos > **Historial de conexión** o `logs/connection.log` para ver el motivo. Si Steam cerró la sesión definitivamente, el aviso lo dice y ofrece un botón para reconectar.
 
 ### La venta en lote se detuvo a medias
 
@@ -451,7 +455,7 @@ El tiempo de completado es demasiado alto. Si se deja vacío se estima a partir 
 
 ### SteamEdge dice que no se pudo leer un archivo
 
-Si un archivo de ajustes o de datos se daña, SteamEdge restaura la copia automática `.bak`. Si esta también está dañada, el archivo se deja tal cual, se aparta una copia junto a él con la extensión `.bozuk`, los datos afectados empiezan con los valores predeterminados y la aplicación te lo indica al arrancar. No se sobrescribe nada, así que puedes devolver el archivo a mano.
+Si un archivo de ajustes o de datos se daña, SteamEdge restaura la copia automática `.bak`. Si esta también está dañada, el archivo se deja tal cual, se aparta una copia junto a él con la extensión `.corrupt`, los datos afectados empiezan con los valores predeterminados y la aplicación te lo indica al arrancar. No se sobrescribe nada, así que puedes devolver el archivo a mano.
 
 ### Las páginas de inventario, mercado o insignias quedan vacías en una cuenta con Vista familiar
 
@@ -467,7 +471,7 @@ La carpeta de ajustes se copió a otro equipo o usuario de Windows con **Cifrar 
 
 ### Recoger un registro para informar de un fallo
 
-El registro es `cache/steamedge.log`, junto al ejecutable, o ábrelo desde Ajustes. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo. Por defecto solo se escriben errores; pon Ajustes > Avanzado y datos > **Archivo de registro** en **Detallado (depuración)**, reproduce el problema y adjunta el archivo. El registro tiene tope: al pasar de 2 MB se aparta como `steamedge.log.1` y empieza un archivo nuevo, de modo que siempre se conserva una parte anterior.
+Los registros están en la carpeta `logs/`, junto al ejecutable; Ajustes > Avanzado y datos > **Archivo de registro** > Abrir la abre. `steamedge.log` guarda los eventos, `connection.log` cada caída y regreso de la conexión con Steam, `crash.log` los errores que nada más capturó. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo. Por defecto solo se escriben errores; pon Ajustes > Avanzado y datos > **Archivo de registro** en **Detallado (depuración)**, reproduce el problema y adjunta los archivos. Cada archivo tiene tope: al pasar de 2 MB (1 MB los otros dos) se aparta como `<nombre>.1` y empieza un archivo nuevo, de modo que siempre se conserva una parte anterior.
 
 ---
 

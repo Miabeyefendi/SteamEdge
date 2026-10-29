@@ -1,16 +1,16 @@
     // ================= SETTINGS =================
     // Every control carries data-set="<setting key>".
     //
-    // SAVE MODEL. Changes on the page stay only in the DRAFT until "Kaydet" is pressed:
-    // they are not written to disk and not applied to any job. Kaydet sends the changed keys to the main process; there they are
+    // SAVE MODEL. Changes on the page stay only in the DRAFT until "Save" is pressed:
+    // they are not written to disk and not applied to any job. Save sends the changed keys to the main process; there they are
     // written, applied, and the running jobs affected by the change are paused for a few seconds and resumed with the new
-    // setting. Every click used to be written to disk instantly, "Kaydet" did nothing,
+    // setting. Every click used to be written to disk instantly, "Save" did nothing,
     // and even turning a switch on and back off counted as an "unsaved change".
     let appSettings = {};          // SAVED settings: the rest of the app reads this
     const S = window.imu.settings;
     let draft = null;             // the values on the page that are not saved yet
     let draftBase = null;        // the saved values at the moment the page was entered
-    let defaultSettings = null;  // once from the main process, for Reset and the "Profil" row
+    let defaultSettings = null;  // once from the main process, for Reset and the "Profile" row
     let settingSaveTime = null;
     let saving = false;
 
@@ -160,8 +160,8 @@
       });
     }
 
-    // When a saved setting changes the related pages are redrawn instantly. degisen: the keys that
-    // changed with Kaydet; the page defaults (mode, duration) move to the saved value even if the user picked them by hand
+    // When a saved setting changes the related pages are redrawn instantly. changed: the keys that
+    // changed with Save; the page defaults (mode, duration) move to the saved value even if the user picked them by hand
     // on the page, because the user explicitly chose it a moment ago.
     function applySettingsEverywhere(first, changed){
       paintSettingGates();
@@ -192,7 +192,7 @@
       if (typeof renderLifeStats === 'function') renderLifeStats();
     }
 
-    // Startup page (Ayarlar > Genel > "Start page")
+    // Startup page (Settings > General > "Start page")
     function applyStartPage(){
       const map = { overview:'overview', farm:'card', hub:'inventory', boost:'hours', ach:'achievements' };
       const tab = map[appSettings.startPage];
@@ -311,7 +311,7 @@
         if (key === 'chatReplyText' && defaultSettings && v === defaultSettings.chatReplyText){ el.value = t(v); return; }
         if (v != null) el.value = v;
         // If the saved value is not in the list the box would look EMPTY. The first option is shown and WRITTEN TO THE DRAFT
-        // (it counts as a change): the user sees it and fixes it with Kaydet. It is not silently
+        // (it counts as a change): the user sees it and fixes it with Save. It is not silently
         // written to disk. Known old values are already carried over in the main process (migrateSettings).
         if (el.tagName === 'SELECT' && el.selectedIndex < 0 && el.options.length){
           el.selectedIndex = 0;
@@ -429,8 +429,39 @@
         if (!d || !d.activeIds) return;
         activeConnection = { condition: d.condition, ts: d.condition === 'connected' ? Date.now() : null };
         writeConnectionState();
+        if (d.condition === 'connected' || d.condition === 'dropped' || d.condition === 'abandoned') readConnectionHistory();
       });
     }
+
+    // ---- Connection history: the last 24 hours of the account on screen (main.js log:connectionSummary, src/core/logger.js) ----
+    function spanText(ms){
+      const s = Math.max(0, Math.round((ms || 0) / 1000));
+      if (s < 60) return tf('# sn', s);
+      const m = Math.floor(s / 60);
+      if (m < 60) return tf('# dk', m);
+      return tf('# sa', Math.floor(m / 60)) + (m % 60 ? ' ' + tf('# dk', m % 60) : '');
+    }
+    async function readConnectionHistory(){
+      const el = document.getElementById('setConnHistory');
+      if (!el) return;
+      const r = await window.imu.log.connectionSummary().catch(()=>null);
+      if (!r || !r.ok){ el.textContent = '-'; return; }
+      const lines = [];
+      if (r.downSince) lines.push(tf('Şu an kopuk, # süredir.', spanText(Date.now() - r.downSince)));
+      if (!r.drops && !r.abandoned) lines.push(t('Son 24 saatte kopma yok.'));
+      else {
+        lines.push(tf('Son 24 saat: # kopma, toplam # kopuk, en uzunu #.', r.drops, spanText(r.downMs), spanText(r.longestMs)));
+        if (r.lastDropAt) lines.push(r.lastCause
+          ? tf('Son kopma: # (#)', saveTimeText(r.lastDropAt), t(r.lastCause))
+          : tf('Son kopma: #', saveTimeText(r.lastDropAt)));
+      }
+      el.innerHTML = lines.map(esc).join('<br>');
+    }
+    const openConnLog = document.getElementById('setConnLogOpen');
+    if (openConnLog) openConnLog.onclick = async ()=>{
+      const r = await window.imu.log.openConnection().catch(e=>({ ok:false, error:(e && e.message) }));
+      if (r && r.ok === false) toast('Bağlantı geçmişi').fail(t(r.error || 'Açılamadı.'));
+    };
 
     // ---- Configuration card: last save and profile ----
     function saveTimeText(ts){
@@ -442,7 +473,7 @@
     function writeConfigCard(){
       const latest = document.getElementById('setLastSync');
       if (latest) latest.textContent = saveTimeText(settingSaveTime);
-      // "Profil": how many of the saved settings differ from the default. The language does not count.
+      // "Profile": how many of the saved settings differ from the default. The language does not count.
       const pr = document.getElementById('setProfile');
       if (!pr) return;
       if (!defaultSettings){ pr.textContent = '-'; return; }
@@ -466,7 +497,7 @@
     }
 
     // ================= MEMORY GAUGE =================
-    // The measurement comes from the main process (app.getAppMetrics), not a guess. It is updated only while Ayarlar >
+    // The measurement comes from the main process (app.getAppMetrics), not a guess. It is updated only while Settings >
     // Advanced is visible and the window is open - so the gauge itself does not keep running in the background
     // just to measure memory.
     let memTimer = null;
@@ -528,6 +559,7 @@
       renderLifeStats();    // lifetime statistics
       loadProfile();        // not waited for
       readConnectionState();
+      readConnectionHistory();
       readConfigInfo();
     }
 
@@ -630,7 +662,7 @@
       applySettingsEverywhere(false, listing);
       flashSaved(savedSections);
       // The language changed: since translated text cannot be translated back the page is reloaded; it returns to
-      // the same section of Ayarlar (see i18n.js > setUiLang).
+      // the same section of Settings (see i18n.js > setUiLang).
       if (langChanged && typeof setUiLang === 'function'){ setUiLang(appSettings.language); return true; }
       announceSaveResult(r, listing);
       return true;
@@ -666,7 +698,7 @@
     const returnBtn = document.getElementById('setDiscard');
     if (returnBtn) returnBtn.onclick = ()=>{ revertDraft(); if (typeof toast === 'function') toast('Ayarlar').done('Değişiklikler geri alındı.'); };
 
-    // Called when leaving the Ayarlar tab (common.js tab switcher). true: it may be left.
+    // Called when leaving the Settings tab (common.js tab switcher). true: it may be left.
     async function confirmLeaveSettings(){
       const listing = changes();
       if (!listing.length){ finishDraft(); return true; }
@@ -688,7 +720,7 @@
       return true;
     }
 
-    // ---- Reset: defaults are loaded into the DRAFT, nothing happens until Kaydet is pressed ----
+    // ---- Reset: defaults are loaded into the DRAFT, nothing happens until Save is pressed ----
     // The language is not touched (reset used to silently pull the interface to Turkish). Per-account data
     // (selected games, statistics) and the session are not this page's setting, they are not affected either.
     document.getElementById('setReset').onclick = async ()=>{

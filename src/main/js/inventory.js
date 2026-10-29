@@ -155,7 +155,7 @@
       ['invStatTotal', 'invStatSellable', 'invStatTradable', 'invStatValue', 'invCount'].forEach(k => { const el = document.getElementById(k); if (el) el.textContent = '-'; });
       if (!quiet) loadInventory();
     }
-    // Settings > Modules > "Diğer oyunların envanterleri": switched off, the select goes and the Steam inventory comes back; on again, the games are read.
+    // Settings > Modules > "Other games' inventories": switched off, the select goes and the Steam inventory comes back; on again, the games are read.
     function syncOtherGames(){
       const sel = document.getElementById('efSource');
       if (!sel) return;
@@ -202,7 +202,7 @@
     }
 
     // ---- G8: BULK FETCH of the AVERAGE (realised sale median) ----
-    // It has no button of its own any more: "Fiyatları Getir" gets the list prices first and then the averages of the same items.
+    // It has no button of its own any more: "Fetch prices" gets the list prices first and then the averages of the same items.
     // The list price (priceoverview) is cheap, the sale history (pricehistory) needs a separate request for EVERY ITEM and Steam
     // allows ~20 requests / 30 seconds per account, so for a big inventory this part takes minutes. The same button shows the progress
     // and cancels it.
@@ -245,8 +245,8 @@
       });
     }
 
-    // The Envanter preferences on the Settings screen (default sort, low value threshold etc.)
-    // When Ayarlar > Genel > "Para birimi" changes the FIXED ₺ texts on the page must be updated too
+    // The Inventory preferences on the Settings screen (default sort, low value threshold etc.)
+    // When Settings > General > "Currency" changes the FIXED ₺ texts on the page must be updated too
     // (the price range options and empty state values were written fixed in the HTML - that is why
     // the ₺ stayed in the list after switching to USD).
     function applyCurrencyLabels(){
@@ -283,7 +283,7 @@
       armPriceAutoRefresh();
     }
 
-    // "Refresh prices automatically" + "Price refresh interval" - refreshes in the background while Envanter is open
+    // "Refresh prices automatically" + "Price refresh interval" - refreshes in the background while Inventory is open
     let priceRefreshTimer = null;
     function armPriceAutoRefresh(){
       if (priceRefreshTimer){ clearInterval(priceRefreshTimer); priceRefreshTimer = null; }
@@ -368,7 +368,7 @@
     let priceAsked = false;
     async function askFetchPrices(){
       if (priceAsked) return;
-      // The question is asked only while Envanter is on screen. If the user moved to another tab while the cache was being read
+      // The question is asked only while Inventory is on screen. If the user moved to another tab while the cache was being read
       // the window used to open on top of that tab; it is asked the next time they enter.
       const inventoryVisible = () => designed.inventory && !designed.inventory.classList.contains('hidden');
       if (!inventoryVisible()) return;
@@ -535,7 +535,7 @@
     const ROW_H = () => (appSettings && appSettings.compactRows) ? 34 : 46;
     const GRID_COLS = '34px 14px 44px minmax(130px,1.6fr) minmax(90px,1.1fr) 76px 104px 104px';
 
-    // G9: the "half the rows stay grey" complaint. This is not a bug: items below Ayarlar > Envanter >
+    // G9: the "half the rows stay grey" complaint. This is not a bug: items below Settings > Inventory >
     // Low-value threshold are shown dimmed. Since it was written nowhere the user
     // thought it was a sort and got confused. Now there is a small explanation in the top bar.
     function drawThresholdBadge(){
@@ -1053,10 +1053,10 @@
     // ================= SALE =================
     // The price the user chooses is the price the BUYER pays (the one shown on the Steam market). What goes to Steam
     // is the amount the SELLER keeps; Steam's OWN script computes the fee in between
-    // (main.js > engine:satisUcreti). A fixed 13% used to be deducted; because of Steam's base fee
+    // (main.js > engine:saleFee). A fixed 13% used to be deducted; because of Steam's base fee
     // on cheap cards the listing deviated 10-67% from the chosen price ($0.05 when $0.03 was chosen).
     //
-    // The computed amounts are kept in memory in cents: buyer price -> { satici, alici }.
+    // The computed amounts are kept in memory in cents: buyer price -> { seller, buyer }.
     const feeCache = new Map();          // buyer subunits -> { seller, buyer }: exact, from Steam's own script
     // The fee fields of the wallet (Steam's usual values until the real ones arrive). With them the amounts are worked out HERE, at once:
     // nothing waits for the network when a strategy is chosen or the price changes. The exact numbers from Steam's script replace
@@ -1111,7 +1111,7 @@
     // Items that drop clearly below Steam's 24 hour average. The notification is tied to
     // its own key ("Price drop alert"), it does not go quiet when the error notification is turned off.
     // The same item is notified once a day. It is also warned with a red line in the sale confirmation.
-    const priceDrops = new Map();          // marketHashName -> { yuzde, ts }
+    const priceDrops = new Map();          // marketHashName -> { percentValue, ts }
     function priceDropThreshold(){ return Math.max(1, +((appSettings || {}).priceDropThreshold) || 10) / 100; }
     function priceDrop(it){
       const p = priceOf(it);
@@ -1148,7 +1148,7 @@
     let salePanel = null;               // the task whose progress is on screen (stays after the job ends until it is closed)
     let saleBusy = false;               // from the click on Sell until the job ends: a second click cannot start a second flow
     const listedAssets = new Set();     // the assetIds put on sale in this session
-    // The batch settings are read live while the job runs: the new value saved in Ayarlar takes effect
+    // The batch settings are read live while the job runs: the new value saved in Settings takes effect
     // at the next batch limit. 0 = do not split into batches, list until Steam stops it.
     function saleBatchSize(){ const n = +((appSettings || {}).bulkSellLimit); return Number.isFinite(n) && n > 0 ? Math.round(n) : 0; }
     function saleBatchWait(){ return Math.max(0, +((appSettings || {}).sellBatchWaitMin) || 0); }

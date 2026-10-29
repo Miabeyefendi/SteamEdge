@@ -9,7 +9,7 @@ const code = [cut('const corruptFiles = new Set();', '// Files that could not be
   cut('// ---- LOGIN TOKEN PROTECTION ----', '// Makes this account the active session'),
   "const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');",
   cut('const ACCOUNT_SETTING_KEYS', 'function flushPendingWrites'),
-  cut('// ---- CARD FARMING SCHEDULE ----', 'app.whenReady().then(() => {\n  const setup'),
+  cut('// ---- CARD FARMING SCHEDULE ----', 'app.whenReady().then(() => {\n  // The second copy'),
   cut('// "When all cards are collected" set to "Start hour boosting"', 'function farmBroadcast')].join(String.fromCharCode(10));
 let fails = 0; const ok = (n, c, x) => { if (!c) fails++; console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); };
 app.whenReady().then(async () => {

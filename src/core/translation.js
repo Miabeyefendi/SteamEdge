@@ -41,11 +41,11 @@ function pluralPick(rawValue, num) {
 
 // Puts the values into the placeholders (same rule as i18n.js in the interface): a plain '#' fills in order,
 // a language whose sentence structure differs swaps the order with #1, #2.
-function fillPlaceholder(text, degerler) {
+function fillPlaceholder(text, values) {
   let i = 0;
   return String(text).replace(/#([1-9])?/g, (_, n) => {
-    if (n) return Number(n) <= degerler.length ? String(degerler[n - 1]) : '#' + n;
-    return i < degerler.length ? String(degerler[i++]) : '#';
+    if (n) return Number(n) <= values.length ? String(values[n - 1]) : '#' + n;
+    return i < values.length ? String(values[i++]) : '#';
   });
 }
 
@@ -82,14 +82,14 @@ function stripTags(s) {
 }
 
 // Template that carries values: tf('# games queued.', 5). The plural form follows the first numeric value.
-function tf(template, ...degerler) {
+function tf(template, ...values) {
   const rawText = (lang !== 'tr' && table) ? table[String(template).replace(/\s+/g, ' ').trim()] : undefined;
   let translation;
   if (rawText !== undefined) {
-    const num = degerler.map((v) => stripTags(String(v)).trim()).find((v) => /^\d[\d.,]*$/.test(v));
+    const num = values.map((v) => stripTags(String(v)).trim()).find((v) => /^\d[\d.,]*$/.test(v));
     translation = pluralPick(rawText, num);
   } else translation = t(template);
-  return fillPlaceholder(translation, degerler);
+  return fillPlaceholder(translation, values);
 }
 
 module.exports = { pickLang: pickLang, chosenOne: chosen, t, tf };

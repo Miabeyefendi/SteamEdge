@@ -542,7 +542,7 @@
         return false;
       }
       acSelected.delete(apiName);   // the operation is done, no selection mark should remain
-      // Permanent log - what we unlocked stays recorded even after the app closes (retention from Ayarlar).
+      // Permanent log - what we unlocked stays recorded even after the app closes (retention from Settings).
       window.imu.state.achLog({ appid: runAppid, game: runData.gameName, apiName, name: ach.name, unlock, steamID: runAccount }).catch(()=>{});
       runData.unlocked = runData.achievements.filter(a=>a.achieved).length;
       notify('ach', unlock?'Başarım Açıldı':'Başarım Kilitlendi', ach.name);
@@ -572,7 +572,7 @@
         } else toast('Başarımlar').fail('Değiştirilecek başarım yok.');
         return;
       }
-      // There is NO "bir daha sorma" in bulk operations - with a single click it permanently changes dozens of achievements.
+      // There is NO "Don't ask again" in bulk operations - with a single click it permanently changes dozens of achievements.
       const okBulk = await edgeConfirm({
         tag: unlock ? 'Toplu Aç' : 'Toplu Kilitle',
         title: tf(unlock ? '# başarım açılacak' : '# başarım kilitlenecek', targets.length),

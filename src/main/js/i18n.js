@@ -58,11 +58,11 @@
     // differs from Turkish swaps the order with #1, #2: "#2 achievement unlocks within #1.|#2 achievements unlock within #1." becomes
     // "#2 achievements unlock within #1." in English. There used to be only the order and in such a
     // translation the duration and the number swapped places.
-    function fillPlaceholder(text, degerler) {
+    function fillPlaceholder(text, values) {
       let i = 0;
       return String(text).replace(/#([1-9])?/g, (_, n) => {
-        if (n) return Number(n) <= degerler.length ? String(degerler[n - 1]) : '#' + n;
-        return i < degerler.length ? String(degerler[i++]) : '#';
+        if (n) return Number(n) <= values.length ? String(values[n - 1]) : '#' + n;
+        return i < values.length ? String(values[i++]) : '#';
       });
     }
 
@@ -91,15 +91,15 @@
     // For templates that carry numbers: tf('# games queued.', 5). When page JS files joined the text with the number
     // the DOM observer could not match the pieces; the template stays in the dictionary with '#', gets translated,
     // then the values are put in order. The plural form follows the first numeric value.
-    function tf(template, ...degerler) {
+    function tf(template, ...values) {
       const rawText = (uiLang !== 'tr' && I18N[uiLang]) ? I18N[uiLang][String(template).replace(/\s+/g, ' ').trim()] : undefined;
       let translation;
       if (rawText !== undefined){
         // The value can be HTML (<b>12</b>); the number is searched for with the tags stripped.
-        const num = degerler.map(v => stripTags(String(v)).trim()).find(v => /^\d[\d.,]*$/.test(v));
+        const num = values.map(v => stripTags(String(v)).trim()).find(v => /^\d[\d.,]*$/.test(v));
         translation = pluralPick(rawText, num);
       } else translation = t(template);
-      return fillPlaceholder(translation, degerler);
+      return fillPlaceholder(translation, values);
     }
 
     // Percent format by language: in Turkish "%13", in English/German/Spanish/Russian "13%",

@@ -9,7 +9,7 @@
     let boostTimerUI = null;
     // Behaviour/Privacy switches - written persistently to the settings (the same keys as the Settings screen)
     // ignoreUpdates and hideGameName were removed from here: the first had no counterpart in the engine at all,
-    // the second sits under Ayarlar > Gizlilik.
+    // the second sits under Settings > Privacy.
     let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, offlineMode:false, boostSync:false };
 
     const BC = { brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
@@ -289,7 +289,7 @@
     // time was not visible. Now start + elapsed is shown, and while sync is on how much
     // is left to the target is written too. The values during sync come from the main side
     // (since each game runs for a different time a single "elapsed" is not enough).
-    let syncGameInfo = new Map();   // appid -> { suankiMin, remainingMs, bitti }
+    let syncGameInfo = new Map();   // appid -> { currentMin, remainingMs, isFinished }
     function subRow(g, on, i, elapsed){
       const details = syncGameInfo.get(g.appid);
       if (details){
@@ -392,7 +392,7 @@
     // ---- Behaviour / Privacy switches ----
     // Applies the Settings > Hour Booster preferences ("Default target duration" included).
     let boostUserTouched = false, concUserTouched = false;
-    // degisen: the keys changed with Kaydet in Ayarlar. When "Default target duration" is saved the duration
+    // changed: the keys changed with Save in Settings. When "Default target duration" is saved the duration
     // on the page moves to it too; it used to be that the page read the last used duration so this setting
     // changed nothing.
     function applyBoostSettings(changed){
@@ -406,7 +406,7 @@
           window.imu.settings.set({ boostDurationSec: hourDurSec }).then(s=>{ if (s) appSettings = s; }).catch(()=>{});
         }
       } else if (!boostUserTouched){
-        // First the saved duration (0 = unlimited), otherwise the "Default target duration" in Ayarlar.
+        // First the saved duration (0 = unlimited), otherwise the "Default target duration" in Settings.
         const saved = appSettings.boostDurationSec;
         if (+saved >= 60 || (saved === 0 && !boostFlags.seqIdle)){
           if (hourDurSec !== +saved){ hourDurSec = +saved; writeSegs(); }
@@ -418,7 +418,7 @@
         }
       }
       // concUserTouched: if the user chose the limit in this session the old value coming from disk does not
-      // overwrite it. It used to be unconditional; leaving the Saat tab and coming back made the selection
+      // overwrite it. It used to be unconditional; leaving the Hour Booster tab and coming back made the selection
       // return to 32, because loadHours calls applyBoostFlags -> applyBoostSettings on every entry.
       if ((!concUserTouched || d.includes('boostMaxGames')) && appSettings.boostMaxGames) maxConcurrent = +appSettings.boostMaxGames;
       paintConc();

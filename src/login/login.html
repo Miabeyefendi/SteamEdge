@@ -142,7 +142,7 @@
         + (i > 0 ? '<div class="panel-remove" data-remove="' + i + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div>' : '')
         + '<p class="panel-tag" style="color:' + c + '">' + (i === 0 ? 'Ana Hesap' : 'Ek Hesap ' + (i + 1)) + '</p>'
         + '<div id="stLogin-' + i + '" style="display:flex;flex-direction:column;gap:16px">'
-          // Giris yontemi secici. QR onerilen yol: parola hic girilmiyor, telefondan onaylaniyor.
+          // Sign-in method picker. QR is the suggested way: no password is typed, it is approved on the phone.
           + '<div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--e-bg);border:1px solid var(--e-bd)">'
             + '<button data-mode="qr" id="mQr-' + i + '" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--e-muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">QR Kod</button>'
             + '<button data-mode="pw" id="mPw-' + i + '" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--e-muted);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer">Parola</button>'

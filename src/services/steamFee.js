@@ -58,7 +58,7 @@ function prepare() {
       throw new Error('Steam ücret betiği beklenen biçimde değil');
     }
     const sessionInfo = session.fromPartition('steamedge-ucret', { cache: false });
-    sessionInfo.setPermissionRequestHandler((_w, _izin, answer) => answer(false));
+    sessionInfo.setPermissionRequestHandler((_w, _permission, answer) => answer(false));
     const p = new BrowserWindow({
       show: false, width: 100, height: 100,
       webPreferences: {
@@ -78,8 +78,8 @@ function prepare() {
   return preparation;
 }
 
-// cuzdan: the fee fields of g_rgWalletInfo. toplamlar: the amounts the buyer pays (cents).
-// Returns: [{ toplam, satici, alici }] - satici: the amount to send to Steam, alici: the price at which a listing
+// wallet: the fee fields of g_rgWalletInfo. totals: the amounts the buyer pays (cents).
+// Returns: [{ totalSum, seller, buyer }] - seller: the amount to send to Steam, buyer: the price at which a listing
 // made with that amount will appear on the market (with Steam's own rounding).
 async function compute(wallet, totals) {
   await prepare();

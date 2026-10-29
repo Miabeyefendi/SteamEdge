@@ -1,7 +1,10 @@
 // Renames the Turkish keys of files written by older versions to the current English names.
 // Applied to every JSON file read from disk, so old settings, stats and cache files keep working.
-// Keys are renamed everywhere; the only values changed are the "kind" of activity feed entries.
+// Keys are renamed everywhere; the only values changed are the "kind" of activity feed entries. Old file names are renamed once at start (renameOldFiles).
 'use strict';
+
+const fs = require('fs');
+const path = require('path');
 
 const OLD_TO_NEW = {
   acilan: 'openedGames',
@@ -310,4 +313,27 @@ function migrateKeys(v) {
   return v;
 }
 
-module.exports = { migrateKeys, OLD_TO_NEW };
+// File names older versions wrote: a whole name, or the suffix of a broken file that was set aside (readJson in main.js).
+const OLD_FILE_NAMES = { 'basarimsiz.json': 'no-achievements.json' };
+const OLD_SUFFIXES = { '.bozuk': '.corrupt' };
+
+// Gives the files of `dir` that carry an old name the current one. A file whose new name is taken already is left alone: nothing is overwritten.
+function renameOldFiles(dir) {
+  let names = [];
+  try { names = fs.readdirSync(dir); } catch (_) { return 0; }
+  let renamed = 0;
+  names.forEach((name) => {
+    let to = Object.prototype.hasOwnProperty.call(OLD_FILE_NAMES, name) ? OLD_FILE_NAMES[name] : null;
+    const suffix = to ? null : Object.keys(OLD_SUFFIXES).find((s) => name.endsWith(s));
+    if (suffix) to = name.slice(0, -suffix.length) + OLD_SUFFIXES[suffix];
+    if (!to) return;
+    try {
+      if (fs.existsSync(path.join(dir, to))) return;
+      fs.renameSync(path.join(dir, name), path.join(dir, to));
+      renamed++;
+    } catch (_) {}
+  });
+  return renamed;
+}
+
+module.exports = { migrateKeys, renameOldFiles, OLD_TO_NEW };

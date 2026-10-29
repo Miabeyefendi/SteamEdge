@@ -70,7 +70,10 @@ contextBridge.exposeInMainWorld('imu', {
   activity: () => ipcRenderer.send('session:activity'),
   log: {
     write: (level, msg) => ipcRenderer.invoke('log:write', { level, msg }),
+    // the logs folder (src/core/logger.js), connection.log on its own, and the last 24 hours of the account on screen from it
     open: () => ipcRenderer.invoke('log:open'),
+    openConnection: () => ipcRenderer.invoke('log:openConnection'),
+    connectionSummary: () => ipcRenderer.invoke('log:connectionSummary'),
   },
   // Desktop notification (main process - Windows toasts need an AppUserModelID)
   notify: (title, body) => ipcRenderer.invoke('notify:show', { title, body }),
@@ -124,8 +127,8 @@ contextBridge.exposeInMainWorld('imu', {
   },
   // G2: Realistic Mode - one game open, achievements unlocked spread from common to rare
   realistic: {
-    // G11: duration in milliseconds, options = { hedef, model, rastgeleAralik, ultraNadirAtla,
-    // otoSira, saatiSurdur, gecikmisHizlandir }. oyunlar = array of appids (the queue).
+    // G11: duration in milliseconds, options = { goalValue, goalAuto, autoSpan, model, randomInterval, ultraRareSkip,
+    // autoOrder, ... } (main.js realisticOptions). gameList = array of appids (the queue).
     plan: (appid, durationMs, options, queueIds) => ipcRenderer.invoke('realistic:plan', { appid, spanMs: durationMs, optionList: options, queueIds }),
     start: (gameList, durationMs, options) => ipcRenderer.invoke('realistic:start', { gameEntries: gameList, spanMs: durationMs, optionList: options }),
     stop: () => ipcRenderer.send('realistic:stop'),
@@ -195,7 +198,7 @@ contextBridge.exposeInMainWorld('imu', {
     profile: () => ipcRenderer.invoke('engine:profile'),
     // The custom profile address is separate: it needs a web request, so name/avatar must not wait for it.
     vanity: () => ipcRenderer.invoke('engine:vanity'),
-    // With taze=true the 5 minute schema cache is skipped; used after a bulk operation
+    // With isFresh=true the 5 minute schema cache is skipped; used after a bulk operation
     // to verify what Steam actually saved.
     // steamID (optional): the account a running bulk operation belongs to, so a switch to another account in the middle does not send the rest there
     achievements: (appid, isFresh, steamID) => ipcRenderer.invoke('engine:achievements', { appid, freshFlag: isFresh, steamID }),

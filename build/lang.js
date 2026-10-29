@@ -114,11 +114,11 @@ if (!sameTotal) print('  no untranslated entries');
 // alphabet sits in a language's block.
 section(4, 'Wrong script (language block and value do not match)');
 const CJK = /[一-鿿]/;
-const KIRIL = /[Ѐ-ӿ]/;
+const CYRILLIC = /[Ѐ-ӿ]/;
 let mixed = 0;
 LANGS.forEach((d) => {
   dictionary[d].forEach((v, k) => {
-    const cjk = CJK.test(v), cyrillic = KIRIL.test(v);
+    const cjk = CJK.test(v), cyrillic = CYRILLIC.test(v);
     if (d !== 'zh' && cjk) { mixed++; fail++; print('  ERROR ' + d + ' block has a Chinese value: ' + k.slice(0, 40) + ' -> ' + v.slice(0, 40)); }
     if (d !== 'ru' && cyrillic) { mixed++; fail++; print('  ERROR ' + d + ' block has a Cyrillic value: ' + k.slice(0, 40) + ' -> ' + v.slice(0, 40)); }
     if (d === 'ru' && !cyrillic && v !== k && /[A-Za-z]{4}/.test(v)) {
@@ -217,11 +217,11 @@ const isUntranslatable = (t) => UNTRANSLATABLE.has(t) || /^@\w+$/.test(t) || /^[
 // The shell (sidebar, top bar, status line) is also outside the page folder: main.html.
 const HTML_FILES = fs.readdirSync(PAGES_DIR)
   .filter((f) => f.endsWith('.html'))
-  .map((f) => ({ ad: f, yol: path.join(PAGES_DIR, f) }))
-  .concat([{ ad: 'login.html', yol: path.join(ROOT, 'src', 'login', 'login.html') },
-           { ad: 'main.html', yol: path.join(ROOT, 'src', 'main', 'main.html') }])
-  .filter((x) => fs.existsSync(x.yol));
-HTML_FILES.forEach(({ ad: f, yol: pathStr }) => {
+  .map((f) => ({ name: f, file: path.join(PAGES_DIR, f) }))
+  .concat([{ name: 'login.html', file: path.join(ROOT, 'src', 'login', 'login.html') },
+           { name: 'main.html', file: path.join(ROOT, 'src', 'main', 'main.html') }])
+  .filter((x) => fs.existsSync(x.file));
+HTML_FILES.forEach(({ name: f, file: pathStr }) => {
   const html = fs.readFileSync(pathStr, 'utf8');
   const visible = extract(html);
   // Text nodes (no length limit) and translated attributes (the same list as i18n.js)
@@ -265,7 +265,7 @@ const jsMissing = new Map();
 // "Connecting..." never showed up in any section until 1.3.3 and stayed Turkish in every language.
 const jsSources = fs.readdirSync(JS_DIR).filter((f) => f.endsWith('.js') && f !== 'i18n.js')
   .map((f) => ({ displayName: f, text: fs.readFileSync(path.join(JS_DIR, f), 'utf8') }));
-HTML_FILES.forEach(({ ad: displayName, yol: pathStr }) => {
+HTML_FILES.forEach(({ name: displayName, file: pathStr }) => {
   const re = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g;
   const html = fs.readFileSync(pathStr, 'utf8');
   let m;
@@ -336,7 +336,7 @@ mainFiles.forEach((pathStr) => {
     .replace(/^\s*\/\/.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\blog\((?:[^()]|\([^()]*\))*\)/g, '')          // log lines do not go to the user
-    .replace(/\bwriteCrash\((?:[^()]|\([^()]*\))*\)/g, '')
+    .replace(/\blogger\.(?:crash|connection)\((?:[^()]|\([^()]*\))*\)/g, '')
     .replace(/'\s*\+\s*'/g, '');                            // a text split across lines is one key
   const re = /'((?:\\.|[^'\\\n])*)'|"((?:\\.|[^"\\\n])*)"/g;
   let m;

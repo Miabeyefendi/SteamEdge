@@ -3,7 +3,7 @@
     // Games are put in a queue, over the chosen time the achievements are unlocked FROM COMMON TO RARE.
     // The engine side is in main.js > the "GERCEKCI MOD" section.
     //
-    // Calculations (the "Oyun Verisi · HLTB" box in the right panel):
+    // Calculations (the "Game data · HLTB" box in the right panel):
     //   Tc  : the game's 100% time. It can be entered by hand; if not it is estimated from the current time x type multiplier (CR).
     //         This is an ESTIMATE, no external service is asked - we do not make up
     //         HLTB data, we use the number the user entered or the one that comes out of
@@ -399,12 +399,12 @@
       // Steam's achievement schema sometimes gives no game name and the engine falls back to something like 'App 1091500'.
       // There is no point showing that when we have the real name from the library.
       const runningId = isRunning ? grStatus.appid : null;
-      const kutupAd = runningId
+      const libraryName = runningId
         ? ((grGames.find(g=>g.appid===runningId) || {}).name || null)
         : (game ? game.name : null);
       const engineName = isRunning ? grStatus.gameTitle : null;
       const engineValid = engineName && !/^App \d+$/.test(engineName);
-      grSet('grGameName', kutupAd || (engineValid ? engineName : null) || engineName || '-');
+      grSet('grGameName', libraryName || (engineValid ? engineName : null) || engineName || '-');
       const art = grEl('grGameArt');
       const artId = isRunning ? grStatus.appid : (game && game.appid);
       // the picture is put in only when the game changes: with the games at the same time the game of the next unlock changes all the time and the image was loaded again each time

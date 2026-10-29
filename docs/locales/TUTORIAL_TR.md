@@ -53,13 +53,16 @@ SteamEdge/
     resume.json                uygulama kapanırken çalışan işler; bir iş sürdükçe yarım dakikada bir yeniden yazılır
     accounts/<steamID>.json    hesaba özel: istatistikler, kuyruklar, anahtar kuyruğu, presetler, başarım günlüğü
     stats.json, state.json     yalnızca eski sürümlerden: bir kez okunur, bir daha yazılmaz
-    *.bak, *.bozuk             otomatik yedek kopya ve kenara alınmış bozuk dosya
+    *.bak, *.corrupt           otomatik yedek kopya ve kenara alınmış bozuk dosya
   cache/
     prices.json                pazar fiyatları, 24 saat ömürlü
     history.json               gerçekleşen satış ortalamaları, 72 saat ömürlü
     no-achievements.json            başarımı olmadığı anlaşılan oyunlar
     chromium/                  görsel ve sayfa önbelleği
-    steamedge.log              hata bildirimine eklenecek kayıt
+  logs/
+    steamedge.log              Ayarlar'da seçilen seviyedeki olaylar: hata bildirimine eklenecek kayıt
+    connection.log             Steam bağlantısının her kopması, yeniden bağlanma denemesi ve geri gelişi, her biri bir satır
+    crash.log                  başka hiçbir yerin yakalamadığı hatalar, her seviyede yazılır
 ```
 
 > **Hassas olan `settings/`.** `session.json` içinde hesabını kullanmaya yeten bir anahtar var. Paylaştığın bir yedeğe, yüklediğin bir arşive ya da ekran görüntüsüne girmesin. **Giriş anahtarlarını şifrele** açıkken (Ayarlar > Gizlilik & Güvenlik) anahtarlar şifreli saklanır, yine de `settings/` klasörünü özel tut.
@@ -311,6 +314,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
+| `startInTray` | `true` | Uygulamayı Windows başlattığında (`autoLaunch`) pencere açılmaz, uygulama tepside çalışır; kendin başlattığında pencere her zaman açılır |
 | `theme` | `auto` | Renk teması: `auto` (sistem isterse yüksek karşıtlık, yoksa koyu), `dark`, `midnight` (Gece Moru), `white`, `contrast` (Yüksek karşıtlık) |
 | `density` | `auto` | Boşluk ve satır yüksekliği: `auto` (pencere kısayken sıkışık), `comfortable`, `compact` |
 | `uiScale` | `100` | Yüzde olarak arayüz ölçeği: `80`, `90`, `100`, `110`, `125`, `150`. O ölçekte yerleşime yetmeyen pencere ölçeği sığan değere küçültür |
@@ -407,11 +411,11 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `reconnectPolicy` | `unlimited` | Bağlantı koparsa yeniden bağlanma: `unlimited`, `10`, `3`, `off` |
 | `sessionTimeout` | `never` | Bu kadar dakika (30, 120 ya da 480) işlem yapılmazsa tüm oturumları kapatır. Çalışan işler boşta sayılmaz; sayacı yalnızca senin etkileşimin sıfırlar. Süre dolunca tüm hesaplar kopar, etkin oturum unutulur ve giriş ekranı açılır |
 | `apiRequestDelayMs` | `350` | Pazar istekleri arasındaki en kısa süre. Düşük değer hızlıdır ama Steam'in hız sınırına (HTTP 429) yaklaştırır |
-| `logLevel` | `error` | `cache/steamedge.log` içine ne yazılacağı: `off`, `error`, `warn`, `info`, `debug` |
+| `logLevel` | `error` | `logs/steamedge.log` içine ne yazılacağı: `off`, `error`, `warn`, `info`, `debug`. `off`, `logs/connection.log` dosyasını da durdurur |
 
 ### Ayarlar nerede durur
 
-Genel ayarlar `settings/settings.json` içinde. Tek bir hesaba ait olan her şey (saat yükseltici seçimi, Gerçekçi Mod kuyruğu ve presetleri, başarım günlüğü, istatistikler) `settings/accounts/<steamID>.json` içinde. Önbellekler ayrı, `cache/` altında; yapılandırmayı kaybetmeden istediğin zaman silinebilir. Her JSON dosyası önce geçici bir dosyaya yazılır ve tek hamlede yerine konur; önceki sağlam kopya yanında `.bak` olarak kalır. Bir dosya okunamazsa `.bak` kullanılır; o da bozuksa dosyaya dokunulmaz, bir kopyası `.bozuk` olarak kenara alınır, uygulama açılışta söyler ve etkilenen veri varsayılanla başlar. `stats.json` ve `state.json` yalnızca eski sürümlerden kalan klasörlerde bulunur; içerikleri ilk seferde hesap dosyasına taşınır ve bir daha yazılmazlar.
+Genel ayarlar `settings/settings.json` içinde. Tek bir hesaba ait olan her şey (saat yükseltici seçimi, Gerçekçi Mod kuyruğu ve presetleri, başarım günlüğü, istatistikler) `settings/accounts/<steamID>.json` içinde. Önbellekler ayrı, `cache/` altında; yapılandırmayı kaybetmeden istediğin zaman silinebilir. Her JSON dosyası önce geçici bir dosyaya yazılır ve tek hamlede yerine konur; önceki sağlam kopya yanında `.bak` olarak kalır. Bir dosya okunamazsa `.bak` kullanılır; o da bozuksa dosyaya dokunulmaz, bir kopyası `.corrupt` olarak kenara alınır, uygulama açılışta söyler ve etkilenen veri varsayılanla başlar. `stats.json` ve `state.json` yalnızca eski sürümlerden kalan klasörlerde bulunur; içerikleri ilk seferde hesap dosyasına taşınır ve bir daha yazılmazlar.
 
 ---
 
@@ -423,7 +427,7 @@ Zaten açık bir kopya var. SteamEdge tek örneğe izin verir. Görev Yöneticis
 
 ### Hesap rozeti boş kalıyor, hiçbir şey yüklenmiyor
 
-Steam oturumu kurulmamış. Bağlantı koptuğunda ya da yeniden denenirken üst çubuğun altında bir şerit çıkar. Sürüyorsa önce Steam'e erişilebildiğini doğrula, sonra sebebi için `cache/steamedge.log` dosyasına bak. Steam oturumu kalıcı olarak kapattıysa şerit bunu söyler ve bir Yeniden bağlan düğmesi sunar.
+Steam oturumu kurulmamış. Bağlantı koptuğunda ya da yeniden denenirken üst çubuğun altında bir şerit çıkar. Sürüyorsa önce Steam'e erişilebildiğini doğrula, sonra sebebi için Ayarlar > Gelişmiş & Veri > **Bağlantı geçmişi** satırına ya da `logs/connection.log` dosyasına bak. Steam oturumu kalıcı olarak kapattıysa şerit bunu söyler ve bir Yeniden bağlan düğmesi sunar.
 
 ### Toplu satış yarıda durdu
 
@@ -451,7 +455,7 @@ Bitiş süresi fazla yüksek. Boş bırakılınca oynadığın süreden tahmin e
 
 ### SteamEdge bir dosyanın okunamadığını söylüyor
 
-Bir ayar ya da veri dosyası bozulursa SteamEdge otomatik `.bak` kopyasını geri yükler. O da bozuksa dosya olduğu gibi bırakılır, yanına `.bozuk` uzantılı bir kopyası alınır, etkilenen veri varsayılanla başlar ve uygulama açılışta söyler. Hiçbir şeyin üzerine yazılmaz, dosyayı elle geri koyabilirsin.
+Bir ayar ya da veri dosyası bozulursa SteamEdge otomatik `.bak` kopyasını geri yükler. O da bozuksa dosya olduğu gibi bırakılır, yanına `.corrupt` uzantılı bir kopyası alınır, etkilenen veri varsayılanla başlar ve uygulama açılışta söyler. Hiçbir şeyin üzerine yazılmaz, dosyayı elle geri koyabilirsin.
 
 ### Aile Görünümü olan hesapta envanter, pazar ya da rozet sayfaları boş kalıyor
 
@@ -467,7 +471,7 @@ Ayar klasörü **Giriş anahtarlarını şifrele** açıkken başka bir bilgisay
 
 ### Hata bildirimi için kayıt toplama
 
-Kayıt exe'nin yanındaki `cache/steamedge.log` dosyasıdır, Ayarlar'dan da açılır. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyayı ekle. Kayıt dosyası sınırlıdır: 2 MB'ı geçince `steamedge.log.1` adıyla kenara alınır ve yeni bir dosya başlar, böylece bir önceki parça hep durur.
+Kayıtlar exe'nin yanındaki `logs/` klasöründedir; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** > Aç klasörü açar. `steamedge.log` olayları, `connection.log` Steam bağlantısının her kopup gelişini, `crash.log` başka hiçbir yerin yakalamadığı hataları tutar. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyaları ekle. Her dosya sınırlıdır: 2 MB'ı (diğer ikisinde 1 MB) geçince `<ad>.1` adıyla kenara alınır ve yeni bir dosya başlar, böylece bir önceki parça hep durur.
 
 ---
 
