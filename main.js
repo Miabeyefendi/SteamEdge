@@ -18,7 +18,7 @@ const update = require('./src/services/updater');
 // The text the main process produces is in the interface language too: tray menu, file dialogs, desktop
 // notifications and the error messages returned to the interface (the dictionary is shared with the interface).
 const translation = require('./src/core/translation');
-const { migrateKeys, renameOldFiles } = require('./src/core/keyMigration');
+const { migrateKeys, renameOldFiles, OLD_SETTING_VALUES } = require('./src/core/keyMigration');
 const { parseProxy, setActiveProxy } = require('./src/core/proxyFetch');
 const { startLocalProxy } = require('./src/core/localProxy');
 const windowFit = require('./src/core/windowFit');
@@ -330,8 +330,7 @@ const DEFAULT_SETTINGS = {
   quietHoursEnabled: false, // show no notification at all in this range
   quietFrom: '23:00',
   quietTo: '08:00',
-  // Privacy & Security
-  offlineMode: false,       // appear "Offline" on Steam - friends cannot see what you are playing
+  // Privacy & Security (the visibility on Steam is chosen per account in the top bar: account data personaState)
   // Advanced & Data
   apiRequestDelayMs: 350,   // wait per price request (Steam's limit - lowering it raises the 429 risk)
   hwAccel: true,            // GPU hardware acceleration - turning it off asks for a restart
@@ -498,7 +497,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 // ---- SETTINGS MIGRATIONS ----
 // Removed and merged settings are carried over from the old file to here: the user's old choice
 // is not lost, and no dead key is left in the file. settingsVersion is raised once.
-const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs'];
+const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode'];
 const ACH_DELAY_CHOICES = [15, 30, 45, 60, 120, 300, 600, 1800, 3600];
 function nearestAchDelay(sec) {
   if (!(sec > 0)) return ACH_DELAY_CHOICES[0];
@@ -540,9 +539,10 @@ function migrateSettings(v) {
     v.settingsVersion = 5;
     hasChanged = true;
   }
-  // Values renamed from Turkish: 'sinirsiz' -> 'unlimited', 'kapali' -> 'off'.
-  if (v.reconnectPolicy === 'sinirsiz') { v.reconnectPolicy = 'unlimited'; hasChanged = true; }
-  if (v.reconnectPolicy === 'kapali') { v.reconnectPolicy = 'off'; hasChanged = true; }
+  // Values renamed from Turkish (the old names are in src/core/keyMigration.js)
+  Object.entries(OLD_SETTING_VALUES).forEach(([k, names]) => {
+    if (typeof v[k] === 'string' && Object.prototype.hasOwnProperty.call(names, v[k])) { v[k] = names[v[k]]; hasChanged = true; }
+  });
   REMOVED_SETTINGS.forEach((k) => { if (k in v) { delete v[k]; hasChanged = true; } });
   return hasChanged;
 }
@@ -552,10 +552,12 @@ function loadSettings() {
   const r = readJson(SETTINGS_FILE);
   if (r.ok) {
     const rawText = { ...r.dataBlock };
+    const wasInvisible = rawText.offlineMode === true;
     const hasPassed = migrateSettings(rawText);
     settings = { ...DEFAULT_SETTINGS, ...rawText };
     if (r.fromBackup) readErrors.push({ displayName: 'Ayarlar', recoveredFlag: true });
     if (hasPassed) saveSettings();
+    if (wasInvisible) personaFromOfflineMode();
     try { settingSaveTime = fs.statSync(SETTINGS_FILE).mtimeMs; } catch (_) {}
   } else {
     settings = { ...DEFAULT_SETTINGS };
@@ -615,7 +617,7 @@ function applySettings() {
   });
   // Appear offline / hide the game name - applied instantly while connected. To ALL connected accounts:
   // it used to apply only to the account on screen, a background account stayed visible.
-  accounts.forEach((s) => { try { if (s.ready && s.engine) s.engine.applyPrivacy(settings.offlineMode, settings.hideGameName); } catch (_) {} });
+  accounts.forEach((s, id) => { try { if (s.ready && s.engine) s.engine.applyPrivacy(personaOf(id), settings.hideGameName); } catch (_) {} });
   // Chat auto reply - applied to ALL connected accounts
   accounts.forEach((s) => { if (s.engine) applyChatSettings(s.engine); });
   if (typeof armIdleTimer === 'function') armIdleTimer();
@@ -1700,7 +1702,7 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly', 'favoriteGames'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly', 'favoriteGames', 'personaState'];
 // The settings of the JOBS of an account (card farming, hour boosting, Realistic Mode, achievements). They used to be one set for the whole app: two accounts could
 // not run Realistic Mode with two different durations, and a change made on one account changed the job of the other. Each account now keeps its own values in
 // its account file (jobSettings); an account that has never changed one reads the general value, so nothing changes for anyone on the first start.
@@ -1722,6 +1724,7 @@ const DEFAULT_ACCOUNT_DATA = {
   grQueue: [], grPresets: [],
   parentalPin: '',                 // Steam Family View PIN of this account (never exported)
   proxyUrl: '',                    // proxy of this account (http://, https:// or socks5://, may hold a user:password; never exported)
+  personaState: null,              // what friends see, chosen in the top bar: online | away | invisible (null: never chosen, online)
   keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
   farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
   farmWhitelist: [],               // appids that card farming is limited to while farmWhitelistOnly is on
@@ -1795,6 +1798,28 @@ function flushPendingWrites() {
 }
 // The active account's data. If there is no account a temporary container is returned (not written to disk).
 function activeAccountData() { return accountData(activeSteamID); }
+
+// ---- VISIBILITY ON STEAM (the top bar) ----
+// Chosen per account, as in the Steam client, and kept in the account file; the engine sends it again on every logon, reconnect and game
+// change. "Appear offline" (one general switch up to 1.8.0, in Settings and on the Hour Booster page) became the Invisible choice.
+const PERSONA_STATES = ['online', 'away', 'invisible'];
+function personaName(v) { return PERSONA_STATES.includes(v) ? v : 'online'; }
+function personaOf(steamID) { return steamID ? personaName(accountData(steamID).personaState) : 'online'; }
+function applyPersona(steamID) {
+  const s = accounts.get(steamID);
+  if (s && s.engine) { try { s.engine.applyPrivacy(personaOf(steamID), settings.hideGameName); } catch (_) {} }
+  log('info', '[' + accountName(steamID) + '] visibility: ' + personaOf(steamID));
+}
+// "Appear offline" was on in a settings file of 1.8.0 or older: every saved account starts Invisible, unless it has a choice of its own
+function personaFromOfflineMode() {
+  const r = readJson(ACCOUNTS_FILE);
+  (r.ok && Array.isArray(r.dataBlock) ? r.dataBlock : []).forEach((a) => {
+    if (!a || !a.steamID || accountData(a.steamID).personaState) return;
+    accountData(a.steamID).personaState = 'invisible';
+    writeAccountData(a.steamID);
+  });
+  log('info', 'the old "appear offline" switch became the invisible visibility of the saved accounts');
+}
 // The value of a job setting for one account: its own value if it set one, otherwise the general one. Every job reads its settings from here with ITS account.
 function settingFor(steamID, key) {
   if (steamID && ACCOUNT_SCOPED.has(key)) {
@@ -1818,11 +1843,11 @@ function accountDataMigration() {
   }
   if (appState && appState.entries && Object.keys(appState.entries).length && !Object.keys(v.entries).length) {
     v.entries = JSON.parse(JSON.stringify(appState.entries));
-    moved.push(Object.keys(v.entries).length + ' kayitli durum');
+    moved.push(Object.keys(v.entries).length + ' saved states');
   }
   if (appState && Array.isArray(appState.achLog) && appState.achLog.length && !v.achLog.length) {
     v.achLog = appState.achLog.slice();
-    moved.push(v.achLog.length + ' basarim kaydi');
+    moved.push(v.achLog.length + ' achievement log entries');
   }
   if (!v.stats && lifeStats) { v.stats = { ...lifeStats }; moved.push('stats'); }
   writeAccountData(activeSteamID);
@@ -1933,7 +1958,8 @@ async function connectAccount(entry) {
       }
     };
     try {
-      const info = await eng.logOn(entry.refreshToken, settings.offlineMode);
+      eng.applyPrivacy(personaOf(entry.steamID), settings.hideGameName);   // kept until the logon: it sends nothing before
+      const info = await eng.logOn(entry.refreshToken, personaOf(entry.steamID));
       s.engine = eng; s.ready = true;
       log('info', `[${entry.accountName}] session opened`);
       resumeKeyQueue(entry.steamID);
@@ -1952,7 +1978,7 @@ async function connectAccount(entry) {
   // last engine keeps trying in the background as after a drop, and when it logs on bindConnectionState does what is done above (status 'connected', first).
   if (lastEngine && settings.reconnectPolicy !== 'off') {
     s.engine = lastEngine;
-    lastEngine.startReconnecting(entry.refreshToken, settings.offlineMode);
+    lastEngine.startReconnecting(entry.refreshToken, personaOf(entry.steamID));
     log('warn', `[${entry.accountName}] first logon failed, trying again in the background`, true);
   }
   return { ok: false, error: lastErr ? lastErr.message : 'Bağlanılamadı.' };
@@ -4077,6 +4103,8 @@ function applySettingPatch(patch, forAccount) {
   }
   ['farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
   if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
+  if ('personaState' in received) received.personaState = personaName(received.personaState);
+  const personaChanged = 'personaState' in received && received.personaState !== personaOf(activeSteamID);
   if ('uiScale' in received) received.uiScale = windowFit.normalizeScale(received.uiScale);      // the selector sends text
   ['proxyUrl', 'loginProxyUrl'].forEach((k) => {
     if (!(k in received) || received.__proxyError) return;
@@ -4107,6 +4135,7 @@ function applySettingPatch(patch, forAccount) {
   }
   if (writtenToAccount) writeAccountData(activeSteamID);
   if (pinChanged) applyParentalPin(activeSteamID);
+  if (personaChanged) applyPersona(activeSteamID);
   if (writtenToAccount) applyActiveProxy();      // no-op unless the proxy of the account on screen changed
   const changed = Object.keys(received).filter((k) => JSON.stringify(settings[k]) !== JSON.stringify(received[k]));
   if (!changed.length) {

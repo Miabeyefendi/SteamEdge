@@ -7,6 +7,31 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.8.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.8.1)
+
+Your visibility on Steam is chosen in the top bar now, and it stays what you chose: a game opened by a job or a reconnect no longer makes you online.
+
+### Added
+
+- **Account visibility in the top bar**, next to the version: **Online** (green), **Away** (yellow) or **Invisible**. It changes what your friends see on Steam at once, for the account on screen, the way the Steam client does. Every account keeps its own choice, and it is sent again at every sign-in, after every reconnect and whenever a game opens or closes.
+
+### Fixed
+
+- **"Appear offline" did not always keep you offline.** Two cases, both measured with the code of 1.8.0:
+  - With it on when the app started, the first game a job opened (card farming, the Hour Booster, Realistic Mode) made the account **online**.
+  - Switched on while connected, it was lost at the next reconnect: the account came back **online**.
+  The engine kept the choice in two places, and the logon and a game change each read a different one. There is one now, and the visibility above replaces the switch.
+- **"Hide the game name" was not applied after a reconnect**, and its tip said friends still see you online. It makes you invisible while a game is open and gives back the visibility you chose when the game closes; the tip says so.
+
+### Changed
+
+- **"Appear offline" is gone** from Settings > Privacy and from the Hour Booster page. If it was on, every saved account starts as **Invisible**.
+- The last Turkish setting values of old settings files (`sinirsiz`, `kapali`) are renamed from `src/core/keyMigration.js` like the rest; two log lines that were still Turkish are English.
+- `npm test` runs 64 tests. New: `visibility` (sign-in, a game opened by a job, Away, Hide the game name, two drops and reconnects, the old setting moved to every saved account).
+
+
+SHA-256 (`SteamEdge-v1.8.1-win-x64.rar`): `0ab661c1238c9a75572a306a50bcf14c446bf77d989a8ceb87a22d47c2e7f7ed`
+
 ## [1.8.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.8.0)
 
 The Steam connection keeps a history you can read, the logs have a folder of their own, and the app can start with Windows quietly in the tray.

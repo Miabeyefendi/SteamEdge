@@ -1322,6 +1322,7 @@
       if (!fresh) return;
       appSettings = fresh;
       if (window.imu.settings.forAccount) window.imu.settings.forAccount(fresh.settingsAccount);
+      paintVisibility();          // the visibility is the new account's own
       // what the pages took from the old account
       if (typeof grQueue !== 'undefined') grQueue = [];
       if (typeof grPresets !== 'undefined') grPresets = [];
@@ -1417,4 +1418,47 @@
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#acctDropdown') && !e.target.closest('#tbProfile')) closeAcct();
       if (!e.target.closest('#notifDropdown') && !e.target.closest('#tbNotif')) closeNotif();
+      if (!e.target.closest('#tbVis')) closeVis();
     });
+
+    // ---- Account visibility (top bar) ----
+    // What friends see on Steam for the account on screen. The choice is the account's own (main.js personaState) and the engine sends it again on
+    // every logon, reconnect and game change. It replaced the "Appear offline" switch, which a game opened by a job or a reconnect could undo.
+    const VIS_NAMES = { online:'Çevrimiçi', away:'Dışarıda', invisible:'Görünmez' };
+    const tbVis = document.getElementById('tbVis');
+    function visState(){ return (typeof appSettings === 'object' && appSettings && VIS_NAMES[appSettings.personaState]) ? appSettings.personaState : 'online'; }
+    function paintVisibility(){
+      if (!tbVis) return;
+      const state = visState();
+      tbVis.setAttribute('data-state', state);
+      document.getElementById('tbVisText').textContent = t(VIS_NAMES[state]);
+      tbVis.querySelectorAll('[data-vis]').forEach(b => b.setAttribute('aria-checked', String(b.getAttribute('data-vis') === state)));
+    }
+    function closeVis(){
+      if (!tbVis) return;
+      tbVis.classList.remove('open');
+      document.getElementById('tbVisBtn').setAttribute('aria-expanded', 'false');
+    }
+    if (tbVis){
+      document.getElementById('tbVisBtn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willOpen = !tbVis.classList.contains('open');
+        closeAcct(); closeNotif();
+        tbVis.classList.toggle('open', willOpen);
+        document.getElementById('tbVisBtn').setAttribute('aria-expanded', String(willOpen));
+      });
+      tbVis.querySelectorAll('[data-vis]').forEach(b => b.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        closeVis();
+        const state = b.getAttribute('data-vis'), before = visState();
+        if (state === before) return;
+        appSettings.personaState = state;
+        paintVisibility();
+        // The answer is what was really saved: a page of another account (a switch under way) gets that account's value back, not this one
+        const s = await window.imu.settings.set({ personaState: state }).catch(() => null);
+        if (s){ appSettings = s; paintVisibility(); return; }
+        appSettings.personaState = before;
+        paintVisibility();
+        toast('Hesap görünürlüğü').fail(t('Görünürlük değiştirilemedi.'));
+      }));
+    }

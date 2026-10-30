@@ -10,7 +10,7 @@
     // Behaviour/Privacy switches - written persistently to the settings (the same keys as the Settings screen)
     // ignoreUpdates and hideGameName were removed from here: the first had no counterpart in the engine at all,
     // the second sits under Settings > Privacy.
-    let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, offlineMode:false, boostSync:false };
+    let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, boostSync:false };
 
     const BC = { brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
                  off:'#7F879B', bd:'#2B3345', s1:'#0D1118', bgAlt:'#090C12', sub:'#C2AAEE' };

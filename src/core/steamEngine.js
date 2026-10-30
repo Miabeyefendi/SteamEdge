@@ -23,7 +23,7 @@ class SteamEngine {
     this.persona = null;
     this._playing = [];
     this._owners = new Map();    // job name -> the games that job opened (see play)
-    this._offline = false;
+    this._persona = 'online';    // what friends see (the top bar): online | away | invisible. The one value every logon, reconnect and game change reads.
     this._hideGameName = false;
     // The account's wallet currency. It starts as UNKNOWN - giving it a default made us fetch prices
     // from Steam in the wrong currency when the wallet event did not arrive and show them with the right
@@ -40,7 +40,6 @@ class SteamEngine {
     // actually closed. Hours of silent loss.
     this.isConnected = false;
     this._refreshToken = null;
-    this._offlineChoice = false;
     this._reconnectTimer = null;
     this._reconnectAttempt = 0;
     this._wasShutDown = false;       // do not reconnect if logOff() was called
@@ -253,17 +252,17 @@ class SteamEngine {
       : null;
   }
 
-  logOn(refreshToken, offline) {
+  logOn(refreshToken, persona) {
+    this._persona = SteamEngine.personaName(persona);
     return new Promise((resolve, reject) => {
       const done = { info: false, web: false };
       const maybe = () => { if (done.info && done.web) resolve({ steamID: this.steamID, persona: this.persona }); };
       this.user.logOn({ refreshToken });
       this.user.once('loggedOn', () => {
         this.steamID = this.user.steamID.getSteamID64();
-        // Steam only shows "in game" on the profile / to friends once persona state is Online
-        // (Invisible if the "Appear offline" setting is on - friends cannot see the farming).
+        // Steam only shows "in game" on the profile / to friends once a persona state is set (Online or Away; Invisible hides it).
         // Without this, gamesPlayed() registers at the protocol level but nothing is visible.
-        this.user.setPersona(offline ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
+        this._applyPersona();
         this.user.webLogOn();
       });
       this.user.once('accountInfo', (name) => { this.persona = name; done.info = true; maybe(); });
@@ -280,7 +279,6 @@ class SteamEngine {
     }).then((r) => {
       // Logon succeeded: set up the permanent listeners (once).
       this._refreshToken = refreshToken;
-      this._offlineChoice = !!offline;
       this.isConnected = true;
       this._everConnected = true;
       this._reconnectAttempt = 0;
@@ -343,9 +341,7 @@ class SteamEngine {
       const first = !this._everConnected;
       this._everConnected = true;
       try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
-      try {
-        this.user.setPersona(this._offlineChoice ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online);
-      } catch (_) {}
+      this._applyPersona();
       try { this.user.webLogOn(); } catch (_) {}
       // Reopen the games that were open before the drop - the real loss was here.
       if (this._playing && this._playing.length) {
@@ -509,9 +505,9 @@ class SteamEngine {
 
   // The first logon failed (no network when the app started, Steam down): keep trying in the background as after a drop. Before 1.7.8 the app gave up after
   // three tries in six seconds and never connected until it was restarted.
-  startReconnecting(refreshToken, offline) {
+  startReconnecting(refreshToken, persona) {
     this._refreshToken = refreshToken;
-    this._offlineChoice = !!offline;
+    this._persona = SteamEngine.personaName(persona);
     this.isConnected = false;
     this._replaceUser();                 // the instance of the failed logon may still be busy
     this._setupDisconnectListeners();
@@ -1490,24 +1486,26 @@ class SteamEngine {
     return { ok: true, changed: changes.length };
   }
 
-  // The "Appear offline" switch under Settings > Privacy is already applied during the connection
-  // (see logOn); this is for changing it live while the session is OPEN (settings:set calls it instantly).
-  setOfflineMode(offline) {
-    this._offline = !!offline;
-    this._applyPersona();
-  }
-
-  // "Hide the game name": Steam shows the game being played to everyone while you are online; the only
-  // real way to hide it is to go invisible. So this switch makes you invisible ONLY while a game is
-  // being played (unlike offline mode, you stay online when idle). Card drops are not affected.
-  applyPrivacy(offline, hideGameName) {
-    this._offline = !!offline;
+  // Changing the visibility live while the session is OPEN (the top bar and Settings > Privacy call it at once); a logon applies it itself.
+  // persona: the account's visibility chosen in the top bar. "Hide the game name": Steam shows the game being played to everyone who can
+  // see you; the only real way to hide it is to go invisible. So that switch makes you invisible ONLY while a game is being played and
+  // gives back the chosen visibility when it ends. Card drops are not affected.
+  applyPrivacy(persona, hideGameName) {
+    this._persona = SteamEngine.personaName(persona);
     this._hideGameName = !!hideGameName;
     this._applyPersona();
   }
+  // One place decides what Steam shows, read on every logon, reconnect, game change and setting change. Up to 1.8.0 the logon took the
+  // choice of that moment and the rest read a second copy that started as "online": with "Appear offline" on, the first game a job opened
+  // made the account online again, and a reconnect went back to the choice of the first logon. Nothing is sent before the logon.
   _applyPersona() {
-    const hidden = this._offline || (this._hideGameName && this._playing.length > 0);
-    try { this.user.setPersona(hidden ? SteamUser.EPersonaState.Invisible : SteamUser.EPersonaState.Online); } catch (_) {}
+    if (!this.user || !this.user.steamID) return;
+    const name = (this._hideGameName && this._playing.length > 0) ? 'invisible' : this._persona;
+    try { this.user.setPersona(SteamEngine.PERSONA_STATE[name]); } catch (_) {}
+  }
+  // An unknown value (an old caller passing true/false, a hand-edited file) is "online"
+  static personaName(v) {
+    return Object.prototype.hasOwnProperty.call(SteamEngine.PERSONA_STATE, v) ? v : 'online';
   }
 
   // ---- GAMES BEING PLAYED ----
@@ -1665,6 +1663,8 @@ SteamEngine.PROBE_MS = 15000;
 // Which job's games stay open when the 32 limit is full: Realistic Mode opens a single game and the
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
 SteamEngine.OWNER_ORDER = ['realistic', 'card', 'hours', 'sequential', 'general'];
+// The visibilities the top bar offers, in its order, and what each one sends to Steam
+SteamEngine.PERSONA_STATE = { online: SteamUser.EPersonaState.Online, away: SteamUser.EPersonaState.Away, invisible: SteamUser.EPersonaState.Invisible };
 SteamEngine.CURRENCY = SteamUser.ECurrencyCode;
 // Converts Steam price texts to numbers. The format varies by currency:
 //   "$1,084.65"  (comma thousands, dot decimal)

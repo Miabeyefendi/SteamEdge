@@ -116,7 +116,7 @@ Tu inventario de Steam, con los duplicados en una fila, filtrable por juego, nom
 
 ### Impulsor de horas
 
-A la izquierda toda tu biblioteca, con búsqueda (se dibujan como máximo 300 filas a la vez, así que busca para acotar); en el centro la cola activa. A la derecha: **Sincronización de horas** (objetivo y método), el límite simultáneo (2, 8, 16, 32 o personalizado), la duración con atajos (6, 12, 18, 24 horas, ∞ o personalizada), interruptores de comportamiento y aparecer desconectado. Una duración fijada detiene la sesión al agotarse; ∞ sigue hasta que la detengas. Una selección se puede guardar como preajuste.
+A la izquierda toda tu biblioteca, con búsqueda (se dibujan como máximo 300 filas a la vez, así que busca para acotar); en el centro la cola activa. A la derecha: **Sincronización de horas** (objetivo y método), el límite simultáneo (2, 8, 16, 32 o personalizado), la duración con atajos (6, 12, 18, 24 horas, ∞ o personalizada) e interruptores de comportamiento. Una duración fijada detiene la sesión al agotarse; ∞ sigue hasta que la detengas. Una selección se puede guardar como preajuste.
 
 ### Modo realista
 
@@ -395,14 +395,14 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 
 | Clave | Por defecto | Qué hace |
 |---|---|---|
-| `offlineMode` | `false` | Aparecer desconectado mientras se ejecuta |
-| `hideGameName` | `false` | Compartir que estás en línea pero no a qué juegas |
+| `personaState` | `online` | Lo que tus amigos ven en Steam, elegido en la barra superior: `online`, `away` o `invisible`. Se guarda por cuenta y se envía de nuevo en cada inicio de sesión y reconexión |
+| `hideGameName` | `false` | Invisible mientras hay un juego abierto, para que no se vea; al cerrarse vuelve la visibilidad elegida |
 | `parentalPin` | vacío | PIN de la Vista familiar de Steam de la cuenta, para desbloquear las páginas web. Se guarda por cuenta y nunca se exporta |
 | `protectTokens` | `false` | Guardar los tokens de inicio de sesión cifrados con Windows DPAPI. Es propio de este usuario de Windows y equipo, no se exporta |
 | `proxyUrl` | vacío | Proxy de la cuenta: `http://`, `https://` o `socks5://`, con `usuario:contraseña@` opcional. La contraseña se guarda en el archivo de la cuenta, cifrada si **Cifrar los tokens de inicio de sesión** está activado. Se guarda por cuenta, no se exporta |
 | `loginProxyUrl` | vacío | Proxy por el que pasa el inicio de sesión (`http://`, `https://` o `socks5://`). Texto plano en el archivo de ajustes, no se exporta |
 
-> Aparecer desconectado cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
+> Ser invisible cambia lo que ven tus amigos. También puede cambiar si Steam te cuenta como jugando, así que pruébalo antes de confiar en ello para una sesión larga.
 
 ### Avanzado
 

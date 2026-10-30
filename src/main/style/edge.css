@@ -531,6 +531,24 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 .e-run-chip:hover{background:var(--e-s3)}
 .e-run-dot{width:7px;height:7px;border-radius:50%;background:var(--e-ok);flex:none}
 .e-run-chip.done .e-run-dot{background:var(--e-muted)}
+/* Account visibility in the top bar (common.js > paintVisibility): online green, away yellow, invisible a hollow grey ring */
+.e-vis{position:relative;flex-shrink:0}
+.e-vis-btn{display:flex;align-items:center;gap:7px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--e-bdPassive);background:transparent;color:var(--e-body);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.e-vis-btn:hover,.e-vis.open .e-vis-btn{background:var(--e-s3);border-color:var(--e-bd)}
+.e-vis-lbl{color:var(--e-off);font-weight:500}
+.e-vis-lbl::after{content:':'}
+.e-vis-dot{width:8px;height:8px;border-radius:50%;flex:none;background:#5FB324}
+.e-vis[data-state="away"] .e-vis-btn .e-vis-dot,.e-vis-dot[data-dot="away"]{background:#E0B43A}
+.e-vis[data-state="invisible"] .e-vis-btn .e-vis-dot,.e-vis-dot[data-dot="invisible"]{background:transparent;border:1.5px solid #8B8F9E}
+.e-vis-dot[data-dot="online"]{background:#5FB324;border:0}
+.e-vis-caret{color:var(--e-off);transition:transform .15s}
+.e-vis.open .e-vis-caret{transform:rotate(180deg)}
+.e-vis-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:45;min-width:100%;padding:4px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 18px 44px rgba(3,3,5,.66);display:none}
+.e-vis.open .e-vis-menu{display:block}
+.e-vis-menu button{width:100%;display:flex;align-items:center;gap:9px;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:var(--e-body);font-size:12px;cursor:pointer;text-align:left;white-space:nowrap}
+.e-vis-menu button:hover{background:var(--e-s3)}
+.e-vis-menu button[aria-checked="true"]{color:var(--e-title);font-weight:600}
+@media (max-width:1280px){.e-vis-lbl{display:none}}
 .acct-row .nmwrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .acct-row .nmwrap .nm{flex:none}
 .acct-row .sub{font-size:11px;color:var(--e-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

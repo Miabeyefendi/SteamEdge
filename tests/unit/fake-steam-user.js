@@ -11,7 +11,7 @@ const path = require('path');
 const Real = require(path.resolve(__dirname, '..', '..', 'node_modules', 'steam-user'));
 
 function createFakeSteam() {
-  const net = { up: true, limbo: false, sessions: new Map(), logons: 0, uncaught: [] };
+  const net = { up: true, limbo: false, sessions: new Map(), logons: 0, uncaught: [], personas: [] };
   class FakeSteamUser extends EventEmitter {
     constructor(options) {
       super();
@@ -65,7 +65,8 @@ function createFakeSteam() {
       this.steamID = null;
       if (net.sessions.get(this._account) === this) net.sessions.delete(this._account);
     }
-    setPersona() {}
+    // the real one sends it only on a logged on session; every call is kept, so a test can see what Steam was told and when
+    setPersona(state) { this.persona = state; net.personas.push({ state, loggedOn: !!this.steamID }); }
     webLogOn() {}
     gamesPlayed(ids) { this.played = ids; }
   }
