@@ -17,7 +17,7 @@ const LIMIT = { app: 2 * MB, connection: MB, crash: MB };
 const HISTORY_MS = 7 * 24 * 3600 * 1000;
 const HISTORY_MAX = 5000;
 // What a connection line may carry besides its event. cause goes last on the line: it is free text and may hold spaces.
-const FIELDS = ['attempt', 'attempts', 'games', 'downMs', 'nextMs', 'deadlineMs', 'permanent'];
+const FIELDS = ['attempt', 'attempts', 'games', 'appid', 'downMs', 'nextMs', 'deadlineMs', 'permanent'];
 
 // One connection.log line: "<ISO time>\t<steamID>\t<event>\tkey=value ... cause=<text>"
 function formatConnection(e) {
@@ -101,7 +101,7 @@ function createLogger({ dir, level, legacyDir, now = Date.now }) {
     append(files.crash, LIMIT.crash, line);
   }
 
-  // event: started | stopped | connected | dropped | waiting | attempt | reconnected | abandoned. steamID '-' for a line about the app itself.
+  // event: started | stopped | connected | dropped | waiting | attempt | reconnected | abandoned | blocked | unblocked (a game of the account open elsewhere). steamID '-' for a line about the app itself.
   // The history on screen is kept even with the log off; only the file follows the setting.
   function connection(steamID, event, fields) {
     const e = { ts: now(), steamID: String(steamID || '-'), event };

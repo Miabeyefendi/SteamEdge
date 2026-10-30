@@ -116,9 +116,10 @@ async function setup(persona, hide) {
   vm.createContext(ctx);
   vm.runInContext(code + '\n;this.api = { migrateSettings, personaName, personaOf, personaFromOfflineMode };', ctx);
   const { migrateSettings, personaName, personaOf, personaFromOfflineMode } = ctx.api;
-  const old = { settingsVersion: 5, offlineMode: true, reconnectPolicy: 'sinirsiz' };
+  const old = { settingsVersion: 5, offlineMode: true, reconnectPolicy: 'sinirsiz', grShowNoAch: true };
   check('the old setting is dropped from the settings file', migrateSettings(old) === true && !('offlineMode' in old));
   check('a Turkish setting value from an old file is renamed', old.reconnectPolicy === 'unlimited');
+  check('the removed "Show games without achievements" switch (1.8.2) leaves the file too', !('grShowNoAch' in old));
   personaFromOfflineMode();
   check('"appear offline" on: a saved account without a choice becomes invisible', files.a.personaState === 'invisible' && written.includes('a'));
   check('an account that chose already keeps it', files.b.personaState === 'away' && !written.includes('b'));

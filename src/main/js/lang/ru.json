@@ -492,7 +492,6 @@
  "Kalan başarım": "Осталось достижений",
  "Tahmini süre": "Расчётное время",
  "Başarımlar bitince saati sürdür": "Продолжать собирать часы после открытий",
- "Başarımsız oyunları listede göster": "Показывать игры без достижений",
  "Nadir": "Редкие",
  "Az bulunur": "Нечастые",
  "Yaygın": "Частые",
@@ -1101,8 +1100,6 @@
  "ve # tane daha": "и ещё #",
  "durduruluyor...": "остановка...",
  "Bağlanılamadı:": "Не удалось подключиться:",
- "başarım var": "есть достижения",
- "başarım yok": "нет достижений",
  "#: başarımı yok, listeden çıkarıldı.": "#: нет достижений, игра убрана из списка.",
  "Çalışırken sıra değiştirilemez.": "Во время работы порядок менять нельзя.",
  "Başarım şeması okunuyor…": "Чтение схемы достижений…",
@@ -1541,5 +1538,10 @@
  "… ve # başarım daha": "… и ещё достижений: #",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: сыграно # ч, время прохождения превышено. Все оставшиеся достижения (#) считаются просроченными и открываются по одному в секунду.",
  "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Соединение со Steam потеряно. Подключение (попытка #)...",
- "Steam bağlantısı bekleniyor...": "Ожидание соединения со Steam..."
+ "Steam bağlantısı bekleniyor...": "Ожидание соединения со Steam...",
+ "Tamamlandı, sıradan çıkarıldı": "Завершено, убрано из очереди",
+ "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: открывать больше нечего, убрано из очереди.",
+ "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "На другом устройстве открыта игра этого аккаунта. SteamEdge снова откроет свои игры, когда та игра закроется.",
+ "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "На другом устройстве запущена игра этого аккаунта; SteamEdge приостановил свои игры.",
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "Игра на другом устройстве закрыта; SteamEdge снова открыл свои игры."
 }

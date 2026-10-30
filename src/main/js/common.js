@@ -1194,8 +1194,37 @@
     let stripTimer = null, stripCountdown = null, stripLast = null;
     async function reconcileConnection(){
       const d = await window.imu.engine.connectionStatus().catch(()=>null);
+      playingStrip(!!(d && d.playingBlocked));
       if (!d || d.condition === 'none') { connectionStrip({ condition: 'connected' }); return; }
       connectionStrip(d);
+    }
+    // A game of the account on screen is open on another device (the Steam client): Steam lets one session play, so the jobs' games wait for it to end.
+    // Up to 1.8.1 the app logged on again every few seconds and opened its games over that one.
+    function playingStrip(blocked){
+      let el = document.getElementById('playingStrip');
+      if (!blocked){ if (el) el.remove(); return; }
+      if (el) return;
+      el = document.createElement('div');
+      el.id = 'playingStrip';
+      el.style.cssText = 'flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:12px;font-weight:600;border-bottom:1px solid #B37E24;background:#1A1408;color:#B37E24';
+      el.innerHTML = '<span style="width:7px;height:7px;border-radius:12px;background:#B37E24;flex-shrink:0"></span><span>'
+        + esc(t('Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.')) + '</span>';
+      const mainEl = document.querySelector('main');
+      const rowEl = mainEl && mainEl.parentNode;
+      const goal = (rowEl && rowEl.parentNode) ? rowEl : (mainEl || document.body);
+      goal.parentNode.insertBefore(el, goal);
+    }
+    // once when the page loads: a reload (a language change) must not lose a strip whose event came before it
+    if (window.imu.engine && window.imu.engine.connectionStatus) reconcileConnection().then(armStripTimer);
+    if (window.imu.engine && window.imu.engine.onPlaying){
+      window.imu.engine.onPlaying((d)=>{
+        if (!d) return;
+        if (!d.activeIds){ reconcileConnection(); return; }
+        playingStrip(d.blocked);
+        if (typeof pushFeed === 'function') pushFeed('card', 'Steam Bağlantısı', t(d.blocked
+          ? 'Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.'
+          : 'Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.'), d.blocked ? 'Uyarı' : 'Başarılı');
+      });
     }
     function armStripTimer(){
       const shown = !!document.getElementById('connectionStrip');

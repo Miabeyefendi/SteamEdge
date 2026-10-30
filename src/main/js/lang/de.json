@@ -492,7 +492,6 @@
  "Kalan başarım": "Verbleibende Errungenschaften",
  "Tahmini süre": "Geschätzte Zeit",
  "Başarımlar bitince saati sürdür": "Nach den Errungenschaften weiter Stunden sammeln",
- "Başarımsız oyunları listede göster": "Spiele ohne Errungenschaften anzeigen",
  "Nadir": "Selten",
  "Az bulunur": "Ungewöhnlich",
  "Yaygın": "Häufig",
@@ -1101,8 +1100,6 @@
  "ve # tane daha": "und # weitere",
  "durduruluyor...": "wird gestoppt...",
  "Bağlanılamadı:": "Verbindung fehlgeschlagen:",
- "başarım var": "hat Errungenschaften",
- "başarım yok": "keine Errungenschaften",
  "#: başarımı yok, listeden çıkarıldı.": "#: hat keine Errungenschaften, aus der Liste entfernt.",
  "Çalışırken sıra değiştirilemez.": "Die Reihenfolge kann während des Laufs nicht geändert werden.",
  "Başarım şeması okunuyor…": "Errungenschaftsschema wird gelesen…",
@@ -1541,5 +1538,10 @@
  "… ve # başarım daha": "… und # weitere Errungenschaften",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: # Stunden gespielt, die Abschlusszeit ist überschritten. Alle # verbleibenden Errungenschaften gelten als überfällig und werden im Sekundentakt freigeschaltet.",
  "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Steam-Verbindung unterbrochen. Verbinde (Versuch #)...",
- "Steam bağlantısı bekleniyor...": "Warte auf die Steam-Verbindung..."
+ "Steam bağlantısı bekleniyor...": "Warte auf die Steam-Verbindung...",
+ "Tamamlandı, sıradan çıkarıldı": "Abgeschlossen, aus der Warteschlange genommen",
+ "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: nichts mehr freizuschalten, aus der Warteschlange genommen.",
+ "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "Auf einem anderen Gerät läuft ein Spiel dieses Kontos. SteamEdge öffnet seine eigenen Spiele wieder, wenn dieses Spiel beendet ist.",
+ "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "Auf einem anderen Gerät wurde ein Spiel dieses Kontos gestartet; SteamEdge hat seine Spiele angehalten.",
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "Das Spiel auf dem anderen Gerät wurde beendet; SteamEdge hat seine Spiele wieder geöffnet."
 }

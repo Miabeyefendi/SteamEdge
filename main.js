@@ -430,7 +430,6 @@ const DEFAULT_SETTINGS = {
   grUltraMultiplier: 3,         // achievements under 5% wait this many times longer
   grCatchUpShare: 20,          // in what first percent of the time the ones left behind are unlocked
   grFinishedRatio: 50,          // if the game is finished the schedule drops to this ratio (percent)
-  grShowNoAch: false,       // games without achievements show up in the game list
   grLevel: 'simple',        // right panel: simple | advanced
   achDelay: '15',               // seconds between two unlocks: 15, 30, 45, 60, 120, 300, 600, 1800 or 3600
   achOrder: 'default',
@@ -497,7 +496,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 // ---- SETTINGS MIGRATIONS ----
 // Removed and merged settings are carried over from the old file to here: the user's old choice
 // is not lost, and no dead key is left in the file. settingsVersion is raised once.
-const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode'];
+const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch'];
 const ACH_DELAY_CHOICES = [15, 30, 45, 60, 120, 300, 600, 1800, 3600];
 function nearestAchDelay(sec) {
   if (!(sec > 0)) return ACH_DELAY_CHOICES[0];
@@ -1605,6 +1604,14 @@ function stopAccountJobs(s, steamID) {
 // used to be reported nowhere; the user looked at "running" for hours and
 // actually earned nothing.
 function bindConnectionState(eng, steamID) {
+  // A game of the account is open on another device (the Steam client): the engine holds its games until it ends. Told to the log, connection.log and the page.
+  eng.onPlaying = (blocked, appid) => {
+    const s = accounts.get(steamID);
+    if (s && s.engine && s.engine !== eng && !s.connecting) return;
+    log('info', '[' + steamID + '] ' + (blocked ? 'a game of this account is open on another device' + (appid ? ' (' + appid + ')' : '') + ', the games wait' : 'the other device stopped playing, the games are open again'));
+    logger.connection(steamID, blocked ? 'blocked' : 'unblocked', appid ? { appid: +appid } : null);
+    sendRaw('engine:playing', { steamID, blocked: !!blocked, appid: appid || null, activeIds: steamID === activeSteamID });
+  };
   eng.onStatus = (status, extra) => {
     const s = accounts.get(steamID);
     // An engine that is not the account's any more says nothing about it: an old one that still reported "reconnecting" set the account to "not connected"
@@ -1686,7 +1693,7 @@ ipcMain.handle('engine:reconnect', () => {
 ipcMain.handle('engine:connectionStatus', () => {
   const s = activeSteamID ? accounts.get(activeSteamID) : null;
   if (!s || !s.engine) return { condition: 'none' };
-  if (s.ready) return { condition: 'connected', ts: s.lastConnection || null };
+  if (s.ready) return { condition: 'connected', ts: s.lastConnection || null, playingBlocked: !!s.engine.playingBlocked };
   return s.connectionStatus || { condition: 'connecting' };
 });
 
@@ -1714,7 +1721,7 @@ const ACCOUNT_SCOPED_SETTINGS = [
   'boostMaxGames', 'rememberBoostList', 'pauseFarmOnBoost', 'boostTarget', 'boostStagger', 'shuffleBoost', 'boostSync', 'boostSyncMode', 'boostSyncTargetHours',
   'boostSyncLibraryMaxMin', 'boostSyncStrategy', 'boostAutoRestart', 'seqIdle', 'loopQueue', 'boostDurationSec',
   'grDurationSec', 'grTargetAuto', 'grTarget', 'grCR', 'grDiff', 'grTc', 'grTcGame', 'grModel', 'grAuto', 'grRandomGap', 'grSkipUltraRare', 'grKeepHours', 'grCatchUp',
-  'grAutoDuration', 'grParallel', 'grSpeed', 'grUltraMultiplier', 'grCatchUpShare', 'grFinishedRatio', 'grShowNoAch', 'grLevel',
+  'grAutoDuration', 'grParallel', 'grSpeed', 'grUltraMultiplier', 'grCatchUpShare', 'grFinishedRatio', 'grLevel',
   'achConfirmSingle', 'achDelay', 'achOrder', 'achSafeMode', 'achSpread',
   'farmScheduleEnabled', 'farmScheduleFrom', 'farmScheduleTo', 'grScheduleEnabled', 'grScheduleFrom', 'grScheduleTo',
 ];
@@ -3425,13 +3432,30 @@ function realisticNextDelay(d) {
   return Math.max(FAST_GAP_MS, Math.round(g));   // never faster than Steam's pace (it was 3 s, which held the overdue ones of a finished game for hours)
 }
 
+// A game with nothing left to unlock leaves the account's Realistic Mode queue, the saved one and the page's. It used to stay there for good and was skipped at
+// every start. Achievements the app cannot write (protected ones) do not keep it there either.
+function realisticGameCompleted(steamID, appid, title) {
+  const v = accountData(steamID);
+  const before = (v.grQueue || []).length;
+  v.grQueue = (v.grQueue || []).filter((id) => +id !== +appid);
+  if (v.grQueue.length === before) return;
+  writeAccountDataDelayed(steamID);
+  log('info', '[' + accountName(steamID) + '] realistic mode: ' + title + ' has nothing left to unlock, taken out of the queue');
+  accountEvent(steamID, {
+    typeName: 'realisticGameDone', appid, displayName: title,
+    feedEntry: { kind: 'card', title: 'Tamamlandı, sıradan çıkarıldı', text: title, status: 'Başarılı' },
+  });
+  accountBroadcast(steamID)('realistic:queue', { grQueue: v.grQueue.slice() });
+}
+
 async function realisticStep(steamID) {
   const s = accounts.get(steamID);
   const d = s && s.realistic;
   if (!d) return;
   if (!s.engine) { realisticFinish(steamID, 'no connection'); return; }
-  // If the connection is down an achievement cannot be sent; it continues when the engine reconnects.
-  if (!s.ready) { d.timer = setTimeout(() => realisticStep(steamID), 30000); return; }
+  // If the connection is down an achievement cannot be sent; it continues when the engine reconnects. The same while a game of the account is open on another
+  // device: the run's games are not open then, and opening one to write would take the session from that game.
+  if (!s.ready || s.engine.playingBlocked) { d.timer = setTimeout(() => realisticStep(steamID), 30000); return; }
   const a = d.activeIds;
   const goal = a.queueList[a.indexNum];
   if (!goal) {
@@ -3454,6 +3478,8 @@ async function realisticStep(steamID) {
   try {
     await s.engine.setAchievements(goalAppid, [{ apiName: goal.apiName, unlock: true }]);
     a.openedGames++; d.totalUnlocked++;
+    const done = d.preparing && d.preparing[goalAppid];
+    if (done && (done.unlockedNow = (done.unlockedNow || 0) + 1) >= (done.suitableTotal || 0)) realisticGameCompleted(steamID, goalAppid, goalTitle);
     log('info', '[' + accountName(steamID) + '] realistic mode: unlocked -> ' + goal.name + ' (%' + (goal.rarityPct != null ? goal.rarityPct.toFixed(1) : '?') + ')' + (a.parallel ? ' in ' + goalTitle : ''));
     accountBroadcast(steamID)('realistic:opened', {
       appid: goalAppid, gameTitle: goalTitle, apiName: goal.apiName,
@@ -3728,6 +3754,8 @@ ipcMain.handle('realistic:plan', async (_e, arg) => {
   if (!queueIds.includes(+appid)) queueIds.unshift(+appid);
   try {
     const built = await realisticPrepareAll(engine, queueIds, pick, given, true);
+    // the plan reads every game of the queue: one with nothing left to unlock leaves it now, not only when a run starts
+    built.games.filter((g) => !g.h.suitableTotal).forEach((g) => realisticGameCompleted(activeSteamID, g.appid, g.h.gameTitle));
     const head = built.games.find((g) => g.appid === +appid);
     if (!head) return built.dropped[appid] || { ok: false, error: 'Plan alınamadı' };
     pick.autoSpanApplied = built.auto;
@@ -3814,7 +3842,8 @@ async function realisticStartFor(steamID, arg, fromSchedule) {
     });
     if (!gameList.length) return { ok: false, error: 'Seçilen oyunların başarım şeması okunamadı.' };
 
-    // A game with no locked achievement left to unlock is removed from the queue.
+    // A game with no locked achievement left to unlock does not run, and leaves the saved queue too.
+    gameList.filter((o) => !prepared[o.appid].suitableTotal).forEach((o) => realisticGameCompleted(steamID, o.appid, o.name));
     const willRun = gameList.filter((o) => prepared[o.appid].queueList.length);
     if (!willRun.length) return { ok: false, error: 'Seçilen oyunlarda açılabilecek kilitli başarım yok.' };
 

@@ -492,7 +492,6 @@
  "Kalan başarım": "Achievements left",
  "Tahmini süre": "Estimated time",
  "Başarımlar bitince saati sürdür": "Keep collecting hours when unlocks finish",
- "Başarımsız oyunları listede göster": "Show games without achievements",
  "Nadir": "Rare",
  "Az bulunur": "Uncommon",
  "Yaygın": "Common",
@@ -1101,8 +1100,6 @@
  "ve # tane daha": "and # more",
  "durduruluyor...": "stopping...",
  "Bağlanılamadı:": "Could not connect:",
- "başarım var": "has achievements",
- "başarım yok": "no achievements",
  "#: başarımı yok, listeden çıkarıldı.": "#: has no achievements, removed from the list.",
  "Çalışırken sıra değiştirilemez.": "The order can't be changed while running.",
  "Başarım şeması okunuyor…": "Reading the achievement schema…",
@@ -1541,5 +1538,10 @@
  "… ve # başarım daha": "… and # more achievements",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: played for # hours, past its completion time. All # achievements left count as overdue and unlock one a second.",
  "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Steam connection lost. Connecting (attempt #)...",
- "Steam bağlantısı bekleniyor...": "Waiting for the Steam connection..."
+ "Steam bağlantısı bekleniyor...": "Waiting for the Steam connection...",
+ "Tamamlandı, sıradan çıkarıldı": "Done, taken out of the queue",
+ "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: nothing left to unlock, taken out of the queue.",
+ "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "A game of this account is open on another device. SteamEdge opens its own games again when that game closes.",
+ "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "A game of this account was opened on another device; SteamEdge put its games on hold.",
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "The game on the other device closed; SteamEdge opened its games again."
 }

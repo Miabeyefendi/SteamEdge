@@ -492,7 +492,6 @@
  "Kalan başarım": "Logros restantes",
  "Tahmini süre": "Tiempo estimado",
  "Başarımlar bitince saati sürdür": "Seguir acumulando horas al terminar",
- "Başarımsız oyunları listede göster": "Mostrar juegos sin logros",
  "Nadir": "Raro",
  "Az bulunur": "Poco común",
  "Yaygın": "Común",
@@ -1101,8 +1100,6 @@
  "ve # tane daha": "y # más",
  "durduruluyor...": "deteniendo...",
  "Bağlanılamadı:": "No se pudo conectar:",
- "başarım var": "tiene logros",
- "başarım yok": "sin logros",
  "#: başarımı yok, listeden çıkarıldı.": "#: no tiene logros; se quitó de la lista.",
  "Çalışırken sıra değiştirilemez.": "El orden no se puede cambiar mientras está en marcha.",
  "Başarım şeması okunuyor…": "Leyendo el esquema de logros…",
@@ -1541,5 +1538,10 @@
  "… ve # başarım daha": "… y # logros más",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#: # horas jugadas, ya pasó su tiempo de finalización. Los # logros restantes cuentan como atrasados y se desbloquean uno por segundo.",
  "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Se perdió la conexión con Steam. Conectando (intento #)...",
- "Steam bağlantısı bekleniyor...": "Esperando la conexión con Steam..."
+ "Steam bağlantısı bekleniyor...": "Esperando la conexión con Steam...",
+ "Tamamlandı, sıradan çıkarıldı": "Completado, quitado de la cola",
+ "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: no queda nada por desbloquear, quitado de la cola.",
+ "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "Hay un juego de esta cuenta abierto en otro dispositivo. SteamEdge volverá a abrir sus juegos cuando ese juego se cierre.",
+ "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "Se abrió un juego de esta cuenta en otro dispositivo; SteamEdge dejó sus juegos en espera.",
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "El juego del otro dispositivo se cerró; SteamEdge volvió a abrir sus juegos."
 }

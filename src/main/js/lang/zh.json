@@ -492,7 +492,6 @@
  "Kalan başarım": "剩餘成就",
  "Tahmini süre": "預估時間",
  "Başarımlar bitince saati sürdür": "成就完成後繼續累積時數",
- "Başarımsız oyunları listede göster": "在清單中顯示沒有成就的遊戲",
  "Nadir": "稀有",
  "Az bulunur": "少見",
  "Yaygın": "常見",
@@ -1101,8 +1100,6 @@
  "ve # tane daha": "還有 # 項",
  "durduruluyor...": "正在停止...",
  "Bağlanılamadı:": "無法連線：",
- "başarım var": "有成就",
- "başarım yok": "沒有成就",
  "#: başarımı yok, listeden çıkarıldı.": "#：沒有成就，已從清單移除。",
  "Çalışırken sıra değiştirilemez.": "執行中無法變更順序。",
  "Başarım şeması okunuyor…": "正在讀取成就架構…",
@@ -1541,5 +1538,10 @@
  "… ve # başarım daha": "… 還有 # 個成就",
  "#: # saat oynanmış, bitiş süresini geçmiş. Kalan # başarımın hepsi geride kalmış sayılır ve saniyede bir açılır.": "#：已遊玩 # 小時，超過完成時間。剩下的 # 個成就都算逾期，每秒解鎖一個。",
  "Steam bağlantısı koptu. Bağlanılıyor (deneme #)...": "Steam 連線中斷。正在連線（第 # 次嘗試）...",
- "Steam bağlantısı bekleniyor...": "正在等待 Steam 連線..."
+ "Steam bağlantısı bekleniyor...": "正在等待 Steam 連線...",
+ "Tamamlandı, sıradan çıkarıldı": "已完成，已從佇列移除",
+ "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#：已無可解鎖的成就，已從佇列移除。",
+ "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "此帳號正在其他裝置上開啟遊戲。該遊戲關閉後，SteamEdge 會重新開啟自己的遊戲。",
+ "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "此帳號在其他裝置上開啟了遊戲；SteamEdge 已暫停自己的遊戲。",
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "其他裝置上的遊戲已關閉；SteamEdge 已重新開啟自己的遊戲。"
 }

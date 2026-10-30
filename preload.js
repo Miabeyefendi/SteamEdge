@@ -138,6 +138,8 @@ contextBridge.exposeInMainWorld('imu', {
     noAchievementsClear: () => ipcRenderer.invoke('realistic:noAchievementsClear'),
     onTick: (cb) => ipcRenderer.on('realistic:tick', (_e, d) => cb(d)),
     onOpened: (cb) => ipcRenderer.on('realistic:opened', (_e, d) => cb(d)),
+    // the saved queue lost a game with nothing left to unlock: { steamID, grQueue }
+    onQueue: (cb) => ipcRenderer.on('realistic:queue', (_e, d) => cb(d)),
   },
   // Own active market listings (list and take back)
   market: {
@@ -216,6 +218,8 @@ contextBridge.exposeInMainWorld('imu', {
     // G3: Steam connection state (connected | dropped | connecting | abandoned)
     onStatus: (cb) => ipcRenderer.on('engine:status', (_e, d) => cb(d)),
     connectionStatus: () => ipcRenderer.invoke('engine:connectionStatus'),
+    // a game of the account is open on another device: { steamID, blocked, appid, activeIds }
+    onPlaying: (cb) => ipcRenderer.on('engine:playing', (_e, d) => cb(d)),
     // Retries a connection that has run out of attempts or was permanently dropped.
     reconnect: () => ipcRenderer.invoke('engine:reconnect'),
     boostStop: () => ipcRenderer.send('engine:boostStop'),

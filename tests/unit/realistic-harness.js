@@ -10,7 +10,7 @@ const startCode = src.slice(src.indexOf('function realisticOptions(s)'), src.ind
 const HOUR = 3600000;
 
 function createHarness() {
-  const h = { now: 1000000000000, timers: [], nextTimer: 1, accounts: new Map(), ticks: [], logs: [], feeds: [], resumed: [], unlocks: [], accountsData: new Map(), schemas: new Map(), plays: [] };
+  const h = { now: 1000000000000, timers: [], nextTimer: 1, accounts: new Map(), ticks: [], logs: [], feeds: [], events: [], queues: [], resumed: [], unlocks: [], accountsData: new Map(), schemas: new Map(), plays: [] };
   const fakeSetTimeout = (fn, ms) => { const id = h.nextTimer++; h.timers.push({ id, at: h.now + Math.max(0, ms || 0), fn }); return id; };
   const fakeClearTimeout = (id) => { h.timers = h.timers.filter((t) => t.id !== id); };
   h.advance = async (ms) => {
@@ -47,7 +47,8 @@ function createHarness() {
   };
   const ctx = {
     accounts: h.accounts, activeSteamID: 'a',
-    accountBroadcast: () => (channel, payload) => { if (channel === 'realistic:tick') h.ticks.push(payload); },
+    accountBroadcast: () => (channel, payload) => { if (channel === 'realistic:tick') h.ticks.push(payload); if (channel === 'realistic:queue') h.queues.push(payload); },
+    accountEvent: (id, e) => h.events.push([id, e]),
     log: (l, m) => h.logs.push(l + ' ' + m), accountName: (i) => i,
     accountData: (id) => { if (!h.accountsData.has(id)) h.accountsData.set(id, { achLog: [] }); return h.accountsData.get(id); },
     writeAccountDataDelayed: () => {}, addFeed: (id, e) => h.feeds.push([id, e]), resumeFarm: (id) => h.resumed.push(id),

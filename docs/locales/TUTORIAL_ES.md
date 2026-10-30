@@ -218,7 +218,7 @@ Mantiene un juego abierto y va desbloqueando sus logros a lo largo de la sesión
 
 **El ritmo** está ponderado por rareza. Solo los logros por debajo del 5% esperan notablemente más; todo lo que está por encima mantiene un compás uniforme y rápido. Un juego jugado más allá de su tiempo de completado comprime todo el calendario, porque ya no queda curva de aprendizaje que imitar.
 
-**Los juegos sin logros** se retiran de la cola en cuanto se descubre, se anotan en `cache/no-achievements.json` y no se vuelven a ofrecer en esta página. La marca de biblioteca que publica Steam no es fiable; solo lo es la petición del esquema.
+**Los juegos sin logros** se retiran de la cola en cuanto se descubre, se anotan en `cache/no-achievements.json` y no se vuelven a ofrecer en esta página. La lista de juegos solo ofrece los que Steam marca como juegos con logros; esa marca no siempre acierta, así que la petición del esquema tiene la última palabra. Un juego sin nada por desbloquear también sale de la cola: cuando una ejecución desbloquea su último logro o un plan lo encuentra terminado.
 
 Con **Intervalos aleatorios**, los intervalos varían hasta un 40 % en ambos sentidos y nunca bajan de tres segundos. Con varios juegos en la cola, el tiempo restante se reparte según el número de logros y la cola avanza sola si **Iniciar la cola automáticamente** está activado. Si se acaba el tiempo con logros pendientes, la ejecución se detiene e indica cuántos no se desbloquearon en lugar de forzarlos; un farmeo de cromos que se hubiera pausado para ella se reanuda después.
 
