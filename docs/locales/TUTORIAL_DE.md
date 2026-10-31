@@ -218,7 +218,7 @@ Hält ein Spiel offen und schaltet seine Errungenschaften über die Sitzung vert
 
 **Das Tempo** ist nach Seltenheit gewichtet. Nur Errungenschaften unter 5% warten merklich länger, alles darüber behält einen gleichmäßigen, zügigen Rhythmus. Ein Spiel, das über seine Abschlusszeit hinaus gespielt wurde, staucht den ganzen Plan, denn es gibt keine Lernkurve mehr nachzuahmen.
 
-**Spiele ohne Errungenschaften** fallen aus der Warteschlange, sobald das feststeht, werden nach `cache/no-achievements.json` geschrieben und auf dieser Seite nie wieder angeboten. Das Bibliotheks-Flag, das Steam veröffentlicht, ist nicht verlässlich; nur die Schema-Anfrage ist es.
+**Spiele ohne Errungenschaften** fallen aus der Warteschlange, sobald das feststeht, werden nach `cache/no-achievements.json` geschrieben und auf dieser Seite nie wieder angeboten. Die Spieleliste bietet nur Spiele an, die Steam als Spiele mit Errungenschaften kennzeichnet; diese Kennzeichnung stimmt nicht immer, das letzte Wort hat die Schema-Anfrage. Ein Spiel, in dem nichts mehr freizuschalten ist, verlässt die Warteschlange ebenfalls: wenn ein Lauf die letzte freischaltet oder ein Plan es fertig vorfindet.
 
 Mit **Zufällige Abstände** schwanken die Abstände um bis zu 40 % in beide Richtungen und sind nie kürzer als drei Sekunden. Stehen mehrere Spiele in der Warteschlange, wird die Restzeit nach Anzahl der Errungenschaften aufgeteilt, und die Warteschlange rückt von selbst vor, wenn **Warteschlange automatisch starten** an ist. Läuft die Zeit ab, obwohl noch Errungenschaften übrig sind, endet der Lauf und nennt, wie viele nicht freigeschaltet wurden, statt sie zu erzwingen; ein dafür pausiertes Kartenfarmen wird danach fortgesetzt.
 

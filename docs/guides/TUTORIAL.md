@@ -218,7 +218,7 @@ Holds one game open and unlocks its achievements across the session, from the mo
 
 **Pacing** is weighted by rarity. Only achievements under 5% wait noticeably longer; everything above that keeps an even, quick rhythm. A game played past its completion time compresses the whole schedule, since there is no learning curve left to imitate.
 
-**Games with no achievements** are dropped from the queue the moment that is discovered, written to `cache/no-achievements.json` and never offered on this page again. The library flag Steam publishes is not reliable; only the schema request is.
+**Games with no achievements** are dropped from the queue the moment that is discovered, written to `cache/no-achievements.json` and never offered on this page again. The game list offers only games Steam marks as having achievements; that flag is not always right, so the schema request has the last word. A game with nothing left to unlock leaves the queue too, when a run unlocks its last one or a plan finds it done.
 
 With **Randomised gaps** on, unlock gaps vary by up to 40% either way and are never shorter than three seconds. With several games in the queue the remaining time is shared out by achievement count, and the queue advances on its own when **Start the queue automatically** is on. If the time runs out with achievements left, the run stops and says how many were not unlocked instead of forcing them; a card farm that was paused for the run resumes afterwards.
 

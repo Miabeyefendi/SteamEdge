@@ -23,6 +23,10 @@ class SteamEngine {
     this.persona = null;
     this._playing = [];
     this._owners = new Map();    // job name -> the games that job opened (see play)
+    // A game of this account is open on another device (the Steam client, another computer): Steam lets one session play at a time. While it is,
+    // SteamEdge sends no game of its own; up to 1.8.1 it logged on again every few seconds and opened its games over that one (LoggedInElsewhere, 6).
+    this.playingBlocked = false;
+    this.onPlaying = null;       // (blocked, appid) - set by main.js
     this._persona = 'online';    // what friends see (the top bar): online | away | invisible. The one value every logon, reconnect and game change reads.
     this._hideGameName = false;
     // The account's wallet currency. It starts as UNKNOWN - giving it a default made us fetch prices
@@ -321,6 +325,8 @@ class SteamEngine {
       }
       // A drop of a working connection is told once; an attempt that failed while the connection is down only moves on to the next one (it used to say
       // "dropped" again on every failed attempt, a notification each time).
+      // Another session started a game on this account (the user opened one in the Steam client): the connection comes back, the games wait for it
+      if (+eresult === SteamUser.EResult.LoggedInElsewhere) this._setPlayingBlocked(true, null);
       if (wasUp) this._reportStatus('dropped', { cause: String(cause || ''), eresult: eresult || null });
       this._lastFailure = String(cause || '');
       this._scheduleReconnect();
@@ -341,13 +347,17 @@ class SteamEngine {
       const first = !this._everConnected;
       this._everConnected = true;
       try { this.steamID = this.user.steamID.getSteamID64(); } catch (_) {}
+      this._connectedAt = Date.now();
       this._applyPersona();
       try { this.user.webLogOn(); } catch (_) {}
-      // Reopen the games that were open before the drop - the real loss was here.
-      if (this._playing && this._playing.length) {
-        try { this.user.gamesPlayed(this._playing); } catch (_) {}
-      }
+      // Reopen the games that were open before the drop - the real loss was here. Not while a game of the account is open elsewhere.
+      this._resendGames();
       this._reportStatus('connected', { reconnected: !first, first, gameEntries: (this._playing || []).length });
+    });
+    // Steam says whether another session of the account is playing; it is told after a logon and whenever that changes
+    user.on('playingState', (blocked, appid) => {
+      if (user !== this.user) return;
+      this._setPlayingBlocked(!!blocked, appid || null);
     });
     user.on('webSession', (_sid, cookies) => {
       if (user !== this.user) return;
@@ -473,7 +483,7 @@ class SteamEngine {
     const first = !this._everConnected;
     this._everConnected = true;
     try { this.user.webLogOn(); } catch (_) {}
-    if (this._playing && this._playing.length) { try { this.user.gamesPlayed(this._playing); } catch (_) {} }
+    this._resendGames();
     this._reportStatus('connected', { reconnected: !first, first, gameEntries: (this._playing || []).length });
     return true;
   }
@@ -537,9 +547,13 @@ class SteamEngine {
         return;
       }
       // If the game should be open but is closed, send it again (cheap, no side effects)
-      if (this.isConnected && this._playing && this._playing.length) {
-        try { this.user.gamesPlayed(this._playing); } catch (_) {}
+      // Steam's word on the other session is kept by the instance; when this session never got one (a logon after LoggedInElsewhere, two minutes and no word),
+      // the games are tried once again: if the other game still runs Steam says so, and the next try waits another two minutes, not a few seconds.
+      if (this.isConnected && this.playingBlocked && this.user) {
+        const word = this.user.playingState;
+        if (word ? !word.blocked : Date.now() - (this._connectedAt || 0) > SteamEngine.PLAYING_WAIT_MS) this._setPlayingBlocked(false, null);
       }
+      if (this.isConnected) this._resendGames();
     }, 60000);
   }
 
@@ -1422,7 +1436,7 @@ class SteamEngine {
   async _keepGameOpen(appid, isFn) {
     const previousOnes = (this._playing || []).slice();
     const alreadyOpen = previousOnes.includes(+appid);
-    if (!alreadyOpen) {
+    if (!alreadyOpen && !this.playingBlocked) {
       try { this.user.gamesPlayed(previousOnes.concat([+appid])); } catch (_) {}
       // Steam needs a short moment to process the "playing" state
       await new Promise((r) => setTimeout(r, 1200));
@@ -1430,7 +1444,7 @@ class SteamEngine {
     try {
       return await isFn();
     } finally {
-      if (!alreadyOpen) {
+      if (!alreadyOpen && !this.playingBlocked) {
         try { this.user.gamesPlayed(previousOnes); } catch (_) {}
       }
     }
@@ -1539,8 +1553,23 @@ class SteamEngine {
       });
     });
     this._playing = union;
-    try { this.user.gamesPlayed(union); } catch (_) {}
+    // Steam's word may have come before the listener was there (the first logon): the instance keeps it
+    const word = this.user && this.user.playingState;
+    if (!this.playingBlocked && word && word.blocked) this._setPlayingBlocked(true, word.appid || null);
+    if (!this.playingBlocked) { try { this.user.gamesPlayed(union); } catch (_) {} }
     this._applyPersona();
+  }
+  // The open games again (after a logon, on the heartbeat), unless a game of the account is open on another device
+  _resendGames() {
+    if (this.playingBlocked || !this._playing || !this._playing.length) return;
+    try { this.user.gamesPlayed(this._playing); } catch (_) {}
+  }
+  // blocked: another session of the account plays (appid: its game, when Steam says). When it ends the games of the jobs open again.
+  _setPlayingBlocked(blocked, appid) {
+    if (this.playingBlocked === blocked) return;
+    this.playingBlocked = blocked;
+    if (!blocked) this._resendGames();
+    if (typeof this.onPlaying === 'function') { try { this.onPlaying(blocked, appid); } catch (_) {} }
   }
   get playing() { return this._playing; }
 
@@ -1664,6 +1693,7 @@ SteamEngine.PROBE_MS = 15000;
 // achievements are written while that game is open; card farming earns cards; hour boosting comes last.
 SteamEngine.OWNER_ORDER = ['realistic', 'card', 'hours', 'sequential', 'general'];
 // The visibilities the top bar offers, in its order, and what each one sends to Steam
+SteamEngine.PLAYING_WAIT_MS = 2 * 60000;
 SteamEngine.PERSONA_STATE = { online: SteamUser.EPersonaState.Online, away: SteamUser.EPersonaState.Away, invisible: SteamUser.EPersonaState.Invisible };
 SteamEngine.CURRENCY = SteamUser.ECurrencyCode;
 // Converts Steam price texts to numbers. The format varies by currency:

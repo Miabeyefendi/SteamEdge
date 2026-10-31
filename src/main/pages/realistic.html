@@ -125,7 +125,7 @@
       <div id="grNoAch" style="display:none;border:1px solid #B37E24;border-radius:12px;background:#0D1118;padding:16px 18px;align-items:center;gap:14px">
         <span style="width:7px;height:7px;border-radius:12px;background:#B37E24;flex-shrink:0"></span>
         <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
-          <span style="font-size:13px;font-weight:700;color:#DCE2FA">Bu oyunda başarım yok</span>
+          <span style="font-size:13px;font-weight:700;color:#DCE2FA" id="grNoAchTitle">Bu oyunda başarım yok</span>
           <span style="font-size:11px;color:#8B8F9E;text-wrap:pretty" id="grFallbackNote">-</span>
         </div>
       </div>
@@ -334,10 +334,6 @@
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
             <span style="font-size:12px;color:#B9C0D6">Başarımlar bitince saati sürdür</span>
             <div class="gr-toggle" data-grset="grKeepHours" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">
-            <span style="font-size:12px;color:#B9C0D6">Başarımsız oyunları listede göster</span>
-            <div class="gr-toggle" data-grset="grShowNoAch" style="width:38px;height:22px;border-radius:12px;background:#151C28;border:1px solid #2B3345;padding:2px;cursor:pointer;flex-shrink:0"><div style="width:16px;height:16px;border-radius:12px;background:#7F879B;margin-left:0px;transition:margin-left .15s ease"></div></div>
           </div>
           <!-- When the "Set the duration from the settings" row was added in 1.1.5, it had fallen INSIDE the OPEN <div> of the next row. Because of this three flex children came side by side on a single row and the labels dropped down letter by letter, and the panel got a horizontal scroll. The two rows are now siblings. -->
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #101621">

@@ -11,7 +11,7 @@ const path = require('path');
 const Real = require(path.resolve(__dirname, '..', '..', 'node_modules', 'steam-user'));
 
 function createFakeSteam() {
-  const net = { up: true, limbo: false, sessions: new Map(), logons: 0, uncaught: [], personas: [] };
+  const net = { up: true, limbo: false, sessions: new Map(), logons: 0, uncaught: [], personas: [], played: [], elsewhere: false };
   class FakeSteamUser extends EventEmitter {
     constructor(options) {
       super();
@@ -48,6 +48,8 @@ function createFakeSteam() {
         this.steamID = { getSteamID64: () => '76561198000000001' };
         this.emit('loggedOn', {});
         this.emit('accountInfo', 'tester');
+        // Steam tells a new session at once that another device of the account plays (unless the test wants it silent)
+        if (net.elsewhere && !net.silent) { this.playingState = { blocked: true, appid: 730 }; this.emit('playingState', true, 730); }
         setTimeout(() => { if (this.steamID && !this._closed) this.emit('webSession', 'sid', ['steamLoginSecure=1']); }, 50);
       }, 300);
     }
@@ -68,7 +70,13 @@ function createFakeSteam() {
     // the real one sends it only on a logged on session; every call is kept, so a test can see what Steam was told and when
     setPersona(state) { this.persona = state; net.personas.push({ state, loggedOn: !!this.steamID }); }
     webLogOn() {}
-    gamesPlayed(ids) { this.played = ids; }
+    // Another device of the account plays (net.elsewhere): Steam logs off a session that opens games over it with LoggedInElsewhere, as seen on a real
+    // account (1.8.1 log: a logon and a kick every six seconds)
+    gamesPlayed(ids) {
+      this.played = ids;
+      net.played.push({ ids: (ids || []).slice(), at: Date.now() });
+      if (net.elsewhere && ids && ids.length && this.steamID) setTimeout(() => { if (this.steamID) this._kick(6, 'LoggedInElsewhere'); }, 300);
+    }
   }
   ['EPersonaState', 'ECurrencyCode', 'EResult'].forEach((k) => { FakeSteamUser[k] = Real[k]; });
   FakeSteamUser.instances = [];
@@ -77,6 +85,16 @@ function createFakeSteam() {
   // it comes back: new attempts connect; an attempt that hung in limbo stays hung, as a dead socket does
   net.restore = () => { net.up = true; net.limbo = false; };
   net.live = () => [...net.sessions.values()].filter((u) => u.steamID).length;
+  // a game of the account starts or ends on another device: Steam tells every logged on session (ClientPlayingSessionState); silent: it says nothing
+  net.otherDevice = (playing, silent) => {
+    net.elsewhere = playing;
+    net.silent = !!silent;
+    const live = FakeSteamUser.instances.filter((u) => u.steamID && !u._closed);
+    // the Steam client starting a game takes the play from the session that has one open: it is logged off (the user confirmed "play anyway")
+    if (playing) live.filter((u) => u.played && u.played.length).forEach((u) => u._kick(6, 'LoggedInElsewhere'));
+    if (silent) return;
+    live.filter((u) => u.steamID).forEach((u) => { u.playingState = { blocked: playing, appid: playing ? 730 : 0 }; u.emit('playingState', playing, playing ? 730 : 0); });
+  };
   return { FakeSteamUser, net };
 }
 

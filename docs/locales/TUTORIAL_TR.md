@@ -218,7 +218,7 @@ Tek oyunu açık tutar ve başarımlarını oturum boyunca, en yaygından en nad
 
 **Ritim** nadirliğe göre ağırlıklandırılır. Yalnızca %5 altındaki başarımlar belirgin biçimde uzun bekler, üstündeki her şey eşit ve hızlı akar. Bitiş süresini geçmiş bir oyunda çizelgenin tamamı sıkışır, çünkü taklit edilecek bir öğrenme eğrisi kalmamıştır.
 
-**Başarımı olmayan oyunlar** anlaşıldığı anda kuyruktan düşer, `cache/no-achievements.json` dosyasına yazılır ve bu sayfada bir daha önerilmez. Steam'in yayımladığı kütüphane bayrağı güvenilir değil; yalnızca şema isteği güvenilir.
+**Başarımı olmayan oyunlar** anlaşıldığı anda kuyruktan düşer, `cache/no-achievements.json` dosyasına yazılır ve bu sayfada bir daha önerilmez. Oyun listesi yalnızca Steam'in başarımı var dediği oyunları gösterir; bu işaret her zaman doğru değildir, son sözü şema isteği söyler. Açılacak başarımı kalmayan oyun da kuyruktan çıkar: bir çalışma son başarımını açtığında ya da plan onu bitmiş bulduğunda.
 
 **Rastgele aralık** açıkken açılış aralıkları iki yöne en fazla %40 sapar ve asla üç saniyeden kısa olmaz. Kuyrukta birden fazla oyun varsa kalan süre başarım sayısına göre paylaştırılır ve **Sırayı otomatik başlat** açıkken kuyruk kendiliğinden ilerler. Süre dolduğunda başarım kalmışsa çalışma durur ve kalanları zorlamak yerine kaç tanesinin açılmadığını söyler; onun için duraklatılmış bir kart düşürme sonra sürer.
 

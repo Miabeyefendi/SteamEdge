@@ -141,11 +141,9 @@
 
     // ---- library search ----
     function grSearchable(){
-      // Those in the ledger are ALWAYS filtered out: it was learned by trying that they have no achievements.
-      // The "Show games without achievements" switch only loosens Steam's unreliable hasStats
-      // flag, it does not bring back what was proven.
-      const tidy = grGames.filter(g=>!grNoAchievements.has(g.appid));
-      return grVal('grShowNoAch', false) ? tidy : tidy.filter(g=>g.hasStats);
+      // Only games Steam says have achievements, and none of the ledger (learned by trying that they have none). The "Show games without
+      // achievements" switch (up to 1.8.1) is gone: such a game could only be added to be thrown out again.
+      return grGames.filter(g=>g.hasStats && !grNoAchievements.has(g.appid));
     }
     function grPaintSearch(){
       const q = grEl('grSearch').value.trim().toLowerCase();
@@ -162,7 +160,7 @@
           + '<div style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1">'
           + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
           + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
-          + esc(grWriteHours(g.playtimeMin) + ' · ' + t(g.hasStats ? 'başarım var' : 'başarım yok'))+'</span>'
+          + esc(grWriteHours(g.playtimeMin))+'</span>'
           + '</div>'
           + favStar(g.appid)
           + '<button class="h-brand" style="width:24px;height:24px;flex-shrink:0;border-radius:12px;border:1px solid '
@@ -186,6 +184,14 @@
       if (!game) return true;
       const p = await window.imu.realistic.plan(game.appid, grDurationMs(), grOptions())
         .catch(()=>null);
+      if (p && p.ok && !p.suitableTotal){
+        grQueue = grQueue.filter(x=>x.appid!==game.appid);
+        grSaveQueue();
+        grPaintLibrary();
+        grPaintSearch();
+        if (typeof toast === 'function') toast('Gerçekçi Mod').fail(tf('#: açılacak başarımı kalmadı, sıradan çıkarıldı.', game.name));
+        return false;
+      }
       if (!p || !p.noAchievements) return true;
       grNoAchievements.add(game.appid);
       grQueue = grQueue.filter(x=>x.appid!==game.appid);
@@ -424,10 +430,13 @@
       if (noAchievements){
         // Only games that HAVE achievements but have NO locked achievement left to unlock land here.
         // A game with no achievements at all does not enter the list anyway (grFetchPlan drops it).
-        grSet('grFallbackLabel', 'Listeden çıkarılacak');
+        // a game whose achievements are all unlocked has achievements: up to 1.8.1 its heading said it had none (2130 open on Zup!, seen on a real account)
+        const allOpen = !!(grPlan && grPlan.suitableTotal === 0 && grPlan.totalAchievements);
+        grSet('grNoAchTitle', allOpen ? 'Açılacak başarım kalmadı' : 'Bu oyunda başarım yok');
+        grSet('grFallbackLabel', 'Sıradan çıkarıldı');
         grSet('grDurLabel2', grDurationLabel(grDurationMs()));
-        grSet('grFallbackNote', grPlan && grPlan.suitableTotal === 0 && grPlan.totalAchievements
-          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.', grPlan.totalAchievements)
+        grSet('grFallbackNote', allOpen
+          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıradan çıkarıldı.', grPlan.totalAchievements)
           : t('Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.'));
       }
 
@@ -676,7 +685,6 @@
         // Turning the automatic duration on again takes back a duration typed earlier in this session
         if (k === 'grAutoDuration' && newItem) grDurationTouched = false;
         if (k === 'grSkipUltraRare' || k === 'grAutoDuration' || k === 'grCatchUp' || k === 'grParallel') grFetchPlan();
-        else if (k === 'grShowNoAch') grPaintSearch();
         else grPaintList();
         grPaintAccount();
       });
@@ -912,6 +920,20 @@
         grTimerUI = setInterval(()=>{ if (typeof uiTickAllowed !== 'function' || uiTickAllowed()) refresh(); }, 1000);
         if (d.gameChanged) grPaintLibrary();
         grPaintList();
+      });
+    }
+    // The main process took a game with nothing left to unlock out of the saved queue (a run finished it, or the plan found it done)
+    if (window.imu.realistic && window.imu.realistic.onQueue){
+      window.imu.realistic.onQueue((d)=>{
+        if (!d || !Array.isArray(d.grQueue)) return;
+        const keep = new Set(d.grQueue.map(Number));
+        const gone = grQueue.filter(g=>!keep.has(g.appid));
+        if (typeof appSettings === 'object' && appSettings) appSettings.grQueue = d.grQueue.slice();
+        if (!gone.length) return;
+        grQueue = grQueue.filter(g=>keep.has(g.appid));
+        gone.forEach(g=>{ if (typeof toast === 'function') toast('Gerçekçi Mod').done(tf('#: açılacak başarımı kalmadı, sıradan çıkarıldı.', g.name)); });
+        grPaintLibrary();
+        if (!grStatus.runningFlag) grFetchPlan();
       });
     }
     if (window.imu.realistic && window.imu.realistic.onOpened){
