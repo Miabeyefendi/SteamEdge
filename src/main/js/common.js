@@ -1288,7 +1288,7 @@
       if (typeof priceMap !== 'undefined') priceMap.clear();
       if (typeof selected !== 'undefined') selected.clear();
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
-      if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; }
+      if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; grCompleted = new Set(); grChecked.clear(); }
       if (typeof acCache !== 'undefined') acCache.clear();
       // Chat must not show another account's friend list
       if (typeof chLoaded !== 'undefined'){ chLoaded = false; chFriends = []; chSelected = null; chMessages.clear(); chUnread.clear(); }

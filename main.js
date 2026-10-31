@@ -1733,6 +1733,7 @@ const DEFAULT_ACCOUNT_DATA = {
   proxyUrl: '',                    // proxy of this account (http://, https:// or socks5://, may hold a user:password; never exported)
   personaState: null,              // what friends see, chosen in the top bar: online | away | invisible (null: never chosen, online)
   keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
+  grCompleted: {},                 // appid -> when it was learned that nothing is left to unlock (Realistic Mode leaves it out of its game list)
   farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
   farmWhitelist: [],               // appids that card farming is limited to while farmWhitelistOnly is on
   farmWhitelistOnly: false,
@@ -3436,6 +3437,7 @@ function realisticNextDelay(d) {
 // every start. Achievements the app cannot write (protected ones) do not keep it there either.
 function realisticGameCompleted(steamID, appid, title) {
   const v = accountData(steamID);
+  markCompleted(steamID, appid);
   const before = (v.grQueue || []).length;
   v.grQueue = (v.grQueue || []).filter((id) => +id !== +appid);
   if (v.grQueue.length === before) return;
@@ -3445,7 +3447,21 @@ function realisticGameCompleted(steamID, appid, title) {
     typeName: 'realisticGameDone', appid, displayName: title,
     feedEntry: { kind: 'card', title: 'Tamamlandı, sıradan çıkarıldı', text: title, status: 'Başarılı' },
   });
-  accountBroadcast(steamID)('realistic:queue', { grQueue: v.grQueue.slice() });
+  accountBroadcast(steamID)('realistic:queue', { grQueue: v.grQueue.slice(), completed: +appid });
+}
+// The games of an account with nothing left to unlock: the game list of Realistic Mode leaves them out. 1.8.2 only took them out of the queue, the search still
+// offered them. An entry is read again after COMPLETED_RECHECK_MS: a game can get new achievements.
+const COMPLETED_RECHECK_MS = 30 * 24 * 3600 * 1000;
+function markCompleted(steamID, appid) {
+  const v = accountData(steamID);
+  if (!v.grCompleted || typeof v.grCompleted !== 'object' || Array.isArray(v.grCompleted)) v.grCompleted = {};
+  if (v.grCompleted[appid]) return;
+  v.grCompleted[appid] = Date.now();
+  writeAccountDataDelayed(steamID);
+}
+function completedOf(steamID) {
+  const all = (accountData(steamID).grCompleted) || {};
+  return Object.keys(all).filter((id) => Date.now() - all[id] < COMPLETED_RECHECK_MS).map(Number);
 }
 
 async function realisticStep(steamID) {
@@ -3627,6 +3643,29 @@ loadNoAchievements();
 require('./src/core/rarityCache').setFile(path.join(CACHE_DIR, 'achievement-rarity.json'));
 
 ipcMain.handle('realistic:noAchievementsList', () => ({ ok: true, appids: [...noAchievementsSet] }));
+ipcMain.handle('realistic:completedList', () => ({ ok: true, appids: activeSteamID ? completedOf(activeSteamID) : [] }));
+// The games the search shows that were never read: their achievements are read (over the Steam connection, not the market quota; the engine keeps the schema
+// for five minutes) and the finished ones are remembered, so the list drops them. At most 40 at a time, the number the search shows.
+let completedCheckBusy = false;
+ipcMain.handle('realistic:checkCompleted', async (_e, appids) => {
+  if (!engineReady || !engine || !activeSteamID) return { ok: false, error: 'Bağlı değil.' };
+  if (completedCheckBusy) return { ok: false, busy: true };
+  completedCheckBusy = true;
+  const who = activeSteamID, eng = engine;
+  const known = new Set(completedOf(who));
+  const finished = [];
+  try {
+    for (const id of (Array.isArray(appids) ? appids : []).map(Number).filter((x) => x > 0 && !known.has(x)).slice(0, 40)) {
+      if (activeSteamID !== who) break;
+      try {
+        const data = await eng.getAchievements(id);
+        const list = (data && data.achievements) || [];
+        if (list.length && !list.some((a) => !a.achieved && !a.protectedFlag)) { markCompleted(who, id); finished.push(id); }
+      } catch (_) {}
+    }
+  } finally { completedCheckBusy = false; }
+  return { ok: true, completed: finished };
+});
 ipcMain.handle('realistic:noAchievementsClear', () => {
   const n = noAchievementsSet.size;
   noAchievementsSet = new Set();

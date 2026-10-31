@@ -21,6 +21,8 @@
     // Games found to have no achievements (appid). The engine learns once and writes to disk;
     // they never show up in this page's list again. This page only unlocks achievements.
     let grNoAchievements = new Set();
+    let grCompleted = new Set();      // games of this account with nothing left to unlock (main.js grCompleted): not offered in the list
+    const grChecked = new Set();      // shown in the search and read once in this session
     // If the user touched the duration field by hand the automatic assignment does not kick in.
     let grDurationTouched = false;
     let grPlanRequest = 0;            // request counter to prevent race conditions
@@ -126,6 +128,8 @@
       if (!res.ok){ grEl('grSearch').placeholder = t('Kütüphane okunamadı.'); return; }
       const bs = await window.imu.realistic.noAchievementsList().catch(()=>null);
       if (bs && bs.ok) grNoAchievements = new Set((bs.appids||[]).map(Number));
+      const done = await window.imu.realistic.completedList().catch(()=>null);
+      grCompleted = new Set(((done && done.appids) || []).map(Number));
       grGames = (res.games || []).map(g=>({
         appid: g.appid, name: g.name, playtimeMin: g.playtimeForever || 0, hasStats: !!g.hasStats,
       }));
@@ -143,7 +147,8 @@
     function grSearchable(){
       // Only games Steam says have achievements, and none of the ledger (learned by trying that they have none). The "Show games without
       // achievements" switch (up to 1.8.1) is gone: such a game could only be added to be thrown out again.
-      return grGames.filter(g=>g.hasStats && !grNoAchievements.has(g.appid));
+      // Nor games with nothing left to unlock: 1.8.2 only took them out of the queue, the search still offered them.
+      return grGames.filter(g=>g.hasStats && !grNoAchievements.has(g.appid) && !grCompleted.has(g.appid));
     }
     function grPaintSearch(){
       const q = grEl('grSearch').value.trim().toLowerCase();
@@ -154,6 +159,7 @@
       const found = favoritesFirst(grSearchable().filter(g=>q ? g.name.toLowerCase().includes(q) : isFavorite(g.appid))).slice(0, 40);
       box.style.display = 'flex';
       grEl('grNoResults').style.display = found.length ? 'none' : 'block';
+      grCheckShown(found);
       grEl('grResults').innerHTML = found.map(g=>{
         const inside = chosen.has(g.appid);
         return '<div class="h-s3" data-gradd="'+g.appid+'" style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:12px;cursor:pointer">'
@@ -170,6 +176,21 @@
           + '</div>';
       }).join('');
     }
+    // The games the search shows that were never read: main.js reads their achievements and the finished ones leave the list
+    let grCheckBusy = false;
+    async function grCheckShown(found){
+      const ids = found.map(g=>g.appid).filter(id=>!grChecked.has(id));
+      if (!ids.length || grCheckBusy) return;
+      grCheckBusy = true;
+      ids.forEach(id=>grChecked.add(id));
+      const r = await window.imu.realistic.checkCompleted(ids).catch(()=>null);
+      grCheckBusy = false;
+      if (r && r.busy) ids.forEach(id=>grChecked.delete(id));
+      if (r && r.ok && r.completed && r.completed.length){
+        r.completed.forEach(id=>grCompleted.add(+id));
+        grPaintSearch();
+      }
+    }
     grEl('grSearch').addEventListener('input', grPaintSearch);
     grEl('grSearch').addEventListener('focus', grPaintSearch);
     grEl('grSearch').addEventListener('keydown', (e)=>{
@@ -185,6 +206,7 @@
       const p = await window.imu.realistic.plan(game.appid, grDurationMs(), grOptions())
         .catch(()=>null);
       if (p && p.ok && !p.suitableTotal){
+        grCompleted.add(game.appid);
         grQueue = grQueue.filter(x=>x.appid!==game.appid);
         grSaveQueue();
         grPaintLibrary();
@@ -926,6 +948,7 @@
     if (window.imu.realistic && window.imu.realistic.onQueue){
       window.imu.realistic.onQueue((d)=>{
         if (!d || !Array.isArray(d.grQueue)) return;
+        if (d.completed) grCompleted.add(+d.completed);
         const keep = new Set(d.grQueue.map(Number));
         const gone = grQueue.filter(g=>!keep.has(g.appid));
         if (typeof appSettings === 'object' && appSettings) appSettings.grQueue = d.grQueue.slice();
