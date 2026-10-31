@@ -135,6 +135,9 @@ contextBridge.exposeInMainWorld('imu', {
     // Games found to have no achievements. Learned once, written to disk, and that game
     // never shows up in this page's list again.
     noAchievementsList: () => ipcRenderer.invoke('realistic:noAchievementsList'),
+    // games with nothing left to unlock (this account), and a check of the ones the search shows
+    completedList: () => ipcRenderer.invoke('realistic:completedList'),
+    checkCompleted: (appids) => ipcRenderer.invoke('realistic:checkCompleted', appids),
     noAchievementsClear: () => ipcRenderer.invoke('realistic:noAchievementsClear'),
     onTick: (cb) => ipcRenderer.on('realistic:tick', (_e, d) => cb(d)),
     onOpened: (cb) => ipcRenderer.on('realistic:opened', (_e, d) => cb(d)),

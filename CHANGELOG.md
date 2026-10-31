@@ -7,6 +7,21 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.8.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.8.3)
+
+Realistic Mode no longer offers games with nothing left to unlock.
+
+### Fixed
+
+- **A finished game left the queue but the game list still offered it.** 1.8.2 took a game with every achievement unlocked out of the queue; searching for it showed it again, and adding it only threw it out again (17 Zup! games on a real account). Every account now remembers its finished games and the list leaves them out: the ones a run finishes, the ones a plan finds done, and the ones the search shows, whose achievements are read in the background the first time they appear (over the Steam connection, not the market quota). A finished game is read again after 30 days, in case it got new achievements.
+
+### Changed
+
+- `npm test` runs 66 tests; `realistic-finished` checks that the account remembers the finished games.
+
+
+SHA-256 (`SteamEdge-v1.8.3-win-x64.rar`): `d38edc275665aff9dbef86c1966b4334c64a8f7dbb8a4f1c84d7a945cee719dd`
+
 ## [1.8.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.8.2)
 
 Playing a game in the Steam client no longer starts a tug of war with SteamEdge, finished games leave the Realistic Mode queue, and games without achievements are not offered any more.

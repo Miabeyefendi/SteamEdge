@@ -1,5 +1,5 @@
 // Realistic Mode takes a game with nothing left to unlock out of the account's saved queue: one already finished when a run starts, and one a run finishes.
-// Up to 1.8.1 both stayed in the queue for good and were skipped at every start. A game whose target was only a part of its achievements stays.
+// Up to 1.8.1 both stayed in the queue for good and were skipped at every start; since 1.8.3 the account also remembers them for the game list. A game whose target was only a part of its achievements stays.
 // Run with `npm test` (tests/run.js).
 const { createHarness, HOUR } = require('./realistic-harness');
 let failures = 0;
@@ -22,6 +22,10 @@ const BASE = { goalAuto: false, goalValue: 0, autoSpan: false, model: 'linear', 
   check('every achievement of the two games was unlocked', h.unlocks.length === 9, String(h.unlocks.length));
   check('each game leaves the queue when its last one is unlocked', h.accountsData.get('a').grQueue.length === 0, h.accountsData.get('a').grQueue.join());
   check('in the order they finished', h.queues.map((q) => q.grQueue.join('/')).join(' | ') === '1/3 | 3 | ', h.queues.map((q) => q.grQueue.join('/')).join(' | '));
+  // 1.8.3: the account remembers them, so the game list leaves them out too (1.8.2 only emptied the queue, the search still offered them)
+  const done = Object.keys(h.accountsData.get('a').grCompleted || {}).sort().join();
+  check('the account remembers all three as finished, for the game list', done === '1,2,3', done);
+  check('the page is told which game finished', h.queues.map((q) => q.completed).join() === '2,1,3', h.queues.map((q) => q.completed).join());
 
   // ---- the same games together ----
   h = createHarness();
