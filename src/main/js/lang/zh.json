@@ -516,7 +516,6 @@
  "Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.": "全部同時：所有已選遊戲同時執行，達到目標的遊戲會從清單中移除。這是最快的方式。逐一進行：落後最多的遊戲會單獨先行，追上下一個之後兩者一起繼續；等待中的遊戲不會累積時數。",
  "Gecikmiş başarımları hızlandır": "補齊落後的成就",
  "Fiyatla birlikte ortalamayı da çek": "取得價格時一併取得平均價",
- "Listeden çıkarılacak": "將從清單中移除",
  "En fazla # ön ayar tutulur. Önce birini sil.": "最多保留 # 個預設組合，請先刪除一個。",
  "Oyun saatlerce oynanmış ama başarımları açılmamışsa geride kalan başarımlar birikir. Açıkken bunlar oturumun ilk beşte birinde hızla açılır, sonra ritim normale döner. Birikim oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "若遊戲已累積不少時數卻沒有解鎖任何成就，代表有一批落後的成就。開啟後，這批落後成就會在時段的前五分之一內快速補齊，之後恢復正常節奏。落後的數量取決於遊玩時數：一小時的遊戲只有幾個，一百小時的遊戲則多得多。",
  "Açıkken bir eşyanın en düşük fiyatıyla birlikte gerçekleşen satış ortalaması da çekilir; ortalama için listenin bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamı iki kat uzun sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "開啟後，物品的實際成交平均價會與最低價在同一輪取得，不必等整份清單跑完才看到平均價。每件物品兩次請求，因此整個庫存填滿所需的時間會加倍。關閉時，平均價只能透過庫存頁面的「平均」按鈕取得。",
@@ -1104,7 +1103,7 @@
  "Çalışırken sıra değiştirilemez.": "執行中無法變更順序。",
  "Başarım şeması okunuyor…": "正在讀取成就架構…",
  "Plan alınamadı": "無法取得計畫",
- "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.": "此遊戲的 # 項成就都已解鎖或受遊戲伺服器保護。沒有可解鎖的項目，因此不會加入佇列。",
+ "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıradan çıkarıldı.": "此遊戲的 # 項成就皆已解鎖或受遊戲伺服器保護。已無可解鎖的內容，因此已從佇列移除。",
  "Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.": "Steam 未提供此遊戲的成就架構，不會加入佇列。",
  "yaklaşık # içinde açılacak · sıra: #": "約 # 內解鎖 · 順序：#",
  "Soldan oyun ekle, açılma sırası burada görünecek.": "從左側加入遊戲，解鎖順序會顯示在這裡。",
@@ -1543,5 +1542,7 @@
  "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#：已無可解鎖的成就，已從佇列移除。",
  "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "此帳號正在其他裝置上開啟遊戲。該遊戲關閉後，SteamEdge 會重新開啟自己的遊戲。",
  "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "此帳號在其他裝置上開啟了遊戲；SteamEdge 已暫停自己的遊戲。",
- "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "其他裝置上的遊戲已關閉；SteamEdge 已重新開啟自己的遊戲。"
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "其他裝置上的遊戲已關閉；SteamEdge 已重新開啟自己的遊戲。",
+ "Açılacak başarım kalmadı": "已無可解鎖的成就",
+ "Sıradan çıkarıldı": "已從佇列移除"
 }

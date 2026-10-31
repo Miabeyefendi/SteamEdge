@@ -516,7 +516,6 @@
  "Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.": "Todos a la vez: todos los juegos seleccionados se ejecutan al mismo tiempo y salen de la lista al alcanzar el objetivo. Es la vía más rápida. Uno por uno: el juego más rezagado avanza en solitario y, cuando alcanza al siguiente, ambos continúan juntos; un juego que espera su turno no acumula horas.",
  "Gecikmiş başarımları hızlandır": "Recuperar los logros atrasados",
  "Fiyatla birlikte ortalamayı da çek": "Obtener la media junto con el precio",
- "Listeden çıkarılacak": "Se quitará de la lista",
  "En fazla # ön ayar tutulur. Önce birini sil.": "Se guardan como máximo # plantillas. Borra una primero.",
  "Oyun saatlerce oynanmış ama başarımları açılmamışsa geride kalan başarımlar birikir. Açıkken bunlar oturumun ilk beşte birinde hızla açılır, sonra ritim normale döner. Birikim oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Si un juego tiene muchas horas pero ningún logro desbloqueado, se ha acumulado un atraso. Con esto activado, ese atraso se recupera en el primer quinto de la sesión y luego el ritmo vuelve a la normalidad. El tamaño del atraso depende de las horas jugadas: unos pocos logros en un juego de una hora, muchos más en uno de cien.",
  "Açıkken bir eşyanın en düşük fiyatıyla birlikte gerçekleşen satış ortalaması da çekilir; ortalama için listenin bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamı iki kat uzun sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Con esto activado, la media de ventas de un objeto se obtiene en la misma pasada que su precio más bajo, así que no esperas a que termine toda la lista. Dos peticiones por objeto hacen que un inventario completo tarde el doble. Desactivado, las medias llegan solo con el botón Media de la página Inventario.",
@@ -1104,7 +1103,7 @@
  "Çalışırken sıra değiştirilemez.": "El orden no se puede cambiar mientras está en marcha.",
  "Başarım şeması okunuyor…": "Leyendo el esquema de logros…",
  "Plan alınamadı": "No se pudo obtener el plan",
- "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.": "El único logro de este juego ya está desbloqueado o protegido por el servidor del juego. Como no queda nada que desbloquear, no se añade a la cola.|Los # logros de este juego ya están desbloqueados o protegidos por el servidor del juego. Como no queda nada que desbloquear, no se añade a la cola.",
+ "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıradan çıkarıldı.": "Los # logros de este juego están desbloqueados o protegidos por el servidor del juego. Como no queda nada por desbloquear, se quitó de la cola.",
  "Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.": "Steam no proporciona un esquema de logros para este juego. No se añade a la cola.",
  "yaklaşık # içinde açılacak · sıra: #": "se desbloqueará en unos # · posición: #",
  "Soldan oyun ekle, açılma sırası burada görünecek.": "Añade un juego desde la izquierda; aquí aparecerá el orden de desbloqueo.",
@@ -1543,5 +1542,7 @@
  "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: no queda nada por desbloquear, quitado de la cola.",
  "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "Hay un juego de esta cuenta abierto en otro dispositivo. SteamEdge volverá a abrir sus juegos cuando ese juego se cierre.",
  "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "Se abrió un juego de esta cuenta en otro dispositivo; SteamEdge dejó sus juegos en espera.",
- "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "El juego del otro dispositivo se cerró; SteamEdge volvió a abrir sus juegos."
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "El juego del otro dispositivo se cerró; SteamEdge volvió a abrir sus juegos.",
+ "Açılacak başarım kalmadı": "No queda nada por desbloquear",
+ "Sıradan çıkarıldı": "Quitado de la cola"
 }

@@ -430,10 +430,13 @@
       if (noAchievements){
         // Only games that HAVE achievements but have NO locked achievement left to unlock land here.
         // A game with no achievements at all does not enter the list anyway (grFetchPlan drops it).
-        grSet('grFallbackLabel', 'Listeden çıkarılacak');
+        // a game whose achievements are all unlocked has achievements: up to 1.8.1 its heading said it had none (2130 open on Zup!, seen on a real account)
+        const allOpen = !!(grPlan && grPlan.suitableTotal === 0 && grPlan.totalAchievements);
+        grSet('grNoAchTitle', allOpen ? 'Açılacak başarım kalmadı' : 'Bu oyunda başarım yok');
+        grSet('grFallbackLabel', 'Sıradan çıkarıldı');
         grSet('grDurLabel2', grDurationLabel(grDurationMs()));
-        grSet('grFallbackNote', grPlan && grPlan.suitableTotal === 0 && grPlan.totalAchievements
-          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.', grPlan.totalAchievements)
+        grSet('grFallbackNote', allOpen
+          ? tf('Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıradan çıkarıldı.', grPlan.totalAchievements)
           : t('Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.'));
       }
 

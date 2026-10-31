@@ -516,7 +516,6 @@
  "Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.": "Alle zugleich: alle ausgewählten Spiele laufen gleichzeitig und fallen aus der Liste, sobald sie das Ziel erreichen. Das ist der schnellste Weg. Nacheinander: das am weitesten zurückliegende Spiel wird allein vorgezogen, und sobald es das nächste eingeholt hat, laufen beide zusammen weiter; ein wartendes Spiel sammelt keine Stunden.",
  "Gecikmiş başarımları hızlandır": "Rückständige Errungenschaften aufholen",
  "Fiyatla birlikte ortalamayı da çek": "Durchschnitt zusammen mit dem Preis holen",
- "Listeden çıkarılacak": "Wird aus der Liste entfernt",
  "En fazla # ön ayar tutulur. Önce birini sil.": "Es werden höchstens # Vorlagen gespeichert. Lösche zuerst eine.",
  "Oyun saatlerce oynanmış ama başarımları açılmamışsa geride kalan başarımlar birikir. Açıkken bunlar oturumun ilk beşte birinde hızla açılır, sonra ritim normale döner. Birikim oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Wenn ein Spiel viele Stunden hat, aber keine Errungenschaften freigeschaltet wurden, hat sich ein Rückstand angesammelt. Ist dies aktiv, wird dieser Rückstand im ersten Fünftel der Sitzung aufgeholt, danach kehrt der Rhythmus zurück. Die Größe des Rückstands hängt von der Spielzeit ab: bei einer Stunde ein paar Errungenschaften, bei hundert Stunden weit mehr.",
  "Açıkken bir eşyanın en düşük fiyatıyla birlikte gerçekleşen satış ortalaması da çekilir; ortalama için listenin bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamı iki kat uzun sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Wenn aktiv, wird der Verkaufsdurchschnitt eines Gegenstands im selben Durchgang wie sein niedrigster Preis geholt; du wartest nicht, bis die ganze Liste fertig ist. Zwei Anfragen pro Gegenstand bedeuten, dass ein volles Inventar doppelt so lange braucht. Wenn inaktiv, kommen Durchschnitte nur über die Schaltfläche „Durchschnitt“ im Inventar.",
@@ -1104,7 +1103,7 @@
  "Çalışırken sıra değiştirilemez.": "Die Reihenfolge kann während des Laufs nicht geändert werden.",
  "Başarım şeması okunuyor…": "Errungenschaftsschema wird gelesen…",
  "Plan alınamadı": "Plan konnte nicht abgerufen werden",
- "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.": "Die einzige Errungenschaft dieses Spiels ist freigeschaltet oder vom Spielserver geschützt. Da nichts mehr freizuschalten ist, kommt es nicht in die Warteschlange.|Alle # Errungenschaften dieses Spiels sind freigeschaltet oder vom Spielserver geschützt. Da nichts mehr freizuschalten ist, kommt es nicht in die Warteschlange.",
+ "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıradan çıkarıldı.": "Alle # Errungenschaften dieses Spiels sind freigeschaltet oder vom Spielserver geschützt. Da nichts mehr freizuschalten ist, wurde es aus der Warteschlange genommen.",
  "Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.": "Steam liefert für dieses Spiel kein Errungenschaftsschema. Es kommt nicht in die Warteschlange.",
  "yaklaşık # içinde açılacak · sıra: #": "wird in etwa # freigeschaltet · Position: #",
  "Soldan oyun ekle, açılma sırası burada görünecek.": "Füge links ein Spiel hinzu; die Freischaltreihenfolge erscheint hier.",
@@ -1543,5 +1542,7 @@
  "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: nichts mehr freizuschalten, aus der Warteschlange genommen.",
  "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "Auf einem anderen Gerät läuft ein Spiel dieses Kontos. SteamEdge öffnet seine eigenen Spiele wieder, wenn dieses Spiel beendet ist.",
  "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "Auf einem anderen Gerät wurde ein Spiel dieses Kontos gestartet; SteamEdge hat seine Spiele angehalten.",
- "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "Das Spiel auf dem anderen Gerät wurde beendet; SteamEdge hat seine Spiele wieder geöffnet."
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "Das Spiel auf dem anderen Gerät wurde beendet; SteamEdge hat seine Spiele wieder geöffnet.",
+ "Açılacak başarım kalmadı": "Nichts mehr freizuschalten",
+ "Sıradan çıkarıldı": "Aus der Warteschlange genommen"
 }

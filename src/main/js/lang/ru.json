@@ -516,7 +516,6 @@
  "Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz.": "Все сразу: все выбранные игры работают одновременно, а достигшая цели уходит из списка. Это самый быстрый путь. По очереди: самая отстающая игра подтягивается в одиночку, а догнав следующую, они идут вместе; ждущая своей очереди игра часов не набирает.",
  "Gecikmiş başarımları hızlandır": "Наверстать отстающие достижения",
  "Fiyatla birlikte ortalamayı da çek": "Получать среднюю вместе с ценой",
- "Listeden çıkarılacak": "Будет убрана из списка",
  "En fazla # ön ayar tutulur. Önce birini sil.": "Хранится не больше # шаблонов. Сначала удалите один.",
  "Oyun saatlerce oynanmış ama başarımları açılmamışsa geride kalan başarımlar birikir. Açıkken bunlar oturumun ilk beşte birinde hızla açılır, sonra ritim normale döner. Birikim oynanma süresine bağlıdır: bir saatlik oyunda birkaç başarım, yüz saatlik oyunda çok daha fazlası.": "Если в игре много наиграно, а достижения не открыты, они копятся в отставании. Когда настройка включена, оно быстро закрывается в первой пятой части сессии, затем ритм становится обычным. Размер отставания зависит от наигранного времени: в часовой игре это пара достижений, в сточасовой - гораздо больше.",
  "Açıkken bir eşyanın en düşük fiyatıyla birlikte gerçekleşen satış ortalaması da çekilir; ortalama için listenin bitmesini beklemezsin. Öğe başına iki istek gittiği için envanterin tamamı iki kat uzun sürer. Kapalıyken ortalamalar yalnızca Envanter sayfasındaki Ortalama düğmesiyle gelir.": "Когда настройка включена, средняя цена состоявшихся продаж запрашивается вместе с минимальной ценой предмета, поэтому ждать конца всего списка не нужно. На предмет уходит два запроса, поэтому весь инвентарь загружается вдвое дольше. Когда настройка выключена, средние цены приходят только по кнопке «Средняя» на странице инвентаря.",
@@ -1104,7 +1103,7 @@
  "Çalışırken sıra değiştirilemez.": "Во время работы порядок менять нельзя.",
  "Başarım şeması okunuyor…": "Чтение схемы достижений…",
  "Plan alınamadı": "Не удалось получить план",
- "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıraya alınmaz.": "Достижений в этой игре: #; все уже открыты или защищены сервером игры. Открывать нечего, поэтому игра не попадает в очередь.",
+ "Bu oyunun # başarımının hepsi açık ya da oyun sunucusu tarafından korunuyor. Açılacak bir şey kalmadığı için sıradan çıkarıldı.": "Все # достижения этой игры открыты или защищены сервером игры. Открывать больше нечего, поэтому игра убрана из очереди.",
  "Steam bu oyun için başarım şeması vermiyor. Sıraya alınmaz.": "Steam не даёт схему достижений для этой игры. В очередь она не попадёт.",
  "yaklaşık # içinde açılacak · sıra: #": "откроется примерно через # · позиция: #",
  "Soldan oyun ekle, açılma sırası burada görünecek.": "Добавьте игру слева - здесь появится порядок открытия.",
@@ -1543,5 +1542,7 @@
  "#: açılacak başarımı kalmadı, sıradan çıkarıldı.": "#: открывать больше нечего, убрано из очереди.",
  "Bu hesapta başka bir cihazda oyun açık. SteamEdge kendi oyunlarını o oyun kapanınca yeniden açacak.": "На другом устройстве открыта игра этого аккаунта. SteamEdge снова откроет свои игры, когда та игра закроется.",
  "Hesapta başka bir cihazda oyun açıldı; SteamEdge oyunlarını beklemeye aldı.": "На другом устройстве запущена игра этого аккаунта; SteamEdge приостановил свои игры.",
- "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "Игра на другом устройстве закрыта; SteamEdge снова открыл свои игры."
+ "Diğer cihazdaki oyun kapandı; SteamEdge oyunlarını yeniden açtı.": "Игра на другом устройстве закрыта; SteamEdge снова открыл свои игры.",
+ "Açılacak başarım kalmadı": "Открывать больше нечего",
+ "Sıradan çıkarıldı": "Убрано из очереди"
 }
