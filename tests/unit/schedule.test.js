@@ -10,7 +10,7 @@ const e2 = new E(); e2.setProxy('10.0.0.2:3128'); ok('engine http option', e2.us
 const e3 = new E(); e3.setProxy(''); ok('engine direct', !e3.user.options.httpProxy && !e3.user.options.socksProxy && e3._proxy === null);
 let thrown = null; try { new E().setProxy('ftp://x:1'); } catch (e) { thrown = e; } ok('engine rejects bad address', !!thrown);
 // scheduler functions from main.js
-const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
+const src = require('../main-source')();
 const a = src.indexOf('// ---- CARD FARMING SCHEDULE ----'), b = src.indexOf('app.whenReady().then(() => {\n  // The second copy');
 const block = src.slice(a, b);
 const logs = [], events = [], started = [], stopped = [];

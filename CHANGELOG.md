@@ -7,6 +7,19 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.0)
+
+The main process is split into modules; nothing you use changes.
+
+### Changed
+
+- **`main.js` went from 4997 to 2704 lines.** Eleven parts moved into `src/backend/`, each in a file of its own: product keys, Family View PIN, hour boosting and syncing, Realistic Mode, chat, session timeout, the settings handlers, backup, update check, resuming jobs after a restart and the card farming schedule. The code was moved unchanged; a part gets what it needs from `main.js` through one `ctx` object. The reason is practical: a problem in one part can now be looked for in one file.
+- The tests still read the main process as one text (`tests/main-source.js`), so all 67 keep checking the same code.
+- Checked against a real account from source: settings, product key state, chat lists, update check, a Realistic Mode plan, and an hour boost job started and stopped.
+
+
+SHA-256 (`SteamEdge-v1.9.0-win-x64.rar`): `148dac1c15703b5cc3d3d2a9e73c86978b0b61d01a9e3156a3376b31d4b07a2b`
+
 ## [1.8.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.8.4)
 
 Counters stand still while another device plays, a card farming estimate, shorter settings.

@@ -127,7 +127,13 @@ console.log('  ' + htmlFiles.length + ' pages checked');
 // ---- 5. IPC match ----
 section('5. IPC match');
 const preload = read(path.join(ROOT, 'preload.js'));
-const mainProcess = read(path.join(ROOT, 'main.js'));
+// main.js and the parts moved out of it (src/backend): handlers and sent events live in either
+const readMainProcess = () => {
+  const dir = path.join(ROOT, 'src', 'backend');
+  const parts = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.js')).map((f) => read(path.join(dir, f))) : [];
+  return [read(path.join(ROOT, 'main.js'))].concat(parts).join('\n');
+};
+const mainProcess = readMainProcess();
 const defined = new Set();
 for (const e of mainProcess.matchAll(/ipcMain\.(?:handle|on)\(\s*'([^']+)'/g)) defined.add(e[1]);
 // Events that go from the main process to the interface (ipcRenderer.on) are sent from main.js with sendRaw/send.
@@ -219,7 +225,7 @@ section('8. Dead setting key');
 section('9. IPC channel without a counterpart');
 {
   const on = read(path.join(ROOT, 'preload.js'));
-  const main = read(path.join(ROOT, 'main.js'));
+  const main = readMainProcess();
   const called = new Set([...on.matchAll(/ipcRenderer\.(?:invoke|send)\(\s*'([^']+)'/g)].map((m) => m[1]));
   const listened = new Set([...on.matchAll(/ipcRenderer\.on\(\s*'([^']+)'/g)].map((m) => m[1]));
   const matched = new Set([...main.matchAll(/ipcMain\.(?:handle|on)\(\s*'([^']+)'/g)].map((m) => m[1]));

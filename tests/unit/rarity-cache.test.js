@@ -70,7 +70,7 @@ const SteamEngine = require(path.join(root, 'src', 'core', 'steamEngine.js'));
   global.setTimeout = realSetTimeout;
 
   // ---- prepareRealisticQueue: the order and the refusal (cut out of main.js) ----
-  const src = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
+  const src = require('../main-source')();
   const a = src.indexOf('// The engine\'s achievement call gives no game name');
   const b = src.indexOf('// The completed form of the incoming options.');
   check('the function is in main.js', a > 0 && b > a);

@@ -3,7 +3,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs'), vm = require('vm');
 const ROOT = require('path').resolve(__dirname, '..', '..');
-const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
+const src = require('../main-source')();
 const DEFAULTS = vm.runInNewContext('(' + src.match(/const DEFAULT_SETTINGS = (\{[\s\S]*?\n\});/)[1] + ')');
 const settings = { ...DEFAULTS, language: process.env.LANGX || 'en', accountCurrency: 'USD', steamID: '76561198000000000', persona: 'tester', parentalPin: '' };
 const calls = [];

@@ -3,7 +3,7 @@
 const { app, safeStorage } = require('electron');
 const fs = require('fs'), path = require('path'), vm = require('vm'), os = require('os');
 const ROOT = require('path').resolve(__dirname, '..', '..');
-const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
+const src = require('../main-source')();
 const cut = (a, b) => src.slice(src.indexOf(a), src.indexOf(b));
 const code = [cut('const corruptFiles = new Set();', '// Files that could not be read at startup are collected here'),
   cut('// ---- LOGIN TOKEN PROTECTION ----', '// Makes this account the active session'),

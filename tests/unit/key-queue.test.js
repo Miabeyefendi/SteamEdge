@@ -4,7 +4,7 @@ const fs = require('fs'), vm = require('vm');
 let failures = 0;
 const check = (name, condition) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name); };
 
-const src = fs.readFileSync(require('path').resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+const src = require('../main-source')();
 let code = src.slice(src.indexOf('const KEY_GAP_MS'), src.indexOf("ipcMain.handle('keys:state'"));
 code = code.replace('const KEY_GAP_MS = 1500;', 'const KEY_GAP_MS = 5;').replace('const KEY_COOLDOWN_MS = 60 * 60 * 1000;', 'const KEY_COOLDOWN_MS = 120;');
 const d = { keyQueue: [], keyResults: [], keyActive: false };
