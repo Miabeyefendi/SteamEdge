@@ -7,7 +7,7 @@ const vm = require('vm');
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
 const root = path.resolve(__dirname, '..', '..');
-const src = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
+const src = require('../main-source')();
 
 // a top level function of main.js, by name
 function fn(name) {

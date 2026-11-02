@@ -5,7 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+const src = require('../main-source')();
 const code = src.slice(src.indexOf('function applyLoginItem()'), src.indexOf('function applySettings()'));
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };

@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+const src = require('../main-source')();
 let failures = 0;
 const check = (name, condition) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name); };
 const code = src.slice(src.indexOf('// { key, endsInMs } while the clock'), src.indexOf('// The same order the Card farming page uses')) + '\n'

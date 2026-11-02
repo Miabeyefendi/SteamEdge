@@ -100,7 +100,7 @@ async function setup(persona, hide) {
   check('an old caller passing true/false: online, not a guess', t.shown() === 'Online', t.shown());
 
   // ---- main.js: the old setting and the account files ----
-  const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+  const src = require('../main-source')();
   const cut = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
   const code = cut('const REMOVED_SETTINGS', '// The moment the settings were last saved')
     + cut('// ---- VISIBILITY ON STEAM (the top bar) ----', '// The value of a job setting for one account');

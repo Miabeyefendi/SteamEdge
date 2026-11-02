@@ -4,7 +4,7 @@ const fs=require('fs'),vm=require('vm');
 let failures = 0;
 const check = (name, condition) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name); };
 
-const src=fs.readFileSync(require('path').resolve(__dirname, '..', '..', 'main.js'),'utf8');
+const src=require('../main-source')();
 const fn=src.match(/let exitTimer = null;[\s\S]*?\n\}\n(?=function farmBroadcast)/)[0];
 function run(label,{action,busy,pending}){
   const logs=[];let quit=0;let timers=[];

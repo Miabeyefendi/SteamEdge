@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+const src = require('../main-source')();
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
 const code = src.slice(src.indexOf('const SELL_GAP_MS'), src.indexOf('// ================== MY LISTINGS, BOOSTER PACKS'));

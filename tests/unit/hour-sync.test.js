@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const ledger = require('../../src/core/syncLedger.js');
-const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+const src = require('../main-source')();
 let failures = 0;
 const check = (name, condition) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name); };
 const cut = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));

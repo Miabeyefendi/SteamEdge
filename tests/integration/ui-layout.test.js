@@ -7,7 +7,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs'), vm = require('vm');
 const ROOT = require('path').resolve(__dirname, '..', '..');
 const windowFit = require(ROOT + '/src/core/windowFit.js');
-const src = fs.readFileSync(ROOT + '/main.js', 'utf8');
+const src = require('../main-source')();
 const DEFAULTS = vm.runInNewContext('(' + src.match(/const DEFAULT_SETTINGS = (\{[\s\S]*?\n\});/)[1] + ')');
 const settings = { ...DEFAULTS, language: process.env.LANGX || 'en', accountCurrency: 'USD', steamID: '76561198000000000', persona: 'tester', parentalPin: '' };
 const items = Array.from({ length: 14 }, (_, i) => ({ assetId: String(i + 1), order: i, dedupKey: 'k_' + i, name: i % 3 === 0 ? 'Some Rather Long Trading Card Name ' + i : 'Card ' + i, marketHashName: '440-Card ' + i, iconUrl: null, tradable: i % 2 === 0, marketable: true, type: i % 5 === 0 ? 'booster' : 'card', gameName: 'Game Number ' + (i % 7), appid: 440 + (i % 7), amount: 1 + (i % 4) }));

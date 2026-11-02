@@ -5,7 +5,7 @@ const path = require('path');
 const vm = require('vm');
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
-const src = fs.readFileSync(path.resolve(__dirname, '..', '..', 'main.js'), 'utf8');
+const src = require('../main-source')();
 function fn(name) {
   const a = src.indexOf('\nfunction ' + name + '(');
   if (a < 0) throw new Error('no function ' + name);
