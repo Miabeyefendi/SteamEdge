@@ -314,7 +314,8 @@ function migrateKeys(v) {
 }
 
 // Setting values older versions wrote in Turkish (migrateSettings in main.js).
-const OLD_SETTING_VALUES = { reconnectPolicy: { sinirsiz: 'unlimited', kapali: 'off' } };
+// notifSound: the 1.8.3 list had 23 sounds; the removed ones fall back to the new default
+const OLD_SETTING_VALUES = { reconnectPolicy: { sinirsiz: 'unlimited', kapali: 'off' }, notifSound: { chime: 'knock', bell: 'knock', glass: 'knock', marimba: 'knock', soft: 'knock', swoosh: 'knock', smash: 'knock', alert: 'knock', siren: 'knock', honk: 'knock', radar: 'knock', coin: 'knock', powerup: 'knock', powerdown: 'knock', laser: 'knock', bloop: 'knock', heartbeat: 'knock', typewriter: 'knock' } };
 
 // File names older versions wrote: a whole name, or the suffix of a broken file that was set aside (readJson in main.js).
 const OLD_FILE_NAMES = { 'basarimsiz.json': 'no-achievements.json' };

@@ -20,7 +20,7 @@ const ctx = {
   accountEvent: (id, e) => events.push([id, e.typeName]),
   startCardFarm: (id, mode, games, durationMs, extra) => { started.push({ id, mode, games, extra }); accounts.get(id).farm = { running: true, mode, games, durationMs, location: () => ({}), stop() { this.running = false; } }; },
   keyChanged: (id) => events.push([id, 'keysChanged']),
-  statsHour: () => {}, handleUninterruptedRun: () => {}, syncConnectionChanged: () => {}, sendRaw: () => {}, Date, console, Object,
+  statsHour: () => {}, earning: (x) => !!(x && x.ready), holdCounters: () => {}, handleUninterruptedRun: () => {}, syncConnectionChanged: () => {}, sendRaw: () => {}, Date, console, Object,
 };
 vm.createContext(ctx);
 vm.runInContext(code + '\n;this.api = { delayFarm, resumeFarm, bindConnectionState };', ctx);

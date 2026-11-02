@@ -532,7 +532,7 @@
       set('arrLow',a('low')); set('arrMed',a('med'));
     }
 
-    const ROW_H = () => (appSettings && appSettings.compactRows) ? 34 : 46;
+    const ROW_H = () => document.body.classList.contains('e-compact') ? 34 : 46;
     const GRID_COLS = '34px 14px 44px minmax(130px,1.6fr) minmax(90px,1.1fr) 76px 104px 104px';
 
     // G9: the "half the rows stay grey" complaint. This is not a bug: items below Settings > Inventory >

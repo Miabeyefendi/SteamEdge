@@ -442,11 +442,7 @@
       if (m < 60) return tf('# dk', m);
       return tf('# sa', Math.floor(m / 60)) + (m % 60 ? ' ' + tf('# dk', m % 60) : '');
     }
-    async function readConnectionHistory(){
-      const el = document.getElementById('setConnHistory');
-      if (!el) return;
-      const r = await window.imu.log.connectionSummary().catch(()=>null);
-      if (!r || !r.ok){ el.textContent = '-'; return; }
+    function connectionLines(r){
       const lines = [];
       if (r.downSince) lines.push(tf('Şu an kopuk, # süredir.', spanText(Date.now() - r.downSince)));
       if (!r.drops && !r.abandoned) lines.push(t('Son 24 saatte kopma yok.'));
@@ -456,8 +452,25 @@
           ? tf('Son kopma: # (#)', saveTimeText(r.lastDropAt), t(r.lastCause))
           : tf('Son kopma: #', saveTimeText(r.lastDropAt)));
       }
-      el.innerHTML = lines.map(esc).join('<br>');
+      return lines;
     }
+    async function readConnectionHistory(){
+      const el = document.getElementById('setConnHistory');
+      if (!el) return;
+      const r = await window.imu.log.connectionSummary().catch(()=>null);
+      if (!r || !r.ok){ el.textContent = '-'; return; }
+      el.innerHTML = connectionLines(r).map(esc).join('<br>');
+    }
+    // Once after the app opens, the recent activity on the overview tells about the drops of the last 24 hours. Nothing is added when there were none.
+    let connectionFeedDone = false;
+    async function feedConnectionSummary(){
+      if (connectionFeedDone) return;
+      connectionFeedDone = true;
+      const r = await window.imu.log.connectionSummary().catch(()=>null);
+      if (!r || !r.ok || !(r.drops || r.abandoned || r.downSince)) return;
+      if (typeof pushFeed === 'function') pushFeed('warning', 'Bağlantı geçmişi', connectionLines(r).join(' '), 'Uyarı');
+    }
+    setTimeout(feedConnectionSummary, 8000);
     const openConnLog = document.getElementById('setConnLogOpen');
     if (openConnLog) openConnLog.onclick = async ()=>{
       const r = await window.imu.log.openConnection().catch(e=>({ ok:false, error:(e && e.message) }));
@@ -581,7 +594,7 @@
       }
       testBtn.disabled = true;
       const r = await window.imu.notify('SteamEdge',
-        t('Bildirimler çalışıyor ✓') + '  ·  ' + t('ses:') + ' ' + (a.notifSound || 'chime')).catch(e=>({ ok:false, error:(e&&e.message) }));
+        t('Bildirimler çalışıyor ✓') + '  ·  ' + t('ses:') + ' ' + (a.notifSound || 'knock')).catch(e=>({ ok:false, error:(e&&e.message) }));
       testBtn.disabled = false;
       if (typeof playNotifSound === 'function') playNotifSound(a.notifSound);
       if (r && r.ok){

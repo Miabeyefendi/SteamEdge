@@ -41,12 +41,12 @@ function setup(settings) {
   const ctx = {
     accounts, settingFor: (id, k) => settings[k], log: () => {}, accountName: (i) => i,
     accountBroadcast: () => (ch, d) => { if (ch === 'boost:tick') ticks.push(d); if (ch === 'boost:sync') syncs.push(d); },
-    accountEvent: (id, e) => events.push(e.typeName), delayFarm: () => false, resumeFarm: (id) => resumed.push(id),
+    statsHour: () => {}, earning: (x) => !!(x && x.ready && !(x.engine && x.engine.playingBlocked)), accountEvent: (id, e) => events.push(e.typeName), delayFarm: () => false, resumeFarm: (id) => resumed.push(id),
     ledger: require(path.join(ROOT, 'src', 'core', 'syncLedger.js')),
     setTimeout: fakeSet, clearTimeout: fakeClear, setInterval: fakeInterval, clearInterval: fakeClear, Date: FakeDate, Math, console, Object, Array, Map, Set, Number, JSON,
   };
   vm.createContext(ctx);
-  vm.runInContext(code + '\n;this.api = { boostStart, boostFinish, boostTimeUp, syncConnectionChanged, boostStopAccount };', ctx);
+  vm.runInContext(code + '\n;this.api = { boostStart, boostFinish, boostTimeUp, syncConnectionChanged, boostStopAccount, holdCounters };', ctx);
   return { s, engine, plays, stops, ticks, syncs, events, resumed, api: ctx.api, last: () => ticks[ticks.length - 1], lastSync: () => syncs[syncs.length - 1] };
 }
 const H = 3600000, M = 60000;
@@ -151,5 +151,18 @@ const H = 3600000, M = 60000;
   check('sync with everything past the target: the games just run together for the duration', t.plays[0].ids.join() === '1,2' && !t.s.boost.sync);
   await advance(H + 1000);
   check('and stop at the end of it', t.s.boost.runningFlag === false);
+  // ---- a game of the account is open on another device: the boost clock stands still and goes on from the same point ----
+  t = setup({});
+  t.api.boostStart('a', { appids: [1, 2], durationMs: 2 * H });
+  await advance(1 * H);
+  t.engine.playingBlocked = true; t.api.holdCounters('a', true);
+  await advance(3 * H);
+  check('held by another device: the time does not run out', t.stops.length === 0 && t.s.boost.runningFlag === true);
+  t.engine.playingBlocked = false; t.api.holdCounters('a', false);
+  await advance(30 * M);
+  check('released: 1.5 h of 2 h used, still running', t.stops.length === 0 && t.s.boost.runningFlag === true);
+  await advance(31 * M);
+  check('and it ends after the rest of the time', t.stops.join() === 'hours' && t.events.includes('boostFinished'));
+
   process.exit(failures ? 1 : 0);
 })();

@@ -39,6 +39,9 @@ class FarmController {
     this.phaseName = null;               // fast mode: 'warmup' | 'rotate'
     this.fastPool = [];
     this._napFn = null;             // resolver of the fast mode warm-up wait
+    this.heldAt = 0;                    // set while the games wait for another device: the clocks stand still
+    this._held = 0;                     // fast warm-up: time held in this batch
+    this.timerEnd = 0;
     this.generation = 0;                // every start() is a new generation: an old loop must not interfere with the restart
   }
 
@@ -99,6 +102,27 @@ class FarmController {
       passedMs: this.startedAt ? Math.max(0, Date.now() - this.startedAt) : 0,
       sessionStart: this.sessionStart,
     };
+  }
+
+  // Another device plays a game of the account: Steam counts nothing, so the job's clocks stop here and go on from the same point at release().
+  hold() {
+    if (!this.running || this.heldAt) return;
+    this.heldAt = Date.now();
+    if (this.mode !== 'fast' && this.timer) { clearTimeout(this.timer); this.timer = null; }
+    if (this._napFn) { const r = this._napFn; this._napFn = null; clearTimeout(this.timer); this.timer = null; r(); }
+  }
+
+  release() {
+    if (!this.heldAt) return;
+    const d = Date.now() - this.heldAt;
+    this.heldAt = 0;
+    if (!this.running) return;
+    this.startedAt += d;
+    this._held += d;
+    if (this.mode !== 'fast' && !this.timer && this.timerEnd) {
+      this.timerEnd += d;
+      this.timer = setTimeout(() => this._roundTimeUp(), Math.max(1000, this.timerEnd - Date.now()));
+    }
   }
 
   _cleanup() {
@@ -174,12 +198,15 @@ class FarmController {
     this.startedAt = Date.now() - (passedMs || 0);
     this._tick(g.appid);
     const remainingMs = Math.max(1000, this.durationMs - (passedMs || 0));
-    this.timer = setTimeout(() => {
-      if (!this.running) return;
-      if (!this.autoNext) { this.stop('duration'); return; }   // automatic move is off → stop
-      this.index++;
-      this._runRoundRobin(0);
-    }, remainingMs);
+    this.timerEnd = Date.now() + remainingMs;
+    this.timer = setTimeout(() => this._roundTimeUp(), remainingMs);
+  }
+
+  _roundTimeUp() {
+    if (!this.running) return;
+    if (!this.autoNext) { this.stop('duration'); return; }   // automatic move is off → stop
+    this.index++;
+    this._runRoundRobin(0);
   }
 
   _tick(activeAppid) {
@@ -216,6 +243,7 @@ class FarmController {
       const open = ids.concat(hot.map((g) => g.appid));
       this._batchIds = ids;                       // only the cold ones are credited the warm-up time (location())
       this.startedAt = Date.now();
+      this._held = 0;
       const t0 = Date.now();
       let hotAt = 0;
       // Steam drops a card when the list of open games is refreshed, so with hot games the list is refreshed at the rotation rhythm, one hot game in front each time
@@ -226,11 +254,12 @@ class FarmController {
       refresh();
       this._fastHoldTick(open, needMs, 'warmup');
       for (;;) {
-        const left = needMs - (Date.now() - t0);
+        const heldNow = this.heldAt ? Date.now() - this.heldAt : 0;
+        const left = needMs + this._held + heldNow - (Date.now() - t0);
         if (left <= 0) break;
-        await this._sleep(hot.length ? Math.min(left, this._rotateMs()) : left);
+        await this._sleep(this.heldAt ? Math.min(left, 15000) : hot.length ? Math.min(left, this._rotateMs()) : left);
         if (mustFinish()) return;
-        if (hot.length && needMs - (Date.now() - t0) > 0) refresh();
+        if (!this.heldAt && hot.length && needMs + this._held - (Date.now() - t0) > 0) refresh();
       }
       if (mustFinish()) return;
       // This batch has passed the threshold now; let it stay open in the loop too
