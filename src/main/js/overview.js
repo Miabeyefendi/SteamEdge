@@ -240,6 +240,25 @@
       // after a restart: the jobs that were running when the app ended (src/core/resumeJobs.js); the text is already in the interface language
       jobsResumed:     (o)=>['farm',  'İşler Sürdürüldü', o.feedEntry ? o.feedEntry.text : ''],
     };
+    // Estimated finish of card farming, told as a notification only: after the 3rd card of a run and then every 20th, from the pace of this run
+    // (the warm-up counts, so the first estimate is on the long side). The cards left are read a moment later, after the list has been refreshed.
+    let cardEta = null;
+    function cardEtaDropped(n){
+      if (!cardEta) cardEta = { since: Date.now(), count: 0 };
+      const before = cardEta.count;
+      cardEta.count += (+n || 1);
+      const hit = (before < 3 && cardEta.count >= 3) || Math.floor(cardEta.count / 20) > Math.floor(before / 20);
+      if (!hit) return;
+      setTimeout(()=>{
+        const left = dropGames.reduce((s,g)=>s+g.remaining,0);
+        const elapsed = Date.now() - cardEta.since;
+        if (!left || !elapsed || !cardEta.count) return;
+        const ms = left / (cardEta.count / elapsed);
+        const mins = Math.max(1, Math.round(ms / 60000));
+        const text = mins < 60 ? tf('# dk', mins) : tf('# sa', Math.floor(mins / 60)) + (mins % 60 ? ' ' + tf('# dk', mins % 60) : '');
+        notify('farm', 'Kart Düşürme Tahmini', tf('Kalan kart: #, tahmini bitiş: #', left, text));
+      }, 4000);
+    }
     window.imu.onAccountEvent((o)=>{
       if (!o || !o.typeName) return;
       const b = EVENT_NOTIFICATION[o.typeName];
@@ -254,7 +273,9 @@
         if (o.resumed && o.feedEntry) pushFeed(o.feedEntry.kind, o.feedEntry.title, '[' + o.accountRef + '] ' + o.feedEntry.text, o.feedEntry.status);
         return;
       }
+      if (o.typeName === 'cardStarted') cardEta = { since: Date.now(), count: 0 };
       if (o.typeName === 'cardDropped'){
+        cardEtaDropped(o.itemCount);
         pushFeed('card', tf('# kart düştü', o.itemCount), o.displayName, 'Başarılı');
         if (typeof pushDrop === 'function') pushDrop(o.appid, o.displayName, o.itemCount);
         // "Auto-list on the market": list that game's new cards

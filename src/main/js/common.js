@@ -422,58 +422,25 @@
     const REP = (n, step, make) => Array.from({ length:n }, (_, i) => make(i * step, i));
 
     const NOTIF_SOUNDS = {
-      // --- bell / tonal family ---
-      chime:    { voices:[ NS({f:784,d:1.1,g:.16}), NS({f:1046,at:.13,d:1.3,g:.14}), NS({f:1568,at:.26,d:1.9,g:.10}) ] },
-      bell:     { voices:[ NS({f:523,d:3.2,g:.16}), NS({f:1268,d:2.6,g:.07}), NS({f:2010,d:1.7,g:.04}), NS({f:3140,d:1.0,g:.02}) ] },
-      glass:    { voices:[ NS({f:1568,d:2.2,g:.09}), NS({f:2637,at:.02,d:1.8,g:.06}), NS({f:4186,at:.04,d:1.2,g:.03}), NS({f:5274,at:.06,d:.8,g:.02}) ] },
-      marimba:  { voices:[ NS({f:523,d:.7,g:.16,wave:'triangle'}), NS({f:659,at:.16,d:.7,g:.16,wave:'triangle'}),
-                           NS({f:784,at:.32,d:.8,g:.16,wave:'triangle'}), NS({f:1046,at:.48,d:1.4,g:.14,wave:'triangle'}) ] },
-      // --- percussive / SFX family (noise based) ---
-      whoosh:   { voices:[ NZ({d:1.5,g:.30,a:.25,ftype:'bandpass',q:1.6,f:[240,1200,5200,2400,500]}) ] },
-      swoosh:   { voices:[ NZ({d:1.4,g:.28,a:.55,ftype:'bandpass',q:2.2,f:[300,900,2600,6000]}) ] },   // swoosh:   { voices:[ NZ({d:1.4,g:.28,a:.55,ftype:'bandpass',q:2.2,f:[300,900,2600,6000]}) ] },   // reverse whoosh (rising)
-      smash:    { voices:[ NZ({d:.16,g:.42,a:.002,ftype:'lowpass',q:.7,f:[9000,2500]}),
-                           NS({f:[150,44],d:.5,g:.34,wave:'sine'}),
-                           NZ({at:.05,d:1.9,g:.16,a:.01,ftype:'bandpass',q:5,f:[4200,3000,1800]}) ] },
+      // Five plain sounds of different lengths, none of them a melody (about 0.6 s to 1.5 s)
       hit:      { voices:[ NZ({d:.09,g:.34,a:.001,ftype:'lowpass',q:.7,f:[6000,900]}),
                            NS({f:[190,55],d:.55,g:.30,wave:'triangle'}),
-                           NZ({at:.04,d:1.2,g:.09,a:.01,ftype:'bandpass',q:6,f:[2400,1600]}) ] },   // NZ({at:.04,d:1.2,g:.09,a:.01,ftype:'bandpass',q:6,f:[2400,1600]}) ] },   // ringing tail
-      thud:     { voices:[ NS({f:[110,38],d:1.1,g:.38,wave:'sine'}), NZ({d:.07,g:.14,a:.001,ftype:'lowpass',f:[1400,300]}) ] },
+                           NZ({at:.04,d:1.2,g:.09,a:.01,ftype:'bandpass',q:6,f:[2400,1600]}) ] },   // ringing tail
       knock:    { voices:[ ...REP(3,.21,(t)=>NS({f:[210,70],at:t,d:.26,g:.32,wave:'triangle'})),
                            ...REP(3,.21,(t)=>NZ({at:t,d:.05,g:.18,a:.001,ftype:'lowpass',f:[3000,600]})),
-                           NZ({at:.42,d:.9,g:.06,a:.02,ftype:'lowpass',q:1,f:[900,200]}) ] },      // NZ({at:.42,d:.9,g:.06,a:.02,ftype:'lowpass',q:1,f:[900,200]}) ] },      // room echo
-      // --- warning / signal family ---
-      alert:    { voices: REP(3,.42,(t)=>NS({f:880,at:t,d:.26,g:.15,wave:'square'}))
-                          .concat(REP(3,.42,(t)=>NS({f:660,at:t+.2,d:.26,g:.15,wave:'square'}))) },
-      siren:    { voices:[ NS({f:[560,1180,560,1180,560],d:2.8,g:.13,a:.05,wave:'sawtooth'}) ] },
-      honk:     { voices:[ NS({f:[420,405],d:.55,g:.18,wave:'square'}), NS({f:[318,306],d:.55,g:.14,wave:'sawtooth'}),
-                           NS({f:[420,405],at:.72,d:.85,g:.18,wave:'square'}), NS({f:[318,306],at:.72,d:.85,g:.14,wave:'sawtooth'}) ] },
-      radar:    { voices: REP(3,.85,(t)=>NS({f:1400,at:t,d:.9,g:.12}))
-                          .concat(REP(3,.85,(t)=>NS({f:1400,at:t+.16,d:.7,g:.05}))) },   // .concat(REP(3,.85,(t)=>NS({f:1400,at:t+.16,d:.7,g:.05}))) },   // ping + its echo
-      // --- game style ---
-      coin:     { voices:[ NS({f:988,d:.09,g:.14,wave:'square'}), NS({f:1319,at:.09,d:1.0,g:.12,wave:'square'}) ] },
-      powerup:  { voices: REP(6,.09,(t,i)=>NS({f:392*Math.pow(2,i/6),at:t,d:.16,g:.13,wave:'triangle'}))
-                          .concat([ NS({f:1568,at:.54,d:1.1,g:.14,wave:'triangle'}) ]) },
-      powerdown:{ voices: REP(6,.10,(t,i)=>NS({f:1568/Math.pow(2,i/6),at:t,d:.18,g:.13,wave:'triangle'}))
-                          .concat([ NS({f:392,at:.60,d:1.2,g:.16,wave:'triangle'}) ]) },
-      laser:    { voices:[ NS({f:[2600,240],d:.42,g:.12,wave:'sawtooth'}), NS({f:[2600,240],at:.5,d:.42,g:.12,wave:'sawtooth'}),
-                           NS({f:[2600,180],at:1.0,d:.7,g:.12,wave:'sawtooth'}) ] },
-      bloop:    { voices:[ NS({f:[720,180],d:1.0,g:.26}) ] },
+                           NZ({at:.42,d:.9,g:.06,a:.02,ftype:'lowpass',q:1,f:[900,200]}) ] },      // room echo
+      thud:     { voices:[ NS({f:[110,38],d:1.1,g:.38,wave:'sine'}), NZ({d:.07,g:.14,a:.001,ftype:'lowpass',f:[1400,300]}) ] },
       drip:     { voices:[ NS({f:[420,1500],d:.14,g:.22}), NS({f:[380,1300],at:.55,d:.16,g:.18}),
                            NS({f:[440,1600],at:1.15,d:.9,g:.16}) ] },
-      // --- soft / background ---
-      soft:     { voices:[ NS({f:440,d:1.4,g:.14,a:.09}), NS({f:554,at:.12,d:1.5,g:.12,a:.09}), NS({f:659,at:.24,d:1.8,g:.10,a:.09}) ] },
-      heartbeat:{ voices:[ ...REP(2,.30,(t)=>NS({f:[92,48],at:t,d:.28,g:.36,wave:'sine'})),
-                           ...REP(2,.30,(t)=>NS({f:[92,48],at:t+1.05,d:.28,g:.30,wave:'sine'})) ] },
-      typewriter:{ voices: REP(5,.13,(t)=>NZ({at:t,d:.035,g:.20,a:.001,ftype:'bandpass',q:3,f:[2600,1500]}))
-                          .concat([ NS({f:1760,at:.85,d:1.0,g:.12}) ]) },
+      whoosh:   { voices:[ NZ({d:1.5,g:.30,a:.25,ftype:'bandpass',q:1.6,f:[240,1200,5200,2400,500]}) ] },
     };
 
     // Play the sound. Every call opens its own AudioContext and closes it when done (keeping a long lived
     // context in Electron created needless audio device occupancy).
     function playNotifSound(name){
-      const kind = name || (typeof appSettings==='object' && appSettings && appSettings.notifSound) || 'chime';
+      const kind = name || (typeof appSettings==='object' && appSettings && appSettings.notifSound) || 'knock';
       if (kind === 'none') return;
-      const def = NOTIF_SOUNDS[kind] || NOTIF_SOUNDS.chime;
+      const def = NOTIF_SOUNDS[kind] || NOTIF_SOUNDS.knock;
       try {
         const Ctx = window.AudioContext || window.webkitAudioContext;
         if (!Ctx) return;

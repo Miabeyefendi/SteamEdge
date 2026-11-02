@@ -390,7 +390,6 @@ const DEFAULT_SETTINGS = {
   invLowValue: 1,
   hideUnsellable: false,
   groupByGame: false,       // the inventory "Grupla" button opens pressed
-  compactRows: false,
   boostTarget: '2',
   boostStagger: 5,          // in simultaneous boosting the games are opened one after another at this interval (s)
   shuffleBoost: false,      // only in sequential idling: the game order is shuffled every round
@@ -436,7 +435,7 @@ const DEFAULT_SETTINGS = {
   achSafeMode: true,
   achSpread: false,
   notifyPriceDrop: false,   // when an item in the inventory drops below the 24 hour average by the threshold
-  notifSound: 'chime',      // 20 tones, produced with Web Audio (common.js > NOTIF_SOUNDS)
+  notifSound: 'knock',      // five plain tones, produced with Web Audio (common.js > NOTIF_SOUNDS)
   sessionTimeout: 'never',  // idle time (min), does not apply while a job runs - 'never' = off
   hideGameName: false,      // become invisible while playing (so the game name does not show on the profile)
   logLevel: 'error',        // log file: off | error | warn | info | debug
@@ -496,7 +495,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 // ---- SETTINGS MIGRATIONS ----
 // Removed and merged settings are carried over from the old file to here: the user's old choice
 // is not lost, and no dead key is left in the file. settingsVersion is raised once.
-const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch'];
+const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch', 'compactRows'];
 const ACH_DELAY_CHOICES = [15, 30, 45, 60, 120, 300, 600, 1800, 3600];
 function nearestAchDelay(sec) {
   if (!(sec > 0)) return ACH_DELAY_CHOICES[0];
@@ -542,6 +541,8 @@ function migrateSettings(v) {
   Object.entries(OLD_SETTING_VALUES).forEach(([k, names]) => {
     if (typeof v[k] === 'string' && Object.prototype.hasOwnProperty.call(names, v[k])) { v[k] = names[v[k]]; hasChanged = true; }
   });
+  // "Compact rows" is the interface density now
+  if (v.compactRows === true && (!v.density || v.density === 'auto')) v.density = 'compact';
   REMOVED_SETTINGS.forEach((k) => { if (k in v) { delete v[k]; hasChanged = true; } });
   return hasChanged;
 }
@@ -1323,6 +1324,10 @@ function addStat(steamID, patch) {
 // sequential) is `boostRuntimeMs`. Hour boosting time used to be written only when Stop was pressed BY
 // HAND: a job that ended on its own when the time was up or the job of a background account was never
 // counted. It does not count while the connection is down; Steam does not count that time either.
+// The account earns time only while it is connected and no game of it is open on another device (Steam counts nothing for the held games then).
+function earning(s) {
+  return !!(s && s.ready && !(s.engine && s.engine.playingBlocked));
+}
 function statsHour(steamID) {
   const s = accounts.get(steamID);
   if (!s) return;
@@ -1336,7 +1341,7 @@ function statsHour(steamID) {
   }
   s.statFarm = !!(s.farm && s.farm.running);
   s.statBoost = accountBoostRunning(s);
-  s.statReady = !!s.ready;
+  s.statReady = earning(s);
   if (Object.keys(patch).length) addStat(steamID, patch);
   if (!s.statFarm && !s.statBoost && s.statHour) { clearInterval(s.statHour); s.statHour = null; s.statLast = 0; }
 }
@@ -1611,6 +1616,7 @@ function bindConnectionState(eng, steamID) {
     log('info', '[' + steamID + '] ' + (blocked ? 'a game of this account is open on another device' + (appid ? ' (' + appid + ')' : '') + ', the games wait' : 'the other device stopped playing, the games are open again'));
     logger.connection(steamID, blocked ? 'blocked' : 'unblocked', appid ? { appid: +appid } : null);
     sendRaw('engine:playing', { steamID, blocked: !!blocked, appid: appid || null, activeIds: steamID === activeSteamID });
+    holdCounters(steamID, !!blocked);
   };
   eng.onStatus = (status, extra) => {
     const s = accounts.get(steamID);
@@ -1624,7 +1630,7 @@ function bindConnectionState(eng, steamID) {
       if (s.ready) { s.lastConnection = Date.now(); s.statLast = Date.now(); s.statReady = true; }
       // A long drop splits the uninterrupted run; one shorter than a minute does not (see handleUninterruptedRun).
       if (accountRunning(s)) handleUninterruptedRun(steamID, s.ready);
-      syncConnectionChanged(steamID, s.ready);
+      syncConnectionChanged(steamID, earning(s));
       // A card farm paused for a job that ended while the connection was down could not start then (resumeFarm needs a connection) and stayed paused for
       // good, blocking the schedule and the resume of jobs too. It is given back when the connection is; resumeFarm leaves it paused if that job still runs.
       if (s.ready && s.pendingFarm) resumeFarm(steamID);
@@ -2911,10 +2917,37 @@ function boostStatus(s) {
   }
   return s.boost;
 }
+// While the games wait for the other device nothing is earned, so nothing may be counted either: the statistics, the hour sync ledger, the
+// boost timer and the card farm clocks stop and go on from the same point (the same way a connection drop is handled).
+function holdCounters(steamID, blocked) {
+  const s = accounts.get(steamID);
+  if (!s) return;
+  try { statsHour(steamID); } catch (_) {}
+  syncConnectionChanged(steamID, earning(s));
+  const b = s.boost;
+  if (b) {
+    if (blocked && b.timer) { clearTimeout(b.timer); b.timer = null; b.heldLeft = Math.max(1000, (b.timerEnd || Date.now()) - Date.now()); b.heldAt = Date.now(); }
+    else if (!blocked && b.heldLeft != null) {
+      b.startPoint = (b.startPoint || Date.now()) + (Date.now() - b.heldAt);
+      setBoostTimer(steamID, b.heldLeft);
+      b.heldLeft = null; b.heldAt = 0;
+    }
+  }
+  [s.farm, s.hoursFarm].forEach((f) => { if (f) { if (blocked) f.hold(); else f.release(); } });
+}
+function setBoostTimer(steamID, ms) {
+  const s = accounts.get(steamID);
+  const b = s && s.boost;
+  if (!b) return;
+  b.timerEnd = Date.now() + ms;
+  b.timer = setTimeout(() => boostTimeUp(steamID), ms);
+}
+
 function boostClear(s) {
   const b = s && s.boost;
   if (!b) return;
   if (b.timer) { clearTimeout(b.timer); b.timer = null; }
+  b.heldLeft = null; b.heldAt = 0;
   b.stagger.forEach((t) => clearTimeout(t));
   b.stagger = [];
   if (b.syncTimer) { clearTimeout(b.syncTimer); b.syncTimer = null; }
@@ -3133,7 +3166,7 @@ function runSyncStep(steamID) {
     s.engine.play(allIds, 'hours');
     b.appids = allIds; b.startPoint = Date.now(); b.spanMs = nextDuration;
     accountBroadcast(steamID)('boost:tick', { running: true, appids: allIds, activeAppids: s.engine.playingApps('hours'), startedAt: b.startPoint, durationMs: b.spanMs });
-    if (nextDuration) b.timer = setTimeout(() => boostTimeUp(steamID), nextDuration);
+    if (nextDuration) setBoostTimer(steamID, nextDuration);
     return;
   }
   st.stepMs = (step.toMin - step.fromMin) * 60000;
@@ -3245,7 +3278,7 @@ function boostStart(steamID, request) {
       }, i * stagger));
     });
   }
-  if (remainingMs) b.timer = setTimeout(() => boostTimeUp(steamID), remainingMs);
+  if (remainingMs) setBoostTimer(steamID, remainingMs);
   return { ok: true };
 }
 
