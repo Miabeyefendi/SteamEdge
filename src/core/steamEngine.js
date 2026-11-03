@@ -482,6 +482,7 @@ class SteamEngine {
     if (this._reconnectTimer) { clearTimeout(this._reconnectTimer); this._reconnectTimer = null; }
     const first = !this._everConnected;
     this._everConnected = true;
+    this._applyPersona();     // a session that came back without our own logon handler still has Steam's default (offline)
     try { this.user.webLogOn(); } catch (_) {}
     this._resendGames();
     this._reportStatus('connected', { reconnected: !first, first, gameEntries: (this._playing || []).length });

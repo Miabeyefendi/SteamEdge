@@ -108,7 +108,7 @@ Encima, seis recuadros: cromos restantes, biblioteca, esta sesión, valor del in
 
 ### Farmeo de cromos
 
-La cola de juegos con cromos pendientes, leída de tus páginas de insignias, con filtro para 1-2 o 3+ cromos. Reordena con las flechas o **Mover al principio** (el modo pasa a Prioridad), quita un juego con ✕; el orden y las exclusiones se recuerdan. A la derecha: el modo de farmeo, el temporizador por juego (cuánto funciona cada juego antes de que tome el relevo el siguiente, con atajos; el modo Rápido marca su propio ritmo y lo atenúa), **Automatización** (publicar los cromos obtenidos, farmear en segundo plano, avisar al obtener un cromo, desbloquear logros mientras suben las horas) y **Últimas obtenciones**. Pulsa Iniciar.
+La cola de juegos con cromos pendientes, leída de tus páginas de insignias, con filtro para 1-2 o 3+ cromos. Reordena con las flechas o **Mover al principio** (el modo pasa a Prioridad), quita un juego con ✕; el orden y las exclusiones se recuerdan. A la derecha: el modo de farmeo, el temporizador por juego (cuánto funciona cada juego antes de que tome el relevo el siguiente, con atajos; el modo Rápido marca su propio ritmo y lo atenúa), **Automatización** (publicar los cromos obtenidos, avisar al obtener un cromo, desbloquear logros mientras suben las horas) y **Últimas obtenciones**. Pulsa Iniciar.
 
 ### Inventario y mercado
 
@@ -174,7 +174,7 @@ Los modos:
 
 Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación vuelve a leer las páginas de insignias de cada cuenta cada tres minutos y reporta la diferencia honesta del total de cromos restantes en lugar de un contador inventado.
 
-**Lista negra y lista blanca.** El botón rojo de una fila de la cola pone el juego en la lista negra: no se farmea nunca, ni a mano ni por la programación, hasta que lo quites en la pestaña **Lista negra**. La estrella lo pone en la lista blanca, y con **Solo lista blanca** activado (página Farmeo de cromos, cuadro Automatización) solo se farmean los juegos con estrella. Un juego nunca está en las dos listas. Ambas listas pertenecen a la cuenta y, a diferencia del resto del estado de la cola, no caducan con el período de retención; los juegos que quitaste de la cola antes de la 1.4.5 pasaron automáticamente a la lista negra.
+**Lista negra.** El botón rojo de una fila de la cola pone el juego en la lista negra: no se farmea nunca, ni a mano ni por la programación, hasta que lo quites en la pestaña **Lista negra**. La lista pertenece a la cuenta y, a diferencia del resto del estado de la cola, no caducan con el período de retención; los juegos que quitaste de la cola antes de la 1.4.5 pasaron automáticamente a la lista negra.
 
 **Cuando se obtienen todos los cromos** también puede ser **Iniciar el impulso de horas**: arranca la lista de impulso de horas recordada de la cuenta, limitada por **Máx. juegos a la vez**. Con la lista vacía no empieza nada y el registro de actividad lo indica.
 
@@ -341,8 +341,6 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `farmScheduleFrom` | `22:00` | Inicio del horario |
 | `farmScheduleTo` | `07:00` | Fin del horario. Si el fin es anterior al inicio, el horario pasa de medianoche |
 | `farmExcluded` | vacío | Lista negra del farmeo de cromos (app ids). Se guarda por cuenta, no caduca, no se exporta |
-| `farmWhitelist` | vacío | App ids a los que se limita el farmeo mientras `farmWhitelistOnly` está activo. Se guarda por cuenta |
-| `farmWhitelistOnly` | `false` | Farmear solo los juegos de la lista blanca. Se guarda por cuenta |
 | `cardMaxGames` | `32` | Juegos abiertos a la vez |
 | `farmMaxMinutes` | `5` | Minutos que funciona cada juego antes de que tome el relevo el siguiente. El modo Rápido marca su propio ritmo |
 | `fastMinPlaytimeMin` | `120` | Umbral de caída de cromos en minutos. El modo Rápido sube primero por encima los juegos que están por debajo y luego rota todos. `0` omite el calentamiento |

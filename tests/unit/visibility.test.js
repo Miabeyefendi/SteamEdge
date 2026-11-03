@@ -95,6 +95,13 @@ async function setup(persona, hide) {
   t.eng.stop('card');
   check('the games close: back to away', t.shown() === 'Away', t.shown());
 
+  // ---- a session found online without our own logon handler: Steam's default is offline, the choice must be sent ----
+  t = await setup('online', false);
+  t.eng.isConnected = false;
+  t.eng.user.persona = S.Offline;
+  check('recovered session: the engine takes it as connected', t.eng._recoverIfOnline() === true);
+  check('recovered session: the chosen visibility is sent again (it stayed offline on Steam)', t.shown() === 'Online', t.shown());
+
   // ---- an unknown value is online ----
   t = await setup(true, false);
   check('an old caller passing true/false: online, not a guess', t.shown() === 'Online', t.shown());

@@ -300,7 +300,6 @@ const DEFAULT_SETTINGS = {
   // Card Farming > Automation. All three really work; two affect the account permanently so
   // the default is OFF and the sale flow follows the "Ask for confirmation before selling" setting.
   farmAutoSell: false,      // puts the dropped card on sale at the median price
-  farmSilent: false,        // stops interface refreshes while the window is not visible
   farmAchUnlock: false,     // unlocks locked achievements at intervals during farming
   // Sale (inside Inventory - the separate Market tab was removed)
   saleMode: 'median',       // median | lowest
@@ -495,7 +494,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 // ---- SETTINGS MIGRATIONS ----
 // Removed and merged settings are carried over from the old file to here: the user's old choice
 // is not lost, and no dead key is left in the file. settingsVersion is raised once.
-const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch', 'compactRows'];
+const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch', 'compactRows', 'farmSilent'];
 const ACH_DELAY_CHOICES = [15, 30, 45, 60, 120, 300, 600, 1800, 3600];
 function nearestAchDelay(sec) {
   if (!(sec > 0)) return ACH_DELAY_CHOICES[0];
@@ -1465,7 +1464,7 @@ function startCardWatcher(steamID, gameList) {
     leftover: old && old.leftover ? old.leftover : new Map((gameList || []).map((g) => [g.appid, g.remaining])),
     nameList: new Map((gameList || []).map((g) => [g.appid, g.name])),
     sessionDropped: old ? old.sessionDropped || 0 : 0,
-    lastAchievement: old ? old.lastAchievement || 0 : 0,
+    lastAchievement: old ? old.lastAchievement || 0 : Date.now(),
   };
   s.watcher.timer = setInterval(() => watchCards(steamID), CARD_WATCH_MS);
   s.watcher.achievementTimer = setInterval(() => openCardAchievements(steamID), 60000);
@@ -1523,14 +1522,14 @@ async function watchCards(steamID) {
   }
 }
 // "Unlock achievements while farming" (farmAchUnlock). It was in the interface and only worked for the account on screen,
-// while the window was open. Interval: the achievement unlock interval, at least one minute.
+// while the window was open. One achievement every 20 to 40 minutes (random), so a long farm opens a few, not dozens.
 async function openCardAchievements(steamID) {
   if (!settingFor(steamID, 'farmAchUnlock')) return;
   const s = accounts.get(steamID);
   if (!s || !s.watcher || !s.farm || !s.farm.running || !s.engine || !s.ready) return;
   const trace = s.watcher;
-  const intervalMs = Math.max(60, +settingFor(steamID, 'achDelay') || 60) * 1000;
-  if (trace.achievementBusy || Date.now() - (trace.lastAchievement || 0) < intervalMs) return;
+  if (!trace.achievementWait) trace.achievementWait = (20 + Math.random() * 20) * 60000;
+  if (trace.achievementBusy || Date.now() - (trace.lastAchievement || 0) < trace.achievementWait) return;
   const appid = s.farm.currentActiveAppid;
   if (!appid) return;
   trace.achievementBusy = true;
@@ -1541,6 +1540,7 @@ async function openCardAchievements(steamID) {
     const picked = settingFor(steamID, 'achSpread') ? locked[Math.floor(Math.random() * locked.length)] : locked[0];
     await s.engine.setAchievements(appid, [{ apiName: picked.apiName, unlock: true }]);
     trace.lastAchievement = Date.now();
+    trace.achievementWait = 0;
     const v = accountData(steamID);
     v.achLog.unshift({ appid, game: data.gameName || null, apiName: picked.apiName, name: picked.name, unlock: true, ts: Date.now() });
     if (v.achLog.length > 2000) v.achLog.length = 2000;
@@ -1717,7 +1717,7 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'farmWhitelist', 'farmWhitelistOnly', 'favoriteGames', 'personaState'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'favoriteGames', 'personaState'];
 // The settings of the JOBS of an account (card farming, hour boosting, Realistic Mode, achievements). They used to be one set for the whole app: two accounts could
 // not run Realistic Mode with two different durations, and a change made on one account changed the job of the other. Each account now keeps its own values in
 // its account file (jobSettings); an account that has never changed one reads the general value, so nothing changes for anyone on the first start.
@@ -1743,8 +1743,6 @@ const DEFAULT_ACCOUNT_DATA = {
   keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
   grCompleted: {},                 // appid -> when it was learned that nothing is left to unlock (Realistic Mode leaves it out of its game list)
   farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
-  farmWhitelist: [],               // appids that card farming is limited to while farmWhitelistOnly is on
-  farmWhitelistOnly: false,
   grLastRun: null,                 // the last Realistic Mode start of this account { gameEntries, spanMs, optionList }: what the schedule repeats
   jobSettings: {},                 // this account's own values of ACCOUNT_SCOPED_SETTINGS (the ones it changed); the rest comes from the general settings
   favoriteGames: [],               // games starred in the Hour Booster, Realistic Mode and Achievements lists (shown first)
@@ -1775,7 +1773,9 @@ function accountData(steamID) {
   if (r.ok && r.fromBackup) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: true });
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
   // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
-  ['keyQueue', 'keyResults', 'farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  ['keyQueue', 'keyResults', 'farmExcluded', 'favoriteGames'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  // The card farming whitelist (up to 1.9.1) is gone
+  delete v.farmWhitelist; delete v.farmWhitelistOnly;
   if (!v.jobSettings || typeof v.jobSettings !== 'object' || Array.isArray(v.jobSettings) || v.jobSettings === DEFAULT_ACCOUNT_DATA.jobSettings) v.jobSettings = {};
   Object.keys(v.jobSettings).forEach((k) => { if (!ACCOUNT_SCOPED.has(k)) delete v.jobSettings[k]; });
   // Games taken out of the queue used to live in the queue state, which expires with the retention period: move them to the blacklist once
@@ -2123,7 +2123,6 @@ const BATCH_COOLDOWN_MS = 32000;
 let priceCache = new Map();   // hashName -> { price, ts }
 let historyCache = new Map();  // hashName -> { hist, ts, cur }
 const historyTries = new Map();
-const MAX_HISTORY_TRIES = 2;
 const HISTORY_CACHE_VERSION = 1;
 
 function loadPriceCache() {
@@ -2164,6 +2163,13 @@ function cachedHistory(h) {
 let marketQueue = [];        // [{ h, priceValue, pastRecords }]
 let marketRunning = false;
 let marketCancel = false;
+// Steam answered 429: every request until this time would only make the wait longer (it was sent 3 times a second, so the limit never cleared and no price came).
+let marketBlockedUntil = 0;
+let marketStrikes = 0;
+async function marketSleep(ms) {
+  const end = Date.now() + ms;
+  while (Date.now() < end && !marketCancel) await new Promise((r) => setTimeout(r, Math.min(1000, Math.max(1, end - Date.now()))));
+}
 
 function addToMarketQueue(h, priceNum, pastEntries) {
   const v = marketQueue.find((x) => x.h === h);
@@ -2181,14 +2187,15 @@ async function fetchPrice(h) {
   priceTries.set(h, n);
   let p = null;
   try { p = await marketGate(() => engine.getPrice(h)); } catch (_) { p = null; }
-  const transientError = p && (p.rateLimited || p.noCurrency);
-  if (transientError && n < MAX_PRICE_TRIES) {
-    if (p.noCurrency) log('warn', 'market currency not read yet, price postponed: ' + h);
-    return { repeatFlag: true, limit: !!p.rateLimited };
+  // The request limit is not the item's fault: it does not count as a try and nothing is written to the cache, the queue waits and asks again
+  if (p && p.rateLimited) { priceTries.set(h, n - 1); return { repeatFlag: true, limit: true }; }
+  if (p && p.noCurrency && n < MAX_PRICE_TRIES) {
+    log('warn', 'market currency not read yet, price postponed: ' + h);
+    return { repeatFlag: true, limit: false };
   }
-  if (transientError) {
+  if (p && p.noCurrency) {
     // Give up: null is written to the cache, the interface shows "-" and the queue advances.
-    log('warn', `could not get the price (${n} attempts): ${h} - ${p.rateLimited ? 'rate limit' : 'no currency'}`);
+    log('warn', `could not get the price (${n} attempts): ${h} - no currency`);
     p = null;
   }
   priceTries.delete(h);
@@ -2202,8 +2209,7 @@ async function fetchHistory(h) {
   historyTries.set(h, n);
   let hist = null;
   try { hist = await marketGate(() => engine.getPriceHistory(h)); } catch (_) { hist = null; }
-  if (hist && hist.rateLimited && n < MAX_HISTORY_TRIES) return { repeatFlag: true, limit: true };
-  if (hist && hist.rateLimited) { log('warn', 'could not get the sale history (rate limit): ' + h); hist = null; }
+  if (hist && hist.rateLimited) { historyTries.set(h, n - 1); return { repeatFlag: true, limit: true }; }
   historyTries.delete(h);
   historyCache.set(h, { hist, ts: Date.now(), cur: currentPriceCurrency(), v: HISTORY_CACHE_VERSION });
   sendRaw('history:one', { hashName: h, history: hist });
@@ -2218,25 +2224,25 @@ async function runMarketQueue() {
   let doneItems = 0;
   // The quota is measured in REQUESTS, not items: an item can spend two requests.
   let requestCounter = 0;
-  let limitHit = false;
   try {
     while (marketQueue.length) {
       if (marketCancel) { marketQueue.length = 0; break; }
       const is = marketQueue.shift();
       const h = is.h;
       let repeat = false;
+      let rateHit = false;
 
       if (is.priceValue && cachedPrice(h) === undefined) {
         requestCounter++;
         const r = await fetchPrice(h);
-        limitHit = limitHit || r.limit;
+        rateHit = rateHit || r.limit;
         repeat = r.repeatFlag;
       }
       // SAME ITEM, SAME ROUND: no waiting for the order to come round again for the average.
       if (!repeat && is.pastRecords && cachedHistory(h) === undefined) {
         requestCounter++;
         const r = await fetchHistory(h);
-        limitHit = limitHit || r.limit;
+        rateHit = rateHit || r.limit;
         repeat = r.repeatFlag;
       }
 
@@ -2248,16 +2254,29 @@ async function runMarketQueue() {
       sendRaw('history:progress', { totalSum: sumTotal, doneOnes: doneItems, leftover: remaining, isWaiting: false });
       if (doneItems % 10 === 0) { savePriceCache(); saveHistoryCache(); }
 
+      // Steam said 429: stop at once and wait, longer every time it happens again (1, 2, 4, then 5 minutes); the first answer that works starts over
+      if (rateHit) {
+        marketStrikes++;
+        requestCounter = 0;
+        const waitMs = Math.min(60000 * Math.pow(2, marketStrikes - 1), 300000);
+        marketBlockedUntil = Date.now() + waitMs;
+        log('warn', 'market: Steam request limit (429), waiting ' + Math.round(waitMs / 1000) + ' s');
+        sendRaw('history:progress', { totalSum: sumTotal, doneOnes: doneItems, leftover: remaining, isWaiting: true });
+        await marketSleep(waitMs);
+        marketBlockedUntil = 0;
+        continue;
+      }
+      marketStrikes = 0;
       // The window is full: wait for the quota to reset.
       if (remaining && requestCounter >= BATCH_SIZE) {
         requestCounter = 0;
         sendRaw('history:progress', { totalSum: sumTotal, doneOnes: doneItems, leftover: remaining, isWaiting: true });
-        await new Promise((r) => setTimeout(r, limitHit ? BATCH_COOLDOWN_MS + 8000 : BATCH_COOLDOWN_MS));
-        limitHit = false;
+        await marketSleep(BATCH_COOLDOWN_MS);
       }
     }
   } finally {
     marketRunning = false;
+    marketBlockedUntil = 0; marketStrikes = 0;
     priceTries.clear();
     historyTries.clear();
     savePriceCache();
@@ -2372,6 +2391,7 @@ ipcMain.handle('engine:pricesFor', (_e, arg) => {
 // On-demand: only for the item currently open in the detail panel (see rate-limit note in engine).
 ipcMain.handle('engine:priceHistory', async (_e, hashName) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  if (Date.now() < marketBlockedUntil) return { ok: true, history: { rateLimited: true } };   // the queue is waiting out Steam's limit: no new request now
   // Passes through the same market gate - does not race the price queue (see marketGate)
   try { return { ok: true, history: await marketGate(() => engine.getPriceHistory(hashName)) }; }
   catch (e) { return { ok: false, error: e.message }; }
@@ -2381,6 +2401,7 @@ ipcMain.handle('engine:priceHistory', async (_e, hashName) => {
 // it is called on request only for the single item the user selected.
 ipcMain.handle('engine:itemOrders', async (_e, hashName) => {
   if (!engineReady || !engine) return { ok: false, error: 'Bağlı değil.' };
+  if (Date.now() < marketBlockedUntil) return { ok: true, orders: { rateLimited: true, error: ct('Steam istek sınırı aşıldı (429)') } };
   try { return { ok: true, orders: await marketGate(() => engine.getItemOrders(hashName)) }; }
   catch (e) { return { ok: false, error: e.message }; }
 });

@@ -54,10 +54,9 @@ module.exports = function init(ctx) {
       const saved = (accountData(steamID).entries['cards.queue'] || {}).v || {};
       const acct = accountData(steamID);
       const excluded = new Set(acct.farmExcluded);
-      const only = acct.farmWhitelistOnly ? new Set(acct.farmWhitelist) : null;
       const refunds = settingFor(steamID, 'farmSkipRecent') ? await refundableAppIds(steamID, mins) : new Set();
       const list = games.map((g) => ({ ...g, playtimeMin: mins.get(g.appid) || 0 }))
-        .filter((g) => !excluded.has(g.appid) && (!only || only.has(g.appid)) && !(settingFor(steamID, 'farmSkipUnplayed') && !(g.playtimeMin > 0)) && !refunds.has(g.appid));
+        .filter((g) => !excluded.has(g.appid) && !(settingFor(steamID, 'farmSkipUnplayed') && !(g.playtimeMin > 0)) && !refunds.has(g.appid));
       // the account may have been given another job while the lists were loading
       if (!s.ready || accountRunning(s) || s.pendingFarm) return;
       if (!list.length) { log('info', '[' + accountName(steamID) + '] schedule: no game with cards left'); return; }
