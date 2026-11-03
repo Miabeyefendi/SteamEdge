@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.2)
+
+Market prices come back after Steam's request limit, and a few settings are gone.
+
+### Fixed
+
+- **Market prices never arrived once Steam answered 429.** The price queue went on asking three times a second, which kept the limit from clearing, and gave up after three tries by saving "no price" for a day. Now it stops at the first 429 and waits 1, 2, 4 and at most 5 minutes, then asks again for the same item; nothing is saved as "no price" because of the limit. While it waits, the order book and the sale history of a selected item do not send new requests either.
+- **An account could stay offline on Steam.** A session that came back by itself after a drop never got its chosen visibility sent again, and Steam's default is offline. The visibility is now sent on that path too.
+
+### Changed
+
+- **Fast card mode switches the featured game every 10 to 15 seconds** (random). It was 90 to 120 seconds. A saved 90 and 120 is moved to the new values on start. The card mode help text says so in all five languages.
+- **"Unlock achievements while farming" opens one achievement every 20 to 40 minutes** (random), and the first one only after that time has passed. It used to open one a minute.
+- **"Farm in the background" is gone from the Card Farming page: it is always so.** While the window is hidden the lists are released from memory; with the window open nothing changes.
+
+### Removed
+
+- **The card farming whitelist** (the star on a queue row, the Whitelist tab and "Whitelist only"). The blacklist stays. The saved whitelist of an account is deleted on start.
+
+SHA-256 (`SteamEdge-v1.9.2-win-x64.rar`): `93a8d6e0e7c1916d6ec1a0d922e98934a93229e63a7c83e18b394eb1d6132178`
+
 ## [1.9.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.1)
 
 Fast card mode now switches games every 10 to 15 seconds.

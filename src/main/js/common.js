@@ -488,7 +488,7 @@
       } catch(_){}
     }
 
-    // "Farm in the background" (farmSilent) - when the window is not visible the per-second interface refreshes
+    // "Farm in the background" - when the window is not visible the per-second interface refreshes
     // are skipped; since the card farming/hour boosting engine is on the main side it is not affected.
     // The 1 s render loops in the page JS files pass through this gate.
     // G10: while the window is hidden/minimised per-second refreshes are ALWAYS skipped, the setting
@@ -546,10 +546,9 @@
     document.addEventListener('visibilitychange', () => {
       runBeat();
       if (document.hidden){
-        // When "Farm in the background" is on and the window is hidden the list of the OPEN tab is also dropped from memory.
-        // That was the promise of the setting ("lowest processor and memory use"); before, it only skipped
-        // per-second drawing and did nothing on the memory side.
-        if (typeof appSettings === 'object' && appSettings && appSettings.farmSilent) flushHeavyLists(null);
+        // When the window is hidden the list of the OPEN tab is also dropped from memory (it used to be a setting, now it is always so;
+        // before, only the per-second drawing was skipped).
+        flushHeavyLists(null);
         return;
       }
       // Came back: if there is a suspended list draw it, so the counters come to the fresh value.

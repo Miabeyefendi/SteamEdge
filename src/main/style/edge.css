@@ -376,7 +376,7 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
   .cq-head .cq-thumb-sp,.cq-head .cq-id{display:none}
   .cq-head .cq-name,.cq-head .cq-remain{width:auto!important}
 }
-/* Blacklist and whitelist rows have no progress bar: only the name has to give way. */
+/* Blacklist rows have no progress bar: only the name has to give way. */
 @container cq (max-width: 620px){
   .cq-row{padding:10px!important}
 }

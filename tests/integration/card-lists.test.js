@@ -43,10 +43,6 @@ app.whenReady().then(async () => {
   accounts.set('111', { ready: true, engine: eng, farm: null, pendingFarm: null });
   A.scheduleTick(); await new Promise((r) => setTimeout(r, 30));
   ok('schedule skips the blacklist', JSON.stringify(started[0]) === '[10,40]', JSON.stringify(started));
-  accounts.get('111').scheduleKey = null; accounts.get('111').farm = null; started.length = 0;
-  const acc = A.accountData('111'); acc.farmWhitelistOnly = true; acc.farmWhitelist = [40];
-  A.scheduleTick(); await new Promise((r) => setTimeout(r, 30));
-  ok('schedule honours whitelist-only', JSON.stringify(started[0]) === '[40]', JSON.stringify(started));
   // chaining
   const acc2 = A.accountData('444'); acc2.boostGameIds = [1, 2, 3, 99];
   accounts.set('444', { ready: true, engine: { getOwnedGames: async () => [1, 2, 3].map((i) => ({ appid: i, name: 'G' + i, playtimeForever: 5 })) } });

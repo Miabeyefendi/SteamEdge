@@ -10,7 +10,6 @@
     let queueSort = 'rank', queueSortDir = 'asc', qfilter = 'all';
     let priorityOrder = [];          // array of appids - the source of the "Priority" mode and of manual ordering
     const removedIds = new Set();    // the blacklist: never sent to farm (kept in the account file, see main.js farmExcluded)
-    const whitelistIds = new Set();  // the whitelist: the only games that farm while "farmWhitelistOnly" is on
     let refundIds = new Set();       // games that can still be refunded (the "farmSkipRecent" filter leaves them out)
     const recentDrops = [];          // {appid,name,count,ts} - from overview.js's real drop measurement
 
@@ -96,27 +95,24 @@
     }
     document.getElementById('btnRefresh').onclick = () => { cardsLoaded = false; loadCards(); };
 
-    // ---- blacklist / whitelist ----
-    // Both lists are account settings (main.js: farmExcluded, farmWhitelist), so they survive the retention period and
-    // the scheduler reads the same lists.
+    // ---- blacklist ----
+    // The list is an account setting (main.js: farmExcluded), so it survives the retention period and
+    // the scheduler reads the same list.
     function syncLists(){
-      removedIds.clear(); whitelistIds.clear();
+      removedIds.clear();
       if (typeof appSettings !== 'object' || !appSettings) return;
       (appSettings.farmExcluded || []).forEach(id=>removedIds.add(id));
-      (appSettings.farmWhitelist || []).forEach(id=>whitelistIds.add(id));
     }
     async function saveLists(){
-      const next = await window.imu.settings.set({ farmExcluded:[...removedIds], farmWhitelist:[...whitelistIds] }).catch(()=>null);
+      const next = await window.imu.settings.set({ farmExcluded:[...removedIds] }).catch(()=>null);
       if (next && typeof appSettings !== 'undefined') appSettings = next;
     }
-    const whitelistOnly = () => typeof appSettings === 'object' && !!(appSettings && appSettings.farmWhitelistOnly);
 
     // Games that will enter the queue: excluding the removed ones, ordered by the selected mode.
     function orderedForMode(){
       const skipUnplayed = typeof appSettings === 'object' && !!(appSettings && appSettings.farmSkipUnplayed);
-      const only = whitelistOnly();
       const skipRecent = typeof appSettings === 'object' && !!(appSettings && appSettings.farmSkipRecent);
-      const list = dropGames.filter(g=>!removedIds.has(g.appid) && (!only || whitelistIds.has(g.appid)) && !(skipUnplayed && !(g.playtimeMin > 0)) && !(skipRecent && refundIds.has(g.appid)));
+      const list = dropGames.filter(g=>!removedIds.has(g.appid) && !(skipUnplayed && !(g.playtimeMin > 0)) && !(skipRecent && refundIds.has(g.appid)));
       if (selectedMode === 'most') return list.slice().sort((a,b)=>b.remaining-a.remaining);
       if (selectedMode === 'least') return list.slice().sort((a,b)=>a.remaining-b.remaining);
       if (selectedMode === 'leastPlayed') return list.slice().sort((a,b)=>(a.playtimeMin||0)-(b.playtimeMin||0));
@@ -134,7 +130,6 @@
     function viewQueue(){
       // the two list tabs show the lists themselves, not the queue
       if (qfilter === 'excl') return dropGames.filter(g=>removedIds.has(g.appid)).map((g,i)=>({ ...g, rank:i+1, _list:'excl' }));
-      if (qfilter === 'wl') return dropGames.filter(g=>whitelistIds.has(g.appid)).map((g,i)=>({ ...g, rank:i+1, _list:'wl' }));
       const base = orderedForMode();
       const ranked = base.map((g,i)=>({ ...g, rank: i+1 }));
       const filtered = ranked.filter(g => qfilter==='all' ? true : qfilter==='low' ? g.remaining<=2 : g.remaining>=3);
@@ -163,14 +158,11 @@
       document.getElementById('arrowName').textContent = arrow('name');
       document.getElementById('arrowRemain').textContent = arrow('remain');
 
-      const exBtn = document.querySelector('#qFilter button[data-qf=excl]'), wlBtn = document.querySelector('#qFilter button[data-qf=wl]');
+      const exBtn = document.querySelector('#qFilter button[data-qf=excl]');
       if (exBtn) exBtn.textContent = tf('Kara listedekiler · #', dropGames.filter(g=>removedIds.has(g.appid)).length);
-      if (wlBtn) wlBtn.textContent = tf('Beyaz listedekiler · #', dropGames.filter(g=>whitelistIds.has(g.appid)).length);
       const rows = viewQueue();
       if (!rows.length){
         const emptyText = qfilter === 'excl' ? 'Kara listede oyun yok. Kuyruktaki bir oyunun yanındaki kırmızı düğmeyle ekleyebilirsin.'
-          : qfilter === 'wl' ? 'Beyaz listede oyun yok. Kuyruktaki bir oyunun yıldızına basarak ekleyebilirsin.'
-          : (whitelistOnly() && dropGames.length) ? 'Beyaz liste modu açık ama listede kart düşürecek oyun yok.'
           : (dropGames.length ? 'Bu filtreye uyan oyun yok.' : 'Düşürülecek kart kalmamış.');
         q.innerHTML = '<div style="padding:16px;color:#8B8F9E;font-size:12px">' + esc(t(emptyText)) + '</div>';
         renderDrops();
@@ -180,10 +172,7 @@
       const currentId = lastTick.currentAppid;
       const turnPct = lastTick.durationMs ? Math.min(100, Math.round((lastTick.elapsedMs/lastTick.durationMs)*100)) : 0;
 
-      const banner = (whitelistOnly() && !rows[0]._list)
-        ? '<div style="padding:10px 14px;margin-bottom:8px;border:1px solid #B37E24;border-radius:12px;background:#1A1408;color:#B37E24;font-size:11.5px">'
-          + esc(tf('Beyaz liste modu açık: yalnızca yıldızlı # oyunda kart düşürülür.', whitelistIds.size)) + '</div>' : '';
-      q.innerHTML = banner + rows.map(g=>{
+      q.innerHTML = rows.map(g=>{
         if (g._list) return listRow(g);
         const on = activeIds.has(g.appid);
         const bd = on ? '#5624B3' : '#2B3345';
@@ -210,23 +199,21 @@
             + '</div>'
             + '<button data-act="top" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0;white-space:nowrap">'
               + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M5 5h14M6 16l6-6 6 6"></path></svg>En Öne Al</button>'
-            + '<button data-act="wl" title="'+esc(t(whitelistIds.has(g.appid) ? 'Beyaz Listeden Çıkar' : 'Beyaz Listeye Ekle'))+'" style="width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid '+(whitelistIds.has(g.appid)?'#B37E24':'#333D4D')+';color:'+(whitelistIds.has(g.appid)?'#B37E24':'#8B8F9E')+';cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="'+(whitelistIds.has(g.appid)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>'
             + '<button data-act="remove" title="Kara Listeye Al" style="width:28px;height:28px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#E45A86;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>'
           + '</div></div>';
       }).join('');
       renderDrops();
     }
 
-    // A row of the blacklist / whitelist tab: the game and the one button that takes it out of the list
+    // A row of the blacklist tab: the game and the one button that takes it out of the list
     function listRow(g){
-      const ex = g._list === 'excl';
       return '<div class="h-bd cq-row" data-row="'+g.appid+'" style="border:1px solid #2B3345;border-radius:12px;background:#090C12;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">'
         + '<div class="cq-thumb" style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'+gameThumb(g.appid)+'</div>'
         + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">'+esc(g.name)+'</span>'
         + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0">'+esc(tf('# kalan', g.remaining))+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px">'+g.appid+'</span>'
-        + '<button data-act="'+(ex ? 'unexclude' : 'unwl')+'" class="h-brand" style="height:28px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'
-        + esc(t(ex ? 'Kara Listeden Çıkar' : 'Beyaz Listeden Çıkar')) + '</button></div>';
+        + '<button data-act="unexclude" class="h-brand" style="height:28px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'
+        + esc(t('Kara Listeden Çıkar')) + '</button></div>';
     }
 
     // Inline order/remove operations - manual ordering is written to the "Priority" mode (priority
@@ -237,14 +224,12 @@
       const id = +row.getAttribute('data-row');
       const act = btn.getAttribute('data-act');
       if (act === 'remove'){
-        removedIds.add(id); whitelistIds.delete(id); saveLists(); renderCards();
+        removedIds.add(id); saveLists(); renderCards();
         const g = dropGames.find(x=>x.appid===id);
         if (typeof toast === 'function') toast('Kart Düşürme').done(tf('# kara listeye alındı.', g ? g.name : id));
         return;
       }
-      if (act === 'wl'){ if (whitelistIds.has(id)) whitelistIds.delete(id); else { whitelistIds.add(id); removedIds.delete(id); } saveLists(); renderCards(); return; }
       if (act === 'unexclude'){ removedIds.delete(id); saveLists(); renderCards(); return; }
-      if (act === 'unwl'){ whitelistIds.delete(id); saveLists(); renderCards(); return; }
       // the order change is made in the priority list and the mode automatically moves to "Priority"
       if (!priorityOrder.length) priorityOrder = orderedForMode().map(g=>g.appid);
       const i = priorityOrder.indexOf(id);
@@ -332,7 +317,6 @@
         el.classList.toggle('on', val);
         const next = await window.imu.settings.set({ [key]: val }).catch(()=>null);
         if (next && typeof appSettings !== 'undefined') appSettings = next;
-        if (key === 'farmWhitelistOnly' && cardsLoaded) renderCards();
         if (key === 'farmSkipRecent' && cardsLoaded){ cardsLoaded = false; loadCards(); }   // the refund list is read with the games
       });
     });

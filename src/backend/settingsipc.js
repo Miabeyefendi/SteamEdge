@@ -46,8 +46,7 @@ module.exports = function init(ctx) {
       dropped.forEach((k) => { delete received[k]; });
       if (dropped.length) log('warn', 'settings: ' + dropped.length + ' account value(s) from a page of another account were not written (' + dropped.join(', ') + ')');
     }
-    ['farmExcluded', 'farmWhitelist', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
-    if ('farmWhitelistOnly' in received) received.farmWhitelistOnly = !!received.farmWhitelistOnly;
+    ['farmExcluded', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
     if ('personaState' in received) received.personaState = personaName(received.personaState);
     const personaChanged = 'personaState' in received && received.personaState !== personaOf(ctx.activeSteamID);
     if ('uiScale' in received) received.uiScale = windowFit.normalizeScale(received.uiScale);      // the selector sends text

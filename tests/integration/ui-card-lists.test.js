@@ -1,4 +1,4 @@
-// Card Farming page: blacklist, whitelist and "Whitelist only".
+// Card Farming page: the blacklist (the whitelist was removed after 1.9.1).
 // Needs Electron: run with `npm test` (tests/run.js) or `electron <file> --user-data-dir=<temp folder>`.
 // Part 2 smoke test: keys page, my listings sheet, booster unpack, Family View PIN row.
 const { app, BrowserWindow, ipcMain } = require('electron');
@@ -66,20 +66,6 @@ app.whenReady().then(async () => {
   await js("document.querySelector('#cardQueue [data-act=unexclude]').click()");
   await wait(400);
   log('blacklist after restore', await txt('#cardQueue'));
-  // whitelist: star 10, turn the mode on
-  await js("document.querySelector('#qFilter button[data-qf=all]').click()");
-  await wait(300);
-  await js("document.querySelector('#cardQueue [data-row=\"10\"] [data-act=wl]').click()");
-  await wait(300);
-  await js("document.querySelector('#tab-card .e-toggle[data-set=farmWhitelistOnly]').click()");
-  await wait(600);
-  log('whitelist-only rows', await js("[...document.querySelectorAll('#cardQueue [data-row]')].map(r=>r.getAttribute('data-row')).join()"));
-  log('banner', await txt('#cardQueue'));
-  await shot('p5-whitelist');
-  await js("document.querySelector('#qFilter button[data-qf=wl]').click()");
-  await wait(300);
-  log('whitelist tab', await txt('#cardQueue'));
-  log('last set', JSON.stringify(settingsSetCalls.slice(-2)));
   // start: games sent
   await js("document.querySelector('#qFilter button[data-qf=all]').click()"); await wait(200);
   await js("document.getElementById('btnStart').click()"); await wait(400);
@@ -87,9 +73,10 @@ app.whenReady().then(async () => {
   const started = calls.filter((c) => c[0] === 'engine:startFarm').pop();
   let failures = consoleErr.length ? 1 : 0;
   const check = (name, condition) => { if (!condition) failures++; log((condition ? 'PASS ' : 'FAIL ') + name); };
-  check('blacklisting saves the list to the account settings', settingsSetCalls.some((p) => JSON.stringify(p) === '{"farmExcluded":[20],"farmWhitelist":[]}'));
-  check('the whitelist-only switch is saved', settingsSetCalls.some((p) => p.farmWhitelistOnly === true));
-  check('whitelist-only start sends only the starred game', !!started && started[1].games.length === 1 && started[1].games[0].appid === 10);
+  check('blacklisting saves the list to the account settings', settingsSetCalls.some((p) => JSON.stringify(p) === '{"farmExcluded":[20]}'));
+  check('there is no whitelist star, tab or switch any more', await js("!document.querySelector('[data-act=wl]') && !document.querySelector('#qFilter button[data-qf=wl]') && !document.querySelector('[data-set=farmWhitelistOnly]')"));
+  check('there is no "farm in the background" switch any more (it is always so)', await js("!document.querySelector('[data-set=farmSilent]')"));
+  check('start sends the games of the queue, the blacklisted one left out', !!started && started[1].games.map((g) => g.appid).join() === '10,20,30');
   log('console errors', JSON.stringify(consoleErr));
   app.exit(failures ? 1 : 0);
 });
