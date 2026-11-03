@@ -24,7 +24,7 @@
       priority: 'Öncelik listendeki oyunları önce çalıştırır.',
       leastPlayed: 'Oyunları oynanma süresi en az olandan başlayarak tek tek çalıştırır.',
       mostPlayed: 'Oyunları oynanma süresi en çok olandan başlayarak tek tek çalıştırır.',
-      fast: 'Kısıtlı hesaplarda Steam, bir oyun belirli bir süreyi (genelde 2 saat) geçince kart düşürmeye başlar. Hızlı mod önce eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kart düşürmeyi sürdürür. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınan bir oyunun iade hakkı 2 saati geçince kapanır.'
+      fast: 'Kısıtlı hesaplarda Steam, bir oyun belirli bir süreyi (genelde 2 saat) geçince kart düşürmeye başlar. Hızlı mod önce eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kart düşürmeyi sürdürür. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 10-15 saniyede bir değiştirir. Yeni satın alınan bir oyunun iade hakkı 2 saati geçince kapanır.'
     };
     // listRow(on) / segSet(cur,key) selected-style helpers
     const ROW_ON  = { bg:'#151C28', fg:'#DCE2FA', bd:'#5624B3' };

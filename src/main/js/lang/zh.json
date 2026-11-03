@@ -1277,7 +1277,7 @@
  "Durduruldu · # / #": "已停止 · # / #",
  "Steam bağlantısı yok · # / #": "沒有 Steam 連線 · # / #",
  "Süre doldu, # başarım açılmadı · # / #": "時間到，# 項成就未解鎖 · # / #",
- "Kısıtlı hesaplarda Steam, bir oyun belirli bir süreyi (genelde 2 saat) geçince kart düşürmeye başlar. Hızlı mod önce eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kart düşürmeyi sürdürür. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 1,5-2 dakikada bir değiştirir. Yeni satın alınan bir oyunun iade hakkı 2 saati geçince kapanır.": "在卡牌掉落受限的帳號上，Steam 只有在遊戲時數超過一定值（通常 2 小時）後才開始掉卡。快速模式先讓低於該門檻的遊戲一起執行以達到門檻；已超過門檻的遊戲此時保持開啟，輪流成為主遊戲並持續掉卡。之後讓它們全部保持開啟，並每 1.5-2 分鐘切換一次主遊戲。新購買的遊戲超過 2 小時後將無法退款。",
+ "Kısıtlı hesaplarda Steam, bir oyun belirli bir süreyi (genelde 2 saat) geçince kart düşürmeye başlar. Hızlı mod önce eşiğin altındaki oyunları birlikte çalıştırıp eşiğe çeker; eşiği geçmiş oyunlar bu sırada da açık kalır, sırayla öne çıkar ve kart düşürmeyi sürdürür. Sonra hepsini birlikte açık tutar ve öne çıkan oyunu 10-15 saniyede bir değiştirir. Yeni satın alınan bir oyunun iade hakkı 2 saati geçince kapanır.": "在卡牌掉落受限的帳號上，Steam 只有在遊戲時數超過一定值（通常 2 小時）後才開始掉卡。快速模式先讓低於該門檻的遊戲一起執行以達到門檻；已超過門檻的遊戲此時保持開啟，輪流成為主遊戲並持續掉卡。之後讓它們全部保持開啟，並每 10-15 秒切換一次主遊戲。新購買的遊戲超過 2 小時後將無法退款。",
  "# oyun eşiğin altında; önce bu eşiğe çekilecek, sonra kart düşmeye başlayacak.": "有 # 款遊戲未達門檻，會先拉到門檻，之後才會開始掉落卡牌。",
  "# oyunun hepsi eşiği geçmiş; kart düşmeye hemen başlıyor.": "這 # 款遊戲都已超過門檻，會立即開始掉落卡牌。",
  "En az oynanan önce": "先玩時數最少的",

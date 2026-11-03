@@ -11,7 +11,7 @@
 //                above the threshold. Steam credits time to every game open at once, so this
 //                phase is many times faster than waiting one by one.
 //             2) Loop - all games past the threshold are kept open together and the featured game
-//                changes every 1.5-2 minutes (gamesPlayed is refreshed). Card drops are triggered
+//                changes every 10-15 seconds (gamesPlayed is refreshed). Card drops are triggered
 //                by these refreshes, so a short interval speeds drops up.
 //
 // A GAME THAT RAN OUT OF CARDS. The controller used to take the queue once and never
@@ -66,8 +66,8 @@ class FarmController {
     this.shuffle = !!(opts && opts.shuffle);
     this.maxGames = (opts && +opts.maxGames > 0) ? Math.min(32, +opts.maxGames) : 32;
     this.fastMinPlaytimeMin = (opts && +opts.fastMinPlaytimeMin >= 0) ? +opts.fastMinPlaytimeMin : 120;
-    this.fastRotateMinMs = ((opts && +opts.fastRotateMinSec) || 90) * 1000;
-    this.fastRotateMaxMs = ((opts && +opts.fastRotateMaxSec) || 120) * 1000;
+    this.fastRotateMinMs = ((opts && +opts.fastRotateMinSec) || 10) * 1000;
+    this.fastRotateMaxMs = ((opts && +opts.fastRotateMaxSec) || 15) * 1000;
     if (this.fastRotateMaxMs < this.fastRotateMinMs) this.fastRotateMaxMs = this.fastRotateMinMs;
     this.durationMs = durationMs || 30 * 60 * 1000;
     let list = (games || []).map((g) => ({ ...g }));
@@ -267,7 +267,7 @@ class FarmController {
     }
     if (mustFinish()) return;
 
-    // ---- 2) LOOP: the games past the threshold are open together, the featured game changes every 1.5-2 min ----
+    // ---- 2) LOOP: the games past the threshold are open together, the featured game changes every 10-15 s ----
     this.phaseName = 'rotate';
     this.index = 0;
     this._refreshPool();
@@ -284,7 +284,7 @@ class FarmController {
     this._fastRotate();
   }
 
-  // A random interval between 1.5 and 2 minutes - a variable interval instead of a fixed rhythm both looks
+  // A random interval between 10 and 15 seconds - a variable interval instead of a fixed rhythm both looks
   // more natural and keeps the drop trigger from depending on a single second.
   _rotateMs() {
     const lo = this.fastRotateMinMs, hi = this.fastRotateMaxMs;
