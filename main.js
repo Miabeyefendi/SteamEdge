@@ -372,8 +372,8 @@ const DEFAULT_SETTINGS = {
   // Fast mode: Steam starts dropping cards once a game passes 2 hours. Those below are first
   // run in parallel and pulled to the threshold, then the featured game changes at this interval.
   fastMinPlaytimeMin: 120,
-  fastRotateMinSec: 90,
-  fastRotateMaxSec: 120,
+  fastRotateMinSec: 10,
+  fastRotateMaxSec: 15,
   autoNextGame: true,
   // If the connection drops: 'unlimited' | '10' | '3' | 'off'. "Automatic reconnect"
   // and "retry" used to be two separate settings and both only affected the first logon.
@@ -543,6 +543,8 @@ function migrateSettings(v) {
   });
   // "Compact rows" is the interface density now
   if (v.compactRows === true && (!v.density || v.density === 'auto')) v.density = 'compact';
+  // The fast mode now moves to another game every 10-15 s (it was 90-120 s)
+  if (v.fastRotateMinSec === 90 && v.fastRotateMaxSec === 120) { v.fastRotateMinSec = 10; v.fastRotateMaxSec = 15; hasChanged = true; }
   REMOVED_SETTINGS.forEach((k) => { if (k in v) { delete v[k]; hasChanged = true; } });
   return hasChanged;
 }

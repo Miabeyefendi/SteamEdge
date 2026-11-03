@@ -7,6 +7,17 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.1)
+
+Fast card mode now switches games every 10 to 15 seconds.
+
+### Changed
+
+- **Fast card mode switches the featured game every 10 to 15 seconds** (random interval, it was 90 to 120). This is the loop after the warm-up: once every game is past the 2 hour mark, the games take turns at that pace. Games under 2 hours are still run together until they reach it. A saved setting that still holds the old 90 and 120 is moved to the new values on start; a value you set yourself is kept.
+- The card mode help text says 10 to 15 seconds in all five languages.
+
+SHA-256 (`SteamEdge-v1.9.1-win-x64.rar`): `9baf3b2d7178e1bcbf564750984d5cfccadaed48c5e91ce54815165c02304021`
+
 ## [1.9.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.0)
 
 The main process is split into modules; nothing you use changes.

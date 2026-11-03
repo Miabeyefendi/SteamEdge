@@ -137,7 +137,7 @@ const games = (n, extra) => Array.from({ length: n }, (_, i) => Object.assign({ 
   check('fast warm-up: after the largest deficit (90 min) the loop phase starts', t.fc.phaseName === 'rotate', t.fc.phaseName);
   const pl = t.plays.length;
   await advance(10 * MIN);
-  check('fast loop: the featured game changes every 1.5-2 minutes (about 5 refreshes in 10 minutes)', t.plays.length - pl >= 4 && t.plays.length - pl <= 7, String(t.plays.length - pl));
+  check('fast loop: the featured game changes every 10-15 seconds (about 48 refreshes in 10 minutes)', t.plays.length - pl >= 40 && t.plays.length - pl <= 60, String(t.plays.length - pl));
   check('fast loop: all four stay open', t.plays[t.plays.length - 1].ids.length === 4);
   t.fc.updateGames(mixed.map((g) => ({ appid: g.appid, remaining: g.appid === 3 ? 0 : 3 })), new Set([3]));
   check('fast loop: a game out of cards leaves the open list', t.plays[t.plays.length - 1].ids.slice().sort().join() === '1,2,4');
