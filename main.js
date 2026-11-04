@@ -45,7 +45,7 @@ const ct = translation.t;
 let steamFeeModule = null;
 function steamFee() { if (!steamFeeModule) steamFeeModule = require('./src/services/steamFee'); return steamFeeModule; }
 
-// The hwAccel setting, if it says 'turn off GPU acceleration', has to take effect BEFORE app.whenReady() -
+// The hwAccel setting (off by default since settings version 6) has to take effect BEFORE app.whenReady() -
 // since the normal settings.json load (loadSettings) happens inside whenReady, we do a synchronous,
 // early read here (only for this one flag).
 let earlySettings = null;
@@ -59,7 +59,10 @@ try {
   const earlyPath = earlyPaths.find((p) => fs.existsSync(p));
   const early = earlyPath ? migrateKeys(JSON.parse(fs.readFileSync(earlyPath, 'utf8'))) : null;
   earlySettings = early;
-  if (early && early.hwAccel === false) app.disableHardwareAcceleration();
+  // The graphics card is left alone unless the user turned acceleration on (in a settings file of version 6 or later): with it on, a card running an undervolt or an
+  // overclock at its limit froze for 3 to 5 seconds when the window drew, and with it off SteamEdge no longer shows up as a graphics process at all.
+  const keepHwAccel = !!early && early.hwAccel === true && (+early.settingsVersion || 1) >= 6;
+  if (!keepHwAccel) app.disableHardwareAcceleration();
 
   // GRAPHICS COMPATIBILITY. All three switches have to be given BEFORE whenReady; if set
   // later Chromium does not see them. That is why Settings says "asks for a
@@ -332,7 +335,7 @@ const DEFAULT_SETTINGS = {
   // Privacy & Security (the visibility on Steam is chosen per account in the top bar: account data personaState)
   // Advanced & Data
   apiRequestDelayMs: 350,   // wait per price request (Steam's limit - lowering it raises the 429 risk)
-  hwAccel: true,            // GPU hardware acceleration - turning it off asks for a restart
+  hwAccel: false,           // GPU hardware acceleration: off, SteamEdge does not touch the graphics card at all (turning it on asks for a restart)
   lightMode: true,           // stop drawing and animations when the window is not focused
   gpuBackend: 'auto',        // ANGLE backend: auto | d3d11 | d3d9 | gl (asks for a restart)
   lowMemory: true,          // the graphics and network code run inside the main process: two processes fewer, about 100 MB less (asks for a restart)
@@ -438,7 +441,7 @@ const DEFAULT_SETTINGS = {
   sessionTimeout: 'never',  // idle time (min), does not apply while a job runs - 'never' = off
   hideGameName: false,      // become invisible while playing (so the game name does not show on the profile)
   logLevel: 'error',        // log file: off | error | warn | info | debug
-  settingsVersion: 5,            // format of the settings file; migrations are in migrateSettings
+  settingsVersion: 6,            // format of the settings file; migrations are in migrateSettings
 };
 let settings = { ...DEFAULT_SETTINGS };
 
@@ -534,6 +537,12 @@ function migrateSettings(v) {
   if ((+v.settingsVersion || 1) < 5) {
     if (v.gpuComposition === true) v.gpuComposition = false;
     v.settingsVersion = 5;
+    hasChanged = true;
+  }
+  // Hardware acceleration is off by default now (see the early settings read at the top): a file written before that follows the new default once.
+  if ((+v.settingsVersion || 1) < 6) {
+    v.hwAccel = false;
+    v.settingsVersion = 6;
     hasChanged = true;
   }
   // Values renamed from Turkish (the old names are in src/core/keyMigration.js)

@@ -99,10 +99,10 @@
 
 The `.rar` holds the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`) and packed with WinRAR. Nothing in it is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-v1.9.2-win-x64.rar`:
-`93a8d6e0e7c1916d6ec1a0d922e98934a93229e63a7c83e18b394eb1d6132178`
+SHA-256 of `SteamEdge-v1.9.3-win-x64.rar`:
+`752601aa3e764879d54041e6e822c07c3cc78d2d2dd24553ad550deadd55901b`
 
-Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.9.2-win-x64.rar`.
+Check it in PowerShell with `Get-FileHash .\SteamEdge-v1.9.3-win-x64.rar`.
 
 ---
 

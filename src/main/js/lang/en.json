@@ -414,7 +414,7 @@
  "arayüz süreci": "interface process",
  "ekran kartı süreci": "graphics process",
  "ağ süreci": "network process",
- "Arayüz ekran kartıyla çizilir. Kapatınca ekran kartı süreci küçülür ve ölçümlerimizde bellek kullanımı yaklaşık 45 MB düşer; çizim işlemciye kalır. Görüntü bozulması ya da donma yaşıyorsan da kapatıp uygulamayı yeniden başlat.": "The interface is drawn by the graphics card. Turning this off shrinks the graphics process and, in our measurements, cut memory use by roughly 45 MB, at the cost of drawing on the CPU. Also turn it off if you see visual glitches or freezing, then restart the app.",
+ "Kapalıyken (varsayılan) arayüz işlemciyle çizilir ve SteamEdge ekran kartını hiç kullanmaz. Açarsan arayüz ekran kartıyla çizilir; sınırda çalışan bir OC ya da undervolt ile bu, ekran kartında anlık donmaya yol açabilir. Yeniden başlatma gerekir.": "When off (the default) the interface is drawn by the processor and SteamEdge does not use the graphics card at all. When on, the interface is drawn by the graphics card; with an overclock or undervolt running at its limit this can cause a short freeze on the card. Needs a restart.",
  "hesap bağlı değil": "no account connected",
  "Güncellemeleri denetle": "Check for updates",
  "Değişiklikleri yayın sayfasında okuyabilirsin.": "You can read the changes on the release page.",

@@ -414,7 +414,7 @@
  "arayüz süreci": "介面程序",
  "ekran kartı süreci": "顯示卡程序",
  "ağ süreci": "網路程序",
- "Arayüz ekran kartıyla çizilir. Kapatınca ekran kartı süreci küçülür ve ölçümlerimizde bellek kullanımı yaklaşık 45 MB düşer; çizim işlemciye kalır. Görüntü bozulması ya da donma yaşıyorsan da kapatıp uygulamayı yeniden başlat.": "介面由顯示卡繪製。關閉後顯示卡程序會縮小，在我們的量測中記憶體用量約減少 45 MB，代價是改由處理器繪製。若出現畫面異常或卡頓也請關閉並重新啟動程式。",
+ "Kapalıyken (varsayılan) arayüz işlemciyle çizilir ve SteamEdge ekran kartını hiç kullanmaz. Açarsan arayüz ekran kartıyla çizilir; sınırda çalışan bir OC ya da undervolt ile bu, ekran kartında anlık donmaya yol açabilir. Yeniden başlatma gerekir.": "關閉（預設）時介面由處理器繪製，SteamEdge 完全不使用顯示卡。開啟時由顯示卡繪製；若超頻或降壓已在極限，可能造成顯示卡短暫凍結。需要重新啟動。",
  "hesap bağlı değil": "尚未連線帳號",
  "Güncellemeleri denetle": "檢查更新",
  "Değişiklikleri yayın sayfasında okuyabilirsin.": "你可以在發佈頁面閱讀變更內容。",

@@ -7,6 +7,17 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.3)
+
+SteamEdge no longer uses the graphics card.
+
+### Changed
+
+- **Hardware acceleration is off by default.** The interface is drawn by the processor and SteamEdge does not show up as a graphics process any more. It was added after short freezes (3 to 5 seconds) on a card running an undervolt and an overclock at its limit, where SteamEdge, even in the tray, was a program that used the card. A saved setting that still says on is turned off once on the first start; if you turn it on yourself afterwards it stays on. The cost is a few points of processor use. Settings > Advanced & data > Hardware acceleration, a change asks for a restart.
+- The help text of that setting is rewritten in all five languages.
+
+SHA-256 (`SteamEdge-v1.9.3-win-x64.rar`): `752601aa3e764879d54041e6e822c07c3cc78d2d2dd24553ad550deadd55901b`
+
 ## [1.9.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.2)
 
 Market prices come back after Steam's request limit, and a few settings are gone.
