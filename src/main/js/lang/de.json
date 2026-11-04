@@ -414,7 +414,7 @@
  "arayüz süreci": "Oberflächenprozess",
  "ekran kartı süreci": "Grafikprozess",
  "ağ süreci": "Netzwerkprozess",
- "Arayüz ekran kartıyla çizilir. Kapatınca ekran kartı süreci küçülür ve ölçümlerimizde bellek kullanımı yaklaşık 45 MB düşer; çizim işlemciye kalır. Görüntü bozulması ya da donma yaşıyorsan da kapatıp uygulamayı yeniden başlat.": "Die Oberfläche wird von der Grafikkarte gezeichnet. Abschalten verkleinert den Grafikprozess und senkte den Speicherbedarf in unseren Messungen um etwa 45 MB, dafür zeichnet die CPU. Schalte es auch ab, wenn du Bildfehler oder Hänger siehst, und starte die Anwendung neu.",
+ "Kapalıyken (varsayılan) arayüz işlemciyle çizilir ve SteamEdge ekran kartını hiç kullanmaz. Açarsan arayüz ekran kartıyla çizilir; sınırda çalışan bir OC ya da undervolt ile bu, ekran kartında anlık donmaya yol açabilir. Yeniden başlatma gerekir.": "Aus (Standard): Die Oberfläche wird vom Prozessor gezeichnet und SteamEdge nutzt die Grafikkarte gar nicht. An: Die Oberfläche wird von der Grafikkarte gezeichnet; bei einer Übertaktung oder Untervoltung am Limit kann das kurze Aussetzer der Karte verursachen. Neustart erforderlich.",
  "hesap bağlı değil": "kein Konto verbunden",
  "Güncellemeleri denetle": "Nach Updates suchen",
  "Değişiklikleri yayın sayfasında okuyabilirsin.": "Die Änderungen stehen auf der Release-Seite.",

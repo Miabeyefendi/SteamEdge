@@ -414,7 +414,7 @@
  "arayüz süreci": "процесс интерфейса",
  "ekran kartı süreci": "процесс видеокарты",
  "ağ süreci": "сетевой процесс",
- "Arayüz ekran kartıyla çizilir. Kapatınca ekran kartı süreci küçülür ve ölçümlerimizde bellek kullanımı yaklaşık 45 MB düşer; çizim işlemciye kalır. Görüntü bozulması ya da donma yaşıyorsan da kapatıp uygulamayı yeniden başlat.": "Интерфейс рисуется видеокартой. Отключение уменьшает процесс видеокарты и в наших измерениях снижает расход памяти примерно на 45 МБ; взамен отрисовка ложится на процессор. Если видите артефакты или зависания, тоже выключите и перезапустите приложение.",
+ "Kapalıyken (varsayılan) arayüz işlemciyle çizilir ve SteamEdge ekran kartını hiç kullanmaz. Açarsan arayüz ekran kartıyla çizilir; sınırda çalışan bir OC ya da undervolt ile bu, ekran kartında anlık donmaya yol açabilir. Yeniden başlatma gerekir.": "Выключено (по умолчанию): интерфейс рисует процессор, и SteamEdge вообще не использует видеокарту. Включено: интерфейс рисует видеокарта; при разгоне или андервольте на пределе это может вызвать кратковременное зависание карты. Нужен перезапуск.",
  "hesap bağlı değil": "аккаунт не подключён",
  "Güncellemeleri denetle": "Проверить обновления",
  "Değişiklikleri yayın sayfasında okuyabilirsin.": "Список изменений можно прочитать на странице выпуска.",

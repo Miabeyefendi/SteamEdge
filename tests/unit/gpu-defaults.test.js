@@ -35,7 +35,9 @@ check('a file of version 5 that has not chosen anything composites on the proces
 check('a user who turned the graphics card on (version 5) gets it', composes(startUp({ settingsVersion: 5, gpuComposition: true })));
 check('an older file that says on is not read as a choice: the new default applies', !composes(startUp({ settingsVersion: 4, gpuComposition: true })) && !composes(startUp({ gpuComposition: true })));
 check('a file that says nothing about it composites on the processor', !composes(startUp({ settingsVersion: 5 })));
-check('turning hardware acceleration off still works as before', startUp({ settingsVersion: 5, hwAccel: false }).disabled === true && startUp({ settingsVersion: 5 }).disabled === false);
+check('hardware acceleration is off for a first start and for a file that says nothing', startUp(undefined).disabled === true && startUp({ settingsVersion: 6 }).disabled === true);
+check('a user who turned it on (version 6) gets the graphics card', startUp({ settingsVersion: 6, hwAccel: true }).disabled === false);
+check('an older file that says on is not read as a choice: the new default applies', startUp({ settingsVersion: 5, hwAccel: true }).disabled === true && startUp({ hwAccel: true }).disabled === true);
 check('the ANGLE backend choice is untouched', startUp({ settingsVersion: 5, gpuBackend: 'd3d9' }).switches.includes('use-angle=d3d9'));
 
 // ---- low memory mode: graphics and network code inside the main process ----
@@ -56,16 +58,22 @@ const mig = vm.createContext({ REMOVED_SETTINGS: [], OLD_SETTING_VALUES: require
 vm.runInContext(src.slice(m1, m2) + ';this.run = migrateSettings;', mig);
 const old = { settingsVersion: 4, gpuComposition: true, density: 'auto' };
 const changed = mig.run(old);
-check('a version 4 file with the old default turns to processor compositing and to version 5', changed === true && old.gpuComposition === false && old.settingsVersion === 5);
+check('a version 4 file with the old default turns to processor compositing', changed === true && old.gpuComposition === false && old.settingsVersion === 6);
 const mine = { settingsVersion: 5, gpuComposition: true };
 mig.run(mine);
-check('a version 5 file keeps the choice of the user', mine.gpuComposition === true && mine.settingsVersion === 5);
+check('a version 5 file keeps the choice of the user', mine.gpuComposition === true);
 const bare = { settingsVersion: 2 };
 mig.run(bare);
-check('a very old file ends at version 5', bare.settingsVersion === 5);
+check('a very old file ends at version 6', bare.settingsVersion === 6);
+const hw = { settingsVersion: 5, hwAccel: true };
+check('a version 5 file with acceleration on turns it off, once', mig.run(hw) === true && hw.hwAccel === false && hw.settingsVersion === 6);
+const hw2 = { settingsVersion: 6, hwAccel: true };
+mig.run(hw2);
+check('a version 6 file keeps the choice of the user', hw2.hwAccel === true);
 
 const def = src.match(/gpuComposition: (true|false),/);
 check('the default is off', !!def && def[1] === 'false');
-check('and the settings version of a new file is 5', /settingsVersion: 5,/.test(src));
+check('and the settings version of a new file is 6', /settingsVersion: 6,/.test(src));
+check('hardware acceleration is off by default', /hwAccel: false,/.test(src));
 
 process.exit(failures ? 1 : 0);

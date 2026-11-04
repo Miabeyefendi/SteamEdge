@@ -414,7 +414,7 @@
  "arayüz süreci": "proceso de interfaz",
  "ekran kartı süreci": "proceso gráfico",
  "ağ süreci": "proceso de red",
- "Arayüz ekran kartıyla çizilir. Kapatınca ekran kartı süreci küçülür ve ölçümlerimizde bellek kullanımı yaklaşık 45 MB düşer; çizim işlemciye kalır. Görüntü bozulması ya da donma yaşıyorsan da kapatıp uygulamayı yeniden başlat.": "La interfaz la dibuja la tarjeta gráfica. Desactivarlo reduce el proceso gráfico y, en nuestras mediciones, bajó el uso de memoria unos 45 MB, a cambio de dibujar en la CPU. Desactívalo también si ves fallos visuales o bloqueos, y reinicia la aplicación.",
+ "Kapalıyken (varsayılan) arayüz işlemciyle çizilir ve SteamEdge ekran kartını hiç kullanmaz. Açarsan arayüz ekran kartıyla çizilir; sınırda çalışan bir OC ya da undervolt ile bu, ekran kartında anlık donmaya yol açabilir. Yeniden başlatma gerekir.": "Desactivada (por defecto), la interfaz la dibuja el procesador y SteamEdge no usa la tarjeta gráfica en absoluto. Activada, la dibuja la tarjeta gráfica; con un overclock o undervolt al límite puede provocar un breve congelamiento de la tarjeta. Requiere reiniciar.",
  "hesap bağlı değil": "sin cuenta conectada",
  "Güncellemeleri denetle": "Buscar actualizaciones",
  "Değişiklikleri yayın sayfasında okuyabilirsin.": "Puedes leer los cambios en la página de versiones.",
