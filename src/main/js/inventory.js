@@ -280,19 +280,6 @@
       }
       const sel = document.getElementById('efState'); if (sel) sel.value = fState;
       paintGroupBtn();
-      armPriceAutoRefresh();
-    }
-
-    // "Refresh prices automatically" + "Price refresh interval" - refreshes in the background while Inventory is open
-    let priceRefreshTimer = null;
-    function armPriceAutoRefresh(){
-      if (priceRefreshTimer){ clearInterval(priceRefreshTimer); priceRefreshTimer = null; }
-      if (!appSettings || !appSettings.autoRefreshPrices) return;
-      const mins = Math.max(1, +appSettings.priceRefreshMin || 15);
-      priceRefreshTimer = setInterval(()=>{
-        const visible = document.getElementById('tab-inventory') && !document.getElementById('tab-inventory').classList.contains('hidden');
-        if (visible && invMerged && !priceFetching) fetchPricesForView();
-      }, mins * 60 * 1000);
     }
 
     function mergeDuplicates(items){

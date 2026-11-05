@@ -1,6 +1,15 @@
 const SteamUser = require('steam-user');
 const translation = require('./translation');
 const { parseProxy, proxyFetch } = require('./proxyFetch');
+
+// Steam's community site answers 429 to the fetch built into Electron's Node on the market, inventory and selling endpoints, every time, from the first request (measured
+// against the same address that answers 200 to curl). The same request through Chromium's network stack goes through, so inside Electron the web requests use that.
+// No cookies from the browser session: the account's own Cookie header is the only one sent. Outside Electron (the tests) it is the plain fetch.
+function webFetch(url, options) {
+  let net = null;
+  try { const e = require('electron'); if (e && e.app && e.net && e.app.isReady()) net = e.net; } catch (_) {}
+  return net ? net.fetch(url, { credentials: 'omit', ...options }) : fetch(url, options);
+}
 const inventorySources = require('./inventorySources');
 const rarityCache = require('./rarityCache');
 // steam-user's internal protobufs map doesn't register the user-stats messages, so we encode/decode
@@ -131,7 +140,7 @@ class SteamEngine {
     if (this._proxy) this.user.setOption(this._proxy.socks ? 'socksProxy' : 'httpProxy', this._proxy.url.replace(/^socks5:/, 'socks5h:'));
   }
   _fetch(url, options) {
-    return this._proxy ? proxyFetch(url, options, this._proxy) : fetch(url, options);
+    return this._proxy ? proxyFetch(url, options, this._proxy) : webFetch(url, options);
   }
 
   // The apps of the licenses this account got in the last `days` days. A game bought that recently can still be refunded

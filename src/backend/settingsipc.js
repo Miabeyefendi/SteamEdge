@@ -2,7 +2,7 @@
 // gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, personaName, personaOf, pruneAccountRecords, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData } = ctx;
+  const { ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, hideNameOf, personaName, personaOf, pruneAccountRecords, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData } = ctx;
 
   // ---- settings IPC ----
   // The settings object that goes to the renderer. accountCurrency = the account's Steam wallet currency (prices are fetched in
@@ -49,6 +49,8 @@ module.exports = function init(ctx) {
     ['farmExcluded', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
     if ('personaState' in received) received.personaState = personaName(received.personaState);
     const personaChanged = 'personaState' in received && received.personaState !== personaOf(ctx.activeSteamID);
+    if ('hideGameName' in received) received.hideGameName = !!received.hideGameName;
+    const hideChanged = 'hideGameName' in received && received.hideGameName !== hideNameOf(ctx.activeSteamID);
     if ('uiScale' in received) received.uiScale = windowFit.normalizeScale(received.uiScale);      // the selector sends text
     ['proxyUrl', 'loginProxyUrl'].forEach((k) => {
       if (!(k in received) || received.__proxyError) return;
@@ -79,7 +81,7 @@ module.exports = function init(ctx) {
     }
     if (writtenToAccount) writeAccountData(ctx.activeSteamID);
     if (pinChanged) applyParentalPin(ctx.activeSteamID);
-    if (personaChanged) applyPersona(ctx.activeSteamID);
+    if (personaChanged || hideChanged) applyPersona(ctx.activeSteamID);
     if (writtenToAccount) applyActiveProxy();      // no-op unless the proxy of the account on screen changed
     const changed = Object.keys(received).filter((k) => JSON.stringify(ctx.settings[k]) !== JSON.stringify(received[k]));
     if (!changed.length) {

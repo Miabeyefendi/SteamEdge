@@ -125,10 +125,10 @@
     // was met in 1.1.10 at the achievement unlock interval. The conditions look at the DRAFT: when the parent setting is
     // turned off on the page the child dims right away, no need to save.
     const NOTIFICATIONS_OFF = 'Masaüstü bildirimleri kapalıyken hiçbir bildirim gösterilmez.';
+    const HWACCEL_OFF = '"Donanım hızlandırma" kapalıyken kullanılmaz.';
     const SETTING_GATES = [
       { keyField: 'achSpread', ruleCondition: () => rawValue('achSafeMode') !== false, not: 'Güvenli mod kapalıyken açılış aralığı sapmaz.' },
       { keyField: 'undercutCents', ruleCondition: () => rawValue('saleMode') === 'undercut', not: 'Yalnızca varsayılan satış fiyatı "En ucuzun altına in" iken kullanılır.' },
-      { keyField: 'priceRefreshMin', ruleCondition: () => !!rawValue('autoRefreshPrices'), not: '"Fiyatları otomatik yenile" kapalıyken fiyatlar kendiliğinden yenilenmez.' },
       { keyField: 'sellBatchWaitMin', ruleCondition: () => +rawValue('bulkSellLimit') > 0, not: 'Parti büyüklüğü 0 iken satış partilere bölünmez.' },
       { keyField: 'shuffleBoost', ruleCondition: () => !!appSettings.seqIdle, not: 'Yalnızca Saat Yükseltici\'de sıralı bekletme açıkken geçerli; eş zamanlı yükseltmede sıra yoktur.' },
       { keyField: 'boostSyncMode', ruleCondition: () => !!rawValue('boostSync'), not: '"Saatleri eşitle" kapalıyken kullanılmaz.' },
@@ -141,6 +141,8 @@
       { keyField: 'quietHoursEnabled', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifSound', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
       { keyField: 'notifyChat', ruleCondition: () => rawValue('notifications') !== false, not: NOTIFICATIONS_OFF },
+      { keyField: 'gpuComposition', ruleCondition: () => !!rawValue('hwAccel'), not: HWACCEL_OFF },
+      { keyField: 'gpuBackend', ruleCondition: () => !!rawValue('hwAccel'), not: HWACCEL_OFF },
       { keyField: 'hideGameName', ruleCondition: () => rawValue('personaState') !== 'invisible', not: 'Hesap görünürlüğü Görünmez iken oyun adı zaten görünmez.' },
       { keyField: 'grScheduleFrom', ruleCondition: () => !!rawValue('grScheduleEnabled'), not: '"Gerçekçi Mod zamanlayıcısı" kapalıyken kullanılmaz.' },
       { keyField: 'grScheduleTo', ruleCondition: () => !!rawValue('grScheduleEnabled'), not: '"Gerçekçi Mod zamanlayıcısı" kapalıyken kullanılmaz.' },

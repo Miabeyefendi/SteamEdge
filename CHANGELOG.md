@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.4)
+
+Market prices load again, "Hide game name" is per account, and the settings are tidier.
+
+### Fixed
+
+- **Market prices, order books, sale history and selling were answered with 429 from the very first request.** Steam's community site refuses the request client built into Electron on those pages, while the browser network stack gets a normal answer from the same address. SteamEdge now sends its Steam web requests through Chromium's network stack, without browser cookies (the account's own cookie header is kept). Prices, order books and sale history load again; in a test 27 of 31 items had a price within 90 seconds. The 1.9.2 wait-and-retry stays as a safety net.
+
+### Changed
+
+- **"Hide game name" is set per account.** It used to be one switch for every account. Each account now keeps its own; an account that never had one takes the current value once.
+- **"GPU composition" and "Graphics backend" are greyed out while "Hardware acceleration" is off**, with a note saying why, because they have no effect then.
+- Long help texts in Settings are shorter, and the wording of the changed texts was proofread sentence by sentence in all five languages.
+
+### Removed
+
+- **"Auto-refresh prices" and "Price refresh interval".** Prices are fetched when they are older than 24 hours; the two settings only made the queue ask more often.
+
+
+SHA-256 (`SteamEdge-v1.9.4-win-x64.rar`): `764209eb0e1b25361f3b9c8f6431d5a9df0a69d05ef705e7b6e48f465ccdbcbf`
+
 ## [1.9.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.3)
 
 SteamEdge no longer uses the graphics card.
