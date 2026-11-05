@@ -382,10 +382,8 @@ const DEFAULT_SETTINGS = {
   reconnectPolicy: 'unlimited',
   // feeMode was REMOVED: list prices are always the amount on the Steam market.
   // The amount you will get after commission is shown as a separate line in the sale flow.
-  priceRefreshMin: 15,      // interval at which prices are refreshed in the background while Inventory is open
   bookDepth: 5,             // how many levels in the order book in the detail panel
   undercutCents: 1,
-  autoRefreshPrices: false,
   hideAfterSell: true,
   invDefaultSort: 'value',
   dblAction: 'steam',       // double click behaviour in the inventory (inventory.js reads it)
@@ -439,7 +437,7 @@ const DEFAULT_SETTINGS = {
   notifyPriceDrop: false,   // when an item in the inventory drops below the 24 hour average by the threshold
   notifSound: 'knock',      // five plain tones, produced with Web Audio (common.js > NOTIF_SOUNDS)
   sessionTimeout: 'never',  // idle time (min), does not apply while a job runs - 'never' = off
-  hideGameName: false,      // become invisible while playing (so the game name does not show on the profile)
+  hideGameName: false,      // become invisible while playing (so the game name does not show on the profile). Chosen per account now; this is only what an account without a choice starts from
   logLevel: 'error',        // log file: off | error | warn | info | debug
   settingsVersion: 6,            // format of the settings file; migrations are in migrateSettings
 };
@@ -497,7 +495,7 @@ ipcMain.handle('notify:show', (_e, { title, body }) => {
 // ---- SETTINGS MIGRATIONS ----
 // Removed and merged settings are carried over from the old file to here: the user's old choice
 // is not lost, and no dead key is left in the file. settingsVersion is raised once.
-const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch', 'compactRows', 'farmSilent'];
+const REMOVED_SETTINGS = ['autoReconnect', 'farmRetry', 'twoStepSell', 'autoStopBoost', 'dontAsk_achSingle', 'debugLogs', 'offlineMode', 'grShowNoAch', 'compactRows', 'farmSilent', 'autoRefreshPrices', 'priceRefreshMin'];
 const ACH_DELAY_CHOICES = [15, 30, 45, 60, 120, 300, 600, 1800, 3600];
 function nearestAchDelay(sec) {
   if (!(sec > 0)) return ACH_DELAY_CHOICES[0];
@@ -627,7 +625,7 @@ function applySettings() {
   });
   // Appear offline / hide the game name - applied instantly while connected. To ALL connected accounts:
   // it used to apply only to the account on screen, a background account stayed visible.
-  accounts.forEach((s, id) => { try { if (s.ready && s.engine) s.engine.applyPrivacy(personaOf(id), settings.hideGameName); } catch (_) {} });
+  accounts.forEach((s, id) => { try { if (s.ready && s.engine) s.engine.applyPrivacy(personaOf(id), hideNameOf(id)); } catch (_) {} });
   // Chat auto reply - applied to ALL connected accounts
   accounts.forEach((s) => { if (s.engine) applyChatSettings(s.engine); });
   if (typeof armIdleTimer === 'function') armIdleTimer();
@@ -1726,7 +1724,7 @@ const ACCOUNT_DIR = path.join(CONFIG_DIR, 'accounts');
 // so it can be written to the screen at startup without waiting for the Steam session.
 // 'grQueue' and 'grPresets': Realistic Mode's game queue and saved presets. Account
 // specific, because the library and achievement state differ per account.
-const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'favoriteGames', 'personaState'];
+const ACCOUNT_SETTING_KEYS = ['boostGameIds', 'profileInfo', 'grQueue', 'grPresets', 'parentalPin', 'proxyUrl', 'farmExcluded', 'favoriteGames', 'personaState', 'hideGameName'];
 // The settings of the JOBS of an account (card farming, hour boosting, Realistic Mode, achievements). They used to be one set for the whole app: two accounts could
 // not run Realistic Mode with two different durations, and a change made on one account changed the job of the other. Each account now keeps its own values in
 // its account file (jobSettings); an account that has never changed one reads the general value, so nothing changes for anyone on the first start.
@@ -1749,6 +1747,7 @@ const DEFAULT_ACCOUNT_DATA = {
   parentalPin: '',                 // Steam Family View PIN of this account (never exported)
   proxyUrl: '',                    // proxy of this account (http://, https:// or socks5://, may hold a user:password; never exported)
   personaState: null,              // what friends see, chosen in the top bar: online | away | invisible (null: never chosen, online)
+  hideGameName: null,              // go invisible only while a game is played (null: no choice yet, it takes the general setting once)
   keyQueue: [], keyResults: [], keyActive: false,   // product key queue (see PRODUCT KEYS)
   grCompleted: {},                 // appid -> when it was learned that nothing is left to unlock (Realistic Mode leaves it out of its game list)
   farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
@@ -1783,6 +1782,8 @@ function accountData(steamID) {
   if (r.corrupt) readErrors.push({ displayName: 'Hesap verisi (' + steamID + ')', recoveredFlag: false });
   // the defaults hold shared arrays: every account needs its own, since the key queue is changed in place
   ['keyQueue', 'keyResults', 'farmExcluded', 'favoriteGames'].forEach((k) => { if (!Array.isArray(v[k]) || v[k] === DEFAULT_ACCOUNT_DATA[k]) v[k] = []; });
+  // "Hide the game name" was one general switch: an account that has no choice of its own yet starts from it, once
+  if (typeof v.hideGameName !== 'boolean') v.hideGameName = !!settings.hideGameName;
   // The card farming whitelist (up to 1.9.1) is gone
   delete v.farmWhitelist; delete v.farmWhitelistOnly;
   if (!v.jobSettings || typeof v.jobSettings !== 'object' || Array.isArray(v.jobSettings) || v.jobSettings === DEFAULT_ACCOUNT_DATA.jobSettings) v.jobSettings = {};
@@ -1830,9 +1831,10 @@ function activeAccountData() { return accountData(activeSteamID); }
 const PERSONA_STATES = ['online', 'away', 'invisible'];
 function personaName(v) { return PERSONA_STATES.includes(v) ? v : 'online'; }
 function personaOf(steamID) { return steamID ? personaName(accountData(steamID).personaState) : 'online'; }
+function hideNameOf(steamID) { return steamID ? !!accountData(steamID).hideGameName : false; }
 function applyPersona(steamID) {
   const s = accounts.get(steamID);
-  if (s && s.engine) { try { s.engine.applyPrivacy(personaOf(steamID), settings.hideGameName); } catch (_) {} }
+  if (s && s.engine) { try { s.engine.applyPrivacy(personaOf(steamID), hideNameOf(steamID)); } catch (_) {} }
   log('info', '[' + accountName(steamID) + '] visibility: ' + personaOf(steamID));
 }
 // "Appear offline" was on in a settings file of 1.8.0 or older: every saved account starts Invisible, unless it has a choice of its own
@@ -1983,7 +1985,7 @@ async function connectAccount(entry) {
       }
     };
     try {
-      eng.applyPrivacy(personaOf(entry.steamID), settings.hideGameName);   // kept until the logon: it sends nothing before
+      eng.applyPrivacy(personaOf(entry.steamID), hideNameOf(entry.steamID));   // kept until the logon: it sends nothing before
       const info = await eng.logOn(entry.refreshToken, personaOf(entry.steamID));
       s.engine = eng; s.ready = true;
       log('info', `[${entry.accountName}] session opened`);
@@ -2729,7 +2731,7 @@ const { SYNC_MAX_GAMES, boostFinish, boostStart, boostStopAccount, buildSyncStep
 const { realisticFinish, realisticStartFor } = require('./src/backend/realistic')({ CACHE_DIR, SYNC_MAX_GAMES, accountBroadcast, accountData, accountEvent, accountName, accounts, activeAccountData, addFeed, boostFinish, boostStart, buildSyncSteps, delayFarm, ipcMain, log, path, readJson, resumeFarm, saveSettings, settingFor, simulateSync, slotOf, startCardFarm, startSequential, writeAccountDataDelayed, writeJson, get activeSteamID() { return activeSteamID; }, get cancelSettingWaits() { return cancelSettingWaits; }, get engine() { return engine; }, get engineReady() { return engineReady; }, get settings() { return settings; } });
 require('./src/backend/chat')({ ipcMain, log, get engine() { return engine; }, get engineReady() { return engineReady; } });
 const { armIdleTimer } = require('./src/backend/session')({ CONFIG_DIR, accountRunning, accounts, disconnectAll, enterLoginWindow, fs, ipcMain, log, path, get settings() { return settings; }, get win() { return win; } });
-const { accountSettingsAdded, applySettingPatch, applySettingsToJobs, cancelSettingWaits, publicSettings } = require('./src/backend/settingsipc')({ ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, personaName, personaOf, pruneAccountRecords, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData, get activeSteamID() { return activeSteamID; }, get engine() { return engine; }, get historyCache() { return historyCache; }, set historyCache(v) { historyCache = v; }, get priceCache() { return priceCache; }, set priceCache(v) { priceCache = v; }, get resumeSaveSoon() { return resumeSaveSoon; }, get settingSaveTime() { return settingSaveTime; }, set settingSaveTime(v) { settingSaveTime = v; }, get settings() { return settings; }, set settings(v) { settings = v; } });
+const { accountSettingsAdded, applySettingPatch, applySettingsToJobs, cancelSettingWaits, publicSettings } = require('./src/backend/settingsipc')({ ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, hideNameOf, ipcMain, log, parseProxy, personaName, personaOf, pruneAccountRecords, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData, get activeSteamID() { return activeSteamID; }, get engine() { return engine; }, get historyCache() { return historyCache; }, set historyCache(v) { historyCache = v; }, get priceCache() { return priceCache; }, set priceCache(v) { priceCache = v; }, get resumeSaveSoon() { return resumeSaveSoon; }, get settingSaveTime() { return settingSaveTime; }, set settingSaveTime(v) { settingSaveTime = v; }, get settings() { return settings; }, set settings(v) { settings = v; } });
 require('./src/backend/backup')({ ACCOUNT_DIR, ACCOUNT_SCOPED, CACHE_DIR, CONFIG_DIR, DEFAULT_SETTINGS, DEFAULT_STATS, JSON_SIDE_FILES, accountData, accountDataAll, accountSettingsAdded, activeAccountData, app, applySettings, applySettingsToJobs, authSlots, corruptFiles, ct, dialog, disconnectAll, enterLoginWindow, fs, ipcMain, loadAccounts, log, logger, migrateKeys, migrateSettings, path, publicSettings, saveSettings, sendRaw, setupTrayMenu, statsView, translation, writeAccountData, get activeSteamID() { return activeSteamID; }, set activeSteamID(v) { activeSteamID = v; }, get addingAccountMode() { return addingAccountMode; }, set addingAccountMode(v) { addingAccountMode = v; }, get lifeStats() { return lifeStats; }, set lifeStats(v) { lifeStats = v; }, get priceCache() { return priceCache; }, set priceCache(v) { priceCache = v; }, get resumeStore() { return resumeStore; }, get settingSaveTime() { return settingSaveTime; }, set settingSaveTime(v) { settingSaveTime = v; }, get settings() { return settings; }, set settings(v) { settings = v; }, get win() { return win; } });
 const { earlyConnect, isSetupConsistent, reportReadErrors, startupUpdateCheck } = require('./src/backend/update')({ accountDataMigration, accounts, app, connectAccount, ct, dialog, flushPendingWrites, fs, hasSession, ipcMain, loadAccounts, log, logger, path, readErrors, sendRaw, session, statsHour, syncActive, update, get activeSteamID() { return activeSteamID; }, set activeSteamID(v) { activeSteamID = v; }, get isQuitting() { return isQuitting; }, set isQuitting(v) { isQuitting = v; }, get resumeSave() { return resumeSave; }, get settings() { return settings; }, get win() { return win; } });
 const { resumeAfterConnect, resumeSave, resumeSaveSoon, resumeStartUp, resumeStore } = require('./src/backend/resume')({ CONFIG_DIR, accountEvent, accountJobDetail, accountName, accountRunning, accounts, boostStart, ct, fs, log, onPanelPage, path, realisticStartFor, resumeJobs, sendJobStatus, startCardFarm, startSequential, translation, windowOpened, writeJson, get activeSteamID() { return activeSteamID; }, get settings() { return settings; }, get win() { return win; } });
