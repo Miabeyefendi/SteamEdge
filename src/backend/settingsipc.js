@@ -2,7 +2,7 @@
 // gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, hideNameOf, personaName, personaOf, pruneAccountRecords, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData } = ctx;
+  const { ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, hideNameOf, personaName, personaOf, pruneAccountRecords, resetMarketCaches, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData } = ctx;
 
   // ---- settings IPC ----
   // The settings object that goes to the renderer. accountCurrency = the account's Steam wallet currency (prices are fetched in
@@ -249,8 +249,7 @@ module.exports = function init(ctx) {
       try { fs.unlinkSync(PRICE_FILE + extra); } catch (_) {}
       try { fs.unlinkSync(HISTORY_FILE + extra); } catch (_) {}
     });
-    ctx.priceCache = new Map();
-    ctx.historyCache = new Map();
+    resetMarketCaches();
     return { ok: true };
   });
   ipcMain.handle('settings:openConfigFolder', () => { shell.openPath(DATA_ROOT); return { ok: true }; });

@@ -2,7 +2,7 @@
 // gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { ACCOUNT_DIR, ACCOUNT_SCOPED, CACHE_DIR, CONFIG_DIR, DEFAULT_SETTINGS, DEFAULT_STATS, JSON_SIDE_FILES, accountData, accountDataAll, accountSettingsAdded, activeAccountData, app, applySettings, applySettingsToJobs, authSlots, corruptFiles, ct, dialog, disconnectAll, enterLoginWindow, fs, ipcMain, loadAccounts, log, logger, migrateKeys, migrateSettings, path, publicSettings, saveSettings, sendRaw, setupTrayMenu, statsView, translation, writeAccountData } = ctx;
+  const { ACCOUNT_DIR, ACCOUNT_SCOPED, CACHE_DIR, CONFIG_DIR, DEFAULT_SETTINGS, DEFAULT_STATS, JSON_SIDE_FILES, accountData, accountDataAll, accountSettingsAdded, activeAccountData, app, applySettings, applySettingsToJobs, authSlots, corruptFiles, ct, dialog, disconnectAll, enterLoginWindow, fs, ipcMain, loadAccounts, log, logger, migrateKeys, migrateSettings, path, publicSettings, resetMarketCaches, saveSettings, sendRaw, setupTrayMenu, statsView, translation, writeAccountData } = ctx;
 
   // ---- Backup (export/import) ----
   // The backup holds the preferences and PER-ACCOUNT data: statistics, the games selected in the Hour Booster,
@@ -137,7 +137,7 @@ module.exports = function init(ctx) {
       try { fs.unlinkSync(f); } catch (_) {}
       try { fs.unlinkSync(f + '.1'); } catch (_) {}
     });
-    ctx.settings = { ...DEFAULT_SETTINGS }; ctx.lifeStats = null; ctx.priceCache = new Map();
+    ctx.settings = { ...DEFAULT_SETTINGS }; ctx.lifeStats = null; resetMarketCaches();
     ctx.activeSteamID = null;
     authSlots.clear(); ctx.addingAccountMode = false;
     if (ctx.win) {
