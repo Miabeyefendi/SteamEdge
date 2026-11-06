@@ -560,5 +560,5 @@ module.exports = function init(ctx) {
     return s.connectionStatus || { condition: 'connecting' };
   });
 
-  return { accountBoostRunning, accountBroadcast, accountEvent, accountJobDetail, accountJobKinds, accountName, accountRunning, addFeed, addStat, bindConnectionState, dayKey, delayFarm, earning, resumeFarm, sendJobStatus, slotOf, startCardFarm, statsHour, stopAccountJobs };
+  return { accountBoostRunning, accountBroadcast, accountEvent, accountJobDetail, accountJobKinds, accountName, accountRunning, accountStats, addFeed, addStat, bindConnectionState, dayKey, delayFarm, earning, resumeFarm, sendJobStatus, slotOf, startCardFarm, statsHour, stopAccountJobs };
 };

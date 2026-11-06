@@ -7,6 +7,18 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.7)
+
+Fixes the "accountStats is not defined" error that 1.9.5 and 1.9.6 showed when selling.
+
+### Fixed
+
+- **Selling showed every item as failed with "accountStats is not defined".** The listing itself had already gone through on Steam; the error came afterwards, when the sale was added to the statistics. If you saw "items could not be listed" on 1.9.5 or 1.9.6, check your market listings before selling again: those items are probably listed.
+- **The same missing name also broke the statistics page and the live counters of the account on screen** (card drops, sessions). When the statistics code moved into its own file in 1.9.5, one function it uses stayed in another file and was not passed on.
+
+
+SHA-256 (`SteamEdge-v1.9.7-win-x64.rar`): `a6da27e92de76bfbe84598554cc886c03b36565d775253ba1c3acc8b921bd29e`
+
 ## [1.9.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.6)
 
 The main process and the Steam engine are split into more files. Nothing changes for you except one known problem, below.
