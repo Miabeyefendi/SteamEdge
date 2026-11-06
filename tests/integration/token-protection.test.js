@@ -6,7 +6,7 @@ const ROOT = require('path').resolve(__dirname, '..', '..');
 const src = require('../main-source')();
 const io = src.slice(src.indexOf('const corruptFiles = new Set();'), src.indexOf('// Files that could not be read at startup are collected here'));
 const tok = src.slice(src.indexOf('// ---- LOGIN TOKEN PROTECTION ----'), src.indexOf('// Makes this account the active session'));
-const mk = src.slice(src.indexOf('function makeActiveSession(entry) {'), src.indexOf('// ---- multi-account management (the top bar'));
+const mk = src.slice(src.indexOf('function makeActiveSession(entry) {'), src.indexOf('let activeSteamID = null;'));
 app.whenReady().then(() => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'se-tok-'));
   const logs = []; const readErrors = [];
