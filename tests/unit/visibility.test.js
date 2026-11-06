@@ -109,7 +109,7 @@ async function setup(persona, hide) {
   // ---- main.js: the old setting and the account files ----
   const src = require('../main-source')();
   const cut = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
-  const code = cut('const REMOVED_SETTINGS', '// The moment the settings were last saved')
+  const code = cut('const REMOVED_SETTINGS', 'function loadSettings() {')
     + cut('// ---- VISIBILITY ON STEAM (the top bar) ----', '// The value of a job setting for one account');
   const files = { a: { personaState: null }, b: { personaState: 'away' } };
   const written = [];

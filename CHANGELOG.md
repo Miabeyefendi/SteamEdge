@@ -7,6 +7,18 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.5)
+
+The main process code is split into modules. Nothing changes for you.
+
+### Changed
+
+- **`main.js` went from 2738 to 1015 lines.** Six parts moved into their own files under `src/backend/`, unchanged: the Steam market (price cache, queue, request gate), the main window and the tray, the settings file (migrations, load and save, what a change does), the per-account data store with the visibility on Steam, the per-account jobs and card farming, and the lifetime statistics with the state store. The default settings are now plain data in `src/core/settingsDefaults.js`.
+- New test `market-module.test.js` loads the market module on its own and runs it: channels, queue, cache, request gate and cache reset.
+
+
+SHA-256 (`SteamEdge-v1.9.5-win-x64.rar`): `1213b0cf67024823e64debe4e2f035c14a2adb5359f1569a7704f87c4aca48c2`
+
 ## [1.9.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.4)
 
 Market prices load again, "Hide game name" is per account, and the settings are tidier.

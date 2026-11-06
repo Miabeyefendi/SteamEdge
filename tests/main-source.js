@@ -21,5 +21,7 @@ module.exports = function readMainSource() {
   const root = path.resolve(__dirname, '..');
   const dir = path.join(root, 'src', 'backend');
   const modules = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.js')).sort().map((f) => unwrap(fs.readFileSync(path.join(dir, f), 'utf8'))) : [];
-  return [fs.readFileSync(path.join(root, 'main.js'), 'utf8')].concat(modules).join('\n');
+  // plain data files that used to sit inside main.js are part of its text for the tests
+  const data = ['settingsDefaults'].map((f) => fs.readFileSync(path.join(root, 'src', 'core', f + '.js'), 'utf8'));
+  return [fs.readFileSync(path.join(root, 'main.js'), 'utf8')].concat(data, modules).join('\n');
 };
