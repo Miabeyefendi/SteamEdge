@@ -21,7 +21,7 @@ module.exports = function init(ctx) {
   // accounts are not added into a single counter, and a background account's job is counted too. The interface
   // only reads; the adding used to be in the interface and only the account on screen was counted.
   function statsView(steamID) {
-    const st = { ...DEFAULT_STATS, ...accountStats(steamID) };
+    const st = { ...DEFAULT_STATS, ...ctx.accountStats(steamID) };
     // The uninterrupted time of the running job is taken into account too; otherwise the longest run would only show once the job ended.
     const s = accounts.get(steamID);
     if (s && s.uninterruptedStart && !s.uninterruptedEnd && ctx.accountRunning(s)) {
