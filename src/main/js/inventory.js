@@ -1138,7 +1138,7 @@
     // The batch settings are read live while the job runs: the new value saved in Settings takes effect
     // at the next batch limit. 0 = do not split into batches, list until Steam stops it.
     function saleBatchSize(){ const n = +((appSettings || {}).bulkSellLimit); return Number.isFinite(n) && n > 0 ? Math.round(n) : 0; }
-    function saleBatchWait(){ return Math.max(0, +((appSettings || {}).sellBatchWaitMin) || 0); }
+    function saleBatchWait(){ return Math.max(1, +((appSettings || {}).sellBatchWaitMin) || 5); }
     const cancellableWait = (ms, g) => new Promise((solve)=>{
       const latest = Date.now() + ms;
       const t = setInterval(()=>{ if (g.abandon || g.continueNow || Date.now() >= latest){ clearInterval(t); solve(); } else drawSaleStatus(); }, 1000);
@@ -1213,9 +1213,6 @@
         const sn = Math.max(0, Math.round((g.waiting - Date.now()) / 1000));
         title = tf('Parti tamamlandı · sonraki parti # sonra', fmtDuration(sn)) + ' · ' + tf('# öğe bekliyor', remaining);
         buttons = '<button data-sg="resume" class="h-brand" style="'+SG_BTN+'">'+esc(t('Şimdi Devam Et'))+'</button>';
-      } else if (g.isAsking){
-        title = tf('Parti tamamlandı · # öğe bekliyor', remaining);
-        buttons = '<button data-sg="resume" class="h-brand" style="'+SG_BTN+'">'+esc(t('Sonraki Partiyi Listele'))+'</button>';
       } else {
         title = tf('Satışa sunuluyor · # / #', g.i, g.plan.length);
       }
@@ -1243,50 +1240,26 @@
       // Steam's exact numbers, if they are not in yet: a short silent wait, then the estimate is used and the question says so.
       const subs = sellable.map(i => subunit(strategyPrice(i, strat)));
       if (subs.some(k => k > 0 && !feeCache.has(k))) await Promise.race([prepareFees(subs).catch(()=>null), new Promise(r => setTimeout(r, 2500))]);
-      const plan = [], rowsList = [], dropList = [];
-      let totalBuyer = 0, totalSeller = 0, estimatedN = 0;
+      const plan = [], rowsList = [];
       sellable.forEach(i=>{
         const u = feeFor(subunit(strategyPrice(i, strat)));
         if (!u || !(u.seller > 0)) return;
         const assets = i.assetIds.filter(a => !listedAssets.has(assetTag(i, a)));
         if (!assets.length) return;
-        if (u.estimated) estimatedN += assets.length;
         assets.forEach(aid => plan.push({ assetId: aid, tag: assetTag(i, aid), app: i.invApp || 753, ctx: i.invContext || '6', seller: u.seller, buyer: u.buyer, name: i.name, dedupKey: i.dedupKey, st: 'wait', msg: '' }));
-        totalBuyer += u.buyer * assets.length; totalSeller += u.seller * assets.length;
-        rowsList.push('• ' + i.name + ' ×' + assets.length + ' → ' + fmtLira(u.buyer/100) + ' (' + t('eline geçecek') + ' ' + fmtLira(u.seller/100) + ')');
-        // Warn if the selected price is clearly below Steam's 24 hour average
+        // One sentence per item: the lowest price on the market now against the price it is listed at
         const p = priceOf(i);
-        if (p && p.medianValue > 0){
-          const d = (p.medianValue - u.buyer/100) / p.medianValue;
-          if (d >= priceDropThreshold()) dropList.push(i.name + ': ' + fmtLira(u.buyer/100) + ' < ' + fmtLira(p.medianValue) + ' (' + t('24 saatlik ortalama') + ', -' + fmtPercent(Math.round(d*100)) + ')');
-        }
+        rowsList.push('• ' + i.name + ' ×' + assets.length + ': ' + (p && p.lowestValue > 0
+          ? tf('Pazardaki en düşük fiyat #, siz # fiyatından satıyorsunuz.', fmtLira(p.lowestValue), fmtLira(u.buyer/100))
+          : tf('Siz # fiyatından satıyorsunuz.', fmtLira(u.buyer/100))));
       });
       if (!plan.length){ toast('Satış').fail('Listelenecek geçerli fiyat bulunamadı.'); return; }
-      const lot = saleBatchSize();
-      const waitMin = saleBatchWait();
       if (!appSettings || appSettings.confirmBeforeSell !== false){
-        const batchNote = (lot && plan.length > lot)
-          ? ('\n\n' + tf('# öğe, # öğelik partiler hâlinde listelenecek.', plan.length, lot) + ' '
-             + (waitMin ? tf('Partiler arasında # dakika beklenir.', waitMin) : t('Her parti bitince devam etmek için onayın istenir.')))
-          : '';
         const ok = await edgeConfirm({
           tag: 'Pazarda Sat', danger: true,
           title: tf('# öğe satışa sunulacak', plan.length),
-          body: rowsList.slice(0,12).join('\n') + (rowsList.length > 12 ? ('\n' + tf('… ve # tane daha', rowsList.length - 12)) : '')
-                + '\n\n' + t('Alıcının ödeyeceği toplam:') + ' ' + fmtLira(totalBuyer/100)
-                + '\n' + t('Steam kesintisi sonrası eline geçecek:') + ' ' + fmtLira(totalSeller/100)
-                + (estimatedN ? ('\n\n' + t('Steam ücret hesabına ulaşılamadı: tutarlar tahmini, Steam gerçek tutarı belirler.')) : '')
-                + batchNote,
-          warningRed: [
-            // items of a game are priced by name only: wear, pattern and stickers can make one copy worth many times another
-            sellable.some(i => (i.invApp || 753) !== 753)
-              ? t('Bu öğeler Steam topluluk öğesi değil, bir oyunun envanterinden gelir. Pazar fiyatı yalnızca adı eşleştirir; aşınma (float), desen ve çıkartma gibi farklar bir öğenin değerini çok değiştirebilir. Pahalı öğelerin fiyatını Steam\'de kontrol et.')
-              : '',
-            dropList.length
-              ? (t('Dikkat: bu öğelerin fiyatı Steam\'in 24 saatlik ortalamasının belirgin şekilde altında. Acele etme, fiyatı kontrol et.') + '\n' + dropList.slice(0,6).join('\n'))
-              : '',
-          ].filter(Boolean).join('\n\n'),
-          warn: 'Satışa sunulan öğe geri alınamaz; ilanı iptal etmek için Steam\'e girmen gerekir. Mobil doğrulayıcı açıksa her ilanı Steam uygulamasından onaylaman gerekir.',
+          body: rowsList.slice(0,12).join('\n') + (rowsList.length > 12 ? ('\n' + tf('… ve # tane daha', rowsList.length - 12)) : ''),
+          warn: 'Onaylamadan önce fiyatları kontrol edin.',
           confirmText: 'Satışa Sun', cancelText: 'Vazgeç',
         });
         if (!ok) return;
@@ -1294,7 +1267,7 @@
       // the account the items belong to: the batches of a sale can wait minutes, the account on screen may change meanwhile
       const owner = (typeof imuProfile === 'object' && imuProfile && imuProfile.steamID) || (appSettings && appSettings.steamID) || null;
       saleTask = { owner, source: sourceOf(sellable[0]), plan, i: 0, successful: 0, mobileConfirm: 0, emailConfirm: 0, emailAddr: null,
-                      failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, isAsking: false, continueNow: false, done: false };
+                      failures: [], skipped: 0, limit: null, abandon: false, consecutive: 0, waiting: null, continueNow: false, done: false };
       salePanel = saleTask;
       drawSaleStatus();
       await runSaleTask(saleTask);
@@ -1335,15 +1308,9 @@
           if (lot && g.i - perBatch >= lot){
             perBatch = g.i;
             const waitMin = saleBatchWait();
-            if (waitMin > 0){
-              g.waiting = Date.now() + waitMin * 60000; drawSaleStatus();
-              await cancellableWait(waitMin * 60000, g);
-              g.waiting = null; g.continueNow = false;
-            } else {
-              g.isAsking = true; drawSaleStatus();
-              await new Promise((solve)=>{ const t = setInterval(()=>{ if (g.abandon || g.continueNow){ clearInterval(t); solve(); } }, 300); });
-              g.isAsking = false; g.continueNow = false;
-            }
+            g.waiting = Date.now() + waitMin * 60000; drawSaleStatus();
+            await cancellableWait(waitMin * 60000, g);
+            g.waiting = null; g.continueNow = false;
             if (g.abandon) break;
           }
         }

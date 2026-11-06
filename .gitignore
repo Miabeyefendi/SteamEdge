@@ -292,6 +292,8 @@ SteamEdge-v*-win-x64/
 All Releases/
 *.asar
 *.ico
+# the exe and window icon: a clean clone must build with it
+!src/assets/icon.ico
 
 # Elle olusturulan arsivler
 *.rar

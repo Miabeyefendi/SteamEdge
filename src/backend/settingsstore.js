@@ -63,6 +63,8 @@ module.exports = function init(ctx) {
     if (v.compactRows === true && (!v.density || v.density === 'auto')) v.density = 'compact';
     // The fast mode now moves to another game every 10-15 s (it was 90-120 s)
     if (v.fastRotateMinSec === 90 && v.fastRotateMaxSec === 120) { v.fastRotateMinSec = 10; v.fastRotateMaxSec = 15; hasChanged = true; }
+    // The next batch of a sale always starts by itself now: 0 used to mean "ask after every batch"
+    if (+v.sellBatchWaitMin <= 0) { v.sellBatchWaitMin = 5; hasChanged = true; }
     REMOVED_SETTINGS.forEach((k) => { if (k in v) { delete v[k]; hasChanged = true; } });
     return hasChanged;
   }
