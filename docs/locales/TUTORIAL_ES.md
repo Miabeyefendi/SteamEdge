@@ -232,7 +232,7 @@ Los precios llegan en la **moneda del monedero** de tu cuenta y se muestran exac
 
 El precio y la media de ventas se obtienen **por artículo, juntos**, y después la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en artículos; la aplicación envía 18 peticiones y espera el enfriamiento de Steam, de unos 32 segundos. El intervalo entre peticiones está en Ajustes > Avanzado y datos; la tolerancia de Steam varía según la cuenta.
 
-**Vender.** Tú eliges el precio que paga el comprador; lo que recibes lo calcula el propio script de comisiones de Steam (descargado de Steam y ejecutado en una ventana aislada), así que ambos coinciden con lo que mostraría la web de Steam. La venta en lote se detiene cuando Steam indica un límite o rechaza dos anuncios seguidos, y el diálogo cita el motivo de Steam: las cuentas nuevas pueden detenerse tras 10-15 anuncios, las antiguas publican 80 o más. Los artículos que Steam dice que ahora no se pueden publicar (por ejemplo, los que ya tienen un anuncio pendiente) no detienen la ejecución: se omiten y se cuentan. **Tamaño del lote** y **Espera entre lotes** (Ajustes > Mercado) dividen una venta grande; sin espera, se te pregunta tras cada lote. Con el autenticador móvil activado, cada anuncio sigue necesitando confirmación en la aplicación de Steam.
+**Vender.** Tú eliges el precio que paga el comprador; lo que recibes lo calcula el propio script de comisiones de Steam (descargado de Steam y ejecutado en una ventana aislada), así que ambos coinciden con lo que mostraría la web de Steam. La venta en lote se detiene cuando Steam indica un límite o rechaza dos anuncios seguidos, y el diálogo cita el motivo de Steam: las cuentas nuevas pueden detenerse tras 10-15 anuncios, las antiguas publican 80 o más. Los artículos que Steam dice que ahora no se pueden publicar (por ejemplo, los que ya tienen un anuncio pendiente) no detienen la ejecución: se omiten y se cuentan. **Tamaño del lote** y **Espera entre lotes** (Ajustes > Mercado) dividen una venta grande; el siguiente lote empieza solo tras la espera. Con el autenticador móvil activado, cada anuncio sigue necesitando confirmación en la aplicación de Steam.
 
 **Alerta de bajada de precio.** Cuando el anuncio más barato de un objeto queda al menos el **Umbral de bajada de precio** (10 % por defecto) por debajo de la media de 24 horas de Steam, se marca con un ▼ rojo, la confirmación de venta avisa en rojo y, con la alerta activada, recibes una notificación como mucho una vez al día por objeto.
 
@@ -354,7 +354,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `fetchAvgWithPrice` | `true` | Obtener la media en la misma pasada que el precio. Desactivado significa una petición por artículo y medias solo mediante el botón Media |
 | `bookDepth` | `5` | Filas del libro de órdenes en el panel de detalle |
 | `bulkSellLimit` | `50` | La venta en lote se divide en lotes de este número de objetos. `0` publica hasta que Steam lo detenga |
-| `sellBatchWaitMin` | `0` | Minutos de espera entre lotes. `0` pregunta tras cada lote |
+| `sellBatchWaitMin` | `5` | Minutos de espera entre lotes. El siguiente lote empieza solo |
 | `priceDropThreshold` | `10` | Porcentaje por debajo de la media de 24 horas de Steam que cuenta como bajada de precio |
 
 ### Impulsor de horas

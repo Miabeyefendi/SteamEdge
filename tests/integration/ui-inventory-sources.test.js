@@ -119,7 +119,7 @@ app.whenReady().then(async () => {
   await wait(800);
   const modal = await js("(document.querySelector('.e-modal-back') || { textContent: '' }).textContent");
   await shot('sources-sell-question');
-  check('the sale question warns that a game\'s items are priced by name', /not Steam community items/.test(modal) && /wear/i.test(modal), modal.slice(0, 200));
+  check('the sale question gives the lowest market price against the price you sell at, in one line', /lowest price on the market is/.test(modal) && /Check the prices/.test(modal), modal.slice(0, 200));
   await js("document.querySelector('.e-modal-ft .ok').click()");
   await wait(2500);
   const sold = calls.filter((c) => c[0] === 'sell');

@@ -232,7 +232,7 @@ Preise kommen in der **Währung deines Guthabens** an und werden genau so angeze
 
 Preis und Verkaufsdurchschnitt werden **pro Gegenstand gemeinsam** geholt, dann geht die Warteschlange zum nächsten. Beide teilen sich Steams einziges Marktbudget, und das Limit wird in Anfragen gezählt, nicht in Gegenständen; die App sendet 18 Anfragen und wartet dann Steams Abkühlzeit von etwa 32 Sekunden ab. Der Abstand zwischen Anfragen steht unter Einstellungen > Erweitert & Daten; Steams Toleranz unterscheidet sich je Konto.
 
-**Verkaufen.** Du wählst den Preis, den der Käufer zahlt; was du erhältst, berechnet Steams eigenes Gebührenskript (von Steam geladen, in einem abgeschotteten Fenster ausgeführt), daher stimmen beide mit der Steam-Website überein. Ein Massenverkauf stoppt, wenn Steam ein Limit meldet oder zwei Angebote in Folge ablehnt, und der Dialog nennt Steams Grund: Neue Konten können nach 10-15 Angeboten gestoppt werden, ältere stellen 80 oder mehr ein. Gegenstände, die Steam gerade nicht einstellen lässt (zum Beispiel solche mit bereits wartendem Angebot), stoppen den Lauf nicht; sie werden übersprungen und gezählt. **Stapelgröße** und **Wartezeit zwischen Stapeln** (Einstellungen > Markt) teilen große Verkäufe; ohne Wartezeit wirst du nach jedem Stapel gefragt. Mit aktivem mobilen Authentifikator muss jedes Angebot weiterhin in der Steam-App bestätigt werden.
+**Verkaufen.** Du wählst den Preis, den der Käufer zahlt; was du erhältst, berechnet Steams eigenes Gebührenskript (von Steam geladen, in einem abgeschotteten Fenster ausgeführt), daher stimmen beide mit der Steam-Website überein. Ein Massenverkauf stoppt, wenn Steam ein Limit meldet oder zwei Angebote in Folge ablehnt, und der Dialog nennt Steams Grund: Neue Konten können nach 10-15 Angeboten gestoppt werden, ältere stellen 80 oder mehr ein. Gegenstände, die Steam gerade nicht einstellen lässt (zum Beispiel solche mit bereits wartendem Angebot), stoppen den Lauf nicht; sie werden übersprungen und gezählt. **Stapelgröße** und **Wartezeit zwischen Stapeln** (Einstellungen > Markt) teilen große Verkäufe; der nächste Stapel startet nach der Wartezeit von selbst. Mit aktivem mobilen Authentifikator muss jedes Angebot weiterhin in der Steam-App bestätigt werden.
 
 **Preissturz-Warnung.** Liegt das günstigste Angebot eines Objekts mindestens um die **Preissturz-Schwelle** (Standard 10 %) unter Steams 24-Stunden-Durchschnitt, wird es mit einem roten ▼ markiert, die Verkaufsbestätigung warnt rot, und mit aktiver Warnung kommt höchstens einmal täglich pro Objekt eine Benachrichtigung.
 
@@ -354,7 +354,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `fetchAvgWithPrice` | `true` | Durchschnitt im selben Durchgang wie den Preis holen. Aus bedeutet eine Anfrage pro Gegenstand und Durchschnitte nur über die Schaltfläche |
 | `bookDepth` | `5` | Orderbuch-Zeilen in der Detailansicht |
 | `bulkSellLimit` | `50` | Massenverkäufe werden in Stapel dieser Größe geteilt. `0` stellt ein, bis Steam stoppt |
-| `sellBatchWaitMin` | `0` | Minuten zwischen Stapeln. `0` fragt nach jedem Stapel |
+| `sellBatchWaitMin` | `5` | Minuten zwischen Stapeln. Der nächste Stapel startet von selbst |
 | `priceDropThreshold` | `10` | Prozent unter Steams 24-Stunden-Durchschnitt, ab dem ein Preissturz gilt |
 
 ### Stunden-Booster

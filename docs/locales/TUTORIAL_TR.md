@@ -232,7 +232,7 @@ Fiyatlar hesabının **cüzdan kurunda** gelir ve aynen o kurda gösterilir. Çe
 
 Fiyat ve satış ortalaması **öğe başına, birlikte** çekilir, sonra kuyruk sıradaki öğeye geçer. İkisi Steam'in tek pazar bütçesini paylaşır ve limit öğe sayısıyla değil istek sayısıyla ölçülür; uygulama 18 istek gönderir, sonra Steam'in yaklaşık 32 saniyelik soğuma süresini bekler. İstekler arasındaki süre Ayarlar > Gelişmiş & Veri altında; Steam'in toleransı hesaba göre değişir.
 
-**Satış.** Alıcının ödeyeceği fiyatı sen seçersin; eline geçecek tutarı Steam'in kendi ücret betiği hesaplar (Steam'den indirilir, kum havuzlu bir pencerede çalışır), yani ikisi Steam sitesinin göstereceğiyle aynıdır. Toplu satış, Steam bir sınır bildirdiğinde ya da üst üste iki ilanı reddettiğinde durur ve pencere Steam'in sebebini yazar: yeni hesaplar 10-15 ilanda durdurulabilir, eskileri 80 ve üzerini listeler. Steam'in şu an listelenemeyeceğini söylediği öğeler (örneğin zaten bekleyen bir ilanı olanlar) çalışmayı durdurmaz; atlanır ve sayılır. **Parti büyüklüğü** ve **Partiler arası bekleme** (Ayarlar > Pazar) büyük satışı böler; bekleme yoksa her partiden sonra sorulur. Mobil doğrulayıcı açıksa her ilan yine Steam uygulamasında onaylanmalıdır.
+**Satış.** Alıcının ödeyeceği fiyatı sen seçersin; eline geçecek tutarı Steam'in kendi ücret betiği hesaplar (Steam'den indirilir, kum havuzlu bir pencerede çalışır), yani ikisi Steam sitesinin göstereceğiyle aynıdır. Toplu satış, Steam bir sınır bildirdiğinde ya da üst üste iki ilanı reddettiğinde durur ve pencere Steam'in sebebini yazar: yeni hesaplar 10-15 ilanda durdurulabilir, eskileri 80 ve üzerini listeler. Steam'in şu an listelenemeyeceğini söylediği öğeler (örneğin zaten bekleyen bir ilanı olanlar) çalışmayı durdurmaz; atlanır ve sayılır. **Parti büyüklüğü** ve **Partiler arası bekleme** (Ayarlar > Pazar) büyük satışı böler; sonraki parti beklemeden sonra kendiliğinden başlar. Mobil doğrulayıcı açıksa her ilan yine Steam uygulamasında onaylanmalıdır.
 
 **Fiyat düşüşü uyarısı.** Bir öğenin en ucuz ilanı Steam'in 24 saatlik ortalamasının **Fiyat düşüşü eşiği** (varsayılan %10) kadar altına inince listede kırmızı ▼ ile işaretlenir, satış onayı kırmızı uyarı verir ve uyarı açıksa günde en fazla bir kez bildirim gelir.
 
@@ -354,7 +354,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `fetchAvgWithPrice` | `true` | Ortalamayı fiyatla aynı turda çek. Kapalıyken öğe başına tek istek gider, ortalamalar yalnızca Ortalama düğmesiyle gelir |
 | `bookDepth` | `5` | Detay panelindeki sipariş defteri satırı |
 | `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür. `0` Steam durdurana kadar listeler |
-| `sellBatchWaitMin` | `0` | Partiler arası bekleme (dakika). `0` her partiden sonra sorar |
+| `sellBatchWaitMin` | `5` | Partiler arası bekleme (dakika). Sonraki parti kendiliğinden başlar |
 | `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
 
 ### Saat yükseltici

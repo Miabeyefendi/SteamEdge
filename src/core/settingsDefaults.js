@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS = {
   // Sale batches. Steam limits listing by the age and trustworthiness of the account:
   // a new account can be stopped after 10-15 listings, an old account can list 80+ at once.
   bulkSellLimit: 50,        // batch size (0 = do not split, list until Steam stops it)
-  sellBatchWaitMin: 0,      // wait between batches (min); 0 = ask when each batch is done
+  sellBatchWaitMin: 5,      // wait between batches (min); the next batch always starts by itself
   priceDropThreshold: 10,   // warn if the lowest listing is this percent below the 24 hour average
   priceRefreshHours: 24,    // how many hours until the price cache goes stale
   historyRefreshHours: 72,  // how many hours until the sale history (average) cache goes stale

@@ -7,6 +7,22 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.8)
+
+Selling no longer stops to ask after every batch, the sale question is one line per item, and the app icon is part of the repository again.
+
+### Changed
+
+- **The next batch starts by itself.** Until now a sale with no wait set stopped after every batch and waited for you to press a button. Now every batch is followed by a wait (5 minutes by default, set in Settings > Market > Wait between batches) and the next one is listed on its own. "Continue now" is still there if you do not want to wait. Settings that said "Ask me after every batch" move to 5 minutes.
+- **The sale question is short.** It used to show totals, batch notes, an estimate note and several lines of warnings. Now each item gets one sentence: the lowest price on the market and the price you are selling at, followed by "Check the prices before you confirm."
+
+### Fixed
+
+- **The app icon was missing from a clean copy of the repository.** `src/assets/icon.ico` was ignored by `.gitignore`, so a build made from a fresh clone had no icon on the exe, in the taskbar or in the apps list. The file is tracked now. The window also uses the `.ico` (16 to 256 px) instead of scaling the png, and both pages declare a favicon.
+
+
+SHA-256 (`SteamEdge-v1.9.8-win-x64.rar`): `4181eddcf3d767e5eb6738e34479bb1bfc9afe19061afc4cd50f98ce0db66728`
+
 ## [1.9.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.7)
 
 Fixes the "accountStats is not defined" error that 1.9.5 and 1.9.6 showed when selling.

@@ -14,6 +14,12 @@ module.exports = function init(ctx) {
     ctx.win.focus();
   }
 
+  // The .ico carries 16 to 256 px, so the taskbar and Alt+Tab pick the size they need; the png is the fallback
+  function windowIcon() {
+    const ico = path.join(__dirname, '..', 'assets', 'icon.ico');
+    return process.platform === 'win32' && require('fs').existsSync(ico) ? ico : path.join(__dirname, '..', 'assets', 'icon.png');
+  }
+
   function ensureTray() {
     if (ctx.tray) return;
     try {
@@ -159,7 +165,8 @@ module.exports = function init(ctx) {
     ctx.win = new BrowserWindow({
       x: start.x, y: start.y, width: start.width, height: start.height, minWidth: min.w, minHeight: min.h,
       frame: false, backgroundColor: '#0f1720', show: false,
-      icon: path.join(__dirname, '..', 'assets', 'icon.png'),
+      // the .ico carries 16 to 256 px: the taskbar and Alt+Tab pick the size they need, the png is scaled
+      icon: windowIcon(),
       webPreferences: { preload: path.join(__dirname, '..', '..', 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: false },
     });
 

@@ -232,7 +232,7 @@ Prices arrive in your account's **wallet currency** and are shown exactly as the
 
 Price and sale average are fetched **per item, together**, then the queue moves to the next item. Both share Steam's single market budget, and the rate limit is counted in requests rather than items; the app sends 18 requests at a time and then waits out Steam's cooldown of about 32 seconds. The interval between requests is under Settings > Advanced & data; Steam's tolerance differs per account.
 
-**Selling.** You choose the price the buyer pays; what you receive is worked out by Steam's own fee script, downloaded from Steam and run in a sandboxed window, so the two match what the Steam site would show. A bulk sale stops when Steam signals a limit or refuses two listings in a row, and the dialog quotes Steam's reason: new accounts can be stopped after 10-15 listings, older ones list 80 or more. Items Steam says cannot be listed right now (for example ones that already have a pending listing) do not stop the run; they are skipped and counted. **Batch size** and **Wait between batches** (Settings > Market) split a large sale; with no wait set, you are asked after each batch. With the mobile authenticator on, every listing still has to be confirmed in the Steam app.
+**Selling.** You choose the price the buyer pays; what you receive is worked out by Steam's own fee script, downloaded from Steam and run in a sandboxed window, so the two match what the Steam site would show. A bulk sale stops when Steam signals a limit or refuses two listings in a row, and the dialog quotes Steam's reason: new accounts can be stopped after 10-15 listings, older ones list 80 or more. Items Steam says cannot be listed right now (for example ones that already have a pending listing) do not stop the run; they are skipped and counted. **Batch size** and **Wait between batches** (Settings > Market) split a large sale; the next batch starts by itself after the wait. With the mobile authenticator on, every listing still has to be confirmed in the Steam app.
 
 **Price drop alert.** When an item's cheapest listing is at least the **Price drop threshold** (default 10%) below Steam's 24-hour average, it is marked with a red ▼, the sale confirmation warns in red, and with the alert enabled you get a notification, at most once a day per item.
 
@@ -354,7 +354,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `fetchAvgWithPrice` | `true` | Fetch the average in the same pass as the price. Off means one request per item and averages only via the Average button |
 | `bookDepth` | `5` | Order book rows in the detail panel |
 | `bulkSellLimit` | `50` | Bulk sales are split into batches of this many items. `0` lists until Steam stops it |
-| `sellBatchWaitMin` | `0` | Minutes to wait between batches. `0` asks after each batch |
+| `sellBatchWaitMin` | `5` | Minutes to wait between batches. The next batch starts by itself |
 | `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that counts as a price drop |
 
 ### Hours booster

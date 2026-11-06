@@ -66,7 +66,8 @@ app.whenReady().then(async () => {
   check('the button is locked while the flow runs', (await js("document.getElementById('bulkSellNow').disabled")) === true);
   const text = await js("document.querySelector('.e-modal-back').textContent");
   check('the question names the totals', /14/.test(text), text.slice(0, 80));
-  check('the amounts are marked as estimates when Steam does not answer', /estimate/i.test(text), text.slice(-160));
+  check('the question is short: the lowest market price against the price you sell at, one line to check', /lowest price on the market|You are selling at/.test(text) && /Check the prices/.test(text) && text.length < 1600, text.slice(0, 200));
+  check('it no longer talks about batches or estimates', !/batch/i.test(text) && !/estimate/i.test(text), text.slice(-160));
   await js("document.querySelector('.e-modal-ft .ok').click()");
   await wait(2500);
   const rows = await js("document.querySelectorAll('#salePanel [data-r]').length");
