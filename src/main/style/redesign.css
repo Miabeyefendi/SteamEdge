@@ -43,7 +43,7 @@
 .acct-row:hover{background:rgba(255,255,255,.05)}
 .acct-row.active{background:rgba(86,36,179,.15)}
 .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acct-row .tag{font-size:11px;font-weight:700;color:#C2AAEE;background:rgba(86,36,179,.15);border:1px solid rgba(86,36,179,.4);border-radius:20px;padding:2px 7px;flex:none}
+.acct-row .tag{font-size:12px;font-weight:700;color:#C2AAEE;background:rgba(86,36,179,.15);border:1px solid rgba(86,36,179,.4);border-radius:20px;padding:2px 7px;flex:none}
 .acct-row .x{color:#7F879B;padding:2px 5px;border-radius:5px;font-size:12px;line-height:1;flex:none}
 .acct-row .x:hover{color:#E45A86;background:rgba(179,36,83,.14)}
 .acct-add{display:flex;align-items:center;gap:8px;padding:11px 14px;border-top:1px solid rgba(255,255,255,.08);color:#C2AAEE;font-size:12.5px;font-weight:600;cursor:pointer}
@@ -55,7 +55,7 @@
 .notif-item:hover{background:rgba(255,255,255,.05)}
 .notif-item .a{font-size:12.5px;font-weight:600;color:#e5e7eb}
 .notif-item .b{font-size:12px;color:#9ca3af;margin-top:2px}
-.notif-item .t{font-size:11px;color:#7F879B;margin-top:4px}
+.notif-item .t{font-size:12px;color:#7F879B;margin-top:4px}
 .acct-list::-webkit-scrollbar, .notif-list::-webkit-scrollbar{width:8px}
 .acct-list::-webkit-scrollbar-thumb, .notif-list::-webkit-scrollbar-thumb{background-color:rgba(255,255,255,.14);border-radius:8px}
 

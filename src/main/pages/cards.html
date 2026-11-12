@@ -15,7 +15,7 @@
     <div style="display:flex;align-items:center;gap:18px">
       <div style="display:flex;align-items:center;gap:10px;height:36px;padding:0 14px;border-radius:12px;border:1px solid #2B3345;background:#0D1118">
         <span id="cardPillDot" style="width:6px;height:6px;border-radius:12px;background:#B37E24"></span>
-        <span style="font-size:11px;color:#8B8F9E">Kalan Kart · <span style="font-family:Geist Mono,monospace;color:#DCE2FA" id="cardRemaining">-</span></span>
+        <span style="font-size:12px;color:#8B8F9E">Kalan Kart · <span style="font-family:Geist Mono,monospace;color:#DCE2FA" id="cardRemaining">-</span></span>
       </div>
       <div style="width:1px;height:34px;background:#1D2432"></div>
       <button id="btnStart" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Başlat</button>
@@ -40,10 +40,10 @@
             <span class="cq-id" style="width:84px;flex-shrink:0;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#7F879B;border-left:1px solid #1D2432;padding-left:8px">APP-ID</span>
           </div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;max-width:100%;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345" id="qFilter">
-            <button data-qf="all" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">Hepsi</button>
-            <button data-qf="low" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">1-2 Kart</button>
-            <button data-qf="high" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">3+ Kart</button>
-            <button data-qf="excl" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer">Kara listedekiler</button>
+            <button data-qf="all" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">Hepsi</button>
+            <button data-qf="low" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">1-2 Kart</button>
+            <button data-qf="high" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">3+ Kart</button>
+            <button data-qf="excl" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">Kara listedekiler</button>
           </div>
         </div>
         <div id="cardQueue"></div>
@@ -63,7 +63,7 @@
           <button data-mode="priority" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">Öncelikli</button>
           <button data-mode="fast" style="height:36px;padding:0 14px;border-radius:999px;text-align:left;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer">Hızlı Mod</button>
         </div>
-        <span style="font-size:11px;color:#7F879B" id="durNote">Oyunları kuyruk sırasıyla tek tek çalıştırır.</span>
+        <span style="font-size:12px;color:#7F879B" id="durNote">Oyunları kuyruk sırasıyla tek tek çalıştırır.</span>
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px" id="durationPanel">
@@ -71,25 +71,25 @@
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 12px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
             <input id="cardH" value="00" maxlength="3" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SA</span>
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SA</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
             <input id="cardM" value="15" maxlength="2" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">DK</span>
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#7F879B">DK</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
             <input id="cardS" value="00" maxlength="2" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SN</span>
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SN</span>
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap" id="cardPresets">
-          <button data-min="30" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">30M</button>
-          <button data-min="60" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">1H</button>
-          <button data-min="120" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">2H</button>
-          <button data-min="240" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">4H</button>
-          <button data-min="480" style="height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">8H</button>
+          <button data-min="30" style="height:26px;padding:0 9px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">30M</button>
+          <button data-min="60" style="height:26px;padding:0 9px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">1H</button>
+          <button data-min="120" style="height:26px;padding:0 9px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">2H</button>
+          <button data-min="240" style="height:26px;padding:0 9px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">4H</button>
+          <button data-min="480" style="height:26px;padding:0 9px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">8H</button>
         </div>
       </div>
 
@@ -101,28 +101,28 @@
           <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #101621">
             <div style="display:flex;flex-direction:column;gap:3px">
               <span style="font-size:12px;font-weight:600;color:#DCE2FA">Pazarda Otomatik Satış</span>
-              <span style="font-size:11px;color:#8B8F9E">Düşen kartı medyan fiyattan satışa koyar</span>
+              <span style="font-size:12px;color:#8B8F9E">Düşen kartı medyan fiyattan satışa koyar</span>
             </div>
             <span class="e-toggle" data-set="farmAutoSell"><span class="e-knob"></span></span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #101621">
             <div style="display:flex;flex-direction:column;gap:3px">
               <span style="font-size:12px;font-weight:600;color:#DCE2FA">İade Süresindeki Oyunları Atla</span>
-              <span style="font-size:11px;color:#8B8F9E">Son 14 günde alınıp 2 saatten az oynanan oyunlardan kart düşürülmez</span>
+              <span style="font-size:12px;color:#8B8F9E">Son 14 günde alınıp 2 saatten az oynanan oyunlardan kart düşürülmez</span>
             </div>
             <span class="e-toggle" data-set="farmSkipRecent"><span class="e-knob"></span></span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid #101621">
             <div style="display:flex;flex-direction:column;gap:3px">
               <span style="font-size:12px;font-weight:600;color:#DCE2FA">Kart Düştüğünde Bildir</span>
-              <span style="font-size:11px;color:#8B8F9E">Masaüstü bildirimi gönder</span>
+              <span style="font-size:12px;color:#8B8F9E">Masaüstü bildirimi gönder</span>
             </div>
             <span class="e-toggle" data-set="notifyCardDrop"><span class="e-knob"></span></span>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0">
             <div style="display:flex;flex-direction:column;gap:3px">
               <span style="font-size:12px;font-weight:600;color:#DCE2FA">Başarım Kilitlerini Aç</span>
-              <span style="font-size:11px;color:#8B8F9E">Kart düşürürken 20-40 dakikada bir başarım aç</span>
+              <span style="font-size:12px;color:#8B8F9E">Kart düşürürken 20-40 dakikada bir başarım aç</span>
             </div>
             <span class="e-toggle" data-set="farmAchUnlock"><span class="e-knob"></span></span>
           </div>
@@ -132,7 +132,7 @@
       <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden">
         <div style="height:44px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1D2432">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Son Düşüşler</span>
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B" id="dropCount">0 öğe</span>
+          <span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B" id="dropCount">0 öğe</span>
         </div>
         <div id="dropList"></div>
       </div>

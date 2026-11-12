@@ -70,10 +70,10 @@
 
       kyEl('kyQueue').innerHTML = keyState.queue.length ? keyState.queue.map((q, i) =>
         '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #101621">'
-        + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">#' + (i + 1) + '</span>'
+        + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">#' + (i + 1) + '</span>'
         + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:600;color:#DCE2FA">' + esc(q.key) + '</span>'
-          + (q.name ? '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(q.name) + '</span>' : '')
+          + (q.name ? '<span style="font-size:12px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(q.name) + '</span>' : '')
         + '</div></div>').join('')
         : '<div style="padding:28px 0;text-align:center;font-size:12px;color:#7F879B">' + esc(t('Kuyruk boş.')) + '</div>';
 
@@ -85,11 +85,11 @@
           + '<span style="width:7px;height:7px;border-radius:12px;background:' + st.color + ';flex-shrink:0"></span>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(games || r.key) + '</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">' + esc(r.key) + '</span>'
-            + (r.forwardedTo ? '<span style="font-size:11px;color:#24AEB3">' + esc(tf('# hesabında denenecek.', r.forwardedTo)) + '</span>' : '')
+            + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">' + esc(r.key) + '</span>'
+            + (r.forwardedTo ? '<span style="font-size:12px;color:#24AEB3">' + esc(tf('# hesabında denenecek.', r.forwardedTo)) + '</span>' : '')
           + '</div>'
           + '<span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:' + st.color + ';border:1px solid ' + st.color + ';border-radius:12px;padding:2px 8px;flex-shrink:0">' + esc(label) + '</span>'
-          + '<span style="width:84px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">' + new Date(r.ts).toLocaleTimeString(localCode()) + '</span>'
+          + '<span style="width:84px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">' + new Date(r.ts).toLocaleTimeString(localCode()) + '</span>'
           + '</div>';
       }).join('')
         : '<div style="padding:48px 0;text-align:center;font-size:12px;color:#7F879B">' + esc(t('Henüz sonuç yok.')) + '</div>';

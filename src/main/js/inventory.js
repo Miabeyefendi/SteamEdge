@@ -41,7 +41,7 @@
       return { appid: +m[1], contextId: m[2], appName: game ? game.name : null };
     }
 
-    const EC = { ok:'#5FB324', teal:'#24AEB3', bad:'#B32453', brand:'#5624B3', sub:'#C2AAEE',
+    const EC = { ok:'#5FB324', teal:'#24AEB3', bad:'#E45A86', brand:'#5624B3', sub:'#C2AAEE',
                  title:'#DCE2FA', muted:'#8B8F9E', off:'#7F879B', bd:'#2B3345', s1:'#0D1118' };
 
     // Amounts are in the selected currency (common.js fmtMoney). If "Price display: Net" is selected
@@ -557,7 +557,7 @@
         + '</div>'
         + '<span style="font-size:12px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:9px;padding-right:12px">'+esc(it.gameName||'-')+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA;text-align:center">'+it.count+'</span>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(dropEvent?'#B32453':'#C2AAEE')+';text-align:center"'
+        + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(dropEvent?'#E45A86':'#C2AAEE')+';text-align:center"'
           + (dropEvent ? (' title="'+esc(tf('Steam\'in 24 saatlik ortalamasının # altında', fmtPercent(Math.round(dropEvent*100))))+'"') : '') + '>'
           + (dropEvent ? '▼ ' : '') + low+'</span>'
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA;text-align:center">'+med+'</span>'
@@ -574,12 +574,12 @@
           + (it.iconUrl?'<img src="'+esc(it.iconUrl)+'" loading="lazy" style="width:100%;height:100%;object-fit:contain">':'')
           + '<div data-a="check" style="position:absolute;top:6px;left:6px;width:16px;height:16px;border-radius:12px;border:1px solid '+(on?EC.brand:EC.bd)+';background:'+(on?EC.brand:'#090C12')+';display:flex;align-items:center;justify-content:center;cursor:pointer">'
             + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#030305" stroke-width="3.4" style="opacity:'+(on?1:0)+'"><path d="M5 13l4 4L19 7"></path></svg></div>'
-          + '<span style="position:absolute;top:6px;right:6px;font-size:11px;font-weight:700;letter-spacing:0.06em;color:'+EC.sub+';background:#090C12;border:1px solid '+EC.brand+';border-radius:12px;padding:2px 6px;opacity:'+(foil?1:0)+'">Foil</span>'
+          + '<span style="position:absolute;top:6px;right:6px;font-size:12px;font-weight:700;letter-spacing:0.06em;color:'+EC.sub+';background:#090C12;border:1px solid '+EC.brand+';border-radius:12px;padding:2px 6px;opacity:'+(foil?1:0)+'">Foil</span>'
         + '</div>'
-        + '<span style="font-size:11px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.name)+'</span>'
+        + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(it.name)+'</span>'
         + '<div style="display:flex;align-items:center;justify-content:space-between">'
           + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#24AEB3">'+med+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#DCE2FA">×'+it.count+'</span>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA">×'+it.count+'</span>'
         + '</div>'
         + '<span style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:'+st.fg+'">'+st.label+'</span>'
         + '</div>';
@@ -884,7 +884,7 @@
       if (!it){
         box.innerHTML = '<span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Eşya İncelemesi</span>'
           + '<div style="height:150px;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 8px,#101621 8px 16px);display:flex;align-items:center;justify-content:center">'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">ÖĞE SEÇİLMEDİ</span></div>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">ÖĞE SEÇİLMEDİ</span></div>'
           + '<span style="font-size:12px;color:#8B8F9E">Detay için listeden bir öğeye tıkla.</span>';
         return;
       }
@@ -901,13 +901,13 @@
         + '<div style="height:34px;padding:0 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1D2432;background:#0D1118">'
           + '<span style="width:6px;height:6px;border-radius:12px;background:'+dotColor+';flex-shrink:0"></span>'
           + '<span style="font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#8B8F9E">'+title+'</span></div>'
-        + '<div style="padding:10px 14px 4px;font-size:11px;color:#8B8F9E;line-height:1.5">'+headline+'</div>'
+        + '<div style="padding:10px 14px 4px;font-size:12px;color:#8B8F9E;line-height:1.5">'+headline+'</div>'
         + (rows
             ? ('<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 14px 4px">'
                + '<span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7F879B">Fiyat</span>'
                + '<span style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#7F879B">Miktar</span></div>'
                + '<div style="padding:0 14px 10px">'+rows+'</div>')
-            : '<div style="padding:0 14px 12px;font-size:11px;color:#7F879B">'+empty+'</div>')
+            : '<div style="padding:0 14px 12px;font-size:12px;color:#7F879B">'+empty+'</div>')
         + '</div>';
       // The bold value inside the sentence. The sentence is translated by template, the value goes into the placeholder:
       // each language builds its own syntax (the sentence used to be split into pieces and translated separately).
@@ -1151,7 +1151,7 @@
 
     // ---- the progress panel: every item of the job, one row each, updated as the requests go out ----
     const SG_BTN = 'height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;flex-shrink:0;white-space:nowrap';
-    const SP_STATE = { wait:['Sırada','#7F879B'], send:['Gönderiliyor','#C2AAEE'], ok:['Satışa sunuldu','#5FB324'], conf:['Onay bekliyor','#B37E24'], skip:['Atlandı','#B37E24'], fail:['Reddedildi','#B32453'] };
+    const SP_STATE = { wait:['Sırada','#7F879B'], send:['Gönderiliyor','#C2AAEE'], ok:['Satışa sunuldu','#5FB324'], conf:['Onay bekliyor','#B37E24'], skip:['Atlandı','#B37E24'], fail:['Reddedildi','#E45A86'] };
     function paintSaleRow(g, i){
       const p = g.plan[i];
       const row = document.querySelector('#salePanel [data-r="'+i+'"]');
@@ -1183,13 +1183,13 @@
             + '<span data-sp="title" style="flex:1;min-width:0;font-size:12px;font-weight:600;color:#DCE2FA;line-height:1.4"></span>'
             + '<span data-sp="btns" style="display:flex;gap:6px;flex-shrink:0"></span></div>'
           + '<div style="height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden"><div data-sp="bar" style="height:100%;width:0;border-radius:999px;background:#5624B3;transition:width .2s"></div></div>'
-          + '<div data-sp="counts" style="font-size:11px;color:#8B8F9E"></div>'
+          + '<div data-sp="counts" style="font-size:12px;color:#8B8F9E"></div>'
           + '<div id="salePanelList" style="max-height:240px;overflow-y:auto;border:1px solid #1D2432;border-radius:10px;background:#090C12">'
           + g.plan.map((p, n) => '<div data-r="'+n+'" style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #101621">'
               + '<span data-c="dot" style="width:6px;height:6px;border-radius:12px;background:#7F879B;flex-shrink:0"></span>'
               + '<span style="flex:1;min-width:0"><span style="display:block;font-size:12px;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.name)+'</span>'
-              + '<span data-c="msg" style="display:none;font-size:11px;color:#B37E24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span></span>'
-              + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0">'+esc(fmtLira(p.buyer/100))+'</span>'
+              + '<span data-c="msg" style="display:none;font-size:12px;color:#B37E24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span></span>'
+              + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;flex-shrink:0">'+esc(fmtLira(p.buyer/100))+'</span>'
               + '<span data-c="st" style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0;min-width:92px;text-align:right"></span></div>').join('')
           + '</div>';
         document.body.appendChild(el);
@@ -1216,7 +1216,7 @@
       } else {
         title = tf('Satışa sunuluyor · # / #', g.i, g.plan.length);
       }
-      if (!g.done) buttons += '<button data-sg="stop" class="h-stop" style="'+SG_BTN.replace('#5624B3','#B32453').replace('#C2AAEE','#B32453')+'">'+esc(t('Durdur'))+'</button>';
+      if (!g.done) buttons += '<button data-sg="stop" class="h-stop" style="'+SG_BTN.replace('#5624B3','#B32453').replace('#C2AAEE','#E45A86')+'">'+esc(t('Durdur'))+'</button>';
       q('title').textContent = title;
       q('btns').innerHTML = buttons;
       q('dot').style.animation = g.done ? 'none' : '';

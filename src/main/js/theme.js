@@ -7,16 +7,18 @@
 (function () {
   const PALETTE = {
     midnight: {
-      '030305': '050410', '090c12': '0c0818', '0d1118': '130b24', '101621': '160b2a', '151c28': '200e3c',
-      '1d2432': '2a1648', '2b3345': '3a2060', '333d4d': '45286e', '252a3a': '2c1850', '1e2836': '231040',
-      '0e1620': '120a22', 'dce2fa': 'f0eaf8', 'b9c0d6': 'd4c8ec', '8b8f9e': 'a898c8', '7f879b': '998cb8',
-      '5624b3': '7a3fe0', 'c2aaee': 'd8c4ff', '0f1720': '0c0818',
+      // Violet and amber: the surfaces are tinted violet, the brand violet is #7C3AED, the status colours are the cool ones that sit with it
+      '030305': '0a0617', '090c12': '0f0a1f', '0d1118': '171030', '101621': '1b1338', '151c28': '231847',
+      '1d2432': '2e2352', '2b3345': '4a3a7a', '333d4d': '55448c', '252a3a': '2c2150', '1e2836': '261c46',
+      '0e1620': '140e2b', 'dce2fa': 'eeeafb', 'b9c0d6': 'd2cbee', '8b8f9e': 'a9a0c9', '7f879b': '9c93bd',
+      '5624b3': '7c3aed', 'c2aaee': 'a78bfa', '0f1720': '0f0a1f', '5a6580': '7a67b8',
+      '5fb324': '34d399', 'b37e24': 'f5b83d', 'e0b43a': 'f5b83d', 'e45a86': 'fb7185', 'ef4444': 'fb7185', '24aeb3': '2dd4bf',
     },
     white: {
       '030305': 'e4e2dc', '090c12': 'f5f4f2', '0d1118': 'ffffff', '101621': 'f0eeea', '151c28': 'eceae6',
       '1d2432': 'e0ddd6', '2b3345': 'd8d4cc', '333d4d': 'c8c4bc', '252a3a': 'ddd9d2', '1e2836': 'e6e3dd',
       '0e1620': 'f2f0ec', 'dce2fa': '1a1a1a', 'b9c0d6': '3a3a3a', '8b8f9e': '595959', '7f879b': '5e5e5e',
-      'c2aaee': '5624b3', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '595959', '0f1720': 'f5f4f2',
+      'c2aaee': '5624b3', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '595959', '0f1720': 'f5f4f2', '5a6580': '8a8780',
       // the status colours are text on the light surfaces too, and the light green, amber and cyan of the dark theme do not read there
       '5fb324': '30650d', 'b37e24': '7d5208', '24aeb3': '0a6a6f', 'b32453': 'a01f4a', 'e45a86': 'a01f4a', 'e0b43a': 'a87c00',
       // older pastel text colours in the page styles (light enough to vanish on white)
@@ -29,7 +31,7 @@
     contrast: {
       '030305': '000000', '090c12': '000000', '0d1118': '000000', '101621': '0d0d0d', '151c28': '1a1a1a', '0f1720': '000000',
       '1d2432': '8c8c8c', '2b3345': 'ffffff', '333d4d': 'ffffff', '252a3a': '262626', '1e2836': '262626', '0e1620': '0d0d0d',
-      'dce2fa': 'ffffff', 'b9c0d6': 'ffffff', '8b8f9e': 'e6e6e6', '7f879b': 'd9d9d9', 'c2aaee': 'ffff66', 'e8eaf0': 'ffffff', 'cbd5e1': 'ffffff', '94a3b8': 'e6e6e6',
+      '5a6580': 'ffffff', 'dce2fa': 'ffffff', 'b9c0d6': 'ffffff', '8b8f9e': 'e6e6e6', '7f879b': 'd9d9d9', 'c2aaee': 'ffff66', 'e8eaf0': 'ffffff', 'cbd5e1': 'ffffff', '94a3b8': 'e6e6e6',
       '5fb324': '7dff4d', 'b37e24': 'ffd24a', '24aeb3': '3de8f0', 'e45a86': 'ff8fab', 'e0b43a': 'ffd24a',
       '7a8a9a': 'd9d9d9', '9ca3af': 'e6e6e6', 'e2703a': 'ff9b6b', '4f8ef7': '8fb8ff', 'a78bfa': 'cdbbff', 'ef4444': 'ff8a8a',
     },
@@ -51,6 +53,11 @@
   const OZ = ['style', 'fill', 'stroke'];
   function elem(el) {
     if (!el.getAttribute) return;
+    // the mark's light S disappears on the white surfaces (1.1 : 1): that theme uses logo-mark-dark.svg
+    if (el.tagName === 'IMG' && matchUp === PALETTE.white) {
+      const src = el.getAttribute('src');
+      if (src && /logo-mark\.svg$/.test(src)) el.setAttribute('src', src.replace('logo-mark.svg', 'logo-mark-dark.svg'));
+    }
     for (const o of OZ) {
       const s = el.getAttribute(o);
       if (s) { const y = convert(s); if (y !== s) el.setAttribute(o, y); }
@@ -59,7 +66,7 @@
   function tree(rootDir) {
     if (rootDir.nodeType !== 1) return;
     elem(rootDir);
-    rootDir.querySelectorAll('[style],[fill],[stroke]').forEach(elem);
+    rootDir.querySelectorAll('[style],[fill],[stroke],img').forEach(elem);
   }
   function rules() {
     for (const page of document.styleSheets) {
@@ -92,7 +99,9 @@
     if (choice === 'white') {
       const st = document.createElement('style');
       st.textContent = '[style*="background:#5624B3"],[style*="background: rgb(86, 36, 179)"]{color:#fff !important}'
-        + 'img[src*="logo"]{filter:drop-shadow(0 0 1px rgba(0,0,0,.6))}';
+        + '.e-toggle.on .e-knob{background:#fff !important}'
+        // the inline knobs of the other switches are the title colour, which is dark in this theme: an ON knob stays light on the purple
+        + 'div[style*="width:16px"][style*="margin-left:16px"],div[style*="width: 16px"][style*="margin-left: 16px"]{background:#fff !important}';
       document.head.appendChild(st);
     }
     if (document.body) tree(document.body);

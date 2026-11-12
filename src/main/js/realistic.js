@@ -165,7 +165,7 @@
         return '<div class="h-s3" data-gradd="'+g.appid+'" style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:12px;cursor:pointer">'
           + '<div style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1">'
           + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
           + esc(grWriteHours(g.playtimeMin))+'</span>'
           + '</div>'
           + favStar(g.appid)
@@ -254,7 +254,7 @@
       grSet('grLibCount', grQueue.length + ' oyun');
       const el = grEl('grLibrary');
       if (!grQueue.length){
-        el.innerHTML = '<div style="padding:30px 10px;text-align:center;font-size:11px;color:#7F879B;line-height:1.6">'
+        el.innerHTML = '<div style="padding:30px 10px;text-align:center;font-size:12px;color:#7F879B;line-height:1.6">'
           + (grLoaded ? 'Yukarıdan oyun ara ve <b style="color:#8B8F9E">+</b> ile sıraya ekle.' : 'Kütüphane yükleniyor…')
           + '</div>';
         return;
@@ -272,10 +272,10 @@
           + gameThumb(g.appid) + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
           + '<span style="font-size:12px;font-weight:600;color:'+(on?GRC.title:'#B9C0D6')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+esc(grWriteHours(g.playtimeMin))+'</span>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'+esc(grWriteHours(g.playtimeMin))+'</span>'
           + '</div>'
           + (playing ? '<span title="'+esc(t('çalışıyor'))+'" style="width:8px;height:8px;border-radius:50%;background:'+GRC.ok+';box-shadow:0 0 0 3px rgba(95,179,36,.18);flex-shrink:0"></span>' : '')
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+achFg
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+achFg
           + ';border:1px solid '+achFg+';border-radius:12px;padding:2px 7px;flex-shrink:0">'+achEt+'</span>'
           + '<button data-grdel="'+g.appid+'" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center" class="h-stop">&#8722;</button>'
           + '</div>';
@@ -511,19 +511,19 @@
         const colorVal = grPctColor(a.rarityPct, a.pos);
         const wasOpened = openedNames.has(a.name);
         html += '<div style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid #101621">'
-          + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">#'+(i+1)+'</span>'
+          + '<span style="width:26px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">#'+(i+1)+'</span>'
           + '<div style="width:33px;height:33px;flex-shrink:0;border-radius:11px;border:1px solid '+(wasOpened?GRC.ok:'#2B3345')+';background:#101621;display:flex;align-items:center;justify-content:center">'
           + '<span style="width:10px;height:10px;background:'+(wasOpened?GRC.ok:colorVal)+';transform:rotate(45deg)"></span></div>'
           + '<span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:'+(wasOpened?GRC.ok:GRC.title)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.name||'')+'</span>'
           + '<span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'+colorVal+';border:1px solid '+colorVal+';border-radius:12px;padding:2px 8px;flex-shrink:0">'+esc(grRarityLabel(a.rarityPct, a.pos))+'</span>'
           + '<span style="width:52px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+colorVal+';text-align:right">'
           + (Number.isFinite(a.rarityPct) ? fmtPercent(localDecimal(a.rarityPct, 1)) : '-')+'</span>'
-          + '<span style="width:92px;flex-shrink:0;white-space:nowrap;font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;text-align:right">'
+          + '<span style="width:92px;flex-shrink:0;white-space:nowrap;font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;text-align:right">'
           + (wasOpened ? 'AÇILDI' : grTimeLabel(a.timeValue))+'</span>'
           + '</div>';
       });
       if (selList.length > GR_LIST_MAX){
-        html += '<div style="padding:12px 0;text-align:center;font-size:11px;color:#7F879B">' + esc(tf('… ve # başarım daha', selList.length - GR_LIST_MAX)) + '</div>';
+        html += '<div style="padding:12px 0;text-align:center;font-size:12px;color:#7F879B">' + esc(tf('… ve # başarım daha', selList.length - GR_LIST_MAX)) + '</div>';
       }
       el.innerHTML = html;
     }
@@ -795,10 +795,10 @@
       box.style.display = grPresets.length ? 'block' : 'none';
       grEl('grPresets').innerHTML = grPresets.map((p,i)=>
         '<div data-grpreset="'+i+'" style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #101621;cursor:pointer">'
-        + '<span style="width:20px;height:20px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;display:flex;align-items:center;justify-content:center;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE">'+(i+1)+'</span>'
+        + '<span style="width:20px;height:20px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;display:flex;align-items:center;justify-content:center;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#C2AAEE">'+(i+1)+'</span>'
         + '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">'
         + '<span style="font-size:12px;color:#B9C0D6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.heading||'-')+'</span>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+esc(grPresetMeta(p))+'</span>'
+        + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'+esc(grPresetMeta(p))+'</span>'
         + '</div>'
         + '<button data-grpdel="'+i+'" class="h-stop" style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
         + '</div>').join('');

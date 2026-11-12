@@ -120,7 +120,7 @@ Your whole library on the left, searchable (at most 300 rows are drawn at a time
 
 ### Realistic Mode
 
-A three column workspace under a strip that shows the game, unlocked count, average gap and overall progress. The queue and session length on the left with the AUTO target, the unlock order in the middle with the next achievement on top, settings on the right, split into a Simple and an Advanced panel.
+A three column workspace under a strip that shows the game, unlocked count, time between achievements and overall progress. The queue and session length on the left with the AUTO target, the unlock order in the middle with the next achievement on top, settings on the right, split into a Simple and an Advanced panel.
 
 ### Achievements
 
@@ -210,9 +210,9 @@ Some games only accept achievement writes while the game is open. The app opens 
 
 Holds one game open and unlocks its achievements across the session, from the most common to the rarest. The point is the trail it leaves: hundreds of achievements appearing in a minute is obvious on a profile and on third party sites.
 
-**100% completion time** is the number the whole page is built on: how many hours it takes to finish this game with all its achievements. Enter it and it is remembered for that game. Leave it empty and it is estimated from the game type, but that estimate is your own playtime times a factor, so it inflates on games you have played a lot.
+**Hours for 100%** is the number the whole page is built on: how many hours it takes to finish this game with all its achievements. Enter it and it is remembered for that game. Leave it empty and it is estimated from the game type, but that estimate is your own playtime times a factor, so it inflates on games you have played a lot.
 
-**Target count** and **duration** are planned together, by the same code that runs the session, so the numbers in the boxes are the numbers that run. With **Set the duration from the settings** on and no duration typed by hand, the target is everything that is left and the session lasts as long as a real player would need for it: the 100% completion time, times the share of the achievements that will be unlocked, times the difficulty (normal is the completion time itself), kept between 15 minutes and 999 hours. A game that takes 60 hours gets 60 hours for all its achievements; with several games in the queue the duration is the sum of the games, each with its own completion time. If you type a duration it stays, and the target becomes what a real player would earn in that time: what should already be unlocked at your playtime minus what actually is, plus the share of those hours. The panel spells the arithmetic out so you can check it. The difficulty follows how long real players take, from HowLongToBeat data for 47 games: Easy is a fast player (about 0.7 of the time, a little less in a long game: 12 hours become 9, 300 become 196), Normal is the time itself, and Hard and Very hard are players who take their time (Hard about 1.3 to 1.4 times the time, Very hard 1.9 times on a short game and 1.6 times on a long one).
+**Target count** and **duration** are planned together, by the same code that runs the session, so the numbers in the boxes are the numbers that run. With **Set the duration from the settings** on and no duration typed by hand, the target is everything that is left and the session lasts as long as a real player would need for it: the Hours for 100%, times the share of the achievements that will be unlocked, times the difficulty (normal is the completion time itself), kept between 15 minutes and 999 hours. A game that takes 60 hours gets 60 hours for all its achievements; with several games in the queue the duration is the sum of the games, each with its own completion time. If you type a duration it stays, and the target becomes what a real player would earn in that time: what should already be unlocked at your playtime minus what actually is, plus the share of those hours. The panel spells the arithmetic out so you can check it. The difficulty follows how long real players take, from HowLongToBeat data for 47 games: Easy is a fast player (about 0.7 of the time, a little less in a long game: 12 hours become 9, 300 become 196), Normal is the time itself, and Hard and Very hard are players who take their time (Hard about 1.3 to 1.4 times the time, Very hard 1.9 times on a short game and 1.6 times on a long one).
 
 **Distribution model** shapes the spacing. Linear is even, exponential front-loads the way a real player's first hours look, Pareto puts most of them in the first fifth.
 
@@ -377,7 +377,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 |---|---|---|
 | `grDurationSec` | `7200` | Session length |
 | `grModel` | `linear` | Distribution model |
-| `grTcGame` | `{}` | 100% completion time per game, in hours |
+| `grTcGame` | `{}` | Hours for 100% per game, in hours |
 | `grCatchUp` | `true` | Compress the overdue backlog into the start of the session |
 | `grSpeed` | `1` | Speed multiplier for the whole schedule |
 | `grUltraMultiplier` | `3` | How much longer sub-5% achievements wait |
@@ -450,7 +450,7 @@ Either it is protected, meaning the game server writes it and no client may, or 
 
 ### Realistic Mode suggests only one or two unlocks
 
-The completion time is too high. Left empty it is estimated from your playtime, so a game you have played for a long time reads as an enormously long game. Enter the real 100% completion time in the box on the main panel.
+The completion time is too high. Left empty it is estimated from your playtime, so a game you have played for a long time reads as an enormously long game. Enter the real Hours for 100% in the box on the main panel.
 
 ### SteamEdge says a file could not be read
 
@@ -526,7 +526,7 @@ Copy the folder. Everything is in it. Remember that `settings/` includes your se
 | **Realised sale** | A completed transaction, as opposed to an active listing |
 | **Schema** | Steam's definition of a game's achievements and statistics |
 | **Session token** | The credential that keeps you logged in. Treat it like a password |
-| **Tc** | 100% completion time: hours to finish a game with all achievements |
+| **Tc** | Hours for 100%: hours to finish a game with all achievements |
 
 ---
 
