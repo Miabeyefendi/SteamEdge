@@ -29,7 +29,7 @@ function files(dir, ext, output = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     if (e.name === 'node_modules' || e.name === '.git' || e.name === '.out'
         || e.name === 'settings' || e.name === 'cache'
-        || e.name === 'archive' || e.name === 'releases') continue;
+        || e.name === 'archive' || e.name === 'releases' || e.name === 'graphify-out') continue;
     const p = path.join(dir, e.name);
     if (e.isDirectory()) files(p, ext, output);
     else if (e.name.toLowerCase().endsWith(ext)) output.push(p);

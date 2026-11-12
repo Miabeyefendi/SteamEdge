@@ -33,12 +33,12 @@
 /* Tooltips: one floating bubble on <body> (common.js initTips) instead of an ::after box inside the element. The box inside a scrolling panel was clipped by it,
    and near a window edge it ran out of the window. The bubble stays inside the window and turns below when there is no room above. */
 .edge [data-tip]::after{display:none}
-.e-tipbox{position:fixed;left:0;top:0;z-index:9999;width:264px;padding:9px 11px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 12px 30px rgba(3,3,5,.7);color:var(--e-body);font-size:11px;font-weight:400;line-height:1.5;text-align:left;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s}
+.e-tipbox{position:fixed;left:0;top:0;z-index:9999;width:264px;padding:9px 11px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);box-shadow:0 12px 30px rgba(3,3,5,.7);color:var(--e-body);font-size:12px;font-weight:400;line-height:1.5;text-align:left;white-space:normal;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s}
 .e-tipbox.on{opacity:1;visibility:visible}
 
 /* ---- titlebar (Electron frameless window controls) ---- */
 .e-titlebar{height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;background:var(--e-bgAlt);border-bottom:1px solid var(--e-bdPassive);-webkit-app-region:drag}
-.e-titlebar .e-tb-brand{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:11px;font-weight:700;color:var(--e-muted)}
+.e-titlebar .e-tb-brand{display:flex;align-items:center;gap:8px;padding:0 14px;font-size:12px;font-weight:700;color:var(--e-muted)}
 .e-titlebar .e-tb-btns{display:flex;-webkit-app-region:no-drag}
 .e-titlebar .e-tb-btns button{width:38px;height:36px;border:0;background:transparent;color:var(--e-muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
 .e-titlebar .e-tb-btns button:hover{background:var(--e-s2);color:var(--e-title)}
@@ -81,7 +81,7 @@ body.e-light .e-pulse{opacity:1!important;transform:none!important}
 .e-icon-btn .e-badge{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:12px;background:var(--e-bad);border:2px solid var(--e-bgAlt)}
 .e-acct{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:4px 10px 4px 4px;border-radius:var(--e-radius);border:1px solid transparent;background:transparent;cursor:pointer}
 .e-acct:hover,.e-acct.open{border-color:var(--e-brand)}
-.e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:11px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
+.e-acct-avatar{width:28px;height:28px;border-radius:var(--e-radius);background:repeating-linear-gradient(135deg,var(--e-s3) 0 5px,var(--e-s2) 5px 10px);border:1px solid var(--e-bd);display:flex;align-items:center;justify-content:center;font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:var(--e-sub);flex-shrink:0;overflow:hidden}
 /* The Steam avatar arrives at 184x184 - it must not overflow the box (this was the cause of the broken profile icon). */
 .e-acct-avatar img{width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit}
 .e-acct-name{font-size:12px;font-weight:600;color:var(--e-title);line-height:1;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis}
@@ -99,7 +99,7 @@ body.e-light .e-pulse{opacity:1!important;transform:none!important}
 .acct-row:hover{background:var(--e-s3)}
 .acct-row.active{background:var(--e-s3)}
 .acct-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:var(--e-title)}
-.acct-row .tag{font-size:11px;font-weight:700;color:var(--e-brandActive);background:rgba(86,36,179,.18);border:1px solid var(--e-bdActive);border-radius:20px;padding:2px 7px;flex:none}
+.acct-row .tag{font-size:12px;font-weight:700;color:var(--e-brandActive);background:rgba(86,36,179,.18);border:1px solid var(--e-bdActive);border-radius:20px;padding:2px 7px;flex:none}
 /* Account row status dots: green = card/hours running in the background, teal = only connected */
 .acct-row .run-dot{width:7px;height:7px;border-radius:12px;background:var(--e-ok);flex:none;opacity:.4}
 body.e-beat .acct-row .run-dot{opacity:1;transform:scale(1.4)}
@@ -114,16 +114,16 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .e-acct-signout:hover{background:var(--e-s3)}
 .e-acct-signout .e-dot{width:7px;height:7px;border-radius:12px;background:var(--e-bad);flex-shrink:0}
 .e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--e-bad);line-height:1}
-.e-acct-signout-sub{font-size:11px;color:var(--e-off);line-height:1.3;margin-top:3px}
+.e-acct-signout-sub{font-size:12px;color:var(--e-off);line-height:1.3;margin-top:3px}
 
 /* ---- Settings > identity rows in the Account card ---- The SAME pattern as the card's own rows: label on the left 11 px, value on the right mono 12 px, the same thin line on top. The measurements are taken from there so they do not look like a separate box; their only difference is that clicking copies the value to the clipboard. */
 .e-identity-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621;cursor:pointer}
 .e-identity-row:hover .v{color:var(--e-brandSoft,#C2AAEE)}
-.e-identity-row .k{font-size:11px;color:var(--e-off)}
+.e-identity-row .k{font-size:12px;color:var(--e-off)}
 .e-identity-row .v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:var(--e-title)}
 .e-identity-row .v.bos{font-weight:500;color:var(--e-off)}
 .e-identity-sub{display:flex;gap:8px}
-.e-identity-sub button{flex:1;height:30px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:11px;font-weight:600;letter-spacing:.08em;cursor:pointer}
+.e-identity-sub button{flex:1;height:30px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:12px;font-weight:600;letter-spacing:.08em;cursor:pointer}
 .e-identity-sub button:hover{border-color:var(--e-brand);color:var(--e-title)}
 .e-identity-sub button:disabled{opacity:.4;cursor:default;border-color:var(--e-bdPassive);color:var(--e-off)}
 
@@ -136,7 +136,7 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .notif-item:hover{background:var(--e-s2)}
 .notif-item .a{font-size:12.5px;font-weight:600;color:var(--e-title)}
 .notif-item .b{font-size:11.5px;color:var(--e-muted);margin-top:2px}
-.notif-item .t{font-size:11px;color:var(--e-off);margin-top:4px}
+.notif-item .t{font-size:12px;color:var(--e-off);margin-top:4px}
 
 /* ---- content shell ---- */
 .e-main{flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:var(--e-bg);min-height:0}
@@ -179,21 +179,21 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .e-stat-ic{width:38px;height:38px;flex-shrink:0;border-radius:var(--e-radius);background:var(--e-s3);display:flex;align-items:center;justify-content:center;color:var(--e-sub)}
 .e-stat-lbl{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--e-muted)}
 .e-stat-val{font-family:"Geist Mono",monospace;font-size:16px;font-weight:700;color:var(--e-title)}
-.e-stat-sub{font-size:11px;color:var(--e-off)}
+.e-stat-sub{font-size:12px;color:var(--e-off)}
 .e-panel-hd{height:48px;flex-shrink:0;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--e-bdPassive)}
 .e-panel-title{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--e-muted)}
 .e-panel-title-dot{width:6px;height:6px;border-radius:12px;background:var(--e-brand);flex-shrink:0}
 .e-field{height:34px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd);color:var(--e-body);font-size:12px;padding:0 12px;outline:none}
 .e-field:focus{border-color:var(--e-bdFocus)}
 .e-seg{display:flex;gap:4px;padding:4px;border-radius:var(--e-radius);background:var(--e-s1);border:1px solid var(--e-bd)}
-.e-seg button,.e-seg .e-seg-item{height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--e-muted);font-size:11px;font-weight:600;cursor:pointer}
+.e-seg button,.e-seg .e-seg-item{height:26px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--e-muted);font-size:12px;font-weight:600;cursor:pointer}
 .e-seg button.sel,.e-seg .e-seg-item.sel{background:var(--e-brand);border-color:var(--e-brand);color:var(--e-title)}
 .e-progress{height:6px;border-radius:12px;background:var(--e-bg);border:1px solid var(--e-bdPassive);overflow:hidden}
 .e-progress > i{display:block;height:100%;border-radius:12px;background:var(--e-blue)}
 .e-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:13px 0;border-bottom:1px solid var(--e-s2)}
 .e-toggle-row:last-child{border-bottom:0}
 .e-toggle-row .e-tr-t{font-size:13px;font-weight:600;color:var(--e-title)}
-.e-toggle-row .e-tr-d{font-size:11px;color:var(--e-muted);margin-top:2px}
+.e-toggle-row .e-tr-d{font-size:12px;color:var(--e-muted);margin-top:2px}
 .e-sublabel{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--e-off);padding:17px 0 10px}
 .e-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:48px 18px;text-align:center;color:var(--e-muted)}
 .e-empty-title{font-size:14px;font-weight:700;color:var(--e-body)}
@@ -374,6 +374,8 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
   .cq-row .cq-bar{order:1;flex:1 1 90px}
   .cq-row .cq-acts{order:2;margin-left:auto}
   .cq-head .cq-thumb-sp,.cq-head .cq-id{display:none}
+  .cq-row .cq-id{width:auto!important;border-left:0!important;padding-left:0!important}
+  .cq-row .cq-id::before{content:"ID ";opacity:.7}
   .cq-head .cq-name,.cq-head .cq-remain{width:auto!important}
 }
 /* Blacklist rows have no progress bar: only the name has to give way. */
@@ -504,7 +506,7 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 .e-pal-grp{padding:10px 12px 4px;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#8B8F9E}
 .e-pal-item{display:flex;align-items:center;gap:12px;min-height:36px;padding:6px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:#B9C0D6}
 .e-pal-item .l{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.e-pal-item .k{flex-shrink:0;font-size:11px;color:#8B8F9E;font-family:'Geist Mono',monospace}
+.e-pal-item .k{flex-shrink:0;font-size:12px;color:#8B8F9E;font-family:'Geist Mono',monospace}
 .e-pal-item.on{background:#151C28;color:#DCE2FA}
 .e-pal-item.on .k{color:#C2AAEE}
 .e-pal-none{padding:18px 12px;font-size:12.5px;color:#8B8F9E;text-align:center}
@@ -513,12 +515,12 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 .e-help{width:400px}
 .e-help-rows{padding:8px 18px 16px}
 .e-help-row{display:flex;align-items:center;gap:14px;padding:7px 0;border-bottom:1px solid #101621;font-size:12.5px;color:#B9C0D6}
-.e-help-row kbd{min-width:104px;padding:3px 8px;border-radius:8px;background:#151C28;border:1px solid #2B3345;font-family:'Geist Mono',monospace;font-size:11px;color:#DCE2FA;text-align:center}
+.e-help-row kbd{min-width:104px;padding:3px 8px;border-radius:8px;background:#151C28;border:1px solid #2B3345;font-family:'Geist Mono',monospace;font-size:12px;color:#DCE2FA;text-align:center}
 /* A setting the search jumped to lights up for a moment */
 @keyframes e-flash{0%,60%{background:rgba(112,49,204,.28)}100%{background:transparent}}
 .e-flash{animation:e-flash 1.8s ease-out;border-radius:10px}
 /* A section of Settings with changes that are not saved yet carries a dot; after a save it shows a tick for a few seconds */
-.e-secmark{display:none;margin-left:8px;font-size:11px;vertical-align:middle}
+.e-secmark{display:none;margin-left:8px;font-size:12px;vertical-align:middle}
 .e-secmark.dirty{display:inline-block;width:7px;height:7px;border-radius:50%;background:#B37E24}
 .e-secmark.saved{display:inline-block;color:#5FB324;font-weight:700}
 :root[data-theme="contrast"] .e-palette,:root[data-theme="contrast"] .e-pal-found{border-color:#fff}
@@ -526,14 +528,14 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 @media (forced-colors: active){ .e-pal-item.on{outline:2px solid Highlight;outline-offset:-2px} .e-secmark.dirty{background:Highlight} }
 
 /* ---- What runs on which account (common.js paintRunChip) ---- */
-.e-run-chip{flex-shrink:0;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--e-ok);background:var(--e-s1);color:var(--e-title);font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;white-space:nowrap}
+.e-run-chip{flex-shrink:0;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--e-ok);background:var(--e-s1);color:var(--e-title);font-size:12px;font-weight:600;letter-spacing:.04em;cursor:pointer;white-space:nowrap}
 .e-run-chip.done{border-color:var(--e-bd);color:var(--e-body)}
 .e-run-chip:hover{background:var(--e-s3)}
 .e-run-dot{width:7px;height:7px;border-radius:50%;background:var(--e-ok);flex:none}
 .e-run-chip.done .e-run-dot{background:var(--e-muted)}
 /* Account visibility in the top bar (common.js > paintVisibility): online green, away yellow, invisible a hollow grey ring */
 .e-vis{position:relative;flex-shrink:0}
-.e-vis-btn{display:flex;align-items:center;gap:7px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--e-bdPassive);background:transparent;color:var(--e-body);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.e-vis-btn{display:flex;align-items:center;gap:7px;height:26px;padding:0 10px;border-radius:999px;border:1px solid var(--e-bdPassive);background:transparent;color:var(--e-body);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
 .e-vis-btn:hover,.e-vis.open .e-vis-btn{background:var(--e-s3);border-color:var(--e-bd)}
 .e-vis-lbl{color:var(--e-off);font-weight:500}
 .e-vis-lbl::after{content:':'}
@@ -551,7 +553,7 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 @media (max-width:1280px){.e-vis-lbl{display:none}}
 .acct-row .nmwrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .acct-row .nmwrap .nm{flex:none}
-.acct-row .sub{font-size:11px;color:var(--e-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-row .sub{font-size:12px;color:var(--e-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-row .sub.on{color:var(--e-ok)}
 /* Between the click on another account and the moment it is connected the page of the old account is dimmed and cannot be used */
 body.e-switching .e-main{opacity:.5;pointer-events:none}
@@ -564,4 +566,17 @@ body.e-switching .e-main,body.e-switching #tbProfile{cursor:progress}
 .h-stop:disabled:hover{background:#B32453;border-color:#B32453}
 
 /* Settings sections whose values belong to the account on screen (main.js ACCOUNT_SCOPED_SETTINGS) */
-.e-scope-badge{margin-left:auto;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--e-sub);border:1px solid var(--e-bdActive);border-radius:999px;padding:2px 9px;white-space:nowrap;flex:none}
+.e-scope-badge{margin-left:auto;font-size:12px;font-weight:600;letter-spacing:.04em;color:var(--e-sub);border:1px solid var(--e-bdActive);border-radius:999px;padding:2px 9px;white-space:nowrap;flex:none}
+/* Realistic Mode on a low window: the two strips above the lists give back room (the list is what the page is for) */
+@media (max-height:620px){
+  .gr-top{padding-top:10px!important;padding-bottom:8px!important}
+  .gr-sum{padding-top:8px!important;padding-bottom:8px!important}
+  .gr-sum > div{padding:10px 16px!important;gap:16px!important}
+  .gr-sum #grGameArt{display:none}
+}
+/* Field outlines need 3:1 against the surface to be seen as fields (WCAG 1.4.11); the card borders around them stay quiet.
+   The colour is mapped by theme.js like every other one (#5A6580 in the dark theme). */
+.edge input:not([type=checkbox]):not([type=radio]):not([type=range]):not(:focus),.edge select:not(:focus),.edge textarea:not(:focus){border-color:#5A6580!important}
+/* Narrow windows: the search gives up a little width instead of touching the visibility chip next to it */
+@media (max-width: 760px){ .e-search{min-width:84px;margin-left:10px} }
+

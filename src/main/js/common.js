@@ -359,11 +359,27 @@
         el.click();
       });
     }
+    // The "?" notes were hover-only: they get a tab stop and show the same bubble on focus (see initTips).
+    // An icon-only button has just a title: the same text is its accessible name (read again when it takes focus, so the translated title is the one used).
+    function reachTip(el){
+      if (el.getAttribute('data-kb')) return;
+      el.setAttribute('data-kb', 'tip');
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'note');
+    }
+    function nameIcon(el){
+      if (el && el.tagName === 'BUTTON' && el.title && !(el.textContent || '').trim()) el.setAttribute('aria-label', el.title);
+    }
     function reachAll(root){
       if (!root || root.nodeType !== 1) return;
       if (root.matches && root.matches(KB_SELECTOR)) makeReachable(root);
       root.querySelectorAll(KB_SELECTOR).forEach(makeReachable);
+      if (root.matches && root.matches('[data-tip]')) reachTip(root);
+      root.querySelectorAll('[data-tip]').forEach(reachTip);
+      nameIcon(root);
+      root.querySelectorAll('button[title]').forEach(nameIcon);
     }
+    document.addEventListener('focusin', (e) => nameIcon(e.target.closest ? e.target.closest('button') : null));
     function startKeyboard(){
       reachAll(document.body);
       new MutationObserver((ms) => ms.forEach(m => m.addedNodes.forEach(reachAll))).observe(document.body, { childList: true, subtree: true });
@@ -752,6 +768,17 @@
         bubble.classList.add('on');
         place();
       });
+      // the keyboard gets the same bubble (and the screen reader the same text as the note's name)
+      document.addEventListener('focusin', (e) => {
+        const el = e.target.closest ? e.target.closest('[data-tip]') : null;
+        if (!el) { hide(); return; }
+        el.setAttribute('aria-label', el.getAttribute('data-tip') || '');
+        host = el;
+        bubble.textContent = el.getAttribute('data-tip') || '';
+        bubble.classList.add('on');
+        place();
+      });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
       document.addEventListener('scroll', hide, true);
       window.addEventListener('blur', hide);
       window.addEventListener('resize', hide);

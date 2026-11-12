@@ -53,6 +53,8 @@ const IGNORE = [
   // built old versions; if it were not excluded the asar would grow to gigabytes.
   /^\/archive($|\/)/,
   /^\/releases($|\/)/,
+  // the code graph the assistant tools build here (it holds file paths of the machine): never in the exe
+  /^\/graphify-out($|\/)/,
   /^\/design($|\/)/,
   /^\/tests($|\/)/,
   /^\/\.(gitignore|gitattributes|editorconfig)$/,

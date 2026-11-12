@@ -210,7 +210,7 @@ Bazı oyunlar başarım yazarken oyunun açık olmasını ister. Uygulama yazma 
 
 Tek oyunu açık tutar ve başarımlarını oturum boyunca, en yaygından en nadire doğru açar. Amaç bıraktığı iz: bir dakikada yüzlerce başarımın açılması hem profilde hem üçüncü parti sitelerde hemen göze çarpar.
 
-**%100 bitiş süresi** bütün sayfanın üzerine kurulduğu sayıdır: bu oyunu bütün başarımlarıyla bitirmek kaç saat sürer. Girersen o oyun için hatırlanır. Boş bırakırsan oyun türünden tahmin edilir, ama o tahmin senin oynadığın süreye dayanır ve çok oynadığın oyunlarda şişer.
+**Oyunun %100 süresi** bütün sayfanın üzerine kurulduğu sayıdır: bu oyunu bütün başarımlarıyla bitirmek kaç saat sürer. Girersen o oyun için hatırlanır. Boş bırakırsan oyun türünden tahmin edilir, ama o tahmin senin oynadığın süreye dayanır ve çok oynadığın oyunlarda şişer.
 
 **Hedef sayı** ile **süre** birlikte, oturumu yürüten aynı kodla planlanır; yani kutulardaki sayılar çalışan sayılardır. **Süreyi ayarlara göre belirle** açıkken ve süreyi elle yazmadıysan hedef geride kalan her şeydir ve oturum, gerçek bir oyuncunun bunun için harcayacağı kadar sürer: %100 bitirme süresi, açılacak başarımların oranı ve zorlukla çarpılır (normal zorluk bitirme süresinin kendisidir), 15 dakika ile 999 saat arasında tutulur. 60 saatte biten bir oyun tüm başarımları için 60 saat alır; kuyrukta birden çok oyun varsa süre oyunların toplamıdır, her birinin kendi bitirme süresiyle. Bir süre yazarsan o kalır ve hedef, gerçek bir oyuncunun o sürede kazanacağı olur: bu kadar oynanmışken açılmış olması gereken sayı eksi gerçekten açılmış olan, artı bu saatlerin payı. Panel hesabı yazar, denetleyebilirsin. Zorluk, gerçek oyuncuların ne kadar sürede bitirdiğini izler (HowLongToBeat'in 47 oyunluk verisi): Kolay hızlı bir oyuncudur (sürenin yaklaşık 0,7 katı, uzun oyunda biraz daha az: 12 saat 9 olur, 300 saat 196 olur), Normal sürenin kendisidir, Zor ve Çok zor vaktini harcayan oyunculardır (Zor süre için yaklaşık 1,3 ile 1,4 kat, Çok zor kısa oyunda 1,9, uzun oyunda 1,6 kat).
 
@@ -377,7 +377,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `grDurationSec` | `7200` | Oturum süresi |
 | `grModel` | `linear` | Dağıtım modeli |
-| `grTcGame` | `{}` | Oyun başına %100 bitiş süresi, saat cinsinden |
+| `grTcGame` | `{}` | Oyun başına Oyunun %100 süresi, saat cinsinden |
 | `grCatchUp` | `true` | Geride kalan birikimi oturumun başına sıkıştır |
 | `grSpeed` | `1` | Tüm çizelge için hız çarpanı |
 | `grUltraMultiplier` | `3` | %5 altındaki başarımlar ne kadar uzun bekler |
@@ -449,7 +449,7 @@ Ya korumalıdır, yani onu oyun sunucusu yazar ve hiçbir istemci yazamaz, ya da
 
 ### Gerçekçi Mod yalnızca bir iki başarım öneriyor
 
-Bitiş süresi fazla yüksek. Boş bırakılınca oynadığın süreden tahmin edilir, dolayısıyla uzun süre oynadığın bir oyun devasa uzunlukta bir oyun gibi okunur. Ana paneldeki kutuya gerçek %100 bitiş süresini gir.
+Bitiş süresi fazla yüksek. Boş bırakılınca oynadığın süreden tahmin edilir, dolayısıyla uzun süre oynadığın bir oyun devasa uzunlukta bir oyun gibi okunur. Ana paneldeki kutuya gerçek Oyunun %100 süresini gir.
 
 ### SteamEdge bir dosyanın okunamadığını söylüyor
 
@@ -525,7 +525,7 @@ Klasörü kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın 
 | **Gerçekleşen satış** | Tamamlanmış işlem; aktif ilandan farklı |
 | **Şema** | Steam'in bir oyunun başarım ve istatistik tanımı |
 | **Oturum anahtarı** | Seni giriş yapmış tutan kimlik bilgisi. Parola gibi davran |
-| **Tc** | %100 bitiş süresi: oyunu tüm başarımlarıyla bitirmek için gereken saat |
+| **Tc** | Oyunun %100 süresi: oyunu tüm başarımlarıyla bitirmek için gereken saat |
 
 ---
 

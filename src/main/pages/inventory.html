@@ -35,7 +35,7 @@
         <button id="invMyListings" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">İlanlarım</button>
         <button id="invExportCsv" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">CSV Aktar</button>
       <!-- G9: a small note that says the reason for dimmed rows (inventory.js > drawThresholdBadge) -->
-      <span id="invThresholdNote" style="display:none;align-items:center;gap:7px;font-size:11px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
+      <span id="invThresholdNote" style="display:none;align-items:center;gap:7px;font-size:12px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
       </div>
     </div>
 
@@ -146,14 +146,14 @@
     <!-- ALL SALE OPERATIONS ARE HERE. The "Sale strategy" and "Sale price" sections in the right detail panel were removed; both single and bulk sales are done from this one bar. When "Custom" is selected the manual price box opens (inventory.js > renderBulk). -->
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
       <!-- Price deviation warning: warns if the selected price is very far from the real market value -->
-      <span id="bulkWarn" style="display:none;align-items:center;gap:6px;font-size:11px;color:#B37E24;max-width:330px;line-height:1.4"></span>
+      <span id="bulkWarn" style="display:none;align-items:center;gap:6px;font-size:12px;color:#B37E24;max-width:330px;line-height:1.4"></span>
       <button id="bulkClear" class="h-brand" style="height:38px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Temizle</button>
       <div style="display:flex;gap:4px;padding:4px;border-radius:999px;background:#090C12;border:1px solid #2B3345" id="bulkStrat">
-        <button data-bs="median" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Ortalamadan</button>
-        <button data-bs="undercut" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Altına in</button>
-        <button data-bs="match" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">En ucuzla aynı</button>
-        <button data-bs="instant" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Hemen sat</button>
-        <button data-bs="manual" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">Kendim</button>
+        <button data-bs="median" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Ortalamadan</button>
+        <button data-bs="undercut" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Altına in</button>
+        <button data-bs="match" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">En ucuzla aynı</button>
+        <button data-bs="instant" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Hemen sat</button>
+        <button data-bs="manual" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Kendim</button>
       </div>
       <input id="bulkManual" type="text" class="f-focus" placeholder="0,00" style="display:none;width:96px;height:38px;border-radius:12px;background:#090C12;border:1px solid #7031CC;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 10px;outline:none">
       <button id="bulkSellNow" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Sat · <span id="bulkCount2">0</span></button>

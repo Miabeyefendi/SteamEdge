@@ -75,7 +75,7 @@
             + gameThumb(g.appid) + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+esc(durationUnit(hrsOf(g), 'sa'))+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'+esc(durationUnit(hrsOf(g), 'sa'))+'</span>'
           + '</div>'
           + favStar(g.appid)
           + '<span style="font-family:Geist Mono,monospace;font-size:13px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+(on?'✓':'+')+'</span>'
@@ -162,7 +162,7 @@
         if (!not){
           not = document.createElement('span');
           not.setAttribute('data-kilit-not','1');
-          not.style.cssText = 'font-size:11px;line-height:1.5;color:#B37E24';
+          not.style.cssText = 'font-size:12px;line-height:1.5;color:#B37E24';
           block.appendChild(not);
         }
         not.textContent = cause;
@@ -251,10 +251,10 @@
             + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">'
               + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
                 + '<span style="font-size:12px;font-weight:600;color:'+(on?BC.title:BC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-                + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'+subRow(g, on, i, elapsed)+'</span>'
+                + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'+subRow(g, on, i, elapsed)+'</span>'
               + '</div>'
               + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
-                + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+fmtPercent(p)+'</span>'
+                + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+fmtPercent(p)+'</span>'
                 // Remove a single game from the queue. There used to be only "clear the queue",
                 // so to drop one game the whole selection had to be ruined.
                 + '<button data-saatdel="'+g.appid+'" class="h-stop" title="'+esc(t('Kuyruktan Çıkar'))+'" '
@@ -581,7 +581,7 @@
         const percent = d.totalSum ? Math.round(d.finishedOne/d.totalSum*100) : 0;
         if (txt) txt.innerHTML =
             '<span style="font-size:12px;font-weight:600;color:#DCE2FA">'+esc(tf('Saat eşitleme · hedef #', fmtHours(d.targetMin)))+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E">'
+          + '<span style="font-size:12px;color:#8B8F9E">'
           + esc(tf('# / # oyun hedefte · # oyun çalışıyor', d.finishedOne, d.totalSum, d.activeTotal)) + '</span>';
         if (eta) eta.textContent = d.remainingMs ? msShort(d.remainingMs) : t('bitiyor');
         if (fill) fill.style.width = percent + '%';
@@ -593,7 +593,7 @@
         const percent = d.steps ? Math.round((d.step-1)/d.steps*100) : 0;
         if (txt) txt.innerHTML =
             '<span style="font-size:12px;font-weight:600;color:#DCE2FA">'+esc(tf('Eşitleme adımı # / #', d.step, d.steps))+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E">'+esc(tf('# oyun', d.ids.length) + ' · '
+          + '<span style="font-size:12px;color:#8B8F9E">'+esc(tf('# oyun', d.ids.length) + ' · '
           + fmtHours(d.fromMin) + ' → ' + fmtHours(d.toMin) + ' · ' + tf('hedef #', fmtHours(d.targetMin)))+'</span>';
         if (eta) eta.textContent = d.stepMs ? msShort(Math.max(0, d.stepMs-(Date.now()-(d.startedAt||Date.now())))) : '-';
         if (fill) fill.style.width = percent + '%';

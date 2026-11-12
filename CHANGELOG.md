@@ -7,6 +7,30 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [1.9.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.9)
+
+Clearer time labels in Realistic Mode, a tidier Midnight theme, a visible logo in the White theme, and keyboard and screen reader access to the setting notes.
+
+### Changed
+
+- **Realistic Mode names each time separately.** The page used "time", "duration" and "hours" for different things. Now: **Run time left** (the countdown), **Run length** (how long the run lasts, the field you set), **Hours for 100%** (how long the game itself needs), **Time between achievements** (the average gap), **Number of achievements** (the target count) and **Estimated time for the rest**.
+- **Midnight theme uses violet with cool status colours.** Surfaces, text and the brand violet were re-tuned together (brand `#7C3AED`, soft text `#A78BFA`), green became mint, amber and red became brighter so they read on the violet surfaces.
+- **Fields have a visible outline.** Inputs and drop-downs now have an outline that is 3:1 against the surface in every theme; the card borders around them stay quiet.
+- **Secondary text is 12 px.** Descriptions, counters and small values were 11 px. The letter-spaced capital labels stay at 11 px.
+- **The settings note at the top is shorter.**
+
+### Fixed
+
+- **The logo vanished in the White theme.** Its light "S" was 1.1:1 against the white surfaces; the White theme now uses a dark-letter version.
+- **The "?" notes next to settings were mouse-only.** They can be reached with Tab, show the same note on focus and close with Esc. Icon-only buttons (chat, notifications, updates, settings) now have a name for screen readers.
+- **Red text was too dim.** Rejected sales, the Stop button label in the sale panel and the "bad" values in the inventory and overview used `#B32453` as text (2.97:1). They use the lighter red now (5.5:1).
+- **Card Farming showed a bare number next to the cards left.** In the narrow layout the AppID lost its column header; it now says "ID" in front of the number.
+- **Realistic Mode on a low window.** The two strips above the lists use less height, so more of the list is visible. The left panel no longer runs under the side-menu arrow.
+- **The visibility chip touched the search box** on narrow windows. The timer presets (30M to 8H) in Card Farming stay on one line.
+
+
+SHA-256 (`SteamEdge-v1.9.9-win-x64.rar`): `da295645b91f6837274c6eeb154ed39a28e621fb794294703b7a2d55ec8602f4`
+
 ## [1.9.8](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.8)
 
 Selling no longer stops to ask after every batch, the sale question is one line per item, and the app icon is part of the repository again.

@@ -27,7 +27,7 @@
         body.innerHTML = '<div style="border:1px solid #B32453;border-radius:12px;background:#0D1118;padding:56px 22px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center">'
           + '<span style="font-size:14px;font-weight:700;color:#DCE2FA">Başarımlar yüklenemedi</span>'
           + '<span style="font-size:12px;color:#E45A86;max-width:380px">'+esc(msg||'Bilinmeyen hata')+'</span>'
-          + '<span style="font-size:11px;color:#8B8F9E;max-width:420px">Hesap başka bir yerde açıldıysa (Steam istemcisi ya da SteamEdge\'in ikinci bir penceresi) oturumunu o devralmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
+          + '<span style="font-size:12px;color:#8B8F9E;max-width:420px">Hesap başka bir yerde açıldıysa (Steam istemcisi ya da SteamEdge\'in ikinci bir penceresi) oturumunu o devralmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
           + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:34px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
           + '</div>';
         const rb = document.getElementById('acRetry');
@@ -105,11 +105,11 @@
           + '<div style="width:54px;height:25px;flex-shrink:0;border-radius:6px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
           + gameThumb(g.appid) + '</div>'
           + '<span style="flex:1;min-width:0;font-size:12px;font-weight:600;color:'+(on?'#DCE2FA':'#B9C0D6')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(g.name)+'</span>'
-          + (on?'<span style="font-family:Geist Mono,monospace;font-size:11px;color:#5FB324;flex-shrink:0">✓</span>':'')
+          + (on?'<span style="font-family:Geist Mono,monospace;font-size:12px;color:#5FB324;flex-shrink:0">✓</span>':'')
           + favStar(g.appid)
           + '</div>';
       }).join('') + (match.length > 200
-        ? '<div style="padding:8px 10px;font-size:11px;color:#7F879B">'+esc(tf('# oyun daha var; aramayı daralt.', match.length-200))+'</div>' : '');
+        ? '<div style="padding:8px 10px;font-size:12px;color:#7F879B">'+esc(tf('# oyun daha var; aramayı daralt.', match.length-200))+'</div>' : '');
     }
     function openGameList(){ acGameListEl.style.display = 'block'; renderGameList(); }
     function closeGameList(){
@@ -268,7 +268,7 @@
     // unlocked through the app. It is marked so the user sees the reason for the EResult 8 error.
     function acProtectedBadge(a){
       if (!a || !a.protectedFlag) return '';
-      return '<span title="'+esc(t('Bu başarımı yalnızca oyunun kendi sunucusu açabilir'))+'" style="font-size:11px;'
+      return '<span title="'+esc(t('Bu başarımı yalnızca oyunun kendi sunucusu açabilir'))+'" style="font-size:12px;'
         + 'font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#B37E24;'
         + 'border:1px solid #B37E24;border-radius:12px;padding:2px 6px;flex-shrink:0">'+esc(t('Korumalı'))+'</span>';
     }
@@ -293,16 +293,16 @@
             + protectedBadge
             + acBadge(busy?'İşleniyor':(a.achieved?'Açık':'Kilitli'), a.achieved?AC.ok:AC.warn, a.achieved?AC.ok:AC.warn)
           + '</div>'
-          + '<p style="margin:0;font-size:11px;line-height:1.5;color:#8B8F9E">'+esc(a.desc||'Açıklama yok.')+'</p>'
+          + '<p style="margin:0;font-size:12px;line-height:1.5;color:#8B8F9E">'+esc(a.desc||'Açıklama yok.')+'</p>'
           + '<div style="display:flex;align-items:center;gap:8px;margin-top:2px">'
             + acBadge(rarityLabel(a), rarityColor(a), rarityColor(a), ';opacity:'+rareOn)
-            + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#24AEB3">'+pctText+'</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:'+(a.achieved?AC.muted:AC.off)+';margin-left:auto">'+acDate(a)+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#24AEB3">'+pctText+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:'+(a.achieved?AC.muted:AC.off)+';margin-left:auto">'+acDate(a)+'</span>'
           + '</div>'
           + '<div style="display:flex;align-items:center;gap:8px">'
             + '<div style="flex:1;height:4px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
               + '<div style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE;flex-shrink:0">'+pctText+'</span>'
+            + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#C2AAEE;flex-shrink:0">'+pctText+'</span>'
           + '</div>'
         + '</div></div>';
     }
@@ -323,14 +323,14 @@
         + '</div>'
         + '<span style="width:180px;flex-shrink:0;font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:'+dim+'">'+esc(a.name)+'</span>'
         + protectedBadge
-        + '<p style="margin:0;flex:1;min-width:0;font-size:11px;line-height:1.4;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:'+dim+'">'+esc(a.desc||'')+'</p>'
+        + '<p style="margin:0;flex:1;min-width:0;font-size:12px;line-height:1.4;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:'+dim+'">'+esc(a.desc||'')+'</p>'
         + acBadge(rarityLabel(a), rarityColor(a), rarityColor(a), ';opacity:'+rareOn)
-        + '<span style="width:62px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#24AEB3;text-align:right">'+pctText+'</span>'
-        + '<span style="width:88px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:11px;color:'+(a.achieved?AC.muted:AC.off)+';text-align:right">'+acDate(a)+'</span>'
+        + '<span style="width:62px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#24AEB3;text-align:right">'+pctText+'</span>'
+        + '<span style="width:88px;flex-shrink:0;font-family:Geist Mono,monospace;font-size:12px;color:'+(a.achieved?AC.muted:AC.off)+';text-align:right">'+acDate(a)+'</span>'
         + '<div style="width:110px;flex-shrink:0;display:flex;align-items:center;gap:6px">'
           + '<div style="flex:1;height:4px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
             + '<div style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
-          + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE;flex-shrink:0">'+pctText+'</span></div>'
+          + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#C2AAEE;flex-shrink:0">'+pctText+'</span></div>'
         + acBadge(busy?'İşleniyor':(a.achieved?'Açık':'Kilitli'), a.achieved?AC.ok:AC.warn, a.achieved?AC.ok:AC.warn)
         + '</div>';
     }
@@ -432,9 +432,9 @@
               + '<span style="width:7px;height:7px;border-radius:12px;background:'+rarityColor(r)+';flex-shrink:0"></span>'
               + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1">'
                 + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.name)+'</span>'
-                + '<span style="font-size:11px;color:#7F879B">'+esc(t(rarityLabel(r)))+' · '+(Number.isFinite(r.rarityPct)?fmtPercent(localDecimal(r.rarityPct, 1)):'?')+'</span></div>'
-              + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0">'+acDate(r)+'</span></div>').join('')
-            : '<span style="font-size:11px;color:#7F879B;padding:8px 0">Açılma tarihi bilinen başarım yok.</span>')
+                + '<span style="font-size:12px;color:#7F879B">'+esc(t(rarityLabel(r)))+' · '+(Number.isFinite(r.rarityPct)?fmtPercent(localDecimal(r.rarityPct, 1)):'?')+'</span></div>'
+              + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;flex-shrink:0">'+acDate(r)+'</span></div>').join('')
+            : '<span style="font-size:12px;color:#7F879B;padding:8px 0">Açılma tarihi bilinen başarım yok.</span>')
         + '</div>';
     }
 

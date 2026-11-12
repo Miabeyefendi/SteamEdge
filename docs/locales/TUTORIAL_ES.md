@@ -120,7 +120,7 @@ A la izquierda toda tu biblioteca, con búsqueda (se dibujan como máximo 300 fi
 
 ### Modo realista
 
-Un espacio de tres columnas bajo una franja con el juego, los logros desbloqueados, el intervalo medio y el progreso general. A la izquierda la cola, la duración de la sesión y el objetivo AUTO; en el centro el orden de desbloqueo con el siguiente logro arriba; a la derecha los ajustes, divididos en Simple y Avanzado.
+Un espacio de tres columnas bajo una franja con el juego, los logros desbloqueados, el tiempo entre logros y el progreso general. A la izquierda la cola, la duración de la sesión y el objetivo AUTO; en el centro el orden de desbloqueo con el siguiente logro arriba; a la derecha los ajustes, divididos en Simple y Avanzado.
 
 ### Logros
 

@@ -210,7 +210,7 @@ Manche Spiele nehmen Schreibvorgänge für Errungenschaften nur an, während das
 
 Hält ein Spiel offen und schaltet seine Errungenschaften über die Sitzung verteilt frei, vom häufigsten zum seltensten. Es geht um die Spur, die das hinterlässt: Hunderte Errungenschaften innerhalb einer Minute fallen im Profil und auf Drittanbieterseiten sofort auf.
 
-**100%-Abschlusszeit** ist die Zahl, auf der die ganze Seite aufbaut: wie viele Stunden es dauert, dieses Spiel mit allen Errungenschaften abzuschließen. Trägst du sie ein, wird sie für dieses Spiel gemerkt. Lässt du sie leer, wird sie aus dem Spieltyp geschätzt, aber diese Schätzung ist deine eigene Spielzeit mal einem Faktor und fällt daher bei viel gespielten Spielen zu hoch aus.
+**Stunden bis 100 %** ist die Zahl, auf der die ganze Seite aufbaut: wie viele Stunden es dauert, dieses Spiel mit allen Errungenschaften abzuschließen. Trägst du sie ein, wird sie für dieses Spiel gemerkt. Lässt du sie leer, wird sie aus dem Spieltyp geschätzt, aber diese Schätzung ist deine eigene Spielzeit mal einem Faktor und fällt daher bei viel gespielten Spielen zu hoch aus.
 
 **Zielanzahl** und **Dauer** werden gemeinsam geplant, vom selben Code, der die Sitzung ausführt; die Zahlen in den Feldern sind also die Zahlen, die laufen. Ist **Dauer aus den Einstellungen bestimmen** an und hast du keine Dauer von Hand eingetragen, ist das Ziel alles, was noch fehlt, und die Sitzung dauert so lange, wie ein echter Spieler dafür bräuchte: die 100-%-Abschlusszeit mal dem Anteil der Errungenschaften, die freigeschaltet werden, mal dem Schwierigkeitsgrad (normal ist die Abschlusszeit selbst), begrenzt auf 15 Minuten bis 999 Stunden. Ein Spiel, das 60 Stunden dauert, bekommt 60 Stunden für alle seine Errungenschaften; bei mehreren Spielen in der Warteschlange ist die Dauer die Summe der Spiele, jedes mit seiner eigenen Abschlusszeit. Trägst du eine Dauer ein, bleibt sie, und das Ziel wird zu dem, was ein echter Spieler in dieser Zeit verdienen würde: was bei deiner Spielzeit bereits freigeschaltet sein sollte, minus dem, was es tatsächlich ist, plus dem Anteil dieser Stunden. Das Feld schreibt die Rechnung aus, damit du sie prüfen kannst. Der Schwierigkeitsgrad folgt dem, was echte Spieler brauchen, nach HowLongToBeat-Daten von 47 Spielen: Leicht ist ein schneller Spieler (etwa 0,7 der Zeit, in einem langen Spiel etwas weniger: aus 12 Stunden werden 9, aus 300 werden 196), Normal ist die Zeit selbst, und Schwer und Sehr schwer sind Spieler, die sich Zeit lassen (Schwer etwa das 1,3- bis 1,4-Fache, Sehr schwer das 1,9-Fache bei einem kurzen und das 1,6-Fache bei einem langen Spiel).
 
@@ -377,7 +377,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 |---|---|---|
 | `grDurationSec` | `7200` | Sitzungsdauer |
 | `grModel` | `linear` | Verteilungsmodell |
-| `grTcGame` | `{}` | 100%-Abschlusszeit pro Spiel, in Stunden |
+| `grTcGame` | `{}` | Stunden bis 100 % pro Spiel, in Stunden |
 | `grCatchUp` | `true` | Den Rückstand in den Anfang der Sitzung stauchen |
 | `grSpeed` | `1` | Geschwindigkeitsfaktor für den ganzen Plan |
 | `grUltraMultiplier` | `3` | Wie viel länger Errungenschaften unter 5% warten |
@@ -449,7 +449,7 @@ Entweder ist er geschützt, das heißt der Spielserver schreibt ihn und kein Cli
 
 ### Der realistische Modus schlägt nur ein oder zwei Freischaltungen vor
 
-Die Abschlusszeit ist zu hoch. Leer gelassen wird sie aus deiner Spielzeit geschätzt, ein lange gespieltes Spiel liest sich also als enorm langes Spiel. Trag die echte 100%-Abschlusszeit in das Feld im Hauptbereich ein.
+Die Abschlusszeit ist zu hoch. Leer gelassen wird sie aus deiner Spielzeit geschätzt, ein lange gespieltes Spiel liest sich also als enorm langes Spiel. Trag die echte Stunden bis 100 % in das Feld im Hauptbereich ein.
 
 ### SteamEdge meldet, dass eine Datei nicht gelesen werden konnte
 
@@ -525,7 +525,7 @@ Kopiere den Ordner, alles steckt darin. Denk daran, dass in `settings/` dein Sit
 | **Erzielter Verkauf** | Eine abgeschlossene Transaktion, im Gegensatz zu einem aktiven Angebot |
 | **Schema** | Steams Definition der Errungenschaften und Statistiken eines Spiels |
 | **Sitzungstoken** | Der Nachweis, der dich angemeldet hält. Behandle ihn wie ein Passwort |
-| **Tc** | 100%-Abschlusszeit: Stunden, um ein Spiel mit allen Errungenschaften abzuschließen |
+| **Tc** | Stunden bis 100 %: Stunden, um ein Spiel mit allen Errungenschaften abzuschließen |
 
 ---
 

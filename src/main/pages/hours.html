@@ -29,7 +29,7 @@
       <div style="padding:14px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Kütüphane</span>
-          <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B" id="hoursFound">0 bulundu</span>
+          <span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B" id="hoursFound">0 bulundu</span>
         </div>
         <div style="position:relative;display:flex;align-items:center">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
@@ -63,11 +63,11 @@
             <span style="font-size:12px;color:#B9C0D6">Süreleri eşitle</span>
             <span class="e-toggle" data-bset="boostSync"><span class="e-knob"></span></span>
           </div>
-          <div id="hoursSyncNote" style="display:none;padding:10px 0;border-bottom:1px solid #101621;font-size:11px;line-height:1.5;color:#B37E24">Tek oyunda "Seçililerin en yükseği" hedefi eşitlenecek bir şey bırakmaz; süreyi ve eş zamanlı sınırı kendin belirleyebilirsin. İki ya da daha fazla oyun seçince eşitleme devreye girer.</div>
+          <div id="hoursSyncNote" style="display:none;padding:10px 0;border-bottom:1px solid #101621;font-size:12px;line-height:1.5;color:#B37E24">Tek oyunda "Seçililerin en yükseği" hedefi eşitlenecek bir şey bırakmaz; süreyi ve eş zamanlı sınırı kendin belirleyebilirsin. İki ya da daha fazla oyun seçince eşitleme devreye girer.</div>
           <div id="hoursSyncOpts" style="display:none;flex-direction:column">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621">
               <span style="font-size:12px;color:#B9C0D6;flex-shrink:0">Hedef</span>
-              <select id="hoursSyncMode" class="f-focus" style="height:30px;width:150px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+              <select id="hoursSyncMode" class="f-focus" style="height:30px;width:150px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 8px;outline:none;cursor:pointer">
                 <option value="highest">Seçililerin en yükseği</option>
                 <option value="manual">Elle girilen saat</option>
                 <option value="library">Kütüphanedeki en yüksek</option>
@@ -80,9 +80,9 @@
             <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0">
               <div style="display:flex;align-items:center;gap:7px;min-width:0">
                 <span style="font-size:12px;color:#B9C0D6">Yöntem</span>
-                <span data-tip="Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
+                <span data-tip="Hepsi birden: seçili oyunların tamamı aynı anda çalışır, hedefe ulaşan listeden düşer. En hızlı yol budur. Sıralı: en geride kalan oyun tek başına öne çekilir, bir sonrakine yetişince ikisi birlikte devam eder; sırasını bekleyen oyun süre kazanmaz." style="position:relative;width:14px;height:14px;margin:-6px;padding:6px;box-sizing:content-box;color:#8B8F9E;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0" class="h-tip">?</span>
               </div>
-              <select id="hoursSyncStrategy" class="f-focus" style="height:30px;width:120px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:11px;padding:0 8px;outline:none;cursor:pointer">
+              <select id="hoursSyncStrategy" class="f-focus" style="height:30px;width:120px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 8px;outline:none;cursor:pointer">
                 <option value="parallel">Hepsi birden</option>
                 <option value="staged">Sıralı</option>
               </select>
@@ -98,7 +98,7 @@
           <button data-n="8" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">8</button>
           <button data-n="16" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">16</button>
           <button data-n="32" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">32</button>
-          <button data-n="custom" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">ÖZEL</button>
+          <button data-n="custom" style="flex:1;height:32px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">ÖZEL</button>
         </div>
         <input id="hoursConcCustom" type="number" min="1" max="32" value="32" style="display:none;width:100%;height:32px;border-radius:12px;background:#0D1118;border:1px solid #7031CC;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 12px;outline:none">
       </div>
@@ -108,26 +108,26 @@
         <div style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 12px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
             <input id="hoursH" value="01" maxlength="3" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SA</span>
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SA</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
             <input id="hoursM" value="00" maxlength="2" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">DK</span>
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#7F879B">DK</span>
           </div>
           <span style="font-family:Geist Mono,monospace;font-size:16px;color:#C2AAEE">:</span>
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
             <input id="hoursS" value="00" maxlength="2" style="width:34px;height:22px;margin-bottom:12px;background:transparent;border:none;outline:none;text-align:center;font-family:Geist Mono,monospace;font-size:16px;font-weight:700;color:#DCE2FA">
-            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SN</span>
+            <span style="position:absolute;bottom:3px;left:0;right:0;text-align:center;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#7F879B">SN</span>
           </div>
         </div>
         <div style="display:flex;gap:4px" id="hoursPresets">
-          <button data-h="6" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">6H</button>
-          <button data-h="12" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">12H</button>
-          <button data-h="18" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">18H</button>
-          <button data-h="24" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">24H</button>
+          <button data-h="6" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">6H</button>
+          <button data-h="12" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">12H</button>
+          <button data-h="18" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">18H</button>
+          <button data-h="24" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">24H</button>
           <button data-h="inf" title="Sınırsız: sen durdurana kadar sürer" style="flex:1;height:26px;padding:0 6px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;cursor:pointer">∞</button>
-          <button data-h="custom" style="flex:1;height:26px;padding:0 4px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;cursor:pointer">ÖZEL</button>
+          <button data-h="custom" style="flex:1;height:26px;padding:0 4px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;cursor:pointer">ÖZEL</button>
         </div>
       </div>
 

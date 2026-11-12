@@ -25,9 +25,9 @@
           + '<span style="flex:1;min-width:0;font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(l.name) + '</span>'
           + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">'
             + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#DCE2FA">' + esc(fmtMoney(l.buyerCents / 100)) + '</span>'
-            + '<span style="font-size:11px;color:#8B8F9E">' + esc(t('eline geçecek') + ' ' + fmtMoney(l.sellerCents / 100)) + '</span>'
+            + '<span style="font-size:12px;color:#8B8F9E">' + esc(t('eline geçecek') + ' ' + fmtMoney(l.sellerCents / 100)) + '</span>'
           + '</div>'
-          + '<span style="width:74px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">' + (l.created ? new Date(l.created).toLocaleDateString(localCode()) : '') + '</span>'
+          + '<span style="width:74px;flex-shrink:0;text-align:right;font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">' + (l.created ? new Date(l.created).toLocaleDateString(localCode()) : '') + '</span>'
           + '</div>';
       }).join('');
     }

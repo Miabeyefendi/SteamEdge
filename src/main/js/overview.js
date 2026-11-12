@@ -5,7 +5,7 @@
     let overviewLoaded = false;
 
     // Palette shortcuts
-    const GC = { ok:'#5FB324', warn:'#B37E24', bad:'#B32453', sub:'#C2AAEE', bdActive:'#5624B3', muted:'#8B8F9E' };
+    const GC = { ok:'#5FB324', warn:'#B37E24', bad:'#E45A86', sub:'#C2AAEE', bdActive:'#5624B3', muted:'#8B8F9E' };
     // Dictionary of the "Status" column: Success / Running / Warning / Stopped
     const FEED_STATUS = {
       'Başarılı':  { color: GC.ok,  bd: GC.ok },
@@ -52,7 +52,7 @@
       if (!activityFeed.length){
         el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:48px 18px;text-align:center">'
           + '<span style="font-size:13px;color:#7F879B">Henüz bir işlem yapılmadı.</span>'
-          + '<span style="font-size:11px;color:#7F879B">Kart düşürme, satış ve başarım işlemleri burada listelenir.</span></div>';
+          + '<span style="font-size:12px;color:#7F879B">Kart düşürme, satış ve başarım işlemleri burada listelenir.</span></div>';
         return;
       }
       el.innerHTML = activityFeed.map(f=>{
@@ -65,7 +65,7 @@
             + '</div>'
             + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
               + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.title)+'</span>'
-              + '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.text)+'</span>'
+              + '<span style="font-size:12px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(f.text)+'</span>'
             + '</div>'
           + '</div>'
           + '<div><span style="display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:12px;border:1px solid '+s.bd+';color:'+s.color+';font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase">'+esc(f.status)+'</span></div>'
@@ -335,7 +335,7 @@
           + '<div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex:1">'
             + '<span style="font-size:15px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
               + 'text-overflow:ellipsis;line-height:1.2">' + esc(g.heading) + '</span>'
-            + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E">'
+            + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'
               + (g.appid ? ('APP_ID: ' + g.appid) : esc(g.subInfo || '')) + '</span>'
             + '<div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap">'
               + (g.badges || []).map(chip).join('') + '</div>'
@@ -352,7 +352,7 @@
             + 'min-width:38px;text-align:right;color:' + (g.colorValue || '#24AEB3') + '">' + fmtPercent(percent) + '</span>'
         + '</div>'
         + (g.started
-            ? ('<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">' + esc(t('Başlangıç:')) + ' '
+            ? ('<span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">' + esc(t('Başlangıç:')) + ' '
                + fmtClock(g.started) + '</span>')
             : '')
         + '</div>';
@@ -456,7 +456,7 @@
         taskIndex = 0;
         box.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px;padding:6px 0">'
           + '<span style="font-size:13px;font-weight:600;color:#DCE2FA">Bu hesapta çalışan bir işlem yok</span>'
-          + '<span style="font-size:11px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>'
+          + '<span style="font-size:12px;color:#8B8F9E">Aşağıdaki Başlat ile kart düşürmeyi başlatabilirsin.</span></div>'
           + otherAccountJobs();
         bindOtherAccountJobs(box);
         paintPanelButtons();
@@ -499,8 +499,8 @@
         + others.map(a => '<div style="display:flex;align-items:center;gap:10px;min-width:0">'
           + '<span class="e-run-dot e-pulse" style="flex:none"></span>'
           + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;flex:none">' + esc(a.accountName || a.steamID) + '</span>'
-          + '<span style="font-size:11px;color:#8B8F9E;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(typeof jobLine === 'function' ? jobLine(a) : '') + '</span>'
-          + '<button class="h-bd" data-open-acct="' + esc(a.steamID) + '" style="height:24px;padding:0 10px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;cursor:pointer;flex:none">' + esc(t('Hesaba geç')) + '</button>'
+          + '<span style="font-size:12px;color:#8B8F9E;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(typeof jobLine === 'function' ? jobLine(a) : '') + '</span>'
+          + '<button class="h-bd" data-open-acct="' + esc(a.steamID) + '" style="height:24px;padding:0 10px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;font-weight:600;cursor:pointer;flex:none">' + esc(t('Hesaba geç')) + '</button>'
           + '</div>').join('')
         + '</div>';
     }
@@ -517,7 +517,7 @@
         + '<span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
           + 'color:#8B8F9E;flex:1">' + esc(tf('# iş birlikte çalışıyor', count)) + '</span>'
         + ok('data-gorev-onceki', '‹')
-        + '<span style="font-family:Geist Mono,monospace;font-size:11px;font-weight:700;color:#C2AAEE;'
+        + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#C2AAEE;'
           + 'min-width:32px;text-align:center">' + (taskIndex+1) + ' / ' + count + '</span>'
         + ok('data-gorev-sonraki', '›')
         + '</div>';
@@ -529,8 +529,8 @@
     // it showed "Queue is empty" on screen while looking at the achievement job. Now the area
     // draws the shown job's own detail.
     const DETAIL_ROW = 'display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #101621';
-    const DETAIL_MONO = 'font-family:Geist Mono,monospace;font-size:11px';
-    const detailEmpty = (text) => '<div style="padding:12px 0;font-size:11px;color:#7F879B">' + text + '</div>';
+    const DETAIL_MONO = 'font-family:Geist Mono,monospace;font-size:12px';
+    const detailEmpty = (text) => '<div style="padding:12px 0;font-size:12px;color:#7F879B">' + text + '</div>';
 
     // Thin progress bar. The percentage is computed differently for each job type, the drawing is shared.
     function detailBar(percent, colorVal){

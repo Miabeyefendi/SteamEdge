@@ -187,8 +187,8 @@
             + gameThumb(g.appid)
           + '</div>'
           + '<span class="cq-name" style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:150px;flex-shrink:0">'+esc(g.name)+'</span>'
-          + '<span class="cq-remain" style="font-size:11px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+esc(tf('# kalan', g.remaining))+'</span>'
-          + '<span class="cq-id" style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px;border-left:1px solid #1D2432;padding-left:8px">'+g.appid+'</span>'
+          + '<span class="cq-remain" style="font-size:12px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+esc(tf('# kalan', g.remaining))+'</span>'
+          + '<span class="cq-id" style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;flex-shrink:0;width:84px;border-left:1px solid #1D2432;padding-left:8px">'+g.appid+'</span>'
           + '<div class="cq-bar" style="flex:1;min-width:60px;height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
             + '<div data-ilerleme style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
           + '<div class="cq-acts" style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
@@ -210,8 +210,8 @@
       return '<div class="h-bd cq-row" data-row="'+g.appid+'" style="border:1px solid #2B3345;border-radius:12px;background:#090C12;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">'
         + '<div class="cq-thumb" style="width:85px;height:40px;flex-shrink:0;border-radius:10px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'+gameThumb(g.appid)+'</div>'
         + '<span style="font-size:13px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0">'+esc(g.name)+'</span>'
-        + '<span style="font-size:11px;color:#8B8F9E;flex-shrink:0">'+esc(tf('# kalan', g.remaining))+'</span>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#8B8F9E;flex-shrink:0;width:84px">'+g.appid+'</span>'
+        + '<span style="font-size:12px;color:#8B8F9E;flex-shrink:0">'+esc(tf('# kalan', g.remaining))+'</span>'
+        + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;flex-shrink:0;width:84px">'+g.appid+'</span>'
         + '<button data-act="unexclude" class="h-brand" style="height:28px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'
         + esc(t('Kara Listeden Çıkar')) + '</button></div>';
     }
@@ -331,7 +331,7 @@
       const box = document.getElementById('dropList');
       if (!box) return;
       if (!recentDrops.length){
-        box.innerHTML = '<div style="padding:14px 16px;font-size:11px;color:#7F879B">Bu oturumda henüz kart düşmedi.</div>';
+        box.innerHTML = '<div style="padding:14px 16px;font-size:12px;color:#7F879B">Bu oturumda henüz kart düşmedi.</div>';
         return;
       }
       box.innerHTML = recentDrops.map(d=>
@@ -341,9 +341,9 @@
             + '<span style="width:8px;height:8px;border-radius:999px;background:#5FB324"></span></div>'
           + '<div style="display:flex;flex-direction:column;gap:3px;min-width:0">'
             + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(tf('# kart düştü', d.count))+'</span>'
-            + '<span style="font-size:11px;color:#7F879B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(localCode())+'</span></span>'
+            + '<span style="font-size:12px;color:#7F879B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(d.name)+' · <span style="font-family:Geist Mono,monospace;color:#8B8F9E">'+new Date(d.ts).toLocaleTimeString(localCode())+'</span></span>'
           + '</div></div>'
-        + '<button class="h-brand" data-godrop="'+d.appid+'" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;cursor:pointer;flex-shrink:0">Envanter</button>'
+        + '<button class="h-brand" data-godrop="'+d.appid+'" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">Envanter</button>'
         + '</div>').join('');
       box.querySelectorAll('[data-godrop]').forEach(b=>b.addEventListener('click', ()=>{
         document.querySelector('.nav a[data-tab=env]').click();

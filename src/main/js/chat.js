@@ -87,10 +87,10 @@
           + '</div>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
             + '<span style="font-size:12px;font-weight:600;color:'+(a.condition>0?CHC.title:CHC.muted)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.persona)+'</span>'
-            + '<span style="font-size:11px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(chStatusName(a))+'</span>'
+            + '<span style="font-size:12px;color:#8B8F9E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(chStatusName(a))+'</span>'
           + '</div>'
           + (unread
-              ? '<span style="flex-shrink:0;min-width:18px;height:18px;padding:0 5px;border-radius:12px;background:'+CHC.brand+';color:#DCE2FA;font-family:Geist Mono,monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">'+unread+'</span>'
+              ? '<span style="flex-shrink:0;min-width:18px;height:18px;padding:0 5px;border-radius:12px;background:'+CHC.brand+';color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">'+unread+'</span>'
               : '')
           + '</div>';
       }).join('');
@@ -142,7 +142,7 @@
           + (x.me ? 'background:#2A1B47;border:1px solid #5624B3;color:#DCE2FA'
                    : 'background:#0D1118;border:1px solid #2B3345;color:#B9C0D6') + '">'
           + esc(x.textValue) + '</div>'
-        + '<span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B;align-self:'+(x.me?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'
+        + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B;align-self:'+(x.me?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'
         + '</div>').join('');
       container.scrollTop = container.scrollHeight;
     }
