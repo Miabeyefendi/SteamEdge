@@ -14,7 +14,7 @@
   .invbar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
   .invbar h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px}
   .invbar .rt{margin-left:auto;display:flex;gap:8px;align-items:center}
-  .drop{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 11px;font-size:12.5px;cursor:pointer}
+  .drop{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:7px 11px;font-size:12px;cursor:pointer}
   .vtog{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
   .vtog button{width:32px;height:30px;border:0;background:var(--card2);color:var(--muted);cursor:pointer}
   .vtog button.sel{background:rgba(86,36,179,.18);color:var(--blue)}
@@ -22,8 +22,8 @@
   .grphead{display:flex;align-items:center;gap:9px;margin-bottom:11px}
   .grphead .gi{width:22px;height:22px;border-radius:5px;background:linear-gradient(135deg,#3a4a5d,#26323f);flex:none}
   .grphead .nm{font-size:14px;font-weight:600}
-  .grphead .rt{margin-left:auto;font-size:12.5px;color:var(--muted)}
-  .grphead .pr{color:var(--blue);font-size:12.5px;font-weight:600}
+  .grphead .rt{margin-left:auto;font-size:12px;color:var(--muted)}
+  .grphead .pr{color:var(--blue);font-size:12px;font-weight:600}
   .cardgrid{display:grid;gap:10px}
   .cslot{height:102px;border-radius:8px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1)}
   .cslot .qty{position:absolute;top:6px;right:7px;background:#0009;color:#fff;font-size:12px;font-weight:700;border-radius:6px;padding:1px 6px}
@@ -35,11 +35,11 @@
   .cslot.empty{border:1px dashed rgba(255,255,255,.14);background:#0A0C10;display:flex;align-items:center;justify-content:center;color:#7F879B;font-size:18px;font-weight:700}
   .showmore{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-size:13px;cursor:pointer;margin-top:4px}
   .qa2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .qab{display:flex;align-items:center;gap:9px;border-radius:10px;padding:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--card2);color:var(--txt)}
+  .qab{display:flex;align-items:center;gap:9px;border-radius:10px;padding:12px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--card2);color:var(--txt)}
   .qab.green{color:#7fd48c}.qab.blue{color:#7fb0ff}.qab.purple{color:#bda6ff}.qab.amber{color:#e8bd6f}
   .qab.full{width:100%;justify-content:center;margin-top:10px}
   .sumtable{width:100%;border-collapse:collapse;font-size:13px}
-  .sumtable th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:0 4px 9px}
+  .sumtable th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:0 4px 9px}
   .sumtable th.r,.sumtable td.r{text-align:right}
   .sumtable td{padding:9px 4px;border-top:1px solid #1e2836;color:var(--muted)}
   .sumtable td.v{color:var(--txt);font-weight:600}
@@ -49,24 +49,24 @@
   .fgroup{display:flex;align-items:center;gap:7px}
   .flbl{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;display:inline-flex;align-items:center;height:24px;box-sizing:border-box}
   .chips{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-  .chip{font-size:11.5px;padding:0 9px;height:24px;box-sizing:border-box;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center}
+  .chip{font-size:12px;padding:0 9px;height:24px;box-sizing:border-box;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center}
   .chip:hover{color:var(--txt)}
   .chip.sel{background:var(--blue);color:#fff;border-color:var(--blue)}
   .chip.off{opacity:.4;cursor:not-allowed;text-decoration:line-through}
   .chip.off:hover{color:var(--muted)}
-  .pin{width:52px;height:24px;border-radius:6px;background:#0e1620;border:1px solid var(--line);color:var(--txt);padding:0 7px;font-size:11.5px;outline:none}
+  .pin{width:52px;height:24px;border-radius:6px;background:#0e1620;border:1px solid var(--line);color:var(--txt);padding:0 7px;font-size:12px;outline:none}
   .pin:focus{border-color:var(--blue)}
   .gamesel{position:relative}
   .gamedrop{position:absolute;top:28px;left:0;width:230px;max-height:220px;overflow-y:auto;background:var(--card2);border:1px solid var(--line);border-radius:8px;z-index:20;display:none;padding:4px}
   .gamedrop.open{display:block}
-  .gamedrop div{padding:5px 8px;font-size:11.5px;color:var(--muted);cursor:pointer;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gamedrop div{padding:5px 8px;font-size:12px;color:var(--muted);cursor:pointer;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .gamedrop div:hover{background:#1c2733;color:var(--txt)}
   .gamedrop div.on{color:var(--blue)}
 
   /* inner components of the filter panel (the outer container is now built with Tailwind in inventory.html) */
   .ef-sec{display:flex;flex-direction:column;gap:2px}
   .ef-lbl{font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase;margin-bottom:6px}
-  .ef-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--muted);transition:background .12s,color .12s}
+  .ef-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--muted);transition:background .12s,color .12s}
   .ef-opt:hover{background:var(--card2);color:var(--txt)}
   .ef-opt.sel{background:rgba(86,36,179,.18);color:var(--blue)}
   .ef-opt .ef-cnt{margin-left:auto;font-size:12px;color:var(--muted2)}
@@ -78,7 +78,7 @@
   .ef-select{width:100%;height:32px;background:var(--card2);border:1px solid var(--line);border-radius:8px;color:var(--txt);font-size:12px;padding:0 8px;outline:none;cursor:pointer}
   .ef-reset{width:100%;justify-content:center}
   .ef-gamelist{max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
-  .ef-gamesearch{width:100%;height:28px;background:var(--card2);border:1px solid var(--line);border-radius:7px;color:var(--txt);font-size:11.5px;padding:0 8px;outline:none;margin-bottom:6px}
+  .ef-gamesearch{width:100%;height:28px;background:var(--card2);border:1px solid var(--line);border-radius:7px;color:var(--txt);font-size:12px;padding:0 8px;outline:none;margin-bottom:6px}
   .envhead{display:flex;align-items:center;gap:11px;padding:9px 14px;border-bottom:1px solid var(--line);flex:none;font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted2);text-transform:uppercase}
   .envhead .hh{flex:none}
   .envscroll{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
@@ -100,9 +100,9 @@
   .erow.sel{border-left-color:var(--blue);background:rgba(61,139,255,.09)}   /* Steam-style left line, the whole row is not blue */
   .erow.sel:hover{background:rgba(61,139,255,.13)}
   .erow img{width:28px;height:28px;object-fit:cover;border-radius:5px;flex:none;background:#26313f}
-  .erow .en{flex:1;min-width:0;font-size:12.5px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .erow .en{flex:1;min-width:0;font-size:12px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .erow .eg{width:130px;font-size:12px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none}
-  .erow .ep{width:78px;text-align:right;font-size:12.5px;font-weight:700;flex:none;font-variant-numeric:tabular-nums;overflow:hidden;white-space:nowrap}
+  .erow .ep{width:78px;text-align:right;font-size:12px;font-weight:700;flex:none;font-variant-numeric:tabular-nums;overflow:hidden;white-space:nowrap}
   .erow .ep>span{display:inline-block;width:100%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
   .erow .efl{width:40px;display:flex;gap:5px;justify-content:center;flex:none}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
@@ -139,5 +139,5 @@
   .dpnav button{width:26px;height:24px;border-radius:6px;background:var(--card2);border:1px solid var(--line);color:var(--muted);cursor:pointer;font-size:12px}
   .dpnav button:hover{color:var(--txt);border-color:var(--blue)}
   .dplink{width:100%;text-align:left;padding:7px 9px;border-radius:7px;background:var(--card2);border:1px solid var(--line);color:var(--txt);
-          font-size:11.5px;cursor:pointer;margin-bottom:5px}
+          font-size:12px;cursor:pointer;margin-bottom:5px}
   .dplink:hover{border-color:var(--blue)}

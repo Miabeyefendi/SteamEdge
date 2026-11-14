@@ -1,4 +1,4 @@
-// Colour contrast of the four themes (dark, night purple, white, high contrast) and the rules the pages follow for readable text.
+// Colour contrast of the themes (black, white, R34 Purple, Crimson, Olive, Indigo) and the rules the pages follow for readable text.
 // theme.js is loaded the way a page loads it (with stand-ins for the browser) and its palettes are read back from it.
 // Run with `npm test` (tests/run.js).
 const fs = require('fs');
@@ -18,7 +18,8 @@ sandbox.window.localStorage = sandbox.localStorage;
 vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'src', 'main', 'js', 'theme.js'), 'utf8'), sandbox);
 const PAL = sandbox.window.themePalettes;
-check('theme.js hands its palettes over (midnight, white, contrast)', !!PAL && !!PAL.midnight && !!PAL.white && !!PAL.contrast);
+check('theme.js hands its palettes over (r34, crimson, olive, indigo, white)', !!PAL && !!PAL.r34 && !!PAL.crimson && !!PAL.olive && !!PAL.indigo && !!PAL.white && !PAL.contrast && !PAL.midnight);
+const CTA = sandbox.window.themeCtaText || {};
 
 const lum = (h) => { const c = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
 const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
@@ -26,10 +27,10 @@ const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) +
 // the colours of the dark theme, which is the source; every other theme maps them
 const TEXT = { title: 'dce2fa', body: 'b9c0d6', muted: '8b8f9e', dim: '7f879b', accent: 'c2aaee', ok: '5fb324', warn: 'b37e24', info: '24aeb3', red: 'e45a86' };
 const SURFACE = { page: '030305', alt: '090c12', card: '0d1118', raised: '101621', field: '151c28' };
-const themes = { dark: {}, midnight: PAL.midnight, white: PAL.white, contrast: PAL.contrast };
+const themes = { dark: {}, white: PAL.white, r34: PAL.r34, crimson: PAL.crimson, olive: PAL.olive, indigo: PAL.indigo };
 for (const [name, map] of Object.entries(themes)) {
   const to = (h) => (map && map[h]) || h;
-  const need = name === 'contrast' ? 7 : 4.5;
+  const need = 4.5;
   let worst = Infinity, worstAt = '';
   for (const [tn, tc] of Object.entries(TEXT)) {
     for (const [sn, sc] of Object.entries(SURFACE)) {
@@ -38,11 +39,11 @@ for (const [name, map] of Object.entries(themes)) {
     }
   }
   check(name + ': every text colour is ' + need + ' : 1 or better on every surface', worst >= need, 'worst ' + worst.toFixed(2) + ' ' + worstAt);
-  // white text on the brand button and on the red button (the red one is also a background, see the source colours)
-  const onBrand = ratio('ffffff', to('5624b3')), onRed = ratio('ffffff', to('b32453'));
-  check(name + ': white text on the purple and red buttons is 4.5 : 1 or better', onBrand >= 4.5 && onRed >= 4.5, onBrand.toFixed(2) + ' / ' + onRed.toFixed(2));
-  // borders of controls: 3 : 1 against the surface they sit on (WCAG 1.4.11) for the high contrast theme
-  if (name === 'contrast') check('contrast: the border of a control is 3 : 1 or better against the page', ratio(to('2b3345'), to('030305')) >= 3 && ratio(to('2b3345'), to('151c28')) >= 3);
+  // text on the brand button (white, or the dark text a light brand colour carries) and white text on the red button (also a background, see the source colours)
+  const onBrand = ratio(CTA[name] || 'ffffff', to('5624b3')), onRed = ratio('ffffff', to('b32453'));
+  check(name + ': the text of the brand and red buttons is 4.5 : 1 or better', onBrand >= 4.5 && onRed >= 4.5, onBrand.toFixed(2) + ' / ' + onRed.toFixed(2));
+  // the outline of a field: 3 : 1 against the surfaces it sits on (WCAG 1.4.11)
+  check(name + ': the outline of a field is 3 : 1 or better against the card and the page', ratio(to('5a6580'), to('0d1118')) >= 3 && ratio(to('5a6580'), to('090c12')) >= 3);
 }
 
 // the source: no text smaller than 11 px, none of the old dim colour, red text uses the readable red
@@ -73,7 +74,7 @@ for (const f of files) {
 }
 for (const [name, map] of Object.entries(themes)) {
   const to = (h) => (map && map[h]) || h;
-  const need = name === 'contrast' ? 7 : 4.5;
+  const need = 4.5;
   const dim = {};
   for (const h of textColours) {
     const r = Math.min(...Object.values(SURFACE).map((sc) => ratio(to(h), to(sc))));

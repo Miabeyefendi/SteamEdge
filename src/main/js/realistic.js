@@ -169,7 +169,7 @@
           + esc(grWriteHours(g.playtimeMin))+'</span>'
           + '</div>'
           + favStar(g.appid)
-          + '<button class="h-brand" style="width:24px;height:24px;flex-shrink:0;border-radius:12px;border:1px solid '
+          + '<button class="h-brand" style="width:24px;height:28px;flex-shrink:0;border-radius:12px;border:1px solid '
           + (inside?GRC.brand:'#2B3345')+';background:'+(inside?'#151C28':'#090C12')+';color:'+(inside?GRC.sub:'#8B8F9E')
           + ';font-family:Geist Mono,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">'
           + (inside?'✓':'+')+'</button>'

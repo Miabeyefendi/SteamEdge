@@ -75,12 +75,12 @@
   .ach-row.locked .aicon{background:#0D1118;border:1px solid #1D2432}
   .ach-row .abody{flex:1;min-width:0}
   .ach-row .atitle{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .ach-row .atitle .nm{font-size:13.5px;font-weight:600;color:#e8eaf2}
+  .ach-row .atitle .nm{font-size:13px;font-weight:600;color:#e8eaf2}
   .ach-row.locked .atitle .nm{color:#7F879B}
-  .ach-row .adesc{font-size:11.5px;color:#7F879B;margin-top:2px}
+  .ach-row .adesc{font-size:12px;color:#7F879B;margin-top:2px}
   .ach-row.locked .adesc{color:#7F879B}
   .ach-row .ameta{font-size:12px;color:#7F879B;margin-top:5px}
-  .ach-row .astat{flex:none;font-size:11.5px;font-weight:600;padding-top:2px}
+  .ach-row .astat{flex:none;font-size:12px;font-weight:600;padding-top:2px}
   .ach-row .astat.on{color:#5FB324}
   .ach-row .astat.off{color:#7F879B}
   .ach-row .rarity-tag{font-size:12px;font-weight:700;padding:2px 7px;border-radius:8px;flex:none}

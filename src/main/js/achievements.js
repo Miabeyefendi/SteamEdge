@@ -28,7 +28,7 @@
           + '<span style="font-size:14px;font-weight:700;color:#DCE2FA">Başarımlar yüklenemedi</span>'
           + '<span style="font-size:12px;color:#E45A86;max-width:380px">'+esc(msg||'Bilinmeyen hata')+'</span>'
           + '<span style="font-size:12px;color:#8B8F9E;max-width:420px">Hesap başka bir yerde açıldıysa (Steam istemcisi ya da SteamEdge\'in ikinci bir penceresi) oturumunu o devralmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
-          + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:34px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
+          + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:36px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
           + '</div>';
         const rb = document.getElementById('acRetry');
         if (rb) rb.onclick = ()=>{ acLoaded = false; loadAchievementsPage(); };
@@ -202,7 +202,7 @@
           + 'display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">'
           + '<span style="font-size:13px;font-weight:700;color:#E45A86">Başarımlar yüklenemedi</span>'
           + '<span style="font-size:12px;color:#8B8F9E;max-width:420px;line-height:1.6">'+esc(res.error)+'</span>'
-          + '<button id="acRetry" class="h-bd" style="height:32px;padding:0 16px;border-radius:12px;'
+          + '<button id="acRetry" class="h-bd" style="height:36px;padding:0 16px;border-radius:12px;'
           + 'background:#151C28;border:1px solid #24AEB3;color:#24AEB3;font-size:12px;font-weight:600;cursor:pointer">'
           + 'Yeniden Dene</button></div>';
         const rb = document.getElementById('acRetry');

@@ -350,7 +350,6 @@
  "Grupla": "Group",
  "Hepsi": "All",
  "Hedef": "Target",
- "Başarım sayısı": "Achievements",
  "Kalan": "Remaining",
  "Kartlar": "Cards",
  "Kuponlar": "Coupons",
@@ -1218,8 +1217,6 @@
  "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "The app does not download anything. Get it from the release page yourself, extract the archive into an EMPTY and NEW folder, then copy the settings folder from the old folder into the new one.",
  "Windows oturumu açıldığında SteamEdge kendiliğinden başlar ve kayıtlı hesaplara bağlanır.": "SteamEdge starts on its own when you sign in to Windows and connects your saved accounts.",
  "Tema": "Theme",
- "Koyu": "Dark",
- "Gece Moru": "Midnight Purple",
  "Beyaz": "White",
  "Arayüzün ve giriş ekranının renkleri. Kaydedince hemen uygulanır.": "Colours of the interface and the login screen. Applied as soon as you save.",
  "QR Kod": "QR code",
@@ -1447,7 +1444,6 @@
  "İşler Sürdürüldü": "Jobs resumed",
  "Arayüz ölçeği": "Interface scale",
  "Tüm arayüzü büyütür ya da küçültür. Seçilen ölçek pencereye sığmazsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değiştirilebilir.": "Enlarges or shrinks the whole interface. If the window is too small for the layout at the chosen scale, the scale shrinks to fit the window. Ctrl + / - / 0 change it too.",
- "Yüksek karşıtlık": "High contrast",
  "Komut paleti": "Command palette",
  "Komut ara...": "Search commands...",
  "Sayfalar": "Pages",
@@ -1506,5 +1502,10 @@
  "\"Donanım hızlandırma\" kapalıyken kullanılmaz.": "Not used while \"Hardware acceleration\" is off.",
  "Pazardaki en düşük fiyat #, siz # fiyatından satıyorsunuz.": "The lowest price on the market is #, you are selling at #.",
  "Siz # fiyatından satıyorsunuz.": "You are selling at #.",
- "Onaylamadan önce fiyatları kontrol edin.": "Check the prices before you confirm."
+ "Onaylamadan önce fiyatları kontrol edin.": "Check the prices before you confirm.",
+ "Siyah": "Black",
+ "R34 Purple": "R34 Purple",
+ "Crimson": "Crimson",
+ "Olive": "Olive",
+ "Indigo": "Indigo"
 }

@@ -500,7 +500,7 @@
           + '<span class="e-run-dot e-pulse" style="flex:none"></span>'
           + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;flex:none">' + esc(a.accountName || a.steamID) + '</span>'
           + '<span style="font-size:12px;color:#8B8F9E;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(typeof jobLine === 'function' ? jobLine(a) : '') + '</span>'
-          + '<button class="h-bd" data-open-acct="' + esc(a.steamID) + '" style="height:24px;padding:0 10px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;font-weight:600;cursor:pointer;flex:none">' + esc(t('Hesaba geç')) + '</button>'
+          + '<button class="h-bd" data-open-acct="' + esc(a.steamID) + '" style="height:28px;padding:0 10px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;font-weight:600;cursor:pointer;flex:none">' + esc(t('Hesaba geç')) + '</button>'
           + '</div>').join('')
         + '</div>';
     }
@@ -567,7 +567,7 @@
         : '<span style="' + DETAIL_MONO + ';font-weight:700;color:' + colored + '">' + position + '</span>';
       return '<div style="' + DETAIL_ROW + '">'
         + '<span style="width:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center">' + begin + '</span>'
-        + '<span style="font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">' + esc(name) + '</span>'
+        + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1">' + esc(name) + '</span>'
         + '<span style="' + DETAIL_MONO + ';color:#8B8F9E;flex-shrink:0">' + rightSide + '</span>'
         + (percent === null ? '' : detailBar(percent, emphasis ? (colorVal || GC.ok) : '#333D4D'))
         + '</div>';

@@ -350,7 +350,6 @@
  "Grupla": "Gruppieren",
  "Hepsi": "Alle",
  "Hedef": "Ziel",
- "Başarım sayısı": "Anzahl",
  "Kalan": "Verbleibend",
  "Kartlar": "Karten",
  "Kuponlar": "Gutscheine",
@@ -1218,8 +1217,6 @@
  "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "Die App lädt nichts herunter. Hole die neue Version selbst von der Release-Seite, entpacke das Archiv in einen LEEREN und NEUEN Ordner und kopiere den Ordner settings aus dem alten in den neuen.",
  "Windows oturumu açıldığında SteamEdge kendiliğinden başlar ve kayıtlı hesaplara bağlanır.": "SteamEdge startet bei der Windows-Anmeldung von selbst und verbindet deine gespeicherten Konten.",
  "Tema": "Farbschema",
- "Koyu": "Dunkel",
- "Gece Moru": "Mitternachtslila",
  "Beyaz": "Weiß",
  "Arayüzün ve giriş ekranının renkleri. Kaydedince hemen uygulanır.": "Farben der Oberfläche und des Anmeldebildschirms. Wird beim Speichern sofort übernommen.",
  "QR Kod": "QR-Code",
@@ -1447,7 +1444,6 @@
  "İşler Sürdürüldü": "Aufgaben fortgesetzt",
  "Arayüz ölçeği": "Oberflächenmaßstab",
  "Tüm arayüzü büyütür ya da küçültür. Seçilen ölçek pencereye sığmazsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değiştirilebilir.": "Vergrößert oder verkleinert die gesamte Oberfläche. Reicht das Fenster für das Layout im gewählten Maßstab nicht aus, wird der Maßstab dem Fenster angepasst. Auch mit Strg + / - / 0 änderbar.",
- "Yüksek karşıtlık": "Hoher Kontrast",
  "Komut paleti": "Befehlspalette",
  "Komut ara...": "Befehle suchen...",
  "Sayfalar": "Seiten",
@@ -1506,5 +1502,10 @@
  "\"Donanım hızlandırma\" kapalıyken kullanılmaz.": "Wird nicht verwendet, solange „Hardwarebeschleunigung“ aus ist.",
  "Pazardaki en düşük fiyat #, siz # fiyatından satıyorsunuz.": "Der niedrigste Marktpreis liegt bei #, du verkaufst für #.",
  "Siz # fiyatından satıyorsunuz.": "Du verkaufst für #.",
- "Onaylamadan önce fiyatları kontrol edin.": "Prüfe die Preise, bevor du bestätigst."
+ "Onaylamadan önce fiyatları kontrol edin.": "Prüfe die Preise, bevor du bestätigst.",
+ "Siyah": "Schwarz",
+ "R34 Purple": "R34 Purple",
+ "Crimson": "Crimson",
+ "Olive": "Olive",
+ "Indigo": "Indigo"
 }

@@ -894,8 +894,8 @@
       const depth = Math.max(3, +((appSettings||{}).bookDepth) || 5);
 
       // Shared box skeleton: title strip + Price/Quantity table
-      const ordRetryBtn = () => '<button data-ordretry style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>';
-      const histRetryBtn = () => '<button data-histretry style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #C2AAEE;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>';
+      const ordRetryBtn = () => '<button data-ordretry style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>';
+      const histRetryBtn = () => '<button data-histretry style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #C2AAEE;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>';
       const priceQtyBox = (title, dotColor, headline, rows, empty) =>
         '<div style="border:1px solid #2B3345;border-radius:12px;background:#090C12;overflow:hidden">'
         + '<div style="height:34px;padding:0 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #1D2432;background:#0D1118">'
@@ -983,7 +983,7 @@
         + '</div>'
         // A booster pack can be opened right here (only when the game it belongs to is known)
         + (it.type === 'booster' && it.appid
-            ? '<button data-unpack class="h-brand" style="height:34px;border-radius:999px;background:#090C12;border:1px solid #5624B3;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">' + esc(t('Booster Paketini Aç')) + '</button>'
+            ? '<button data-unpack class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #5624B3;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">' + esc(t('Booster Paketini Aç')) + '</button>'
             : '')
         // Three boxes: listings on sale · hemen sat · realised sales
         + '<div style="display:flex;flex-direction:column;gap:10px">' + obBoxes + '</div>'

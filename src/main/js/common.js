@@ -127,8 +127,8 @@
     }
     function favStar(appid){
       const on = isFavorite(appid);
-      return '<button data-fav="' + (+appid) + '" title="' + esc(t(on ? 'Favorilerden Çıkar' : 'Favorilere Ekle')) + '" style="width:24px;height:24px;flex-shrink:0;border-radius:999px;background:transparent;border:none;color:'
-        + (on ? '#B37E24' : '#7F879B') + ';cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="13" height="13" viewBox="0 0 24 24" fill="' + (on ? 'currentColor' : 'none')
+      return '<button data-fav="' + (+appid) + '" title="' + esc(t(on ? 'Favorilerden Çıkar' : 'Favorilere Ekle')) + '" style="width:24px;height:28px;flex-shrink:0;border-radius:999px;background:transparent;border:none;color:'
+        + (on ? '#B37E24' : '#7F879B') + ';cursor:pointer;display:flex;align-items:center;justify-content:center"><svg width="14" height="14" viewBox="0 0 24 24" fill="' + (on ? 'currentColor' : 'none')
         + '" stroke="currentColor" stroke-width="2"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>';
     }
     async function toggleFavorite(appid){
@@ -398,10 +398,10 @@
         + '<span class="p">'+esc(t('Kullanacağın sayfaları seç. İstediğin zaman Ayarlar > Modüller\'den değiştirebilirsin.'))+'</span></div>'
         + Object.keys(names).map(k => '<div class="e-modal-ask on" data-sm="'+k+'"><span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#DCE2FA" stroke-width="3.4"><path d="M5 13l4 4L19 7"></path></svg></span><span>'+esc(t(names[k]))+'</span></div>').join('')
         + '<div class="e-modal-ask" style="cursor:default;gap:12px"><span style="flex:1">'+esc(t('Performans modu'))+'</span>'
-        + '<select id="setupPerf" style="height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
+        + '<select id="setupPerf" style="height:36px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
         + '<option value="auto">'+esc(t('Otomatik'))+'</option><option value="full">'+esc(t('Tam'))+'</option><option value="light">'+esc(t('Hafif'))+'</option></select></div>'
         + '<div class="e-modal-ask" style="cursor:default;gap:12px"><span style="flex:1">'+esc(t('Arayüz ölçeği'))+'</span>'
-        + '<select id="setupScale" style="height:30px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
+        + '<select id="setupScale" style="height:36px;border-radius:10px;background:#090C12;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 10px;outline:none">'
         + [80, 90, 100, 110, 125, 150].map(v => '<option value="'+v+'"'+(v === 100 ? ' selected' : '')+'>'+v+'%</option>').join('') + '</select></div>'
         + '<div class="e-modal-ft"><button class="ok" data-yes>'+esc(t('Başla'))+'</button></div></div>';
       document.body.appendChild(back);
@@ -1171,7 +1171,7 @@
       el.style.borderBottomColor = colorVal; el.style.color = colorVal;
       el.innerHTML = '<span' + (status === 'abandoned' ? '' : ' class="e-pulse"') + ' style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0"></span><span>'+esc(message||'')+'</span>'
         + (status === 'abandoned'
-            ? '<button data-reconnect style="margin-left:auto;height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
+            ? '<button data-reconnect style="margin-left:auto;height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
               + ';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
             : '');
       const b = el.querySelector('[data-reconnect]');

@@ -16,7 +16,7 @@
 - **Fits your screen** - The layout is fluid down to 900 x 560: lists wrap instead of running off the edge, the side menu closes by itself on a narrow window and the interface turns compact on a short one. The window comes back where you left it, on a screen that still exists. Windows smaller than 900 x 560 scale the whole page, down to 675 x 420, so buttons keep their shape.
 - **Modular** - Switch off the pages you do not use (cards, hours, inventory, achievements, keys, chat) and put the rest in your own order. A page that is off asks Steam for nothing. A light mode turns off animations and blur for weak computers, and an automatic setting picks it for you. Small features (the activity box, favorite stars, the My listings and CSV buttons) and top bar items (search, notifications, updates) can be switched off too.
 - **Picks up where it left off** - A card farm, hour boost or Realistic Mode run that was going when the app closed, the PC shut down or the app crashed starts again where it left off when the account connects again. The time the app was not running does not count, so a boost with three hours left has three hours left.
-- **Readable and keyboard friendly** - An interface scale from 80 to 150 percent (also Ctrl + / - / 0), a High contrast theme that follows the system's contrast setting, text that reads at 4.5 : 1 or better and never smaller than 11 pixels, and switches and the side menu that work from the keyboard and with a screen reader.
+- **Readable and keyboard friendly** - An interface scale from 80 to 150 percent (also Ctrl + / - / 0), six colour themes, support for Windows' own high contrast mode, text that reads at 4.5 : 1 or better and never smaller than 11 pixels, and switches and the side menu that work from the keyboard and with a screen reader.
 - **Quick navigation** - Ctrl+K opens a command palette that finds pages, settings, accounts and the actions of the open page as you type; Ctrl+1 to Ctrl+9 open pages by number, ? lists the shortcuts, and Settings has its own search box and marks the sections you changed and saved.
 - **No Steam client** - Talks Steam's own network protocol. The client is never launched and is not required.
 - **Portable** - Extract and run. No installer, no registry, everything lives next to the executable.
@@ -33,11 +33,14 @@
 | <img src="../design/screenshots/Market2.png" alt="Market, order book"><br><sub>Market, order book</sub> | <img src="../design/screenshots/Chat.png" alt="Steam chat"><br><sub>Steam chat</sub> |
 | <img src="../design/screenshots/SettingsGeneral.png" alt="Settings"><br><sub>Settings</sub> |  |
 
-**Themes: Dark, Midnight Purple, White (Settings > General > Theme)**
+**Themes: Black, White, R34 Purple, Crimson, Olive, Indigo (Settings > General > Theme)**
 
-| Dark | Midnight Purple | White |
+| Black | White | R34 Purple |
 |---|---|---|
-| <img src="../design/screenshots/themes/overview-dark.png" alt="Dark"> | <img src="../design/screenshots/themes/overview-midnight.png" alt="Midnight Purple"> | <img src="../design/screenshots/themes/overview-white.png" alt="White"> |
-| <img src="../design/screenshots/themes/login-dark.png" alt="Dark"> | <img src="../design/screenshots/themes/login-midnight.png" alt="Midnight Purple"> | <img src="../design/screenshots/themes/login-white.png" alt="White"> |
+| <img src="../design/screenshots/themes/overview-dark.png" alt="Black"> | <img src="../design/screenshots/themes/overview-white.png" alt="White"> | <img src="../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
+
+| Crimson | Olive | Indigo |
+|---|---|---|
+| <img src="../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
 
 </div>

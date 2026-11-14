@@ -57,7 +57,7 @@
     <!-- Order: GAME first, then the achievement search. Since game names can be long it gets the widest area; the achievement search is shorter than it. The achievement search used to be on the left and the game picker on the right, that is second in line on a screen where the game must be picked first. -->
     <div id="acGameBox" style="position:relative;flex:1 1 300px;min-width:230px">
       <input id="acGameInput" type="text" placeholder="Oyun ara / seç..." autocomplete="off" class="f-focus"
-             style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 30px 0 12px;outline:none">
+             style="width:100%;box-sizing:border-box;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 30px 0 12px;outline:none">
       <svg id="acGameCaret" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8"
            style="position:absolute;right:11px;top:11px;pointer-events:none"><path d="M6 9l6 6 6-6"></path></svg>
       <div id="acGameList" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:50;
@@ -67,34 +67,34 @@
     </div>
     <div style="position:relative;display:flex;align-items:center;flex:0 1 220px;min-width:160px">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:12px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
-      <input id="acSearch" type="text" placeholder="Başarım ara..." class="f-focus" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 34px;outline:none">
+      <input id="acSearch" type="text" placeholder="Başarım ara..." class="f-focus" style="width:100%;box-sizing:border-box;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 34px;outline:none">
     </div>
-    <select id="acFilter" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:156px;flex:0 1 auto">
+    <select id="acFilter" style="height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:156px;flex:0 1 auto">
       <option value="all">Tüm başarımlar</option>
       <option value="unlocked">Açılanlar</option>
       <option value="locked">Kilitliler</option>
       <option value="rare">Nadir ve üstü</option>
       <option value="ultrarare">Ultra nadir</option>
     </select>
-    <select id="acSort" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:156px;flex:0 1 auto">
+    <select id="acSort" style="height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:156px;flex:0 1 auto">
       <option value="default">Varsayılan sıra</option>
       <option value="alpha">Alfabetik (A-Z)</option>
       <option value="rarity">Nadirliğe göre</option>
       <option value="date">Tarihe göre</option>
     </select>
     <!-- Direction button: a single button instead of a separate dropdown, because there are only two options. The arrow direction directly shows which order applies at that moment. There is no notion of direction in the default order, so it is dimmed and unclickable there. -->
-    <button id="acSortDir" class="h-bd" data-tip="Sıralama yönü" style="width:34px;height:34px;flex-shrink:0;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 11l6-6 6 6"></path></svg>
+    <button id="acSortDir" class="h-bd" data-tip="Sıralama yönü" style="width:34px;height:36px;flex-shrink:0;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 11l6-6 6 6"></path></svg>
     </button>
     <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
-      <button id="acVGrid" style="width:32px;height:26px;border-radius:999px;border:1px solid #5624B3;background:#5624B3;color:#DCE2FA;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <button id="acVGrid" style="width:32px;height:28px;border-radius:999px;border:1px solid #5624B3;background:#5624B3;color:#DCE2FA;cursor:pointer;display:flex;align-items:center;justify-content:center">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
       </button>
-      <button id="acVList" style="width:32px;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <button id="acVList" style="width:32px;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
       </button>
     </div>
-    <button id="acReset" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sıfırla</button>
+    <button id="acReset" class="h-brand" style="height:36px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sıfırla</button>
   </div>
 
   <!-- The counter row is OUTSIDE THE FLEX ROW. When inside it only pushed the left column down, while the Detay panel on the right started at the top of the row; the first achievement row and the panel were misaligned. Taken outside, both columns start from the same y. -->
@@ -136,11 +136,11 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <button id="acSelLocked" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Kilitlileri Seç</button>
-      <button id="acSelClear" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Seçimi Temizle</button>
-      <button id="acAllLock" class="h-signout" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#E45A86;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Seçilenleri Kilitle</button>
-      <button id="acAllUnlock" class="h-start" style="height:38px;padding:0 22px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Seçilenleri Aç</button>
-      <button id="acStop" class="h-stop" style="display:none;height:38px;padding:0 22px;border-radius:999px;background:#B32453;border:1px solid #B32453;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Durdur</button>
+      <button id="acSelLocked" class="h-brand" style="height:36px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Kilitlileri Seç</button>
+      <button id="acSelClear" class="h-brand" style="height:36px;padding:0 14px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Seçimi Temizle</button>
+      <button id="acAllLock" class="h-signout" style="height:36px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #B32453;color:#E45A86;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Seçilenleri Kilitle</button>
+      <button id="acAllUnlock" class="h-start" style="height:36px;padding:0 22px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Seçilenleri Aç</button>
+      <button id="acStop" class="h-stop" style="display:none;height:36px;padding:0 22px;border-radius:999px;background:#B32453;border:1px solid #B32453;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Durdur</button>
     </div>
   </div>
 </div>

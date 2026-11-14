@@ -350,7 +350,6 @@
  "Grupla": "分組",
  "Hepsi": "全部",
  "Hedef": "目標",
- "Başarım sayısı": "成就數",
  "Kalan": "剩餘",
  "Kartlar": "卡牌",
  "Kuponlar": "優惠券",
@@ -1218,8 +1217,6 @@
  "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "本程式不會下載任何檔案。請自行到發佈頁面下載，將壓縮檔解壓縮到一個「全新且空白」的資料夾，再把舊資料夾中的 settings 複製過去。",
  "Windows oturumu açıldığında SteamEdge kendiliğinden başlar ve kayıtlı hesaplara bağlanır.": "登入 Windows 時 SteamEdge 會自動啟動，並連線已儲存的帳號。",
  "Tema": "主題",
- "Koyu": "深色",
- "Gece Moru": "午夜紫",
  "Beyaz": "白色",
  "Arayüzün ve giriş ekranının renkleri. Kaydedince hemen uygulanır.": "介面與登入畫面的配色。儲存後立即套用。",
  "QR Kod": "QR 碼",
@@ -1447,7 +1444,6 @@
  "İşler Sürdürüldü": "工作已繼續",
  "Arayüz ölçeği": "介面縮放",
  "Tüm arayüzü büyütür ya da küçültür. Seçilen ölçek pencereye sığmazsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değiştirilebilir.": "放大或縮小整個介面。若視窗在所選縮放下容納不下版面，縮放會隨視窗縮小。也可用 Ctrl + / - / 0 調整。",
- "Yüksek karşıtlık": "高對比",
  "Komut paleti": "指令面板",
  "Komut ara...": "搜尋指令...",
  "Sayfalar": "頁面",
@@ -1506,5 +1502,10 @@
  "\"Donanım hızlandırma\" kapalıyken kullanılmaz.": "「硬體加速」關閉時不使用。",
  "Pazardaki en düşük fiyat #, siz # fiyatından satıyorsunuz.": "市場最低價為 #，你的售價為 #。",
  "Siz # fiyatından satıyorsunuz.": "你的售價為 #。",
- "Onaylamadan önce fiyatları kontrol edin.": "確認前請先檢查價格。"
+ "Onaylamadan önce fiyatları kontrol edin.": "確認前請先檢查價格。",
+ "Siyah": "黑色",
+ "R34 Purple": "R34 Purple",
+ "Crimson": "Crimson",
+ "Olive": "Olive",
+ "Indigo": "Indigo"
 }

@@ -87,7 +87,7 @@ const DEFAULT_SETTINGS = {
   // Small features and top bar items that can be switched off (Settings > Modules, common.js FEATURES); everything is on until the setting says false
   featFeed: true, featFavorites: true, featListings: true, featCsv: true, featOtherGames: true,
   topSearch: true, topNotif: true, topUpdate: true,
-  theme: 'auto',            // auto | dark | midnight | white | contrast (see src/main/js/theme.js); auto = contrast when the system asks for it, dark otherwise
+  theme: 'auto',            // auto | dark | white | r34 | crimson | olive | indigo (see src/main/js/theme.js); auto = dark
   density: 'auto',          // auto | comfortable | compact (*)
   uiScale: 100,             // percent, one of windowFit.SCALES; the window zooms the page to this while the layout still fits (applyFitZoom)
   timeFormat: '24',

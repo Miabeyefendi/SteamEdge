@@ -1,5 +1,5 @@
 // Appearance and keyboard: the switches and the side menu can be reached and pressed with the keyboard and say what they are, the interface scale
-// and the high contrast theme are in Settings and work.
+// and the themes are in Settings and work.
 // Needs Electron: run with `npm test` (tests/run.js) or `electron <file> --user-data-dir=<temp folder>`.
 const { app, BrowserWindow, ipcMain } = require('electron');
 const fs = require('fs'), vm = require('vm');
@@ -64,18 +64,17 @@ app.whenReady().then(async () => {
   await wait(200);
   check('Enter turns it off again', (await js("document.querySelector('#tab-settings [data-set=closeToTray]').getAttribute('aria-checked')")) === 'false');
   check('the interface scale is a choice from 80 to 150 percent, 100 by default', (await js("[...document.querySelector('#tab-settings [data-set=uiScale]').options].map((o) => o.value).join()")) === '80,90,100,110,125,150' && (await js("document.querySelector('#tab-settings [data-set=uiScale]').value")) === '100');
-  check('the theme choice has automatic and high contrast', (await js("[...document.querySelector('#tab-settings [data-set=theme]').options].map((o) => o.value).join()")) === 'auto,dark,midnight,white,contrast');
+  check('the theme choice has automatic, black, white and the four Vantagraph themes', (await js("[...document.querySelector('#tab-settings [data-set=theme]').options].map((o) => o.value).join()")) === 'auto,dark,white,r34,crimson,olive,indigo');
   await shot('settings-appearance');
 
-  // the high contrast theme: the dim text turns light, the surfaces black, the border white
-  const before = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
-  await js("applyTheme('contrast')");
+  // a coloured theme: the surfaces and the dim text follow it, the field outline is lighter than the surface
+  await js("applyTheme('crimson')");
   await wait(500);
-  check('the high contrast theme is applied', (await js("document.documentElement.getAttribute('data-theme')")) === 'contrast');
-  const back = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).backgroundColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).borderTopColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
-  check('a field is black with a white border and white text', back === 'rgb(0, 0, 0)|rgb(255, 255, 255)|rgb(255, 255, 255)', back + ' (was ' + before + ')');
-  await shot('theme-contrast');
-  check('the choice is kept for the login screen too', (await js("localStorage.getItem('se_theme')")) === 'contrast');
+  check('the Crimson theme is applied', (await js("document.documentElement.getAttribute('data-theme')")) === 'crimson');
+  const field = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).borderTopColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
+  check('a field has the Crimson outline and text', field === 'rgb(184, 112, 124)|rgb(221, 201, 203)', field);
+  await shot('theme-crimson');
+  check('the choice is kept for the login screen too', (await js("localStorage.getItem('se_theme')")) === 'crimson');
 
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;

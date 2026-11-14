@@ -5,15 +5,36 @@
 // The dark theme is the source itself, there is no mapping. Palettes are from Vantagraph (R34Purple, VantaWhite).
 // Since the login screen cannot read the settings the choice is also kept in localStorage.
 (function () {
+  // The dark theme is the source. The coloured dark themes are built from a short description each (the roles below), the White theme
+  // is written out. Every coloured theme is Vantagraph's: R34 Purple and Crimson as they are in its colour.ini, Olive and Indigo in the
+  // same structure (tinted surfaces, one warm or cool complement for the accents, a soft secondary text in the complement's family).
+  const SURF = ['030305', '090c12', '0d1118', '101621', '151c28', '1d2432', '2b3345', '333d4d', '252a3a', '1e2836', '0e1620', '0f1720'];
+  const THEMES = {
+    // violet surfaces, gold secondary text, blue progress
+    r34: { surf: ['060810', '090C18', '160B2A', '1B1034', '200E3C', '2C1850', '3D2468', '4A2E78', '2C1850', '261542', '120A22', '090C18'],
+      title: 'F0EAF8', body: 'DDD4EE', muted: 'C8A850', dim: 'B39640', brand: '7A3FE0', brandText: 'E8CB78', info: '5B93E8', warn: 'D9A441', warn2: 'EDC35A', badText: 'FF6B85', field: '8A70C4' },
+    // red-black surfaces, amber accent (the buttons are amber with dark text)
+    crimson: { surf: ['060A0E', '090E14', '300C12', '3A0F17', '4D131D', '5C1822', '7A2A36', '8A3541', '3E1019', '44121C', '2A0B10', '090E14'],
+      title: 'F0E4E4', body: 'DDC9CB', muted: 'BF9098', dim: 'B08990', brand: 'C8903A', brandText: 'E6B562', info: 'D9A04A', warn: 'E0A545', warn2: 'F0BE5C', badText: 'FF7A8E', field: 'B8707C', ctaText: '1A0A0D' },
+    // olive panels on a violet window: green accents, purple progress
+    olive: { surf: ['0B0610', '100818', '131C05', '18240A', '1E0E2E', '243408', '3B5014', '486218', '2A3A0C', '1F2E08', '0F1704', '100818'],
+      title: 'F0EBE0', body: 'D8D6BE', muted: 'A8B878', dim: '98A86C', brand: '81B040', brandText: 'B5D870', info: 'A58BE0', warn: 'D9A441', warn2: 'EDC35A', badText: 'FF7B8E', field: '7E9A3E', ctaText: '0F1704' },
+    // indigo surfaces, vermilion accents
+    indigo: { surf: ['070B16', '0A1020', '101C38', '15244A', '182A52', '223A6E', '31508F', '3B5EA3', '1C2E5C', '16264C', '0D162C', '0A1020'],
+      title: 'EAF0FA', body: 'CBD8EE', muted: '9DB4E0', dim: '8CA4D4', brand: 'C23B22', brandText: 'FF9A7A', info: '6FA8F0', warn: 'E0A545', warn2: 'F0BE5C', badText: 'FF8A9A', field: '6F8CC8',
+      extra: { 'e2703a': 'F08050' } },
+  };
+  function build(t) {
+    const m = {};
+    SURF.forEach((k, i) => { m[k] = t.surf[i].toLowerCase(); });
+    const roles = { 'dce2fa': t.title, 'b9c0d6': t.body, '8b8f9e': t.muted, '7f879b': t.dim, '5624b3': t.brand, 'c2aaee': t.brandText, '24aeb3': t.info,
+      'b37e24': t.warn, 'e0b43a': t.warn2, 'e45a86': t.badText, 'ef4444': t.badText, '5a6580': t.field, '7a8a9a': t.dim, '4f8ef7': t.info };
+    for (const k in roles) m[k] = roles[k].toLowerCase();
+    for (const k in (t.extra || {})) m[k] = t.extra[k].toLowerCase();
+    return m;
+  }
   const PALETTE = {
-    midnight: {
-      // Violet and amber: the surfaces are tinted violet, the brand violet is #7C3AED, the status colours are the cool ones that sit with it
-      '030305': '0a0617', '090c12': '0f0a1f', '0d1118': '171030', '101621': '1b1338', '151c28': '231847',
-      '1d2432': '2e2352', '2b3345': '4a3a7a', '333d4d': '55448c', '252a3a': '2c2150', '1e2836': '261c46',
-      '0e1620': '140e2b', 'dce2fa': 'eeeafb', 'b9c0d6': 'd2cbee', '8b8f9e': 'a9a0c9', '7f879b': '9c93bd',
-      '5624b3': '7c3aed', 'c2aaee': 'a78bfa', '0f1720': '0f0a1f', '5a6580': '7a67b8',
-      '5fb324': '34d399', 'b37e24': 'f5b83d', 'e0b43a': 'f5b83d', 'e45a86': 'fb7185', 'ef4444': 'fb7185', '24aeb3': '2dd4bf',
-    },
+    r34: build(THEMES.r34), crimson: build(THEMES.crimson), olive: build(THEMES.olive), indigo: build(THEMES.indigo),
     white: {
       '030305': 'e4e2dc', '090c12': 'f5f4f2', '0d1118': 'ffffff', '101621': 'f0eeea', '151c28': 'eceae6',
       '1d2432': 'e0ddd6', '2b3345': 'd8d4cc', '333d4d': 'c8c4bc', '252a3a': 'ddd9d2', '1e2836': 'e6e3dd',
@@ -27,18 +48,18 @@
       '22c55e': '17703a', '8ee39d': '17652c', '7fd48c': '17652c', '57c66a': '17652c', 'f59e0b': '7d5208', 'e8bd6f': '7d5208', 'e8a33d': '7d5208',
       'e2703a': '9a3f12', 'ef4444': 'b01c1c', 'd5c4ff': '5624b3', 'bda6ff': '5624b3', 'a78bfa': '5624b3',
     },
-    // High contrast: black surfaces, white text, white borders, bright accents (every pair is 7 : 1 or better; see tests/unit/theme-contrast.test.js)
-    contrast: {
-      '030305': '000000', '090c12': '000000', '0d1118': '000000', '101621': '0d0d0d', '151c28': '1a1a1a', '0f1720': '000000',
-      '1d2432': '8c8c8c', '2b3345': 'ffffff', '333d4d': 'ffffff', '252a3a': '262626', '1e2836': '262626', '0e1620': '0d0d0d',
-      '5a6580': 'ffffff', 'dce2fa': 'ffffff', 'b9c0d6': 'ffffff', '8b8f9e': 'e6e6e6', '7f879b': 'd9d9d9', 'c2aaee': 'ffff66', 'e8eaf0': 'ffffff', 'cbd5e1': 'ffffff', '94a3b8': 'e6e6e6',
-      '5fb324': '7dff4d', 'b37e24': 'ffd24a', '24aeb3': '3de8f0', 'e45a86': 'ff8fab', 'e0b43a': 'ffd24a',
-      '7a8a9a': 'd9d9d9', '9ca3af': 'e6e6e6', 'e2703a': 'ff9b6b', '4f8ef7': '8fb8ff', 'a78bfa': 'cdbbff', 'ef4444': 'ff8a8a',
-    },
   };
-  // 'auto' is the default: the high contrast palette when the system asks for more contrast, the dark one otherwise.
+  // text on the brand buttons: white everywhere except where the brand colour is light (amber, green)
+  const CTA_TEXT = {};
+  for (const k in THEMES) if (THEMES[k].ctaText) CTA_TEXT[k] = THEMES[k].ctaText.toLowerCase();
+  // the mark of the app comes in the theme's own colours (its S is light: the white theme gets dark letters); R34 Purple keeps the violet one.
+  // The files are src/assets/logo-mark-<name>.svg (a filter would be switched off by the light mode of the performance setting)
+  const LOGO_FILE = { white: 'dark', crimson: 'crimson', olive: 'olive', indigo: 'indigo' };
+  // names of earlier versions: Midnight Purple is R34 Purple now, the high contrast theme is gone
+  const OLD_NAMES = { midnight: 'r34', contrast: 'dark' };
+  // 'auto' is the dark theme (Windows' own high contrast mode is handled by the forced-colors rules in edge.css).
   function resolve(name) {
-    if (name === 'auto') { try { return window.matchMedia('(prefers-contrast: more)').matches ? 'contrast' : 'dark'; } catch (_) { return 'dark'; } }
+    if (OLD_NAMES[name]) name = OLD_NAMES[name];
     return PALETTE[name] ? name : 'dark';
   }
   let matchUp = null;
@@ -53,10 +74,9 @@
   const OZ = ['style', 'fill', 'stroke'];
   function elem(el) {
     if (!el.getAttribute) return;
-    // the mark's light S disappears on the white surfaces (1.1 : 1): that theme uses logo-mark-dark.svg
-    if (el.tagName === 'IMG' && matchUp === PALETTE.white) {
-      const src = el.getAttribute('src');
-      if (src && /logo-mark\.svg$/.test(src)) el.setAttribute('src', src.replace('logo-mark.svg', 'logo-mark-dark.svg'));
+    if (el.tagName === 'IMG') {
+      const lf = LOGO_FILE[document.documentElement.getAttribute('data-theme')], src = el.getAttribute('src');
+      if (lf && src && /logo-mark\.svg$/.test(src)) el.setAttribute('src', src.replace('logo-mark.svg', 'logo-mark-' + lf + '.svg'));
     }
     for (const o of OZ) {
       const s = el.getAttribute(o);
@@ -80,7 +100,7 @@
   }
   let observation = null;
   function applyTheme(name) {
-    try { localStorage.setItem('se_theme', name === 'auto' || PALETTE[name] ? name : 'dark'); } catch (_) {}
+    try { localStorage.setItem('se_theme', name === 'auto' || PALETTE[name] || OLD_NAMES[name] ? (OLD_NAMES[name] || name) : 'dark'); } catch (_) {}
     const choice = resolve(name);
     const previous = document.documentElement.getAttribute('data-theme') || 'dark';
     if (previous === choice) return;
@@ -104,6 +124,12 @@
         + 'div[style*="width:16px"][style*="margin-left:16px"],div[style*="width: 16px"][style*="margin-left: 16px"]{background:#fff !important}';
       document.head.appendChild(st);
     }
+    if (CTA_TEXT[choice]) {
+      const st = document.createElement('style');
+      const b = PALETTE[choice]['5624b3'];
+      st.textContent = '[style*="background:#' + b + '" i],[style*="background: #' + b + '" i]{color:#' + CTA_TEXT[choice] + ' !important}';
+      document.head.appendChild(st);
+    }
     if (document.body) tree(document.body);
     observation = new MutationObserver((ms) => { for (const m of ms) {
       if (m.type === 'attributes') elem(m.target); else m.addedNodes.forEach(tree);
@@ -112,6 +138,7 @@
   }
   window.applyTheme = applyTheme;
   window.themePalettes = PALETTE;      // read by the contrast test
+  window.themeCtaText = CTA_TEXT;
   let initial = 'auto'; try { initial = localStorage.getItem('se_theme') || 'auto'; } catch (_) {}
   if (resolve(initial) !== 'dark') {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(initial));
