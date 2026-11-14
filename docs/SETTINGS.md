@@ -16,7 +16,7 @@ Settings live in `settings/settings.json` next to the executable, and per-accoun
 | `priceDropThreshold` | `10` | Percent below Steam's 24-hour average that marks a price drop |
 | `reconnectPolicy` | `unlimited` | Reconnect after a dropped connection: `unlimited`, `10`, `3` or `off` |
 | `sessionTimeout` | `never` | Close all sessions after this many idle minutes; running jobs do not count as idle |
-| `theme` | `dark` | Colour theme: `dark`, `midnight`, `white` |
+| `theme` | `dark` | Colour theme: `auto`, `dark`, `white`, `r34`, `crimson`, `olive`, `indigo` |
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 
 The [configuration reference](./guides/TUTORIAL.md#️-configuration-reference) covers the keys worth knowing about; the rest are the other controls on the Settings page.

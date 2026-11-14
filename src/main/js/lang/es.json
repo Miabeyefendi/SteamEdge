@@ -350,7 +350,6 @@
  "Grupla": "Agrupar",
  "Hepsi": "Todos",
  "Hedef": "Objetivo",
- "Başarım sayısı": "Nº de logros",
  "Kalan": "Restante",
  "Kartlar": "Cromos",
  "Kuponlar": "Cupones",
@@ -1218,8 +1217,6 @@
  "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "La aplicación no descarga nada. Descárgala tú mismo desde la página de versiones, extrae el archivo en una carpeta VACÍA y NUEVA y copia en ella la carpeta settings de la anterior.",
  "Windows oturumu açıldığında SteamEdge kendiliğinden başlar ve kayıtlı hesaplara bağlanır.": "SteamEdge se inicia solo al iniciar sesión en Windows y conecta tus cuentas guardadas.",
  "Tema": "Tema",
- "Koyu": "Oscuro",
- "Gece Moru": "Púrpura medianoche",
  "Beyaz": "Blanco",
  "Arayüzün ve giriş ekranının renkleri. Kaydedince hemen uygulanır.": "Colores de la interfaz y de la pantalla de inicio de sesión. Se aplica al guardar.",
  "QR Kod": "Código QR",
@@ -1447,7 +1444,6 @@
  "İşler Sürdürüldü": "Tareas reanudadas",
  "Arayüz ölçeği": "Escala de la interfaz",
  "Tüm arayüzü büyütür ya da küçültür. Seçilen ölçek pencereye sığmazsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değiştirilebilir.": "Agranda o reduce toda la interfaz. Si la ventana no basta para el diseño a la escala elegida, la escala se reduce para ajustarse a la ventana. También cambia con Ctrl + / - / 0.",
- "Yüksek karşıtlık": "Alto contraste",
  "Komut paleti": "Paleta de comandos",
  "Komut ara...": "Buscar comandos...",
  "Sayfalar": "Páginas",
@@ -1506,5 +1502,10 @@
  "\"Donanım hızlandırma\" kapalıyken kullanılmaz.": "No se usa mientras «Aceleración por hardware» esté desactivada.",
  "Pazardaki en düşük fiyat #, siz # fiyatından satıyorsunuz.": "El precio más bajo del mercado es #, tú vendes a #.",
  "Siz # fiyatından satıyorsunuz.": "Vendes a #.",
- "Onaylamadan önce fiyatları kontrol edin.": "Revisa los precios antes de confirmar."
+ "Onaylamadan önce fiyatları kontrol edin.": "Revisa los precios antes de confirmar.",
+ "Siyah": "Negro",
+ "R34 Purple": "R34 Purple",
+ "Crimson": "Crimson",
+ "Olive": "Olive",
+ "Indigo": "Indigo"
 }

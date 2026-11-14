@@ -66,7 +66,7 @@
   .barwrap .bpct{font-size:12px;color:#e8eaf0;font-weight:700;white-space:nowrap;min-width:100px;text-align:right;font-variant-numeric:tabular-nums}
   .barlbl{font-size:12px;color:#7F879B;margin-top:6px}
   .gdet{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 18px;margin-top:14px;padding-top:14px;border-top:1px solid #252a3a}
-  .gdet .r{display:flex;flex-direction:column;gap:2px;font-size:12.5px}
+  .gdet .r{display:flex;flex-direction:column;gap:2px;font-size:12px}
   .gdet .r span{color:#7F879B;font-size:12px}
   .gdet .r b{color:#e8eaf0;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
 
@@ -80,7 +80,7 @@
   .gq-item{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:#141720;border:1px solid #252a3a;border-radius:8px;padding:8px 10px}
   .gq-item img{width:28px;height:28px;border-radius:6px;object-fit:cover;flex:none;background:#1a1f2e}
   .gq-info{flex:1;min-width:0}
-  .gq-name{font-size:11.5px;font-weight:600;color:#e8eaf0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gq-name{font-size:12px;font-weight:600;color:#e8eaf0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .gq-sub{font-size:12px;color:#7F879B;margin-top:1px}
   .gq-pos{font-size:12px;color:#4f8ef7;font-weight:700;flex:none}
 
@@ -101,7 +101,7 @@
 
   /* Quick Actions - temp2 button structure, a separate vertical panel on the right (the right column in both temp2/temp6) */
   .qa-col{display:flex;flex-direction:column;gap:8px}
-  .qa-btn{display:flex;align-items:center;gap:10px;padding:0 16px;height:44px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid}
+  .qa-btn{display:flex;align-items:center;gap:10px;padding:0 16px;height:44px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid}
   .qa-btn.primary{background:linear-gradient(135deg,rgba(79,142,247,.18),rgba(167,139,250,.12));border-color:rgba(79,142,247,.35);color:#93c5fd}
   .qa-btn.primary:hover{background:linear-gradient(135deg,rgba(79,142,247,.28),rgba(167,139,250,.2));box-shadow:0 0 16px rgba(79,142,247,.2)}
   .qa-btn.secondary{background:#191d28;border-color:#252a3a;color:#7F879B}

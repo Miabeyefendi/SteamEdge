@@ -136,7 +136,7 @@ Todo lo que se le puede pedir a la aplicación, agrupado: General, Farmeo de cro
 
 Los cambios esperan en la página hasta que pulses **Guardar**. Antes no se escribe nada, y salir de la página con cambios sin guardar pregunta primero. Tras guardar, el farmeo o el impulso de horas en marcha a los que afecten los ajustes cambiados se pausan unos cinco segundos y siguen desde el mismo juego con los nuevos valores; los ajustes que no afectan a una tarea en marcha se aplican al instante. **Restablecer** carga los valores predeterminados en la página y también espera a Guardar; mantiene el idioma de la aplicación.
 
-El tema (Automático, Oscuro, Púrpura medianoche, Blanco, Alto contraste) está en General y se aplica también a la pantalla de inicio de sesión. Automático usa Alto contraste cuando el sistema pide más contraste y Oscuro en otro caso. La **Escala de la interfaz** (de 80 a 150 por ciento, 100 por defecto) agranda o reduce toda la interfaz; Ctrl + / - / 0 también la cambian, y la ventana del primer inicio la pregunta. Si la ventana es demasiado pequeña para el diseño a la escala elegida, la escala se reduce a lo que cabe. El texto tenue se lee a 4,5 : 1 o más sobre su fondo en todos los temas (7 : 1 en Alto contraste), ningún texto es menor de 11 píxeles y se siguen los temas de contraste de Windows (colores forzados).
+El tema (Automático, Negro, Blanco, R34 Purple, Crimson, Olive, Indigo) está en General y se aplica también a la pantalla de inicio de sesión. Automático es Negro. R34 Purple y Crimson son paletas de Vantagraph; Olive e Indigo siguen el mismo patrón (superficies teñidas con un acento complementario). La **Escala de la interfaz** (de 80 a 150 por ciento, 100 por defecto) agranda o reduce toda la interfaz; Ctrl + / - / 0 también la cambian, y la ventana del primer inicio la pregunta. Si la ventana es demasiado pequeña para el diseño a la escala elegida, la escala se reduce a lo que cabe. El texto tenue se lee a 4,5 : 1 o más sobre su fondo en todos los temas, ningún texto es menor de 11 píxeles y se siguen los temas de contraste de Windows (colores forzados).
 
 Los interruptores y el menú lateral funcionan con el teclado: Tab pasa de uno a otro, Enter o Espacio acciona uno, y un lector de pantalla los anuncia como interruptores y botones, con la página abierta marcada como la actual.
 
@@ -315,7 +315,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `language` | `en` | Idioma de la interfaz: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Arrancar con Windows |
 | `startInTray` | `true` | Cuando Windows arranca la app (`autoLaunch`), la ventana no se abre y la app funciona en la bandeja; si la arrancas tú, la ventana siempre se abre |
-| `theme` | `auto` | Tema de color: `auto` (alto contraste si el sistema lo pide, oscuro en otro caso), `dark`, `midnight` (Púrpura medianoche), `white`, `contrast` (Alto contraste) |
+| `theme` | `auto` | Tema de color: `auto` (negro), `dark` (Negro), `white`, `r34` (R34 Purple), `crimson`, `olive`, `indigo` |
 | `density` | `auto` | Espaciado y altura de fila: `auto` (compacto mientras la ventana es baja), `comfortable`, `compact` |
 | `uiScale` | `100` | Escala de la interfaz en porcentaje: `80`, `90`, `100`, `110`, `125`, `150`. Una ventana demasiado pequeña para el diseño a esa escala la reduce a lo que cabe |
 | `perfMode` | `auto` | Rendimiento: `auto`, `full`, `light` (sin animaciones, desenfoque ni sombras) |

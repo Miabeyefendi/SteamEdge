@@ -59,7 +59,7 @@
       if (paused){
         banner.style.display = 'flex';
         banner.innerHTML = '<span>' + esc(tf('Steam hız sınırına takıldı; # sonra devam edilecek.', kyWait(waitingMs))) + '</span>'
-          + '<button id="kyTryNow" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B37E24;color:#B37E24;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">' + esc(t('Şimdi Dene')) + '</button>';
+          + '<button id="kyTryNow" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #B37E24;color:#B37E24;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">' + esc(t('Şimdi Dene')) + '</button>';
         kyEl('kyTryNow').onclick = () => window.imu.keys.start(true);
       } else if (keyState.error){
         banner.style.display = 'flex';
@@ -84,7 +84,7 @@
         return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #101621">'
           + '<span style="width:7px;height:7px;border-radius:12px;background:' + st.color + ';flex-shrink:0"></span>'
           + '<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">'
-            + '<span style="font-size:12.5px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(games || r.key) + '</span>'
+            + '<span style="font-size:12px;font-weight:600;color:#DCE2FA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(games || r.key) + '</span>'
             + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B">' + esc(r.key) + '</span>'
             + (r.forwardedTo ? '<span style="font-size:12px;color:#24AEB3">' + esc(tf('# hesabında denenecek.', r.forwardedTo)) + '</span>' : '')
           + '</div>'

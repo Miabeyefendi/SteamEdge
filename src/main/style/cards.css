@@ -1,11 +1,11 @@
   /* ---- Card Farming ---- */
   .pg-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .pg-head h1{font-size:24px;font-weight:800}
-  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--green);background:#12261a;border:1px solid #1e3a26;border-radius:20px;padding:5px 11px}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--green);background:#12261a;border:1px solid #1e3a26;border-radius:20px;padding:5px 11px}
   .pill .d{width:7px;height:7px;border-radius:50%;background:var(--green)}
   .gchip{display:inline-flex;align-items:center;gap:8px;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:9px;padding:6px 11px}
   .gchip .gt{width:22px;height:16px;border-radius:3px;background:linear-gradient(135deg,#7a2d2d,#3a2020)}
-  .kk{color:var(--blue);font-size:13.5px;font-weight:600}
+  .kk{color:var(--blue);font-size:13px;font-weight:600}
   .pg-head .right{margin-left:auto;display:flex;gap:10px}
   .hbtn{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s}
   .hbtn:hover{border-color:var(--blue)}
@@ -30,7 +30,7 @@
   .stepper .val small{font-size:14px;font-weight:500;color:var(--muted);margin-left:5px}
   .stepper .sp{margin-left:auto;display:flex;gap:8px}
   .sq{width:34px;height:34px;border-radius:9px;background:var(--card2);border:1px solid var(--line);color:var(--txt);cursor:pointer;font-size:16px}
-  .note{font-size:11.5px;color:var(--muted)}
+  .note{font-size:12px;color:var(--muted)}
   .big{font-size:32px;font-weight:800;color:var(--blue)}.big small{font-size:14px;color:var(--muted);font-weight:500;margin-left:5px}
   .sw{position:relative;width:38px;height:22px;border-radius:12px;background:#2a3644;cursor:pointer;flex:none}
   .sw.on{background:var(--blue)}
@@ -39,7 +39,7 @@
   .headless{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
   .headless .top{display:flex;align-items:center;gap:10px}
   .headless .top .a{font-size:12px;font-weight:700;letter-spacing:.5px;color:var(--muted);flex:1}
-  .headless .desc{font-size:11.5px;color:var(--blue);margin-top:9px;line-height:1.45}
+  .headless .desc{font-size:12px;color:var(--blue);margin-top:9px;line-height:1.45}
   .kmid{display:grid;grid-template-columns:1.75fr 1fr;gap:16px;margin-bottom:16px}
   .kmid .kpanel{height:var(--box-3);overflow-y:auto}
   .kmid .kpanel .slabel{position:sticky;top:0;background:var(--card);z-index:2;margin:0 0 8px;padding-bottom:4px}
@@ -52,22 +52,22 @@
   .gname .gt{width:26px;height:18px;border-radius:3px;background:linear-gradient(135deg,#3a4a5d,#26323f);flex:none}
   .pbar{width:110px;height:9px;border-radius:5px;background:#0e1620;border:1px solid var(--line);display:inline-block;position:relative;vertical-align:middle;margin-right:8px}
   .pbar>i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--blue),#7031CC);border-radius:5px}
-  .tdel{color:var(--red-s);cursor:pointer;font-size:12.5px}
+  .tdel{color:var(--red-s);cursor:pointer;font-size:12px}
   .stars{color:var(--blue);letter-spacing:1px}.stars .o{color:#33465a}
   .rowacts{display:flex;gap:11px;color:var(--muted);align-items:center}
   .rowacts svg{cursor:pointer}.rowacts .x{color:var(--red-s)}
   .chk{width:17px;height:17px;border-radius:5px;border:1px solid var(--line);background:var(--card2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;vertical-align:middle}
   .chk.on{background:var(--blue);border-color:var(--blue);color:#fff}
   .goal{display:flex;gap:11px;padding:10px 0}
-  .goal .tx{flex:1}.goal .tx .a{font-size:13px;font-weight:600}.goal .tx .b{font-size:11.5px;color:var(--muted)}
+  .goal .tx{flex:1}.goal .tx .a{font-size:13px;font-weight:600}.goal .tx .b{font-size:12px;color:var(--muted)}
   .listbtns{display:flex;gap:10px;margin-top:13px;flex-wrap:wrap}
-  .lbtn{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:9px 13px;cursor:pointer}
+  .lbtn{display:inline-flex;align-items:center;gap:7px;font-size:12px;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:9px 13px;cursor:pointer}
   .lbtn:hover{background:#1c2733}
   .optrow{display:flex;align-items:center;gap:10px;padding:9px 0}
   .optrow .a{flex:1;font-size:13px}
   .bigacts{display:flex;gap:12px;margin-top:16px}
   .bigacts .btn{flex:1;height:var(--btn-lg);font-size:15px;font-weight:700;box-shadow:var(--shadow)}
-  .kfoot{display:flex;align-items:center;gap:22px;justify-content:flex-end;margin-top:18px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);font-size:12.5px;color:var(--text-2)}
+  .kfoot{display:flex;align-items:center;gap:22px;justify-content:flex-end;margin-top:18px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card);font-size:12px;color:var(--text-2)}
   .kfoot .dg{display:inline-flex;align-items:center;gap:6px}.kfoot .dg .d{width:7px;height:7px;border-radius:50%;background:var(--green)}
   /* ---- Card Farming v2 (template-driven redesign) ---- */
   .kt-box .kt-lbl{font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px}

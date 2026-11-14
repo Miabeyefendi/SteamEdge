@@ -26,8 +26,8 @@
         <span style="font-family:Geist Mono,monospace;font-size:18px;font-weight:700;color:#DCE2FA;line-height:1"><span id="grClockH">00</span><span style="color:#C2AAEE">:</span><span id="grClockM">00</span><span style="color:#C2AAEE">:</span><span id="grClockS">00</span></span>
       </div>
       <div style="width:1px;height:34px;background:#1D2432"></div>
-      <button id="grStart" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Başlat</button>
-      <button id="grStop" class="h-stop" style="height:38px;padding:0 20px;border-radius:999px;background:#B32453;border:1px solid #B32453;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Durdur</button>
+      <button id="grStart" class="h-start" style="height:36px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Başlat</button>
+      <button id="grStop" class="h-stop" style="height:36px;padding:0 20px;border-radius:999px;background:#B32453;border:1px solid #B32453;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer">Durdur</button>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
   <div class="e-split" style="flex:1;min-height:0;display:flex;gap:0">
 
     <!-- LEFT: game list, duration, target -->
-    <div style="width:352px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
+    <div style="width:320px;flex-shrink:0;min-height:0;border-right:1px solid #1D2432;display:flex;flex-direction:column;background:#090C12">
       <div style="flex-shrink:0;padding:14px 14px 14px 32px;border-bottom:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun</span>
@@ -72,7 +72,7 @@
         </div>
         <div style="position:relative;display:flex;align-items:center">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:11px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
-          <input id="grSearch" type="text" placeholder="Oyun ara..." class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 33px;outline:none">
+          <input id="grSearch" type="text" placeholder="Oyun ara..." class="f-brand" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 33px;outline:none">
         </div>
         <div id="grResultsBox" style="display:none;border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:6px;flex-direction:column;gap:2px">
           <div id="grResults" style="display:flex;flex-direction:column;gap:2px"></div>
@@ -81,8 +81,8 @@
       </div>
       <div style="flex:1;min-height:0;overflow-y:auto;padding:10px" id="grLibrary"></div>
       <div style="flex-shrink:0;padding:14px;border-top:1px solid #1D2432;display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;align-items:flex-end;gap:10px">
-          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px">
+          <div style="flex:1;min-width:170px;display:flex;flex-direction:column;gap:9px">
             <span style="white-space:nowrap;font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Çalışma süresi</span>
             <div style="display:flex;align-items:center;justify-content:center;gap:6px;height:48px;padding:0 10px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
               <div style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:100%">
@@ -101,9 +101,9 @@
               </div>
             </div>
           </div>
-          <div style="width:112px;flex-shrink:0;display:flex;flex-direction:column;gap:9px">
+          <div style="width:86px;flex-shrink:0;display:flex;flex-direction:column;gap:9px">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
-              <span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B8F9E">Başarım sayısı</span>
+              <span style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#8B8F9E">Hedef</span>
               <button id="grAutoTarget" style="height:16px;padding:0 6px;border-radius:999px;border:1px solid #2B3345;background:#0D1118;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;letter-spacing:0.08em;cursor:pointer">OTO</button>
             </div>
             <div id="grTargetBox" style="height:48px;display:flex;align-items:center;justify-content:center;gap:3px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
@@ -173,7 +173,7 @@
     </div>
 
     <!-- RIGHT: simple / advanced settings -->
-    <div class="gr-yan e-side" style="width:290px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
+    <div class="gr-yan e-side" style="width:320px;flex-shrink:0;border-left:1px solid #1D2432;background:#090C12;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:18px">
       <div style="display:flex;gap:4px;padding:3px;border-radius:999px;background:#0D1118;border:1px solid #2B3345">
         <button id="grLvlSimple" style="flex:1;height:28px;border-radius:999px;border:1px solid #5624B3;background:#151C28;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Basit</button>
         <button id="grLvlAdv" style="flex:1;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Gelişmiş</button>
@@ -188,14 +188,14 @@
           </div>
           <!-- The box must be the SAME width as the dropdowns under it. The row used to be two flex children, "input + hours"; it stayed as narrow as the "hours" label and a single box sat tucked in the panel. The unit is now inside the field, positioned; the outer container is full width. -->
           <div style="position:relative;width:100%">
-            <input id="grTcMain" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
+            <input id="grTcMain" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
             <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#7F879B;pointer-events:none">saat</span>
           </div>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Oyun Ne Kadar Sürüyor</span>
-          <select id="grCR" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+          <select id="grCR" class="f-brand" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
             <option value="1.5">Kısa hikaye oyunu</option>
             <option value="2.0">Orta uzunlukta</option>
             <option value="2.5">Uzun · açık dünya</option>
@@ -206,7 +206,7 @@
 
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Başarımlar Ne Kadar Zor</span>
-          <select id="grDiff" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+          <select id="grDiff" class="f-brand" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
             <!-- The template had long dashes (em dash) on these rows; they were turned into plain dashes per the project's rule. The visual layout is the same. -->
             <option value="0.8">Kolay - hikayeyle gelir</option>
             <option value="1.2">Normal - biraz uğraşır</option>
@@ -245,24 +245,24 @@
           </div>
           <!-- The box must be the SAME width as the dropdowns under it. The row used to be two flex children, "input + hours"; it stayed as narrow as the "hours" label and a single box sat tucked in the panel. The unit is now inside the field, positioned; the outer container is full width. -->
           <div style="position:relative;width:100%">
-            <input id="grTc" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
+            <input id="grTc" class="f-brand" placeholder="tahmin" style="width:100%;box-sizing:border-box;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 44px 0 10px;outline:none">
             <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#7F879B;pointer-events:none">saat</span>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Hız</span>
           <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;padding:2px 14px">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Hız çarpanı</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Tüm çizelgeyi sıkıştırır ya da gevşetir. 0,5 iki kat hızlıdır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grSpeed" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">×</span></div></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Ultra nadir bekleme</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Başarımların en nadir onda biri bu kadar kat daha uzun bekler ve hep sonda açılır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grUltraMultiplier" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">×</span></div></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Telafi payı</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Geride kalanlar sürenin ilk yüzde kaçında açılır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grCatchUpShare" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">%</span></div></div>
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Bitmiş oyunda sıkıştır</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grFinishedRatio" type="number" class="f-brand" style="height:30px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">%</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Hız çarpanı</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Tüm çizelgeyi sıkıştırır ya da gevşetir. 0,5 iki kat hızlıdır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grSpeed" type="number" class="f-brand" style="height:36px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">×</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Ultra nadir bekleme</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Başarımların en nadir onda biri bu kadar kat daha uzun bekler ve hep sonda açılır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grUltraMultiplier" type="number" class="f-brand" style="height:36px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">×</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Telafi payı</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Geride kalanlar sürenin ilk yüzde kaçında açılır.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grCatchUpShare" type="number" class="f-brand" style="height:36px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">%</span></div></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid #101621"><div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-size:12px;color:#B9C0D6">Bitmiş oyunda sıkıştır</span><span style="font-size:12px;color:#7F879B;line-height:1.5">Oynanan süre bitiş süresini geçtiyse çizelge bu orana iner.</span></div><div style="display:flex;align-items:center;gap:5px;flex-shrink:0"><input id="grFinishedRatio" type="number" class="f-brand" style="height:36px;width:78px;flex-shrink:0;border-radius:12px;background:#090C12;border:1px solid #2B3345;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:12px;font-weight:700;text-align:center;outline:none"><span style="font-size:12px;color:#7F879B;width:16px">%</span></div></div>
           </div>
           <span style="font-size:12px;color:#8B8F9E;line-height:1.6;text-wrap:pretty" id="grSpeedNote">-</span>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Dağıtım Modeli</span>
-          <select id="grModel" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+          <select id="grModel" class="f-brand" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
             <option value="linear">Doğrusal · eşit aralık</option>
             <option value="exp">Üstel · önden yüklemeli</option>
             <option value="pareto">Pareto · 80/20</option>
@@ -301,7 +301,7 @@
 
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Kalan Başarım Zorluğu</span>
-          <select id="grDiff2" class="f-brand" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
+          <select id="grDiff2" class="f-brand" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer">
             <option value="0.8">Kolay · hızlı oyuncu</option>
             <option value="1.2">Normal · ortalama oyuncu</option>
             <option value="2.0">Zor · vakit harcayan</option>

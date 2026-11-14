@@ -350,7 +350,6 @@
  "Grupla": "Группировать",
  "Hepsi": "Все",
  "Hedef": "Цель",
- "Başarım sayısı": "Число",
  "Kalan": "Осталось",
  "Kartlar": "Карточки",
  "Kuponlar": "Купоны",
@@ -1218,8 +1217,6 @@
  "Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.": "Приложение ничего не скачивает. Вы сами загружаете архив со страницы выпуска, распаковываете его в ПУСТУЮ и НОВУЮ папку, а затем копируете туда папку settings из старой.",
  "Windows oturumu açıldığında SteamEdge kendiliğinden başlar ve kayıtlı hesaplara bağlanır.": "SteamEdge запускается сам при входе в Windows и подключает сохранённые аккаунты.",
  "Tema": "Тема",
- "Koyu": "Тёмная",
- "Gece Moru": "Полночный фиолетовый",
  "Beyaz": "Белая",
  "Arayüzün ve giriş ekranının renkleri. Kaydedince hemen uygulanır.": "Цвета интерфейса и экрана входа. Применяется сразу после сохранения.",
  "QR Kod": "QR-код",
@@ -1447,7 +1444,6 @@
  "İşler Sürdürüldü": "Задания продолжены",
  "Arayüz ölçeği": "Масштаб интерфейса",
  "Tüm arayüzü büyütür ya da küçültür. Seçilen ölçek pencereye sığmazsa ölçek pencereye göre küçülür. Ctrl + / - / 0 tuşlarıyla da değiştirilebilir.": "Увеличивает или уменьшает весь интерфейс. Если окно слишком мало для макета в выбранном масштабе, масштаб уменьшается под окно. Меняется и клавишами Ctrl + / - / 0.",
- "Yüksek karşıtlık": "Высокая контрастность",
  "Komut paleti": "Палитра команд",
  "Komut ara...": "Поиск команд...",
  "Sayfalar": "Страницы",
@@ -1506,5 +1502,10 @@
  "\"Donanım hızlandırma\" kapalıyken kullanılmaz.": "Не используется, пока выключено «Аппаратное ускорение».",
  "Pazardaki en düşük fiyat #, siz # fiyatından satıyorsunuz.": "Самая низкая цена на рынке: #, вы продаёте за #.",
  "Siz # fiyatından satıyorsunuz.": "Вы продаёте за #.",
- "Onaylamadan önce fiyatları kontrol edin.": "Проверьте цены перед подтверждением."
+ "Onaylamadan önce fiyatları kontrol edin.": "Проверьте цены перед подтверждением.",
+ "Siyah": "Чёрная",
+ "R34 Purple": "R34 Purple",
+ "Crimson": "Crimson",
+ "Olive": "Olive",
+ "Indigo": "Indigo"
 }

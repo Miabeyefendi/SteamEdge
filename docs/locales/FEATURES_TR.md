@@ -16,7 +16,7 @@
 - **Ekrana uyar** - Yerleşim 900 x 560'a kadar akışkandır: listeler kenardan taşmak yerine alt satıra geçer, dar pencerede yan menü kendiliğinden kapanır, kısa pencerede arayüz sıkışık moda geçer. Pencere kaldığı yerde, hâlâ var olan bir ekranda açılır. 900 x 560'tan küçük pencerelerde sayfanın tamamı pencereyle birlikte küçülür (675 x 420'ye kadar), düğmeler biçimini korur.
 - **Modüler** - Kullanmadığın sayfaları kapat (kart, saat, envanter, başarım, anahtar, sohbet), kalanları kendi sıranda diz. Kapalı sayfa Steam'den hiçbir şey istemez. Hafif mod zayıf bilgisayarlar için animasyon ve bulanıklığı kapatır, otomatik ayar bunu senin yerine seçer. Küçük özellikler (etkinlik kutusu, favori yıldızları, İlanlarım ve CSV düğmeleri) ve üst çubuk öğeleri (arama, bildirimler, güncellemeler) de kapatılabilir.
 - **Kaldığı yerden sürer** - Uygulama kapanırken, bilgisayar kapanırken ya da uygulama çökerken sürmekte olan bir kart düşürme, saat yükseltme ya da Gerçekçi Mod çalışması, hesap yeniden bağlanınca kaldığı yerden başlar. Uygulamanın çalışmadığı süre sayılmaz: üç saati kalan bir yükseltme yine üç saat sürer.
-- **Okunaklı ve klavye dostu** - Yüzde 80 ile 150 arası arayüz ölçeği (Ctrl + / - / 0 ile de), sistemin karşıtlık ayarını izleyen Yüksek karşıtlık teması, 4,5 : 1 ya da daha iyi okunan ve 11 pikselden küçük olmayan metin, klavyeyle ve ekran okuyucuyla çalışan anahtarlar ile yan menü.
+- **Okunaklı ve klavye dostu** - Yüzde 80 ile 150 arası arayüz ölçeği (Ctrl + / - / 0 ile de), altı renk teması, Windows'un kendi yüksek karşıtlık modu desteği, 4,5 : 1 ya da daha iyi okunan ve 11 pikselden küçük olmayan metin, klavyeyle ve ekran okuyucuyla çalışan anahtarlar ile yan menü.
 - **Hızlı gezinme** - Ctrl+K, yazdıkça sayfaları, ayarları, hesapları ve açık sayfanın işlemlerini bulan bir komut paleti açar; Ctrl+1 ile Ctrl+9 sayfaları numarayla açar, ? kısayolları listeler, Ayarlar'ın kendi arama kutusu vardır ve değiştirip kaydettiğin bölümleri işaretler.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur. İstemci hiç açılmaz, gerekmez de.
 - **Taşınabilir** - Çıkar ve çalıştır. Kurulum yok, kayıt defterine dokunulmaz, her şey exe'nin yanında durur.
@@ -33,11 +33,14 @@
 | <img src="../../design/screenshots/Market2.png" alt="Pazar, sipariş defteri"><br><sub>Pazar, sipariş defteri</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam sohbeti"><br><sub>Steam sohbeti</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ayarlar"><br><sub>Ayarlar</sub> |  |
 
-**Temalar: Koyu, Gece Moru, Beyaz (Ayarlar > Genel > Tema)**
+**Temalar: Siyah, Beyaz, R34 Purple, Crimson, Olive, Indigo (Ayarlar > Genel > Tema)**
 
-| Koyu | Gece Moru | Beyaz |
+| Siyah | Beyaz | R34 Purple |
 |---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="Koyu"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="Gece Moru"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Beyaz"> |
-| <img src="../../design/screenshots/themes/login-dark.png" alt="Koyu"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="Gece Moru"> | <img src="../../design/screenshots/themes/login-white.png" alt="Beyaz"> |
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="Siyah"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Beyaz"> | <img src="../../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
+
+| Crimson | Olive | Indigo |
+|---|---|---|
+| <img src="../../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
 
 </div>

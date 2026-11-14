@@ -136,7 +136,7 @@ Uygulamaya söylenebilecek her şey, gruplanmış hâlde: Genel, Kart Düşürme
 
 Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra, değişen ayarlardan etkilenen bir kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder; çalışan bir işe dokunmayan ayarlar hemen uygulanır. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
 
-Tema (Otomatik, Koyu, Gece Moru, Beyaz, Yüksek karşıtlık) Genel bölümündedir, giriş ekranına da uygulanır. Otomatik, sistem daha fazla karşıtlık isterse Yüksek karşıtlığı, istemezse Koyuyu kullanır. **Arayüz ölçeği** (yüzde 80 ile 150 arası, varsayılan 100) bütün arayüzü büyütür ya da küçültür; Ctrl + / - / 0 tuşları da onu değiştirir ve ilk açılışta çıkan pencere de bunu sorar. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek, sığan değere küçülür. Soluk metin her temada zeminine karşı 4,5 : 1 ya da daha iyi okunur (Yüksek karşıtlıkta 7 : 1), hiçbir metin 11 pikselden küçük değildir ve Windows'un karşıtlık temaları (zorunlu renkler) izlenir.
+Tema (Otomatik, Siyah, Beyaz, R34 Purple, Crimson, Olive, Indigo) Genel bölümündedir, giriş ekranına da uygulanır. Otomatik, Siyah temadır. R34 Purple ve Crimson Vantagraph paletleridir; Olive ve Indigo aynı düzene uyar (renk tonlu yüzeyler ve tamamlayıcı bir vurgu rengi). **Arayüz ölçeği** (yüzde 80 ile 150 arası, varsayılan 100) bütün arayüzü büyütür ya da küçültür; Ctrl + / - / 0 tuşları da onu değiştirir ve ilk açılışta çıkan pencere de bunu sorar. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek, sığan değere küçülür. Soluk metin her temada zeminine karşı 4,5 : 1 ya da daha iyi okunur, hiçbir metin 11 pikselden küçük değildir ve Windows'un karşıtlık temaları (zorunlu renkler) izlenir.
 
 Anahtarlar ve yan menü klavyeyle kullanılır: Tab aralarında gezdirir, Enter ya da Boşluk birine basar, ekran okuyucu onları anahtar ve düğme olarak, açık sayfayı da geçerli sayfa olarak duyurur.
 
@@ -315,7 +315,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `language` | `en` | Arayüz dili: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Windows ile başlat |
 | `startInTray` | `true` | Uygulamayı Windows başlattığında (`autoLaunch`) pencere açılmaz, uygulama tepside çalışır; kendin başlattığında pencere her zaman açılır |
-| `theme` | `auto` | Renk teması: `auto` (sistem isterse yüksek karşıtlık, yoksa koyu), `dark`, `midnight` (Gece Moru), `white`, `contrast` (Yüksek karşıtlık) |
+| `theme` | `auto` | Renk teması: `auto` (siyah), `dark` (Siyah), `white`, `r34` (R34 Purple), `crimson`, `olive`, `indigo` |
 | `density` | `auto` | Boşluk ve satır yüksekliği: `auto` (pencere kısayken sıkışık), `comfortable`, `compact` |
 | `uiScale` | `100` | Yüzde olarak arayüz ölçeği: `80`, `90`, `100`, `110`, `125`, `150`. O ölçekte yerleşime yetmeyen pencere ölçeği sığan değere küçültür |
 | `perfMode` | `auto` | Performans: `auto`, `full`, `light` (animasyon, bulanıklık ve gölge yok) |

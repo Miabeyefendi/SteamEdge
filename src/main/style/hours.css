@@ -27,7 +27,7 @@
   .grow2.sel{background:rgba(74,155,255,.08);border-left-color:var(--blue)}
   .gdot{width:6px;height:6px;border-radius:50%;background:var(--line-2);flex:none}
   .grow2.sel .gdot{background:var(--blue)}
-  .gnm{flex:1;min-width:0;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gnm{flex:1;min-width:0;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .grow2.sel .gnm{color:#a9cdff;font-weight:600}
   .ghrs{font-size:12px;color:var(--muted2);flex:none;font-variant-numeric:tabular-nums}
   .addbtn{width:24px;height:24px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:flex;
@@ -45,7 +45,7 @@
   .qnum{width:20px;height:20px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:flex;align-items:center;
         justify-content:center;font-size:12px;font-weight:800;color:var(--muted);flex:none}
   .qrow.on .qnum{background:rgba(86,36,179,.22);border-color:var(--blue);color:#C2AAEE}
-  .qname{flex:1;min-width:0;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qname{flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .qtarget{font-size:12px;color:var(--muted2);font-variant-numeric:tabular-nums;flex:none}
   /* Boost card (active-boost visual + Live badge; the order comes from the queue) */
   .bcard{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:9px;background:var(--card2)}
@@ -74,7 +74,7 @@
   .tabsm span.sel{background:#12263f;color:#fff}
   .glist{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px}
   .glist table{width:100%;border-collapse:collapse;font-size:13px}
-  .glist th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:9px 12px;background:var(--card2)}
+  .glist th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:9px 12px;background:var(--card2)}
   .glist th.r,.glist td.r{text-align:right}
   .glist td{padding:9px 12px;border-top:1px solid #1e2836}
   .glist td.r{color:var(--muted)}
@@ -84,16 +84,16 @@
   .selbox .x{margin-left:auto;color:var(--muted);cursor:pointer}
   .frow{margin:16px 0}
   .frow .lb{font-size:13px;font-weight:600;margin-bottom:9px;display:flex;align-items:center;gap:6px}
-  .frow .sq2{font-size:11.5px;color:var(--muted);margin-top:8px}
+  .frow .sq2{font-size:12px;color:var(--muted);margin-top:8px}
   .hstep{display:flex;align-items:center;gap:12px}
   .hstep .hv{font-size:30px;font-weight:800;color:var(--blue)}
   .hstep .hp{margin-left:auto;display:flex;gap:8px}
   .mini{display:flex;align-items:center;gap:10px}
   .mini .v{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:8px 18px;font-size:14px;font-weight:600;min-width:46px;text-align:center}
-  .mini .lft{flex:1;font-size:11.5px;color:var(--muted)}
+  .mini .lft{flex:1;font-size:12px;color:var(--muted)}
   .estate{border:1px dashed var(--line);border-radius:10px;padding:40px 16px;text-align:center;color:var(--muted)}
   .estate .ei{opacity:.45;margin-bottom:12px}
-  .estate .a{font-size:13.5px;color:var(--txt)}
+  .estate .a{font-size:13px;color:var(--txt)}
   .estate .b{font-size:12px;margin-top:5px}
   .qhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .qhead .qacts{display:flex;gap:10px;color:var(--muted)}.qhead .qacts svg{cursor:pointer}

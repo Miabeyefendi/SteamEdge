@@ -16,7 +16,7 @@
 - **Se adapta a tu pantalla** - El diseño es fluido hasta 900 x 560: las listas pasan a otra línea en vez de salirse por el borde, el menú lateral se cierra solo en una ventana estrecha y la interfaz pasa a modo compacto en una ventana baja. La ventana vuelve donde la dejaste, en una pantalla que siga existiendo. En ventanas más pequeñas que 900 x 560, toda la página se escala, hasta 675 x 420, y los botones conservan su forma.
 - **Modular** - Desactiva las páginas que no uses (cartas, horas, inventario, logros, claves, chat) y ordena el resto como quieras. Una página desactivada no pide nada a Steam. Un modo ligero quita animaciones y desenfoque para equipos modestos, y un ajuste automático lo elige por ti. También se pueden desactivar funciones pequeñas (el cuadro de actividad, las estrellas de favoritos, los botones Mis anuncios y CSV) y elementos de la barra superior (búsqueda, notificaciones, actualizaciones).
 - **Continúa donde lo dejó** - Una recolección de cartas, un impulso de horas o una ejecución del Modo realista que estaba en marcha cuando se cerró la app, se apagó el PC o falló la app vuelve a empezar donde se quedó cuando la cuenta se conecta de nuevo. El tiempo con la app parada no cuenta: un impulso al que le quedaban tres horas vuelve a tener tres horas.
-- **Legible y apto para teclado** - Una escala de la interfaz del 80 al 150 por ciento (también con Ctrl + / - / 0), un tema de Alto contraste que sigue el ajuste de contraste del sistema, texto que se lee a 4,5 : 1 o más y nunca menor de 11 píxeles, e interruptores y menú lateral que funcionan con el teclado y con lector de pantalla.
+- **Legible y apto para teclado** - Una escala de la interfaz del 80 al 150 por ciento (también con Ctrl + / - / 0), seis temas de color, compatibilidad con el modo de alto contraste de Windows, texto que se lee a 4,5 : 1 o más y nunca menor de 11 píxeles, e interruptores y menú lateral que funcionan con el teclado y con lector de pantalla.
 - **Navegación rápida** - Ctrl+K abre una paleta de comandos que encuentra páginas, ajustes, cuentas y las acciones de la página abierta mientras escribes; Ctrl+1 a Ctrl+9 abren páginas por número, ? lista los atajos, y los ajustes tienen su propio cuadro de búsqueda y marcan las secciones que cambiaste y guardaste.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam. El cliente nunca se abre y no hace falta.
 - **Portátil** - Extraer y ejecutar. Sin instalador, sin registro, todo vive junto al ejecutable.
@@ -33,11 +33,14 @@
 | <img src="../../design/screenshots/Market2.png" alt="Mercado, libro de órdenes"><br><sub>Mercado, libro de órdenes</sub> | <img src="../../design/screenshots/Chat.png" alt="Chat de Steam"><br><sub>Chat de Steam</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ajustes"><br><sub>Ajustes</sub> |  |
 
-**Temas: Oscuro, Púrpura medianoche, Blanco (Ajustes > General > Tema)**
+**Temas: Negro, Blanco, R34 Purple, Crimson, Olive, Indigo (Ajustes > General > Tema)**
 
-| Oscuro | Púrpura medianoche | Blanco |
+| Negro | Blanco | R34 Purple |
 |---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="Oscuro"> | <img src="../../design/screenshots/themes/overview-midnight.png" alt="Púrpura medianoche"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Blanco"> |
-| <img src="../../design/screenshots/themes/login-dark.png" alt="Oscuro"> | <img src="../../design/screenshots/themes/login-midnight.png" alt="Púrpura medianoche"> | <img src="../../design/screenshots/themes/login-white.png" alt="Blanco"> |
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="Negro"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Blanco"> | <img src="../../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
+
+| Crimson | Olive | Indigo |
+|---|---|---|
+| <img src="../../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
 
 </div>

@@ -32,8 +32,8 @@
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0">
-        <button id="invMyListings" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">İlanlarım</button>
-        <button id="invExportCsv" class="h-brand" style="height:34px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">CSV Aktar</button>
+        <button id="invMyListings" class="h-brand" style="height:36px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">İlanlarım</button>
+        <button id="invExportCsv" class="h-brand" style="height:36px;padding:0 16px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0">CSV Aktar</button>
       <!-- G9: a small note that says the reason for dimmed rows (inventory.js > drawThresholdBadge) -->
       <span id="invThresholdNote" style="display:none;align-items:center;gap:7px;font-size:12px;color:#8B8F9E;cursor:help;flex-shrink:0"></span>
       </div>
@@ -42,15 +42,15 @@
     <div style="width:100%;min-width:0;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <!-- Order: GAME first, then search. The same layout as the Achievements page; when the toolbars of the two screens were in different orders the eye searched again on each tab. -->
       <!-- Which inventory is on screen: the Steam community one, or a game's (Counter-Strike 2, Dota 2...). Shown once the games with items are known. -->
-      <select id="efSource" title="Hangi envanter" style="display:none;height:34px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;color:#DCE2FA;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:210px;flex:0 1 auto"></select>
-      <select id="efGame" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:230px;flex:0 1 auto">
+      <select id="efSource" title="Hangi envanter" style="display:none;height:36px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;color:#DCE2FA;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:210px;flex:0 1 auto"></select>
+      <select id="efGame" style="height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:230px;flex:0 1 auto">
         <option value="all">Tüm oyunlar</option>
       </select>
       <div style="position:relative;display:flex;align-items:center;flex:1 1 180px;min-width:150px">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8F9E" stroke-width="1.8" style="position:absolute;left:12px"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.3-4.3"></path></svg>
-        <input id="invSearch" type="text" placeholder="Eşya adı veya oyun ara..." class="f-focus" style="width:100%;height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 34px;outline:none">
+        <input id="invSearch" type="text" placeholder="Eşya adı veya oyun ara..." class="f-focus" style="width:100%;height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#DCE2FA;font-size:12px;padding:0 12px 0 34px;outline:none">
       </div>
-      <select id="efType" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:132px;flex:0 1 auto">
+      <select id="efType" style="height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:132px;flex:0 1 auto">
         <option value="all">Tüm türler</option>
         <option value="card">Kartlar</option>
         <option value="background">Arka Planlar</option>
@@ -61,14 +61,14 @@
         <option value="gems">Gemler</option>
         <option value="other">Diğer</option>
       </select>
-      <select id="efState" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:120px;flex:0 1 auto">
+      <select id="efState" style="height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:120px;flex:0 1 auto">
         <option value="all">Tüm durumlar</option>
         <option value="marketable">Satılabilir</option>
         <option value="notmarketable">Satılamaz</option>
         <option value="tradable">Takaslanabilir</option>
         <option value="nottradable">Takaslanamaz</option>
       </select>
-      <select id="efPrice" style="height:34px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:130px;flex:0 1 auto">
+      <select id="efPrice" style="height:36px;border-radius:12px;background:#0D1118;border:1px solid #2B3345;color:#B9C0D6;font-size:12px;padding:0 12px;outline:none;cursor:pointer;min-width:130px;flex:0 1 auto">
         <option value="all">Tüm fiyatlar</option>
         <option value="0-1">0 - 1</option>
         <option value="1-5">1 - 5</option>
@@ -76,16 +76,16 @@
         <option value="10-">10 ve üzeri</option>
       </select>
       <div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:#0D1118;border:1px solid #2B3345">
-        <button id="vList" style="width:32px;height:26px;border-radius:999px;border:1px solid #5624B3;background:#5624B3;color:#DCE2FA;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <button id="vList" style="width:32px;height:28px;border-radius:999px;border:1px solid #5624B3;background:#5624B3;color:#DCE2FA;cursor:pointer;display:flex;align-items:center;justify-content:center">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
-        <button id="vGrid" style="width:32px;height:26px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <button id="vGrid" style="width:32px;height:28px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;cursor:pointer;display:flex;align-items:center;justify-content:center">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
         </button>
       </div>
-      <button id="invGroup" class="h-bd" title="Oyuna göre grupla" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16M7 12h13M10 18h10"></path></svg>Grupla</button>
-      <button id="efReset" class="h-brand" style="height:34px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sıfırla</button>
+      <button id="invGroup" class="h-bd" title="Oyuna göre grupla" style="height:36px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 6h16M7 12h13M10 18h10"></path></svg>Grupla</button>
+      <button id="efReset" class="h-brand" style="height:36px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Sıfırla</button>
     </div>
   </div>
 
@@ -113,7 +113,7 @@
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
           <span style="font-family:Geist Mono,monospace;font-size:11px;color:#7F879B">Fiyatlar · <span id="invPriceProg">-</span></span>
           <!-- The price fetch button is HERE, in the filter row: what it does depends on the filter. Its previous place was the bottom bar and it had moved that and pushed it to the right edge. -->
-          <button id="invFetchPrices" class="h-brand" style="height:26px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Fiyatları Getir</button>
+          <button id="invFetchPrices" class="h-brand" style="height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #24AEB3;color:#24AEB3;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Fiyatları Getir</button>
         </div>
       </div>
 
@@ -147,16 +147,16 @@
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
       <!-- Price deviation warning: warns if the selected price is very far from the real market value -->
       <span id="bulkWarn" style="display:none;align-items:center;gap:6px;font-size:12px;color:#B37E24;max-width:330px;line-height:1.4"></span>
-      <button id="bulkClear" class="h-brand" style="height:38px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Temizle</button>
+      <button id="bulkClear" class="h-brand" style="height:36px;padding:0 14px;border-radius:999px;background:transparent;border:1px solid #2B3345;color:#8B8F9E;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer">Temizle</button>
       <div style="display:flex;gap:4px;padding:4px;border-radius:999px;background:#090C12;border:1px solid #2B3345" id="bulkStrat">
-        <button data-bs="median" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Ortalamadan</button>
-        <button data-bs="undercut" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Altına in</button>
-        <button data-bs="match" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">En ucuzla aynı</button>
-        <button data-bs="instant" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Hemen sat</button>
-        <button data-bs="manual" style="height:30px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Kendim</button>
+        <button data-bs="median" style="height:28px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Ortalamadan</button>
+        <button data-bs="undercut" style="height:28px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Altına in</button>
+        <button data-bs="match" style="height:28px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">En ucuzla aynı</button>
+        <button data-bs="instant" style="height:28px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Hemen sat</button>
+        <button data-bs="manual" style="height:28px;padding:0 11px;border-radius:999px;border:1px solid transparent;background:transparent;color:#8B8F9E;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Kendim</button>
       </div>
       <input id="bulkManual" type="text" class="f-focus" placeholder="0,00" style="display:none;width:96px;height:38px;border-radius:12px;background:#090C12;border:1px solid #7031CC;color:#DCE2FA;font-family:Geist Mono,monospace;font-size:13px;font-weight:700;text-align:center;padding:0 10px;outline:none">
-      <button id="bulkSellNow" class="h-start" style="height:38px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Sat · <span id="bulkCount2">0</span></button>
+      <button id="bulkSellNow" class="h-start" style="height:36px;padding:0 20px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Sat · <span id="bulkCount2">0</span></button>
     </div>
   </div>
 </div>
