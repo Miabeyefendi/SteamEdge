@@ -1420,7 +1420,7 @@
     document.getElementById('acctLogoutBtn').onclick = () => {
       // ITEM 9: signing out does NOT delete permanent data, say it clearly - so the user does not hesitate
       edgeConfirm({
-        tag:'Çıkış Yap',
+        tag:'Çıkış Yap', danger:true,
         title:'Bu hesaptan çıkış yapılacak',
         body:t('Oturum kapatılır ve giriş ekranına dönersin.') + '\n\n'
              + t('Ayarların, saat yükseltici listen, başarım geçmişin ve istatistiklerin SİLİNMEZ; tekrar giriş yaptığında yerinde olur.'),

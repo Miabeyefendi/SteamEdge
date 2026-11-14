@@ -709,7 +709,6 @@
  "ses:": "sonido:",
  "Açıkken oturum süresi ayarlardan hesaplanır: bu başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. Süre 15 dakika ile 999 saat arasında tutulur. Süre alanına elle değer yazarsan otomatik hesap o oturumda devreye girmez.": "Si está activo, la duración de la sesión se calcula a partir de los ajustes: cuánto tardaría un jugador real en conseguir los logros que se van a desbloquear (tiempo de finalización x proporción de logros x dificultad). Con un tiempo de finalización de 60 horas, desbloquearlos todos también lleva 60 horas. Se limita entre quince minutos y 999 horas. Si escribes un valor en el campo de duración, la asignación automática no actúa en esa sesión.",
  "Hesap No": "ID de cuenta",
- "Kimlikleri Kopyala": "Copiar IDs",
  "Hedef saat": "Horas objetivo",
  "OTO": "AUTO",
  "Yok": "Ninguno",

@@ -709,7 +709,6 @@
  "ses:": "音效：",
  "Açıkken oturum süresi ayarlardan hesaplanır: bu başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. Süre 15 dakika ile 999 saat arasında tutulur. Süre alanına elle değer yazarsan otomatik hesap o oturumda devreye girmez.": "開啟時，工作階段時間會依設定計算：真人玩家要獲得這些將解鎖的成就需要多久（通關時間 x 成就比例 x 難度）。通關時間為 60 小時時，解鎖全部成就也需要 60 小時。範圍限制在十五分鐘到 999 小時之間。若你在時間欄位手動輸入數值，該次工作階段不會套用自動設定。",
  "Hesap No": "帳號 ID",
- "Kimlikleri Kopyala": "複製 ID",
  "Hedef saat": "目標時數",
  "OTO": "自動",
  "Yok": "無",

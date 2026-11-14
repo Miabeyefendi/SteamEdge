@@ -41,7 +41,7 @@
       return { appid: +m[1], contextId: m[2], appName: game ? game.name : null };
     }
 
-    const EC = { ok:'#5FB324', teal:'#24AEB3', bad:'#E45A86', brand:'#5624B3', sub:'#C2AAEE',
+    const EC = { brandBd:'#5322AB', ok:'#5FB324', teal:'#24AEB3', bad:'#E45A86', brand:'#5624B3', sub:'#C2AAEE',
                  title:'#DCE2FA', muted:'#8B8F9E', off:'#7F879B', bd:'#2B3345', s1:'#0D1118' };
 
     // Amounts are in the selected currency (common.js fmtMoney). If "Price display: Net" is selected
@@ -433,7 +433,7 @@
 
     function paintView(){
       const l = document.getElementById('vList'), g = document.getElementById('vGrid');
-      const on = { background:EC.brand, borderColor:EC.brand, color:EC.title };
+      const on = { background:EC.brand, borderColor:EC.brandBd, color:EC.title };
       const off = { background:'transparent', borderColor:'transparent', color:EC.muted };
       Object.assign(l.style, inventoryView==='list'?on:off);
       Object.assign(g.style, inventoryView==='grid'?on:off);
@@ -445,7 +445,7 @@
     function paintGroupBtn(){
       const b = document.getElementById('invGroup');
       b.style.background = groupByGame ? EC.brand : 'transparent';
-      b.style.borderColor = groupByGame ? EC.brand : EC.bd;
+      b.style.borderColor = groupByGame ? EC.brandBd : EC.bd;
       b.style.color = groupByGame ? EC.title : EC.muted;
     }
     document.getElementById('invGroup').onclick = ()=>{ groupByGame = !groupByGame; paintGroupBtn(); renderInventory(); };
@@ -634,11 +634,11 @@
     function paintRowSelection(host, on){
       const box = host.querySelector('[data-a="check"]');
       if (box){
-        box.style.borderColor = on ? EC.brand : EC.bd;
+        box.style.borderColor = on ? EC.brandBd : EC.bd;
         box.style.background  = on ? EC.brand : (inventoryView==='grid' ? '#090C12' : 'transparent');
         const tick = box.querySelector('svg'); if (tick) tick.style.opacity = on ? 1 : 0;
       }
-      if (inventoryView === 'grid') host.style.borderColor = on ? EC.brand : EC.bd;
+      if (inventoryView === 'grid') host.style.borderColor = on ? EC.brandBd : EC.bd;
       else host.style.background = on ? '#101621' : 'transparent';
     }
     document.getElementById('invRows').addEventListener('click', (e)=>{
@@ -736,7 +736,7 @@
       const n = viewRows.filter(i=>selected.has(i.dedupKey)).length;
       const all = viewRows.length > 0 && n === viewRows.length;
       box.style.background = all ? EC.brand : 'transparent';
-      box.style.borderColor = n ? EC.brand : EC.bd;
+      box.style.borderColor = n ? EC.brandBd : EC.bd;
     }
     function renderBulk(){
       syncSelAll();
@@ -760,7 +760,7 @@
       document.querySelectorAll('#bulkStrat button[data-bs]').forEach(b=>{
         const on = b.getAttribute('data-bs')===bulkStrategy;
         b.style.background = on ? EC.brand : 'transparent';
-        b.style.borderColor = on ? EC.brand : 'transparent';
+        b.style.borderColor = on ? EC.brandBd : 'transparent';
         b.style.color = on ? EC.title : EC.muted;
       });
       // The manual price box is visible only while "Kendim" is selected
@@ -983,7 +983,7 @@
         + '</div>'
         // A booster pack can be opened right here (only when the game it belongs to is known)
         + (it.type === 'booster' && it.appid
-            ? '<button data-unpack class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #5624B3;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">' + esc(t('Booster Paketini Aç')) + '</button>'
+            ? '<button data-unpack class="h-brand" style="height:36px;border-radius:999px;background:#090C12;border:1px solid #5322AB;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">' + esc(t('Booster Paketini Aç')) + '</button>'
             : '')
         // Three boxes: listings on sale · hemen sat · realised sales
         + '<div style="display:flex;flex-direction:column;gap:10px">' + obBoxes + '</div>'
@@ -1150,7 +1150,7 @@
     }
 
     // ---- the progress panel: every item of the job, one row each, updated as the requests go out ----
-    const SG_BTN = 'height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5624B3;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;flex-shrink:0;white-space:nowrap';
+    const SG_BTN = 'height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #5322AB;color:#C2AAEE;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;flex-shrink:0;white-space:nowrap';
     const SP_STATE = { wait:['Sırada','#7F879B'], send:['Gönderiliyor','#C2AAEE'], ok:['Satışa sunuldu','#5FB324'], conf:['Onay bekliyor','#B37E24'], skip:['Atlandı','#B37E24'], fail:['Reddedildi','#E45A86'] };
     function paintSaleRow(g, i){
       const p = g.plan[i];
@@ -1177,7 +1177,7 @@
         el = document.createElement('div');
         el.id = 'salePanel'; el._g = g;
         el.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:150;width:440px;max-width:calc(100vw - 48px);display:flex;flex-direction:column;gap:10px;'
-          + 'padding:14px;border-radius:12px;background:#0D1118;border:1px solid #5624B3;box-shadow:0 8px 28px rgba(0,0,0,.55)';
+          + 'padding:14px;border-radius:12px;background:#0D1118;border:1px solid #5322AB;box-shadow:0 8px 28px rgba(0,0,0,.55)';
         el.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
             + '<span class="e-pulse" data-sp="dot" style="width:7px;height:7px;border-radius:12px;background:#5624B3;flex-shrink:0"></span>'
             + '<span data-sp="title" style="flex:1;min-width:0;font-size:12px;font-weight:600;color:#DCE2FA;line-height:1.4"></span>'

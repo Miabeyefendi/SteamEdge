@@ -8,7 +8,7 @@
 */
 :root{
   --e-bg:#030305; --e-bgAlt:#090C12; --e-s1:#0D1118; --e-s2:#101621; --e-s3:#151C28;
-  --e-bdPassive:#1D2432; --e-bd:#2B3345; --e-bdActive:#5624B3; --e-bdFocus:#7031CC;
+  --e-bdPassive:#1D2432; --e-bd:#2B3345; --e-bdActive:#5322AB; --e-bdFocus:#7031CC;
   --e-brand:#5624B3; --e-brandHover:#7031CC; --e-brandActive:#C2AAEE; --e-brandGlow:#C2AAEE;
   --e-blue:#24AEB3;
   --e-title:#DCE2FA; --e-body:#B9C0D6; --e-sub:#C2AAEE; --e-muted:#8B8F9E; --e-off:#7F879B;
@@ -52,8 +52,11 @@
 .e-nav-item.active{background:var(--e-s3);color:var(--e-title);border-color:var(--e-bdActive)}
 .e-nav-item svg{flex-shrink:0}
 
-.e-nav-item .e-lbl{white-space:nowrap;display:inline-block;width:128px}
-.e-nav-item.e-logout:hover{color:var(--e-bad);background:var(--e-s2)}
+.e-nav-item .e-lbl{white-space:normal;line-height:1.15;display:inline-block;width:128px}
+/* Every sign-out control is red with white text: it is a dangerous action, not a themed one */
+.e-nav-item.e-logout,.e-nav-item.e-logout.active{background:#B32453;border-color:#B32453;color:#FFFFFF}
+.e-nav-item.e-logout svg{stroke:#FFFFFF}
+.e-nav-item.e-logout:hover{background:#C42B5E;border-color:#C42B5E;color:#FFFFFF}
 .e-aside.collapsed .e-lbl{display:none}
 .e-nav-sep{height:1px;background:var(--e-bdPassive);margin:8px 2px}
 .e-sys{display:flex;align-items:center;gap:9px;padding:10px 12px;border-top:1px solid var(--e-bdPassive)}
@@ -110,11 +113,11 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .e-dropdown-sep{height:1px;background:var(--e-bdPassive)}
 .e-acct-add{width:100%;display:flex;align-items:center;gap:9px;padding:12px 14px;background:transparent;border:0;cursor:pointer;text-align:left;color:var(--e-sub);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
 .e-acct-add:hover{background:var(--e-s3)}
-.e-acct-signout{width:100%;display:flex;align-items:center;gap:9px;padding:12px 14px;background:transparent;border:0;cursor:pointer;text-align:left}
-.e-acct-signout:hover{background:var(--e-s3)}
-.e-acct-signout .e-dot{width:7px;height:7px;border-radius:12px;background:var(--e-bad);flex-shrink:0}
-.e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--e-bad);line-height:1}
-.e-acct-signout-sub{font-size:12px;color:var(--e-off);line-height:1.3;margin-top:3px}
+.e-acct-signout{width:100%;display:flex;align-items:center;gap:9px;padding:12px 14px;background:#B32453;border:0;cursor:pointer;text-align:left}
+.e-acct-signout:hover{background:#C42B5E}
+.e-acct-signout .e-dot{width:7px;height:7px;border-radius:12px;background:#FFFFFF;flex-shrink:0}
+.e-acct-signout-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FFFFFF;line-height:1}
+.e-acct-signout-sub{font-size:12px;color:#FFFFFF;opacity:.85;line-height:1.3;margin-top:3px}
 
 /* ---- Settings > identity rows in the Account card ---- The SAME pattern as the card's own rows: label on the left 11 px, value on the right mono 12 px, the same thin line on top. The measurements are taken from there so they do not look like a separate box; their only difference is that clicking copies the value to the clipboard. */
 .e-identity-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #101621;cursor:pointer}
@@ -123,7 +126,7 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .e-identity-row .v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:var(--e-title)}
 .e-identity-row .v.bos{font-weight:500;color:var(--e-off)}
 .e-identity-sub{display:flex;gap:8px}
-.e-identity-sub button{flex:1;height:28px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:12px;font-weight:600;letter-spacing:.08em;cursor:pointer}
+.e-identity-sub button{flex:1 1 auto;min-width:0;padding:0 12px;white-space:nowrap;height:28px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:12px;font-weight:600;letter-spacing:.08em;cursor:pointer}
 .e-identity-sub button:hover{border-color:var(--e-brand);color:var(--e-title)}
 .e-identity-sub button:disabled{opacity:.4;cursor:default;border-color:var(--e-bdPassive);color:var(--e-off)}
 
@@ -209,14 +212,14 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
    only those states were turned into classes here.
    ================================================================
 */
-.h-brand:hover{border-color:#5624B3;color:#DCE2FA}
-.h-bd:hover{border-color:#5624B3}
+.h-brand:hover{border-color:#5322AB;color:#DCE2FA}
+.h-bd:hover{border-color:#5322AB}
 .h-row:hover{background:#101621}
 .h-s3:hover{background:#151C28}
 .h-start:hover{background:#451D8F;border-color:#451D8F}  /* Start */
 .h-stop:hover{background:#8F1D42;border-color:#8F1D42}   /* Stop */
 .h-logout:hover{color:#E45A86;background:#101621}
-.h-signout:hover{background:#B32453;border-color:#B32453;color:#DCE2FA}
+.h-signout:hover{background:#C42B5E;border-color:#C42B5E;color:#FFFFFF}
 .f-focus:focus{border-color:#7031CC}
 
 /* ---- "Interface density: Compact" (Settings > General > density) ---- Row heights and panel paddings shrink; more content is visible on one screen. */
@@ -256,7 +259,7 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
 .e-modal-ask{display:flex;align-items:center;gap:9px;padding:12px 18px;border-top:1px solid #101621;cursor:pointer;user-select:none}
 .e-modal-ask .box{width:16px;height:16px;border-radius:6px;border:1px solid #2B3345;background:transparent;
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.e-modal-ask.on .box{background:#5624B3;border-color:#5624B3}
+.e-modal-ask.on .box{background:#5624B3;border-color:#5322AB}
 .e-modal-ask .box svg{opacity:0}
 .e-modal-ask.on .box svg{opacity:1}
 .e-modal-ask span{font-size:12px;color:#8B8F9E}
@@ -268,8 +271,8 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
 .e-modal-ft button{height:36px;padding:0 18px;border-radius:999px;font-size:11px;font-weight:700;
   letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
 .e-modal-ft .cancel{background:transparent;border:1px solid #2B3345;color:#8B8F9E}
-.e-modal-ft .cancel:hover{border-color:#5624B3;color:#DCE2FA}
-.e-modal-ft .ok{background:#5624B3;border:1px solid #5624B3;color:#DCE2FA}
+.e-modal-ft .cancel:hover{border-color:#5322AB;color:#DCE2FA}
+.e-modal-ft .ok{background:#5624B3;border:1px solid #5322AB;color:#DCE2FA}
 .e-modal-ft .ok:hover{background:#451D8F;border-color:#451D8F}
 .e-modal-ft .ok.danger{background:#B32453;border-color:#B32453}
 .e-modal-ft .ok.danger:hover{background:#8F1D42;border-color:#8F1D42}
@@ -550,7 +553,7 @@ body.e-switching .e-main,body.e-switching #tbProfile{cursor:progress}
 
 /* A Start / Stop button that cannot be pressed now (common.js paintRunButtons) */
 .h-start:disabled,.h-stop:disabled{opacity:.4 !important;cursor:not-allowed !important}
-.h-start:disabled:hover{background:#5624B3;border-color:#5624B3}
+.h-start:disabled:hover{background:#5624B3;border-color:#5322AB}
 .h-stop:disabled:hover{background:#B32453;border-color:#B32453}
 
 /* Settings sections whose values belong to the account on screen (main.js ACCOUNT_SCOPED_SETTINGS) */
@@ -564,7 +567,7 @@ body.e-switching .e-main,body.e-switching #tbProfile{cursor:progress}
 }
 /* Field outlines need 3:1 against the surface to be seen as fields (WCAG 1.4.11); the card borders around them stay quiet.
    The colour is mapped by theme.js like every other one (#5A6580 in the dark theme). */
-.edge input:not([type=checkbox]):not([type=radio]):not([type=range]):not(:focus),.edge select:not(:focus),.edge textarea:not(:focus){border-color:#5A6580!important}
+.edge input:not([type=checkbox]):not([type=radio]):not([type=range]):not(:focus),.edge select:not(:focus),.edge textarea:not(:focus){border-color:#555A67!important}
 /* Narrow windows: the search gives up a little width instead of touching the visibility chip next to it */
 @media (max-width: 760px){ .e-search{min-width:84px;margin-left:10px} }
 /* Buttons that carry no font size of their own follow the scale (12 px), not the browser's 13.33 px */

@@ -10,7 +10,7 @@
     let acSortDir = 'asc';
     const acSelected = new Set();     // apiName - bulk unlock/lock selection
 
-    const AC = { ok:'#5FB324', warn:'#B37E24', teal:'#24AEB3', sub:'#C2AAEE', brand:'#5624B3',
+    const AC = { brandBd:'#5322AB', ok:'#5FB324', warn:'#B37E24', teal:'#24AEB3', sub:'#C2AAEE', brand:'#5624B3',
                  bad:'#B32453', title:'#DCE2FA', muted:'#8B8F9E', off:'#7F879B', bd:'#2B3345' };
 
     async function loadAchievementsPage(){
@@ -28,7 +28,7 @@
           + '<span style="font-size:14px;font-weight:700;color:#DCE2FA">Başarımlar yüklenemedi</span>'
           + '<span style="font-size:12px;color:#E45A86;max-width:380px">'+esc(msg||'Bilinmeyen hata')+'</span>'
           + '<span style="font-size:12px;color:#8B8F9E;max-width:420px">Hesap başka bir yerde açıldıysa (Steam istemcisi ya da SteamEdge\'in ikinci bir penceresi) oturumunu o devralmış olabilir. Diğer oturumu kapatıp tekrar dene.</span>'
-          + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:36px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5624B3;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
+          + '<button id="acRetry" class="h-brand" style="margin-top:6px;height:36px;padding:0 18px;border-radius:999px;background:#5624B3;border:1px solid #5322AB;color:#DCE2FA;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer">Tekrar Dene</button>'
           + '</div>';
         const rb = document.getElementById('acRetry');
         if (rb) rb.onclick = ()=>{ acLoaded = false; loadAchievementsPage(); };
@@ -157,7 +157,7 @@
       b.style.opacity = closed ? '.4' : '1';
       b.style.cursor = closed ? 'default' : 'pointer';
       b.style.color = closed ? '#7F879B' : '#C2AAEE';
-      b.style.borderColor = closed ? '#2B3345' : '#5624B3';
+      b.style.borderColor = closed ? '#2B3345' : '#5322AB';
       const pathStr = b.querySelector('path');
       if (pathStr) pathStr.setAttribute('d', acSortDir === 'asc' ? 'M12 5v14M6 11l6-6 6 6' : 'M12 19V5M6 13l6 6 6-6');
       b.setAttribute('data-tip', acSortDir === 'asc' ? 'Artan sıra' : 'Azalan sıra');
@@ -178,7 +178,7 @@
     };
     function paintAcView(){
       const g = document.getElementById('acVGrid'), l = document.getElementById('acVList');
-      const on = { background:AC.brand, borderColor:AC.brand, color:AC.title };
+      const on = { background:AC.brand, borderColor:AC.brandBd, color:AC.title };
       const off = { background:'transparent', borderColor:'transparent', color:AC.muted };
       Object.assign(g.style, acView==='grid'?on:off);
       Object.assign(l.style, acView==='list'?on:off);

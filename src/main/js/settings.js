@@ -15,7 +15,7 @@
     let saving = false;
 
     // palette shortcuts
-    const SC = { brand:'#5624B3', s3:'#151C28', bd:'#2B3345', title:'#DCE2FA', off:'#7F879B', muted:'#8B8F9E', bdActive:'#5624B3' };
+    const SC = { brandBd:'#5322AB', brand:'#5624B3', s3:'#151C28', bd:'#2B3345', title:'#DCE2FA', off:'#7F879B', muted:'#8B8F9E', bdActive:'#5624B3' };
 
     S.get().then(s => {
       appSettings = s || {};
@@ -300,7 +300,7 @@
     // ---- paint the controls ----
     function paintToggle(el, on){
       el.style.background  = on ? SC.brand : SC.s3;
-      el.style.borderColor = on ? SC.brand : SC.bd;
+      el.style.borderColor = on ? SC.brandBd : SC.bd;
       const knob = el.firstElementChild;
       if (knob){ knob.style.background = on ? SC.title : SC.off; knob.style.marginLeft = on ? '16px' : '0px'; }
     }
@@ -756,7 +756,7 @@
       if (typeof toast === 'function') toast('Sıfırlama').done(n ? tf('# ayar varsayılana döndü. Uygulamak için Kaydet\'e bas.', n) : 'Ayarlar zaten varsayılan.');
     };
     document.getElementById('setLogout').onclick = async ()=>{
-      const ok = await edgeConfirm({ tag:'Çıkış', title:'Steam oturumu kapatılsın mı?',
+      const ok = await edgeConfirm({ tag:'Çıkış', danger:true, title:'Steam oturumu kapatılsın mı?',
         body:'Giriş ekranına dönülür. Kayıtlı hesaplar silinmez.', confirmText:'Çıkış Yap' });
       if (ok) window.imu.logout();
     };
