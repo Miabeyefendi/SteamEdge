@@ -32,7 +32,7 @@
     function grSel(){ return grQueue.find(g=>g.appid===grSelectedId) || grQueue[0] || null; }
     let grStopAsked = false;          // the Stop button was pressed here: the feed line and the "finished" notice of that stop are not written a second time when the engine confirms it
 
-    const GRC = { brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
+    const GRC = { brandBd:'#5322AB', brand:'#5624B3', ok:'#5FB324', warn:'#B37E24', bad:'#B32453',
                   title:'#DCE2FA', muted:'#8B8F9E', off:'#7F879B', bd:'#2B3345', sub:'#C2AAEE',
                   teal:'#24AEB3' };
 
@@ -602,10 +602,10 @@
 
       // AUTO button and the border of the target box
       const ab = grEl('grAutoTarget');
-      ab.style.borderColor = auto ? GRC.brand : '#2B3345';
+      ab.style.borderColor = auto ? GRC.brandBd : '#2B3345';
       ab.style.background = auto ? '#151C28' : '#0D1118';
       ab.style.color = auto ? GRC.sub : GRC.muted;
-      grEl('grTargetBox').style.borderColor = auto ? GRC.brand : '#2B3345';
+      grEl('grTargetBox').style.borderColor = auto ? GRC.brandBd : '#2B3345';
 
       // Description in the simple panel
       const crLabel = { '1.5':'kısa hikâye oyunu', '2.0':'orta uzunlukta oyun', '2.5':'uzun açık dünya oyunu', '4.0':'bitmeyen sandbox oyunu', 'auto':'elle girilen süre' };
@@ -693,7 +693,7 @@
         const k = el.getAttribute('data-grset');
         const on = !!grVal(k, grToggleDefault(k));
         el.style.background = on ? GRC.brand : '#151C28';
-        el.style.borderColor = on ? GRC.brand : '#2B3345';
+        el.style.borderColor = on ? GRC.brandBd : '#2B3345';
         const knob = el.firstElementChild;
         if (knob){ knob.style.background = on ? GRC.title : GRC.off; knob.style.marginLeft = on ? '16px' : '0px'; }
       });
@@ -770,10 +770,10 @@
     function grPaintLevel(){
       const adv = grVal('grLevel', 'simple') === 'advanced';
       const s = grEl('grLvlSimple'), a = grEl('grLvlAdv');
-      s.style.borderColor = adv ? 'transparent' : GRC.brand;
+      s.style.borderColor = adv ? 'transparent' : GRC.brandBd;
       s.style.background = adv ? 'transparent' : '#151C28';
       s.style.color = adv ? GRC.muted : GRC.title;
-      a.style.borderColor = adv ? GRC.brand : 'transparent';
+      a.style.borderColor = adv ? GRC.brandBd : 'transparent';
       a.style.background = adv ? '#151C28' : 'transparent';
       a.style.color = adv ? GRC.title : GRC.muted;
       grEl('grSimpleBox').style.display = adv ? 'none' : 'flex';

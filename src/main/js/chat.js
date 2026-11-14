@@ -139,7 +139,7 @@
       container.innerHTML = m.map(x=>
         '<div style="display:flex;flex-direction:column;gap:3px;max-width:70%;align-self:'+(x.me?'flex-end':'flex-start')+'">'
         + '<div style="padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.45;white-space:pre-wrap;overflow-wrap:break-word;'
-          + (x.me ? 'background:#2A1B47;border:1px solid #5624B3;color:#DCE2FA'
+          + (x.me ? 'background:#2A1B47;border:1px solid #5322AB;color:#DCE2FA'
                    : 'background:#0D1118;border:1px solid #2B3345;color:#B9C0D6') + '">'
           + esc(x.textValue) + '</div>'
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#7F879B;align-self:'+(x.me?'flex-end':'flex-start')+'">'+chTime(x.ts)+'</span>'

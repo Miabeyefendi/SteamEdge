@@ -6,29 +6,25 @@
 // Since the login screen cannot read the settings the choice is also kept in localStorage.
 (function () {
   // The dark theme is the source. The coloured dark themes are built from a short description each (the roles below), the White theme
-  // is written out. Every coloured theme is Vantagraph's: R34 Purple and Crimson as they are in its colour.ini, Olive and Indigo in the
-  // same structure (tinted surfaces, one warm or cool complement for the accents, a soft secondary text in the complement's family).
+  // is written out. R34 Purple and Crimson are Vantagraph's colour.ini values, Olive and Indigo follow the same structure. The values are
+  // the Vantagraph ones 12 to 13 percent darker (the app showed them bright), cards sit where the 1.9.6 Midnight Purple had them, and the
+  // outlines of fields and of selected items are about 2.7 : 1 (calm, still visible). scripts: see docs/guides/durum.md
   const SURF = ['030305', '090c12', '0d1118', '101621', '151c28', '1d2432', '2b3345', '333d4d', '252a3a', '1e2836', '0e1620', '0f1720'];
   const THEMES = {
     // violet surfaces, gold secondary text, blue progress
-    r34: { surf: ['060810', '090C18', '160B2A', '1B1034', '200E3C', '2C1850', '3D2468', '4A2E78', '2C1850', '261542', '120A22', '090C18'],
-      title: 'F0EAF8', body: 'DDD4EE', muted: 'C8A850', dim: 'B39640', brand: '7A3FE0', brandText: 'E8CB78', info: '5B93E8', warn: 'D9A441', warn2: 'EDC35A', badText: 'FF6B85', field: '8A70C4' },
+    r34: { surf: ['06080F', '080A15', '130A25', '150B29', '1D0D37', '251444', '2C1850', '351D60', '281648', '150A28', '110921', '080A15'], title: 'DFDAE7', body: 'C7BFD6', muted: 'B09446', dim: 'A28841', brand: '6B37C5', brandText: 'CCB36A', brandBorder: '6B37C4', focus: '8243F0', info: '5282CD', warn: 'BF9039', warn2: 'CA993D', badText: 'E05E75', field: '5C556B' },
     // red-black surfaces, amber accent (the buttons are amber with dark text)
-    crimson: { surf: ['060A0E', '090E14', '300C12', '3A0F17', '4D131D', '5C1822', '7A2A36', '8A3541', '3E1019', '44121C', '2A0B10', '090E14'],
-      title: 'F0E4E4', body: 'DDC9CB', muted: 'BF9098', dim: 'B08990', brand: 'C8903A', brandText: 'E6B562', info: 'D9A04A', warn: 'E0A545', warn2: 'F0BE5C', badText: 'FF7A8E', field: 'B8707C', ctaText: '1A0A0D' },
+    crimson: { surf: ['060A0D', '080C11', '2A0A10', '2F0C11', '47111B', '4E141D', '5C1822', '6E1D29', '53161F', '2E0B11', '25090E', '080C11'], title: 'DFD4D4', body: 'C7B5B7', muted: 'AB838A', dim: 'A6848A', brand: 'B07F33', brandText: 'CA9F56', brandBorder: '785623', focus: '8F6729', info: 'BF8D41', warn: 'C5913D', warn2: 'D19A40', badText: 'E06B7D', field: '6F575A', ctaText: '1A0A0D' },
     // olive panels on a violet window: green accents, purple progress
-    olive: { surf: ['0B0610', '100818', '131C05', '18240A', '1E0E2E', '243408', '3B5014', '486218', '2A3A0C', '1F2E08', '0F1704', '100818'],
-      title: 'F0EBE0', body: 'D8D6BE', muted: 'A8B878', dim: '98A86C', brand: '81B040', brandText: 'B5D870', info: 'A58BE0', warn: 'D9A441', warn2: 'EDC35A', badText: 'FF7B8E', field: '7E9A3E', ctaText: '0F1704' },
-    // indigo surfaces, vermilion accents
-    indigo: { surf: ['070B16', '0A1020', '101C38', '15244A', '182A52', '223A6E', '31508F', '3B5EA3', '1C2E5C', '16264C', '0D162C', '0A1020'],
-      title: 'EAF0FA', body: 'CBD8EE', muted: '9DB4E0', dim: '8CA4D4', brand: 'C23B22', brandText: 'FF9A7A', info: '6FA8F0', warn: 'E0A545', warn2: 'F0BE5C', badText: 'FF8A9A', field: '6F8CC8',
-      extra: { 'e2703a': 'F08050' } },
+    olive: { surf: ['0A060F', '0E0715', '111804', '121B05', '1C0D2A', '1F2C07', '243408', '2B3E0A', '202F07', '121B05', '0F1604', '0E0715'], title: 'DFDBD0', body: 'C2C1AB', muted: '94A26A', dim: '889561', brand: '729B38', brandText: '9FBE63', brandBorder: '4B6625', focus: '5A7A2C', info: '917AC5', warn: 'BF9039', warn2: 'CA993D', badText: 'E06C7D', field: '5B5E4D', ctaText: '0F1704' },
+    // indigo surfaces, gold accents (Start and Stop must never be two reds)
+    indigo: { surf: ['070A15', '090E1C', '0E1831', '101B36', '16274B', '1D315E', '223A6E', '294684', '1F3463', '0F1B35', '0C162C', '090E1C'], title: 'DADFE8', body: 'B7C2D6', muted: '8A9EC5', dim: '7F92B5', brand: 'C59533', brandText: 'D5AC5D', brandBorder: '785B1F', focus: '8F6C25', info: '6294D3', warn: 'C5913D', warn2: 'D19A40', badText: 'E07988', field: '555E71', ctaText: '1A1203', extra: { 'e2703a': 'F08050' } },
   };
   function build(t) {
     const m = {};
     SURF.forEach((k, i) => { m[k] = t.surf[i].toLowerCase(); });
     const roles = { 'dce2fa': t.title, 'b9c0d6': t.body, '8b8f9e': t.muted, '7f879b': t.dim, '5624b3': t.brand, 'c2aaee': t.brandText, '24aeb3': t.info,
-      'b37e24': t.warn, 'e0b43a': t.warn2, 'e45a86': t.badText, 'ef4444': t.badText, '5a6580': t.field, '7a8a9a': t.dim, '4f8ef7': t.info };
+      'b37e24': t.warn, 'e0b43a': t.warn2, 'e45a86': t.badText, 'ef4444': t.badText, '555a67': t.field, '7a8a9a': t.dim, '4f8ef7': t.info, '5322ab': t.brandBorder, '7031cc': t.focus };
     for (const k in roles) m[k] = roles[k].toLowerCase();
     for (const k in (t.extra || {})) m[k] = t.extra[k].toLowerCase();
     return m;
@@ -39,7 +35,7 @@
       '030305': 'e4e2dc', '090c12': 'f5f4f2', '0d1118': 'ffffff', '101621': 'f0eeea', '151c28': 'eceae6',
       '1d2432': 'e0ddd6', '2b3345': 'd8d4cc', '333d4d': 'c8c4bc', '252a3a': 'ddd9d2', '1e2836': 'e6e3dd',
       '0e1620': 'f2f0ec', 'dce2fa': '1a1a1a', 'b9c0d6': '3a3a3a', '8b8f9e': '595959', '7f879b': '5e5e5e',
-      'c2aaee': '5624b3', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '595959', '0f1720': 'f5f4f2', '5a6580': '8a8780',
+      'c2aaee': '5624b3', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '595959', '0f1720': 'f5f4f2', '555a67': '9c9b99', '5322ab': 'a287d5',
       // the status colours are text on the light surfaces too, and the light green, amber and cyan of the dark theme do not read there
       '5fb324': '30650d', 'b37e24': '7d5208', '24aeb3': '0a6a6f', 'b32453': 'a01f4a', 'e45a86': 'a01f4a', 'e0b43a': 'a87c00',
       // older pastel text colours in the page styles (light enough to vanish on white)

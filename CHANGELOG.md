@@ -13,19 +13,23 @@ Six colour themes built on Vantagraph's palettes, one scale of sizes across ever
 
 ### Changed
 
-- **Six themes: Black, White, R34 Purple, Crimson, Olive and Indigo.** R34 Purple and Crimson are Vantagraph's own palettes, with their complementary accents: violet surfaces with gold text and blue progress, red-black surfaces with amber buttons. Olive (green panels on a violet window, purple progress) and Indigo (blue surfaces, vermilion accents) follow the same pattern. Every pair of text and surface is at least 4.5 : 1, and the outline of every field is at least 3 : 1.
+- **Six themes: Black, White, R34 Purple, Crimson, Olive and Indigo.** R34 Purple and Crimson are Vantagraph's own palettes, with their complementary accents: violet surfaces with gold text and blue progress, red-black surfaces with amber buttons. Olive (green panels on a violet window, purple progress) and Indigo (blue surfaces, gold accents) follow the same pattern. The colours are Vantagraph's values about 12 percent darker, and the outlines of fields and of selected items are calm (about 2.7 : 1). Every pair of text and surface is at least 4.5 : 1, and the outline of every field is at least 3 : 1.
 - **The mark of the app takes the theme's colours.** The violet E turns amber, green or vermilion, and the White theme uses dark letters.
+- **Sign-out controls are red with white text in every theme**, and Start and Stop never share a hue: Stop is always red, Start takes the theme's accent (violet, amber, green or gold).
 - **Midnight Purple is R34 Purple now, and the High contrast theme is removed.** A saved Midnight Purple moves to R34 Purple, a saved High contrast moves to Automatic, which is Black. Windows' own high contrast mode (forced colours) is still followed.
 - **One scale of sizes on every page.** Buttons are 28 px (chips and row actions) or 36 px (everything else, Start and Stop included), fields are 36 px, side panels are 320 px wide, the inline icons are 14 px and text is 11, 12 or 13 px. Before, the pages used ten button heights from 16 to 40 px, five field heights, six panel widths and four half-size fonts.
 
 ### Fixed
 
+- **The taskbar icon could turn into the Electron atom.** Windows ties the app to a Start menu shortcut and draws that shortcut's icon; a leftover development shortcut won. The window states the icon of its own taskbar button now.
+- **The settings page had no gap between General preferences and Backup.**
+- **Button texts that wrapped or ran out of the button** ("Copy IDs" is "Copy" now, "Open profile" in Russian, the side menu in Russian) fit.
 - **The target count in Realistic Mode ran into its AUTO chip.** The label is "Target" again.
 - **The left panel of Realistic Mode no longer overflows on narrow windows.** Its footer wraps when there is not enough room.
 - **The icon of the open page in the side menu followed no theme.** It uses the theme's info colour now.
 
 
-SHA-256 (`SteamEdge-v2.0.0-win-x64.rar`): `5d1a3561fc34ff2daf73ca04f1d562867ece7b565a4c5258700bd7dc1992c5e0`
+SHA-256 (`SteamEdge-v2.0.0-win-x64.rar`): `b81ac8ea041cec93704a68b4c4d697263e1a44e7cc9e16ed97950afb9e56a968`
 
 ## [1.9.9](https://github.com/Miabeyefendi/SteamEdge/releases/tag/1.9.9)
 

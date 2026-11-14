@@ -72,7 +72,7 @@ app.whenReady().then(async () => {
   await wait(500);
   check('the Crimson theme is applied', (await js("document.documentElement.getAttribute('data-theme')")) === 'crimson');
   const field = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).borderTopColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
-  check('a field has the Crimson outline and text', field === 'rgb(184, 112, 124)|rgb(221, 201, 203)', field);
+  check('a field has the Crimson outline and text', field === 'rgb(111, 87, 90)|rgb(199, 181, 183)', field);
   await shot('theme-crimson');
   check('the choice is kept for the login screen too', (await js("localStorage.getItem('se_theme')")) === 'crimson');
 

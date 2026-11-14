@@ -2,7 +2,7 @@
 // the names it still gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { BrowserWindow, CONFIG_DIR, Menu, Tray, accountName, app, authSlots, ct, disconnectAll, fs, getAuthSlot, hasSession, ipcMain, log, nativeImage, path, screen, windowFit, windowOpened } = ctx;
+  const { APP_ID, BrowserWindow, CONFIG_DIR, Menu, Tray, accountName, app, authSlots, ct, disconnectAll, fs, getAuthSlot, hasSession, ipcMain, log, nativeImage, path, screen, windowFit, windowOpened } = ctx;
 
   // One way to bring the window back, whatever state it is in: hidden to the tray, minimised by Windows (Win+D, Win+M) or both. Before, the tray click, the tray menu,
   // the second copy and the notification each did a part of this and a minimised window could stay minimised.
@@ -169,6 +169,12 @@ module.exports = function init(ctx) {
       icon: windowIcon(),
       webPreferences: { preload: path.join(__dirname, '..', '..', 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: false },
     });
+
+    // The taskbar button: Windows ties the app id to a Start menu shortcut and draws that shortcut's icon, and a development Electron shortcut
+    // (electron.exe, the atom) could win. The window states the icon of its own button: the exe of a build, the .ico when it runs from source.
+    if (process.platform === 'win32') {
+      try { ctx.win.setAppDetails({ appId: APP_ID, appIconPath: app.isPackaged ? process.execPath : path.join(__dirname, '..', 'assets', 'icon.ico'), appIconIndex: 0 }); } catch (e) { log('warn', 'taskbar icon details: ' + (e && e.message)); }
+    }
 
     // The window only ever shows the app's own pages: no popups, no navigation away (a link in injected content could not open a web page here)
     ctx.win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));

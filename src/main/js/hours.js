@@ -12,9 +12,9 @@
     // the second sits under Settings > Privacy.
     let boostFlags = { boostAutoRestart:false, seqIdle:false, loopQueue:true, boostSync:false };
 
-    const BC = { brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
+    const BC = { brandBd:'#5322AB', brand:'#5624B3', ok:'#5FB324', teal:'#24AEB3', title:'#DCE2FA', muted:'#8B8F9E',
                  off:'#7F879B', bd:'#2B3345', s1:'#0D1118', bgAlt:'#090C12', sub:'#C2AAEE' };
-    const BSEG_ON  = { background:BC.brand, borderColor:BC.brand, color:BC.title };
+    const BSEG_ON  = { background:BC.brand, borderColor:BC.brandBd, color:BC.title };
     const BSEG_OFF = { background:'transparent', borderColor:'transparent', color:BC.muted };
 
     function fmtHMS(pick){ const h=Math.floor(pick/3600), m=Math.floor((pick%3600)/60), s=Math.max(0,pick%60); return [h,m,s].map(n=>String(n).padStart(2,'0')).join(':'); }
@@ -97,7 +97,7 @@
     // Instead of redrawing the whole list only the clicked row is updated (the library can reach 300 rows;
     // also redrawing lost the scroll position and the clicked node).
     function paintLibRow(row, on){
-      row.style.borderColor = on ? BC.brand : BC.bd;
+      row.style.borderColor = on ? BC.brandBd : BC.bd;
       row.style.background  = on ? '#151C28' : 'transparent';
       const nameEl = row.querySelector('span');
       if (nameEl) nameEl.style.color = on ? BC.title : BC.muted;

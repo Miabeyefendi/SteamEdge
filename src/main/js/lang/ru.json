@@ -709,7 +709,6 @@
  "ses:": "звук:",
  "Açıkken oturum süresi ayarlardan hesaplanır: bu başarımları gerçek bir oyuncunun kazanması ne kadar sürerdi (bitiş süresi × açılacak başarımların oranı × zorluk). Bitiş süresi 60 saatse hepsinin açılması da 60 saati bulur. Süre 15 dakika ile 999 saat arasında tutulur. Süre alanına elle değer yazarsan otomatik hesap o oturumda devreye girmez.": "Когда настройка включена, длительность сессии вычисляется из настроек: сколько времени понадобилось бы настоящему игроку, чтобы получить открываемые достижения (время прохождения x доля достижений x сложность). При времени прохождения 60 часов открытие всех достижений тоже займёт 60 часов. Длительность ограничена диапазоном от 15 минут до 999 часов. Если ввести значение в поле длительности вручную, автоматический расчёт в этой сессии не применяется.",
  "Hesap No": "ID аккаунта",
- "Kimlikleri Kopyala": "Копировать ID",
  "Hedef saat": "Целевые часы",
  "OTO": "АВТО",
  "Yok": "Нет",
