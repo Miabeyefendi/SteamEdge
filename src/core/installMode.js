@@ -1,8 +1,8 @@
 // Two ways to run the packaged app:
 //   portable   the folder was extracted by hand: data (settings, cache, logs) sits next to the exe
 //   installed  the Setup put it there: the Setup writes the uninstaller `unins000.exe` into the install folder,
-//              so its presence is the marker. Data then lives in the user's AppData, because an install folder
-//              such as Program Files is not writable and an update or uninstall must never touch the data.
+//              so its presence is the marker. The data (settings, cache, logs) still sits next to the exe, like a portable
+//              copy: the Setup gives the users group write access to those three folders, and an update never touches them.
 const fs = require('fs');
 const path = require('path');
 

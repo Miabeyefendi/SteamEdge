@@ -13,7 +13,7 @@ SteamEdge now comes with a Setup, and the Update button installs the new version
 
 ### Added
 
-- **A Setup (`SteamEdge-Setup-v3.0.0.exe`).** It shows the license (AGPL-3.0), asks where to install (Program Files by default, "just me" or any other folder is a choice too) and which language SteamEdge opens in, makes the Start menu and desktop shortcuts with the right icon, and registers an uninstaller. It speaks the six languages of the app. A copy installed this way keeps its settings, accounts and saved sign-in in `%APPDATA%\SteamEdge`, so updating or removing the program folder never touches them; the uninstaller asks whether to delete them too.
+- **A Setup (`SteamEdge-Setup-v3.0.0.exe`).** It shows the license (AGPL-3.0), asks where to install (Program Files by default, "just me" or any other folder is a choice too) and which language SteamEdge opens in, makes the Start menu and desktop shortcuts with the right icon, and registers an uninstaller. It speaks the six languages of the app. A copy installed this way keeps its settings, accounts and saved sign-in in the `settings`, `cache` and `logs` folders next to the exe, just like the portable copy (the Setup makes them writable for normal users, and updating never touches them); the uninstaller asks whether to delete them too.
 - **Update now.** When a new version is out, the update window has an "Update Now" button: the app downloads the new version from this project's GitHub release, checks its SHA-256 against the value GitHub lists for the file, and installs it. A file that does not match is deleted and never run, and nothing is downloaded before the button is pressed.
 - **A portable zip (`SteamEdge-v3.0.0-win-x64.zip`).** Portable copies update themselves from it: the new files are copied over the folder while `settings`, `cache` and `logs` are left alone, then the app opens again.
 
@@ -23,9 +23,9 @@ SteamEdge now comes with a Setup, and the Update button installs the new version
 - A copy older than 3.0.0 cannot update itself, move it to 3.0.0 once by hand.
 
 
-SHA-256 (`SteamEdge-Setup-v3.0.0.exe`): `967e40c469a178410d59c184dc36815ac6f2c7a7dc94835544060c462d6dbf62`
-SHA-256 (`SteamEdge-v3.0.0-win-x64.zip`): `c6cd0da8ddf99b7ba1e9b97d5d09e3e5e7c559f8eacee271797a46276106d192`
-SHA-256 (`SteamEdge-v3.0.0-win-x64.rar`): `b9e97bd9995721f024ac7e4b0002e4e2cd567e6df5aad19084b448deb86d7f36`
+SHA-256 (`SteamEdge-Setup-v3.0.0.exe`): `2ff345301424f03d3b944c3a0a729e477d7425573000d1f45a3f9285851f603c`
+SHA-256 (`SteamEdge-v3.0.0-win-x64.zip`): `5d99092560dbed00b3a85f3aab54df0224d7a1435a39029ba1a980ae6f1c8d92`
+SHA-256 (`SteamEdge-v3.0.0-win-x64.rar`): `1d73147a6c96df40199fac99270fec8669a58ea579a3582820e8e534e9550ec5`
 
 ## [2.0.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/2.0.0)
 

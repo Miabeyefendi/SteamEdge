@@ -94,7 +94,7 @@
 
 Two ways, same program:
 
-**Installed.** Download `SteamEdge-Setup-v3.0.0.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in `%APPDATA%\SteamEdge`, so updating or removing the program never touches them.
+**Installed.** Download `SteamEdge-Setup-v3.0.0.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
 
 **Portable.** Download `SteamEdge-v3.0.0-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
 
@@ -103,13 +103,13 @@ To update, press **Update Now** in the update window: the app downloads the new 
 The `.rar` and the `.zip` hold the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`). The Setup is built from the same folder with Inno Setup (`build/setup.iss`). Nothing in them is minified beyond what Electron itself ships.
 
 SHA-256 of `SteamEdge-Setup-v3.0.0.exe`:
-`967e40c469a178410d59c184dc36815ac6f2c7a7dc94835544060c462d6dbf62`
+`2ff345301424f03d3b944c3a0a729e477d7425573000d1f45a3f9285851f603c`
 
 SHA-256 of `SteamEdge-v3.0.0-win-x64.zip`:
-`c6cd0da8ddf99b7ba1e9b97d5d09e3e5e7c559f8eacee271797a46276106d192`
+`5d99092560dbed00b3a85f3aab54df0224d7a1435a39029ba1a980ae6f1c8d92`
 
 SHA-256 of `SteamEdge-v3.0.0-win-x64.rar`:
-`b9e97bd9995721f024ac7e4b0002e4e2cd567e6df5aad19084b448deb86d7f36`
+`1d73147a6c96df40199fac99270fec8669a58ea579a3582820e8e534e9550ec5`
 
 Check one in PowerShell with `Get-FileHash .\<file name>`.
 
