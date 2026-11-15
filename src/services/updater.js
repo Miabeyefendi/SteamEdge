@@ -1,8 +1,8 @@
-// ================= UPDATE CHECK =================
-// Only LOOKS, never downloads. Reads GitHub's release list, compares it with the installed version
-// and returns the result. The decision to download is the user's: the interface only links to
-// the release page. A path that silently downloads and runs files is deliberately absent - the user
-// must see what lands on their computer.
+// ================= UPDATE CHECK AND DOWNLOAD =================
+// check() only LOOKS: it reads GitHub's release list and compares it with the installed version.
+// download() runs ONLY after the user pressed the update button, and only fetches the file of that
+// release from this project's own GitHub release (https, host allow list, size cap). A file whose SHA-256 does
+// not equal the digest GitHub lists for the asset is deleted and never run, and an asset without a digest is refused.
 //
 // Why /releases?per_page=... and not /releases/latest:
 // GitHub's "latest" endpoint skips prereleases and drafts, but it also returns 404
@@ -10,6 +10,8 @@
 // ourselves is both more predictable and a single request.
 
 const https = require('https');
+const fs = require('fs');
+const crypto = require('crypto');
 const { activeAgent } = require('../core/proxyFetch');
 
 const STORE = 'Miabeyefendi/steamedge';
@@ -79,6 +81,78 @@ function request(url) {
   });
 }
 
+// The two files a release carries for the updater: the Setup (installed copies) and the zip (portable copies).
+// `digest` is the "sha256:<hex>" GitHub computes for every uploaded asset.
+const MAX_BYTES = 400 * 1024 * 1024;
+const ALLOWED_HOSTS = ['github.com', 'objects.githubusercontent.com', 'release-assets.githubusercontent.com', 'github-releases.githubusercontent.com'];
+function pickAssets(release) {
+  const list = Array.isArray(release && release.assets) ? release.assets : [];
+  const find = (re) => {
+    const a = list.find((x) => x && re.test(String(x.name || '')) && x.browser_download_url);
+    if (!a) return null;
+    const m = /^sha256:([0-9a-f]{64})$/i.exec(String(a.digest || ''));
+    return { name: a.name, url: a.browser_download_url, size: +a.size || 0, sha256: m ? m[1].toLowerCase() : null };
+  };
+  return { setup: find(/^SteamEdge-Setup.*\.exe$/i), zip: find(/^SteamEdge-v.*-win-x64\.zip$/i) };
+}
+
+// Only https, and only GitHub's own hosts, on the first request and on every redirect.
+function allowedUrl(u) {
+  try {
+    const x = new URL(u);
+    return x.protocol === 'https:' && ALLOWED_HOSTS.includes(x.hostname);
+  } catch (_) { return false; }
+}
+
+// Downloads `asset` ({url, size, sha256}) to `dest`. onProgress(done, total). Resolves { ok, path } or { ok:false, failure }.
+function download(asset, dest, onProgress) {
+  return new Promise((resolve) => {
+    if (!asset || !allowedUrl(asset.url)) return resolve({ ok: false, failure: 'İndirme adresi geçersiz.' });
+    if (!asset.sha256) return resolve({ ok: false, failure: 'Yayında doğrulama değeri yok, indirme yapılmadı.' });
+    const part = dest + '.part';
+    let finished = false;
+    const done = (r) => {
+      if (finished) return;
+      finished = true;
+      if (!r.ok) { try { fs.unlinkSync(part); } catch (_) {} }
+      resolve(r);
+    };
+    const get = (url, hops) => {
+      if (hops > 5 || !allowedUrl(url)) return done({ ok: false, failure: 'İndirme adresi geçersiz.' });
+      const req = https.get(url, { headers: { 'User-Agent': 'SteamEdge' }, agent: activeAgent(true) }, (res) => {
+        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+          res.resume();
+          return get(new URL(res.headers.location, url).toString(), hops + 1);
+        }
+        if (res.statusCode !== 200) { res.resume(); return done({ ok: false, failure: 'GitHub beklenmeyen bir yanıt döndürdü (HTTP #).'.replace('#', res.statusCode) }); }
+        const total = +res.headers['content-length'] || asset.size || 0;
+        if (total > MAX_BYTES) { res.resume(); return done({ ok: false, failure: 'İndirilecek dosya beklenenden büyük.' }); }
+        const hash = crypto.createHash('sha256');
+        const out = fs.createWriteStream(part);
+        let got = 0;
+        res.on('data', (c) => {
+          got += c.length;
+          if (got > MAX_BYTES) { req.destroy(); out.destroy(); return done({ ok: false, failure: 'İndirilecek dosya beklenenden büyük.' }); }
+          hash.update(c);
+          if (onProgress) onProgress(got, total);
+        });
+        res.pipe(out);
+        out.on('error', (e) => done({ ok: false, failure: errorText(e) }));
+        out.on('finish', () => {
+          if (finished) return;
+          if (hash.digest('hex') !== asset.sha256) return done({ ok: false, failure: 'İndirilen dosya doğrulanamadı, silindi.' });
+          try { fs.renameSync(part, dest); } catch (e) { return done({ ok: false, failure: errorText(e) }); }
+          done({ ok: true, path: dest });
+        });
+        res.on('error', (e) => done({ ok: false, failure: errorText(e) }));
+      });
+      req.on('error', (e) => done({ ok: false, failure: errorText(e) }));
+      req.setTimeout(TIMEOUT_MS, () => req.destroy(Object.assign(new Error('zaman aşımı'), { code: 'ZAMANASIMI' })));
+    };
+    get(asset.url, 0);
+  });
+}
+
 // installedVersion: the version in package.json (app.getVersion()).
 // The return always has the same shape: { ok, installed, lastOne, isUpToDate, url, releaseName, releaseTs, failure }
 async function check(installedVersion) {
@@ -100,10 +174,11 @@ async function check(installedVersion) {
       url: newest.html_url || RELEASES_PAGE,
       releaseName: newest.name || newest.tag_name,
       releaseTs: newest.published_at ? Date.parse(newest.published_at) : null,
+      assets: pickAssets(newest),
     };
   } catch (e) {
     return { ok: false, ...basis, failure: errorText(e) };
   }
 }
 
-module.exports = { checkNow: check, compareVersion: compareVersion, RELEASES_PAGE: RELEASES_PAGE, STORE: STORE };
+module.exports = { checkNow: check, download: download, pickAssets: pickAssets, allowedUrl: allowedUrl, compareVersion: compareVersion, RELEASES_PAGE: RELEASES_PAGE, STORE: STORE };

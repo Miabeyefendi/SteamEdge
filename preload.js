@@ -13,12 +13,14 @@ catch (_) { PACKAGE_VERSION = ''; }
 let settingsAccount = null;
 contextBridge.exposeInMainWorld('imu', {
   versionStr: PACKAGE_VERSION,
-  // Update check: only LOOKS. No download, no automatic install - the interface just links to
-  // the release page. Runs once at startup and once more from the top bar button.
+  // Update check runs once at startup and once more from the top bar button. It only LOOKS; the download and install
+  // start only when the user presses "Update now" (install).
   updateInfo: {
     checkIt: () => ipcRenderer.invoke('update:check'),
     lastStatus: () => ipcRenderer.invoke('update:lastStatus'),
     onStatus: (cb) => ipcRenderer.on('update:status', (_e, d) => cb(d)),
+    install: () => ipcRenderer.invoke('update:install'),
+    onProgress: (cb) => ipcRenderer.on('update:progress', (_e, d) => cb(d)),
   },
   appInfo: () => ipcRenderer.invoke('app:info'),
   hardware: () => ipcRenderer.invoke('app:hardware'),

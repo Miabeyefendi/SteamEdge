@@ -37,6 +37,89 @@ module.exports = function init(ctx) {
     setTimeout(() => { checkForUpdate(false).catch(() => {}); }, 15000);
   }
 
+  // ---- update install (3.0.0) ----
+  // Only runs after the user pressed "Update now". The file comes from this project's GitHub release and is verified by SHA-256
+  // (src/services/updater.js). Two ways, by how the app was put on the computer:
+  //   installed  the Setup of the new version is started silently over the same folder; it restarts the app when done
+  //   portable   the zip is extracted to a temp folder, then a small script waits for this process to end, copies the new
+  //              files over the folder WITHOUT touching settings, cache and logs, and starts the app again
+  let installing = false;
+
+  // ASCII only: Windows PowerShell 5.1 reads a BOM-less script in the ANSI code page
+  const PORTABLE_SCRIPT = [
+    'param([int]$ProcId, [string]$Source, [string]$Dest, [string]$Exe, [string]$Work)',
+    "$ErrorActionPreference = 'Continue'",
+    'try { Wait-Process -Id $ProcId -Timeout 90 -ErrorAction SilentlyContinue } catch {}',
+    'Start-Sleep -Seconds 2',
+    // robocopy exit codes below 8 mean success; three tries because the old processes may still hold a file for a moment
+    'for ($i = 0; $i -lt 3; $i++) {',
+    '  robocopy $Source $Dest /E /XD settings cache logs /R:2 /W:1 /NFL /NDL /NJH /NJS | Out-Null',
+    '  if ($LASTEXITCODE -lt 8) { break }',
+    '  Start-Sleep -Seconds 3',
+    '}',
+    'Start-Process -FilePath $Exe',
+    'Start-Sleep -Seconds 3',
+    'Remove-Item -LiteralPath $Work -Recurse -Force -ErrorAction SilentlyContinue',
+  ].join('\r\n');
+
+  function psQuote(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
+
+  function startDetached(psCommand) {
+    // Start-Process goes through ShellExecute, so the UAC question of an all-users Setup can appear
+    const child = require('child_process').spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-Command', psCommand], { detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+  }
+
+  ipcMain.handle('update:install', async () => {
+    if (installing) return { ok: false, error: 'Güncelleme zaten sürüyor.' };
+    if (!app.isPackaged || process.platform !== 'win32') return { ok: false, error: 'Kendi kendine güncelleme yalnızca paketli Windows sürümünde çalışır.' };
+    const st = lastUpdateStatus;
+    if (!st || !st.ok || st.isUpToDate !== false || !st.assets) return { ok: false, error: 'Önce yeni sürüm denetlenmeli.' };
+    const installed = require('../core/installMode').isInstalled(app.getPath('exe'));
+    const asset = installed ? st.assets.setup : st.assets.zip;
+    if (!asset) return { ok: false, error: 'Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.' };
+    const exeDir = path.dirname(app.getPath('exe'));
+    if (!installed) {
+      try { const t = path.join(exeDir, '.write-test'); fs.writeFileSync(t, 'x'); fs.unlinkSync(t); }
+      catch (_) { return { ok: false, error: 'Uygulama klasörüne yazılamıyor, yayın sayfasından indir.' }; }
+    }
+    installing = true;
+    const work = path.join(require('os').tmpdir(), 'SteamEdge-update-' + Date.now());
+    try {
+      fs.mkdirSync(work, { recursive: true });
+      const file = path.join(work, asset.name);
+      log('info', 'update: downloading ' + asset.name);
+      const got = await update.download(asset, file, (done, total) => sendRaw('update:progress', { phase: 'download', done, total }));
+      if (!got.ok) throw new Error(got.failure);
+      sendRaw('update:progress', { phase: 'install' });
+      if (installed) {
+        log('info', 'update: starting the Setup');
+        startDetached('Start-Process -FilePath ' + psQuote(file) + " -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS'");
+      } else {
+        const extract = path.join(work, 'files');
+        await new Promise((resolve, reject) => {
+          require('child_process').execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-Command', 'Expand-Archive -LiteralPath ' + psQuote(file) + ' -DestinationPath ' + psQuote(extract) + ' -Force'], { windowsHide: true, timeout: 180000 }, (e) => (e ? reject(e) : resolve()));
+        });
+        // the zip holds one folder (SteamEdge-v<version>-win-x64); the files to copy are the ones next to SteamEdge.exe
+        const top = fs.readdirSync(extract, { withFileTypes: true }).filter((d) => d.isDirectory());
+        const source = fs.existsSync(path.join(extract, path.basename(app.getPath('exe')))) ? extract : (top[0] ? path.join(extract, top[0].name) : null);
+        if (!source || !fs.existsSync(path.join(source, path.basename(app.getPath('exe'))))) throw new Error('Güncelleme paketi beklenen yapıda değil.');
+        const script = path.join(work, 'update.ps1');
+        fs.writeFileSync(script, PORTABLE_SCRIPT, 'utf8');
+        log('info', 'update: portable copy over ' + exeDir);
+        startDetached('& ' + psQuote(script) + ' -ProcId ' + process.pid + ' -Source ' + psQuote(source) + ' -Dest ' + psQuote(exeDir) + ' -Exe ' + psQuote(app.getPath('exe')) + ' -Work ' + psQuote(work));
+      }
+      // let the interface show "restarting" for a moment, then close for real (the tray would otherwise keep the app alive)
+      setTimeout(() => { ctx.isQuitting = true; app.quit(); }, 1200);
+      return { ok: true, installed };
+    } catch (e) {
+      installing = false;
+      try { fs.rmSync(work, { recursive: true, force: true }); } catch (_) {}
+      log('warn', 'update install failed: ' + (e && e.message));
+      return { ok: false, error: (e && e.message) || 'Güncelleme başarısız.' };
+    }
+  });
+
   ipcMain.handle('update:check', () => checkForUpdate(true));
   ipcMain.handle('update:lastStatus', () => lastUpdateStatus);
   // The app's real memory use, process by process. So that the answer to "how much RAM does it eat" is not a guess

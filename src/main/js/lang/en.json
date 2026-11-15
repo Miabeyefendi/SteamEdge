@@ -1506,5 +1506,22 @@
  "R34 Purple": "R34 Purple",
  "Crimson": "Crimson",
  "Olive": "Olive",
- "Indigo": "Indigo"
+ "Indigo": "Indigo",
+ "İndiriliyor...": "Downloading...",
+ "Güncelleme başarısız.": "The update failed.",
+ "Uygulama yeniden başlatılıyor.": "The app is restarting.",
+ "Güncelleme tamamlanamadı": "The update could not be completed",
+ "Güncelle düğmesi yeni sürümü GitHub'dan indirir, doğrular ve kurar. Ayarların ve hesapların korunur; uygulama kısa süre kapanıp yeniden açılır.": "The update button downloads the new version from GitHub, verifies it and installs it. Your settings and accounts are kept; the app closes for a moment and opens again.",
+ "Şimdi Güncelle": "Update Now",
+ "Kuruluyor...": "Installing...",
+ "İndirme adresi geçersiz.": "The download address is not valid.",
+ "Yayında doğrulama değeri yok, indirme yapılmadı.": "The release has no checksum, nothing was downloaded.",
+ "İndirilecek dosya beklenenden büyük.": "The file to download is larger than expected.",
+ "İndirilen dosya doğrulanamadı, silindi.": "The downloaded file could not be verified and was deleted.",
+ "Güncelleme zaten sürüyor.": "An update is already running.",
+ "Kendi kendine güncelleme yalnızca paketli Windows sürümünde çalışır.": "Self-update only works in the packaged Windows version.",
+ "Önce yeni sürüm denetlenmeli.": "Check for the new version first.",
+ "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "This release has no update file, you can download it from the release page.",
+ "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "The app folder is not writable, download from the release page.",
+ "Güncelleme paketi beklenen yapıda değil.": "The update package does not have the expected structure."
 }

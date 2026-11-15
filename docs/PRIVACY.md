@@ -20,7 +20,7 @@
 - **`steamcommunity.com`**: inventory, market, listings and achievement pages, with your session.
 - **`api.steampowered.com`**: sign-in and session calls.
 - **`*.steamstatic.com`**: game images and Steam's own market fee script (it runs in a hidden, sandboxed window with no Node access).
-- **`api.github.com`**: once at startup, and when you press the update button, to read the public list of releases. It sends nothing about you and never downloads or installs anything.
+- **`api.github.com`**: once at startup, and when you press the update button, to read the public list of releases. It sends nothing about you. Only after you press "Update Now" does the app download the new version from this project's GitHub release (`github.com` and GitHub's own download hosts), check its SHA-256 against the value GitHub lists, and install it; a file that does not match is deleted and never run.
 - **Your own proxy**, only if you set one per account or for sign-in.
 - Nothing else. **No server of mine, no analytics, no telemetry, no crash reports, no ads.** The fonts are bundled, so no font servers either.
 

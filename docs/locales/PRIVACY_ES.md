@@ -20,7 +20,7 @@
 - **`steamcommunity.com`**: inventario, mercado, anuncios y páginas de logros, con tu sesión.
 - **`api.steampowered.com`**: llamadas de inicio y de sesión.
 - **`*.steamstatic.com`**: imágenes de juegos y el script de comisiones del mercado de Steam (se ejecuta en una ventana oculta y aislada, sin acceso a Node).
-- **`api.github.com`**: una vez al arrancar y cuando pulsas el botón de actualización, para leer la lista pública de versiones. No envía nada sobre ti y nunca descarga ni instala nada.
+- **`api.github.com`**: una vez al arrancar y cuando pulsas el botón de actualización, para leer la lista pública de versiones. No envía nada sobre ti. Solo después de pulsar «Actualizar ahora» descarga la nueva versión de la publicación de GitHub de este proyecto (`github.com` y los servidores de descarga de GitHub), comprueba su SHA-256 con el valor que indica GitHub y la instala; un archivo que no coincide se elimina y nunca se ejecuta.
 - **Tu propio proxy**, solo si lo configuras por cuenta o para el inicio de sesión.
 - Nada más. **Ningún servidor mío, ni analíticas, ni telemetría, ni informes de fallos, ni anuncios.** Las fuentes van incluidas, así que tampoco se consulta ningún servidor de fuentes.
 

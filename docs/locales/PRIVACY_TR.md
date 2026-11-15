@@ -20,7 +20,7 @@
 - **`steamcommunity.com`**: envanter, pazar, ilanlar ve başarım sayfaları, senin oturumunla.
 - **`api.steampowered.com`**: giriş ve oturum çağrıları.
 - **`*.steamstatic.com`**: oyun görselleri ve Steam'in kendi pazar ücret betiği (Node erişimi olmayan, gizli ve korumalı bir pencerede çalışır).
-- **`api.github.com`**: açılışta bir kez ve güncelleme düğmesine basınca, herkese açık sürüm listesini okumak için. Senin hakkında hiçbir şey göndermez, hiçbir şey indirmez ya da kurmaz.
+- **`api.github.com`**: açılışta bir kez ve güncelleme düğmesine basınca, herkese açık sürüm listesini okumak için. Senin hakkında hiçbir şey göndermez. Yeni sürümü yalnızca "Şimdi Güncelle"ye bastıktan sonra bu projenin GitHub yayınından (`github.com` ve GitHub'ın kendi indirme sunucuları) indirir, SHA-256 değerini GitHub'ın verdiğiyle karşılaştırır ve kurar; uyuşmayan dosya silinir ve hiç çalıştırılmaz.
 - **Kendi vekil sunucun**, yalnızca hesap başına ya da giriş için bir tane girdiysen.
 - Başka hiçbir şey yok. **Benim bir sunucum, analiz, telemetri, çökme raporu, reklam yok.** Yazı tipleri uygulamanın içinde olduğu için yazı tipi sunucusuna da gidilmez.
 

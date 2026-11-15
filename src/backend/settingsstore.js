@@ -86,7 +86,12 @@ module.exports = function init(ctx) {
     } else {
       ctx.settings = { ...DEFAULT_SETTINGS };
       // none = first run, normal: the welcome window will ask. corrupt = a real problem, tell the user.
-      if (r.none) ctx.settings.setupDone = false;
+      if (r.none) {
+        ctx.settings.setupDone = false;
+        // the language chosen in the Setup (an installed copy only; a portable copy has no such file)
+        const chosenInSetup = ctx.app && ctx.app.isPackaged ? require('../core/installMode').setupLanguage(ctx.app.getPath('exe')) : null;
+        if (chosenInSetup) ctx.settings.language = chosenInSetup;
+      }
       if (r.corrupt) readErrors.push({ displayName: 'Ayarlar', recoveredFlag: false });
     }
     translation.pickLang(ctx.settings.language);
