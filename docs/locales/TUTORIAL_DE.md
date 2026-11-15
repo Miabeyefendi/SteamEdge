@@ -88,7 +88,7 @@ Unten links steht `SYSTEM: BEREIT`, sobald eine Sitzung steht, und `SYSTEM: LÄU
 
 ### Aktualisieren
 
-Die App prüft die veröffentlichte Versionsnummer einige Sekunden nach dem Start und jedes Mal, wenn du in der oberen Leiste auf die Aktualisieren-Schaltfläche drückst, und meldet, wenn es eine neuere gibt. Sie lädt bewusst nichts herunter und installiert nichts. Zum Aktualisieren SteamEdge schließen, das neue Archiv in einen **leeren, neuen Ordner** entpacken und den Ordner `settings/` aus dem alten hineinkopieren. Wer über den alten Ordner entpackt, während die App läuft, mischt Dateien zweier Versionen; den häufigsten Fall erkennt die App und meldet ihn beim Start.
+Die App prüft die veröffentlichte Versionsnummer einige Sekunden nach dem Start und jedes Mal, wenn du in der oberen Leiste auf die Aktualisieren-Schaltfläche klickst. Gibt es eine neuere Version, bietet das Fenster **Jetzt aktualisieren** an: Die App lädt die neue Version von der GitHub-Veröffentlichung dieses Projekts herunter, prüft ihren SHA-256 gegen den von GitHub genannten Wert und installiert sie. Vor dem Klick wird nichts heruntergeladen. Eine mit dem Setup installierte Kopie führt das neue Setup still über denselben Ordner aus; bei einer portablen Kopie werden die Dateien an Ort und Stelle ersetzt. In beiden Fällen bleiben `settings/`, `cache/` und `logs/` erhalten. Kopien vor 3.0.0 können sich nicht selbst aktualisieren: einmal von Hand umziehen (das neue Archiv in einen **leeren, neuen Ordner** entpacken und `settings/` hineinkopieren).
 
 Dateien, die eine ältere Version geschrieben hat, werden beim ersten Lesen umgewandelt; es genügt also, `settings/` zu kopieren. Die Umwandlung gilt nur in eine Richtung: Hat 1.4.0 einen `settings/`-Ordner einmal geöffnet, kann 1.3.x ihn nicht mehr verwenden. Bewahre eine Kopie auf, falls du zurückwechseln möchtest.
 
@@ -492,7 +492,7 @@ Ja. Jedes behält seine eigene Verbindung und seine eigenen Daten, und Konten im
 <details>
 <summary><b>Gibt es eine automatische Aktualisierung?</b></summary>
 
-Bewusst nicht. Die Anwendung liest die veröffentlichte Versionsnummer und sagt Bescheid, wenn eine neuere existiert. Sie lädt nichts herunter und verändert nichts.
+Ja, seit 3.0.0. Gibt es eine neuere Version, hat das Update-Fenster eine Schaltfläche **Jetzt aktualisieren**, und die App lädt die neue Version selbst herunter, prüft und installiert sie. Vor dem Klick wird nichts heruntergeladen.
 
 </details>
 

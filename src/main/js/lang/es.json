@@ -1506,5 +1506,22 @@
  "R34 Purple": "R34 Purple",
  "Crimson": "Crimson",
  "Olive": "Olive",
- "Indigo": "Indigo"
+ "Indigo": "Indigo",
+ "İndiriliyor...": "Descargando...",
+ "Güncelleme başarısız.": "La actualización falló.",
+ "Uygulama yeniden başlatılıyor.": "La aplicación se está reiniciando.",
+ "Güncelleme tamamlanamadı": "No se pudo completar la actualización",
+ "Güncelle düğmesi yeni sürümü GitHub'dan indirir, doğrular ve kurar. Ayarların ve hesapların korunur; uygulama kısa süre kapanıp yeniden açılır.": "El botón de actualizar descarga la nueva versión de GitHub, la verifica y la instala. Tus ajustes y cuentas se conservan; la aplicación se cierra un momento y vuelve a abrirse.",
+ "Şimdi Güncelle": "Actualizar ahora",
+ "Kuruluyor...": "Instalando...",
+ "İndirme adresi geçersiz.": "La dirección de descarga no es válida.",
+ "Yayında doğrulama değeri yok, indirme yapılmadı.": "La versión no tiene suma de verificación, no se descargó nada.",
+ "İndirilecek dosya beklenenden büyük.": "El archivo a descargar es más grande de lo esperado.",
+ "İndirilen dosya doğrulanamadı, silindi.": "No se pudo verificar el archivo descargado y se eliminó.",
+ "Güncelleme zaten sürüyor.": "Ya hay una actualización en curso.",
+ "Kendi kendine güncelleme yalnızca paketli Windows sürümünde çalışır.": "La actualización automática solo funciona en la versión empaquetada para Windows.",
+ "Önce yeni sürüm denetlenmeli.": "Primero hay que buscar la nueva versión.",
+ "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "Esta versión no tiene archivo de actualización, puedes descargarla desde la página de versiones.",
+ "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "No se puede escribir en la carpeta de la aplicación, descarga desde la página de versiones.",
+ "Güncelleme paketi beklenen yapıda değil.": "El paquete de actualización no tiene la estructura esperada."
 }

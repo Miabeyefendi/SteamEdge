@@ -8,9 +8,9 @@
  *  *   3. Moves the output to the "SteamEdge-v<version>-win-x64" folder and creates empty settings/ + cache/ next to it.
  *  *   4. Leaves a README.txt for the user and the CHANGELOG.md for that version.
  *
- *  * Why not electron-builder: we do not produce an installer. The user extracts the archive and
- *  * runs it directly; a portable folder distribution fits this better and
- *  * the packager pulls in far fewer dependencies.
+ *  * Why not electron-builder: the packager pulls in far fewer dependencies. The portable folder is the
+ *  * product; since 3.0.0 build/installer.js also wraps the same folder into a zip (portable self-update)
+ *  * and a Setup (build/setup.iss, Inno Setup).
  *
  *  * Usage:  npm run build
  */
@@ -134,6 +134,9 @@ async function main() {
   console.log('  size   : ' + (size / 1024 / 1024).toFixed(1) + ' MB'
     + (trimmed.gain || unused ? '  (' + ((trimmed.gain + unused) / 1024 / 1024).toFixed(1) + ' MB smaller from trimming locales and unused files)' : ''));
   console.log('  exe    : ' + pkg.productName + '.exe');
+
+  // The zip (portable self-update) and the Setup are made from the finished folder
+  if (platform === 'win32') require('./installer').main();
 }
 
 // Electron leaves locale files (locales/*.pak, ~44 MB). These are Chromium's OWN interface
@@ -262,7 +265,8 @@ TASINABILIR
   Ayarlarin ve oturumun seninle gelir; kayit defterine hicbir sey yazilmaz.
 
 KALDIRMA
-  Klasoru sil. Baska bir iz birakmaz.
+  Klasoru sil. Baska bir iz birakmaz. (Setup ile kurduysan Windows'un
+  "Uygulamalar" listesinden kaldir.)
 
 GUVENLIK
   Sifren hicbir yere kaydedilmez. Steam'in verdigi yenileme anahtari

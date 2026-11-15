@@ -1506,5 +1506,22 @@
  "R34 Purple": "R34 Purple",
  "Crimson": "Crimson",
  "Olive": "Olive",
- "Indigo": "Indigo"
+ "Indigo": "Indigo",
+ "İndiriliyor...": "Загрузка...",
+ "Güncelleme başarısız.": "Не удалось обновить.",
+ "Uygulama yeniden başlatılıyor.": "Приложение перезапускается.",
+ "Güncelleme tamamlanamadı": "Не удалось завершить обновление",
+ "Güncelle düğmesi yeni sürümü GitHub'dan indirir, doğrular ve kurar. Ayarların ve hesapların korunur; uygulama kısa süre kapanıp yeniden açılır.": "Кнопка обновления скачивает новую версию с GitHub, проверяет и устанавливает её. Настройки и аккаунты сохраняются; приложение ненадолго закроется и откроется снова.",
+ "Şimdi Güncelle": "Обновить сейчас",
+ "Kuruluyor...": "Установка...",
+ "İndirme adresi geçersiz.": "Недопустимый адрес загрузки.",
+ "Yayında doğrulama değeri yok, indirme yapılmadı.": "У релиза нет контрольной суммы, загрузка не выполнена.",
+ "İndirilecek dosya beklenenden büyük.": "Файл больше ожидаемого.",
+ "İndirilen dosya doğrulanamadı, silindi.": "Загруженный файл не прошёл проверку и был удалён.",
+ "Güncelleme zaten sürüyor.": "Обновление уже выполняется.",
+ "Kendi kendine güncelleme yalnızca paketli Windows sürümünde çalışır.": "Самообновление работает только в собранной версии для Windows.",
+ "Önce yeni sürüm denetlenmeli.": "Сначала нужно проверить наличие новой версии.",
+ "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "В этом релизе нет файла обновления, его можно скачать на странице релиза.",
+ "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "В папку приложения нельзя записывать, скачайте со страницы релиза.",
+ "Güncelleme paketi beklenen yapıda değil.": "Пакет обновления имеет неожиданную структуру."
 }

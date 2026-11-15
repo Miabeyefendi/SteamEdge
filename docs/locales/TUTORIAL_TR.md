@@ -88,7 +88,7 @@ Oturum ayağa kalkınca sol altta `SİSTEM: HAZIR`, bir iş çalışırken `SİS
 
 ### Güncelleme
 
-Uygulama yayımlanmış sürüm numarasına açılıştan birkaç saniye sonra ve üst çubuktaki güncelleme düğmesine her bastığında bakar, daha yenisi çıktığında haber verir. Bilerek hiçbir şey indirmez, kurmaz. Güncellemek için SteamEdge'i kapat, yeni arşivi **boş ve yeni bir klasöre** çıkar ve eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır; uygulama yaygın durumu yakalar ve açılışta söyler.
+Uygulama yayımlanmış sürüm numarasına açılıştan birkaç saniye sonra ve üst çubuktaki güncelleme düğmesine her bastığında bakar. Daha yeni bir sürüm varsa pencere **Şimdi Güncelle** sunar: uygulama yeni sürümü bu projenin GitHub yayınından indirir, SHA-256 değerini GitHub'ın verdiğiyle karşılaştırır ve kurar. Düğmeye basmadan hiçbir şey indirilmez. Setup ile kurulmuş kopya yeni Setup'ı aynı klasörün üzerine sessizce çalıştırır; taşınabilir kopyanın dosyaları yerinde değiştirilir. İki durumda da `settings/`, `cache/` ve `logs/` korunur. 3.0.0'dan eski kopyalar kendini güncelleyemez: bir kez elle taşı (yeni arşivi **boş ve yeni bir klasöre** çıkar, `settings/` klasörünü içine kopyala).
 
 Eski bir sürümün yazdığı dosyalar ilk okunduğunda dönüştürülür, yani `settings/` klasörünü kopyalamak yeter. Dönüşüm tek yönlüdür: 1.4.0 bir `settings/` klasörünü açtıktan sonra 1.3.x onu artık kullanamaz; geri dönmek isteyebilirsen bir kopyasını sakla.
 
@@ -492,7 +492,7 @@ Evet. Her biri kendi bağlantısını ve verisini tutar; sen başkasına bakarke
 <details>
 <summary><b>Otomatik güncelleme var mı?</b></summary>
 
-Bilerek yok. Uygulama yayımlanmış sürüm numarasını okur ve yenisi çıkınca söyler. Hiçbir şey indirmez, hiçbir şeyi değiştirmez.
+Evet, 3.0.0'dan beri. Daha yeni bir sürüm çıkınca güncelleme penceresinde **Şimdi Güncelle** düğmesi olur ve uygulama yeni sürümü kendisi indirir, doğrular ve kurar. Düğmeye basmadan hiçbir şey indirilmez.
 
 </details>
 

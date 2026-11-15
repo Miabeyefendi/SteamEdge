@@ -88,7 +88,7 @@ Abajo a la izquierda aparece `SISTEMA: LISTO` en cuanto hay sesión, y `SISTEMA:
 
 ### Actualizar
 
-La aplicación consulta el número de versión publicado unos segundos después de arrancar y cada vez que pulsas el botón de actualización de la barra superior, y avisa cuando hay una más nueva. A propósito, no descarga ni instala nada. Para actualizar, cierra SteamEdge, extrae el nuevo archivo en una **carpeta nueva y vacía** y copia en ella la carpeta `settings/` de la anterior. Extraer encima de la carpeta antigua con la aplicación abierta mezcla archivos de dos versiones; la aplicación detecta el caso habitual y lo indica al arrancar.
+La aplicación comprueba el número de versión publicado unos segundos después de arrancar y cada vez que pulsas el botón de actualización de la barra superior. Si existe una versión más nueva, la ventana ofrece **Actualizar ahora**: la aplicación descarga la nueva versión de la publicación de GitHub de este proyecto, comprueba su SHA-256 con el valor que indica GitHub y la instala. No se descarga nada antes de pulsar el botón. Una copia instalada con el Setup ejecuta el nuevo Setup en silencio sobre la misma carpeta; en una copia portátil se sustituyen los archivos en su sitio. En ambos casos se conservan `settings/`, `cache/` y `logs/`. Las copias anteriores a 3.0.0 no pueden actualizarse solas: pásalas una vez a mano (extrae el nuevo archivo en una **carpeta nueva y vacía** y copia `settings/` dentro).
 
 Los archivos escritos por una versión anterior se convierten la primera vez que se leen, así que basta con copiar `settings/`. La conversión es de un solo sentido: una vez que 1.4.0 ha abierto una carpeta `settings/`, 1.3.x ya no puede usarla; guarda una copia si quieres poder volver atrás.
 
@@ -492,7 +492,7 @@ Sí. Cada una mantiene su conexión y sus datos, y las cuentas en segundo plano 
 <details>
 <summary><b>¿Hay actualizador automático?</b></summary>
 
-No, deliberadamente. La aplicación lee el número de versión publicado y te avisa cuando existe uno más nuevo. No descarga nada ni modifica nada.
+Sí, desde la 3.0.0. Cuando existe una versión más nueva, la ventana de actualización tiene un botón **Actualizar ahora** y la aplicación descarga, verifica e instala la nueva versión por sí misma. No se descarga nada hasta que lo pulses.
 
 </details>
 

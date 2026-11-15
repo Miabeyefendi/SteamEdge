@@ -88,7 +88,7 @@ The bottom left of the window shows `SYSTEM: READY` once a session is live, and 
 
 ### Updating
 
-The app checks the published version number a few seconds after startup, and again whenever you press the update button in the top bar, and tells you when a newer release exists. It does not download or install anything, on purpose. To update, close SteamEdge, extract the new archive into an **empty, new folder**, and copy the `settings/` folder from the old one into it. Extracting over the old folder while the app is open leaves files from two versions mixed; the app detects the common case and tells you at startup.
+The app checks the published version number a few seconds after startup, and again whenever you press the update button in the top bar. When a newer release exists, the window offers **Update Now**: the app downloads the new version from this project's GitHub release, checks its SHA-256 against the value GitHub lists, and installs it. Nothing is downloaded before you press the button. A copy installed with the Setup runs the new Setup silently over the same folder; a portable copy has its files replaced in place. Either way `settings/`, `cache/` and `logs/` are kept. Copies older than 3.0.0 cannot update themselves: move them once by hand (extract the new archive into an **empty, new folder** and copy `settings/` into it).
 
 Files written by an older version are converted the first time they are read, so copying `settings/` over is all it takes. The conversion goes one way: once 1.4.0 has opened a `settings/` folder, 1.3.x can no longer use it, so keep a copy if you may want to go back.
 
@@ -493,7 +493,7 @@ Yes. Each keeps its own connection and its own data, and background accounts kee
 <details>
 <summary><b>Is there an auto-updater?</b></summary>
 
-No, deliberately. The app reads the published version number and tells you when a newer one exists. It downloads nothing and modifies nothing.
+Yes, since 3.0.0. When a newer release exists, the update window has an **Update Now** button and the app downloads, verifies and installs the new version itself. Nothing is downloaded until you press it.
 
 </details>
 

@@ -817,9 +817,50 @@
     // nothing is shown - there is no point disturbing the user just to say "everything is fine".
     // The button in the top bar repeats the same check whenever asked; there the result is told
     // in every case, because whoever pressed the button is waiting for an answer.
-    // There is NO download, install or self-update: only the version number is read.
+    // Nothing is downloaded until the user presses "Şimdi Güncelle": then the main process downloads the new version from
+    // GitHub, verifies it and installs it (src/backend/update.js).
     let latestUpdateStatus = null;
     let updateWindowOpen = false;
+
+    // The window that shows the download while it runs. Returns { set(text, fraction), close() }.
+    function updateProgressWindow(){
+      const back = document.createElement('div');
+      back.className = 'e-modal-back';
+      back.innerHTML =
+        '<div class="e-modal" role="dialog" aria-modal="true">'
+        + '<div class="e-modal-hd"><span class="dot" style="background:#5624B3"></span><span class="ttl">'+esc(t('Güncelleme'))+'</span></div>'
+        + '<div class="e-modal-body"><span class="h" data-t></span>'
+        + '<div style="height:8px;border-radius:12px;background:#1B2130;margin-top:12px;overflow:hidden"><div data-bar style="height:100%;width:0;background:#5624B3;transition:width .2s"></div></div></div>'
+        + '</div>';
+      document.body.appendChild(back);
+      requestAnimationFrame(()=>back.classList.add('show'));
+      const text = back.querySelector('[data-t]'), bar = back.querySelector('[data-bar]');
+      return {
+        set(msg, fraction){ text.textContent = msg; if (typeof fraction === 'number') bar.style.width = Math.max(0, Math.min(100, Math.round(fraction * 100))) + '%'; },
+        close(){ back.classList.remove('show'); setTimeout(()=>back.remove(), 140); },
+      };
+    }
+
+    async function runUpdate(d){
+      const win = updateProgressWindow();
+      win.set(t('İndiriliyor...'), 0);
+      window.imu.updateInfo.onProgress((p)=>{
+        if (!p) return;
+        if (p.phase === 'download') win.set(t('İndiriliyor...') + (p.total ? ' ' + Math.round(p.done / p.total * 100) + '%' : ''), p.total ? p.done / p.total : 0);
+        else if (p.phase === 'install') win.set(t('Kuruluyor...'), 1);
+      });
+      const r = await window.imu.updateInfo.install().catch(e=>({ ok:false, error:(e&&e.message)||'Güncelleme başarısız.' }));
+      if (r && r.ok){ win.set(t('Uygulama yeniden başlatılıyor.'), 1); return; }
+      win.close();
+      const again = await edgeConfirm({
+        tag: 'Güncelleme', danger: true,
+        title: 'Güncelleme tamamlanamadı',
+        body: t((r && r.error) || 'Güncelleme başarısız.') + '\n' + t('Kurulu sürümün çalışmaya devam eder.'),
+        confirmText: 'Yayın Sayfasını Aç',
+        cancelText: 'Kapat',
+      });
+      if (again === true) window.imu.openExternal(d.url);
+    }
 
     async function updateWindow(d){
       if (updateWindowOpen) return;
@@ -831,11 +872,13 @@
           title: t('Yeni sürüm yayımlandı:') + ' v' + d.lastOne,
           body: t('Kurulu sürüm') + ' v' + d.installed + (date ? ('  ·  ' + t('yayımlanma tarihi') + ' ' + date) : '')
                 + '\n' + t('Değişiklikleri yayın sayfasında okuyabilirsin.'),
-          warn: 'Uygulama hiçbir şey indirmez. Yeni sürümü yayın sayfasından kendin indirirsin; arşivi BOŞ ve YENİ bir klasöre çıkarıp eski klasördeki settings klasörünü yeni klasöre kopyalarsın.',
-          confirmText: 'Yayın Sayfasını Aç',
+          warn: 'Güncelle düğmesi yeni sürümü GitHub\'dan indirir, doğrular ve kurar. Ayarların ve hesapların korunur; uygulama kısa süre kapanıp yeniden açılır.',
+          confirmText: 'Şimdi Güncelle',
+          subText: 'Yayın Sayfasını Aç',
           cancelText: 'Şimdi Değil',
         });
-        if (ac) window.imu.openExternal(d.url);
+        if (ac === true) await runUpdate(d);
+        else if (ac === 'alt') window.imu.openExternal(d.url);
       } finally {
         updateWindowOpen = false;
       }
