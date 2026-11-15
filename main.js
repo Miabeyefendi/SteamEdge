@@ -56,7 +56,7 @@ try {
   // look in the 'config' folder in development; since the file was not there the graphics settings were never
   // applied in development.
   const earlyPaths = [path.join(app.getPath('userData'), 'settings', 'settings.json')];
-  if (app.isPackaged && !installMode.isInstalled(app.getPath('exe'))) earlyPaths.unshift(path.join(path.dirname(app.getPath('exe')), 'settings', 'settings.json'));
+  if (app.isPackaged) earlyPaths.unshift(path.join(path.dirname(app.getPath('exe')), 'settings', 'settings.json'));
   const earlyPath = earlyPaths.find((p) => fs.existsSync(p));
   const early = earlyPath ? migrateKeys(JSON.parse(fs.readFileSync(earlyPath, 'utf8'))) : null;
   earlySettings = early;
@@ -176,14 +176,12 @@ let psbId = null;
 //     cache/        price cache, Chromium cache
 //     logs/         log files (src/core/logger.js)
 //
-// A copy put there by the Setup (3.0.0) keeps its data in AppData instead, so an update or uninstall of the folder cannot touch it.
+// A copy put there by the Setup does the same: the Setup makes settings, cache and logs writable for the users group, and an update leaves them alone.
 // If it was installed in a read-only place (e.g. Program Files) the write attempt fails;
 // in that case it silently falls back to AppData and the app still works.
 // During development (unpackaged) AppData is always used so the repository does not get dirty.
 function portableRoot() {
   if (!app.isPackaged) return null;
-  // Set up by the Setup: the data lives in AppData (see src/core/installMode.js), never in the install folder
-  if (installMode.isInstalled(app.getPath('exe'))) return null;
   const side = path.join(path.dirname(app.getPath('exe')));
   try {
     fs.mkdirSync(side, { recursive: true });

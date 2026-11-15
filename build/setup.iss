@@ -1,6 +1,7 @@
 ﻿; SteamEdge Setup. Built by build/installer.js: ISCC /DAppVersion=x /DSourceDir=<packaged folder> /DOutDir=<releases>
 ; The portable folder stays as it is. The Setup only wraps the same files.
-; Data of an installed copy lives in %APPDATA%\SteamEdge (see src/core/installMode.js): updating or removing the program folder never touches it.
+; Data of an installed copy sits next to the exe like a portable copy (settings, cache, logs): the [Dirs] entries let normal users write there,
+; and an update never touches them (see src/core/installMode.js).
 #define AppName "SteamEdge"
 #ifndef AppVersion
   #error AppVersion is not defined
@@ -77,6 +78,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Type: filesandordirs; Name: "{app}\resources"
 Type: filesandordirs; Name: "{app}\locales"
 
+[Dirs]
+; Program Files is read-only for normal users: the data folders must be writable by them
+Name: "{app}\settings"; Permissions: users-modify
+Name: "{app}\cache"; Permissions: users-modify
+Name: "{app}\logs"; Permissions: users-modify
+
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "settings\*,cache\*,logs\*"; Flags: recursesubdirs createallsubdirs ignoreversion
 
@@ -144,5 +151,9 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if (CurUninstallStep = usPostUninstall) and (not UninstallSilent) then
     if MsgBox(CustomMessage('DeleteData'), mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES then
-      DelTree(ExpandConstant('{userappdata}\SteamEdge'), True, True, True);
+    begin
+      DelTree(ExpandConstant('{app}\settings'), True, True, True);
+      DelTree(ExpandConstant('{app}\cache'), True, True, True);
+      DelTree(ExpandConstant('{app}\logs'), True, True, True);
+    end;
 end;
