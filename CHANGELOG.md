@@ -7,6 +7,19 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.3.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.1)
+
+The status labels in Recent Activity are filled again.
+
+### Fixed
+
+- **The status labels in the Recent Activity list on the Overview were empty outlines.** Running, Success, Warning, Error, Stopped and Message are filled with a soft tint of their own color again, in every theme.
+
+
+SHA-256 (`SteamEdge-Setup-v4.3.1.exe`): `af2828072c0588d4429dfb97c2c229e5ff6079c8a2f44447857ac59eb2bb7cc3`
+SHA-256 (`SteamEdge-v4.3.1-win-x64.zip`): `622766af787d92fa860bb41a9dbba5eb379533c65d9dc5ddd16bda3de13394d1`
+SHA-256 (`SteamEdge-v4.3.1-win-x64.rar`): `6291d46948aee636a3f55a04d1089620fd8307d456bd8f261f8817de1cad8230`
+
 ## [4.3.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.0)
 
 Update Now works for installed copies: it opens the Setup and cleans up after itself.
