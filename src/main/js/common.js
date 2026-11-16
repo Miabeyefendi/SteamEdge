@@ -850,7 +850,7 @@
         else if (p.phase === 'install') win.set(t('Kuruluyor...'), 1);
       });
       const r = await window.imu.updateInfo.install().catch(e=>({ ok:false, error:(e&&e.message)||'Güncelleme başarısız.' }));
-      if (r && r.ok){ win.set(t('Uygulama yeniden başlatılıyor.'), 1); return; }
+      if (r && r.ok){ win.set(r.installed ? t('SteamEdge kapanıyor, Setup açılacak.') : t('Uygulama yeniden başlatılıyor.'), 1); return; }
       win.close();
       const again = await edgeConfirm({
         tag: 'Güncelleme', danger: true,

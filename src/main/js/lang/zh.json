@@ -1523,5 +1523,6 @@
  "Önce yeni sürüm denetlenmeli.": "請先檢查新版本。",
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "此發佈沒有更新檔，可從發佈頁面下載。",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "無法寫入應用程式資料夾，請從發佈頁面下載。",
- "Güncelleme paketi beklenen yapıda değil.": "更新套件的結構不符預期。"
+ "Güncelleme paketi beklenen yapıda değil.": "更新套件的結構不符預期。",
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge 即將關閉，安裝程式將開啟。"
 }

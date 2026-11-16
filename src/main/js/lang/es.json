@@ -1523,5 +1523,6 @@
  "Önce yeni sürüm denetlenmeli.": "Primero hay que buscar la nueva versión.",
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "Esta versión no tiene archivo de actualización, puedes descargarla desde la página de versiones.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "No se puede escribir en la carpeta de la aplicación, descarga desde la página de versiones.",
- "Güncelleme paketi beklenen yapıda değil.": "El paquete de actualización no tiene la estructura esperada."
+ "Güncelleme paketi beklenen yapıda değil.": "El paquete de actualización no tiene la estructura esperada.",
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge se está cerrando, se abrirá el instalador."
 }

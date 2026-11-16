@@ -1523,5 +1523,6 @@
  "Önce yeni sürüm denetlenmeli.": "Сначала нужно проверить наличие новой версии.",
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "В этом релизе нет файла обновления, его можно скачать на странице релиза.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "В папку приложения нельзя записывать, скачайте со страницы релиза.",
- "Güncelleme paketi beklenen yapıda değil.": "Пакет обновления имеет неожиданную структуру."
+ "Güncelleme paketi beklenen yapıda değil.": "Пакет обновления имеет неожиданную структуру.",
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge закрывается, откроется установщик."
 }

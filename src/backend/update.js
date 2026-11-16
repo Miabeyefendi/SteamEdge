@@ -40,7 +40,10 @@ module.exports = function init(ctx) {
   // ---- update install (3.0.0) ----
   // Only runs after the user pressed "Update now". The file comes from this project's GitHub release and is verified by SHA-256
   // (src/services/updater.js). Two ways, by how the app was put on the computer:
-  //   installed  the Setup of the new version is started silently over the same folder; it restarts the app when done
+  //   installed  the app quits, a small script waits until every SteamEdge process is gone (the Setup cannot close a running
+  //              copy of a quitting app and a silent Setup cancels itself then), keeps a copy of the settings, opens the Setup
+  //              of the new version with its normal screens, puts back whatever settings are missing afterwards, removes
+  //              the temp folder and starts the old copy again if the Setup was cancelled
   //   portable   the zip is extracted to a temp folder, then a small script waits for this process to end, copies the new
   //              files over the folder WITHOUT touching settings, cache and logs, and starts the app again
   let installing = false;
@@ -62,6 +65,34 @@ module.exports = function init(ctx) {
     'Remove-Item -LiteralPath $Work -Recurse -Force -ErrorAction SilentlyContinue',
   ].join('\r\n');
 
+  // ASCII only (see above). Runs after the app has been told to quit.
+  const INSTALL_SCRIPT = [
+    'param([int]$ProcId, [string]$Setup, [string]$Exe, [string]$Work, [string]$Dest, [string]$OldVer, [string]$SetupArgs = "/SP- /CLOSEAPPLICATIONS")',
+    "$ErrorActionPreference = 'Continue'",
+    'try { Wait-Process -Id $ProcId -Timeout 90 -ErrorAction SilentlyContinue } catch {}',
+    // every process of this exe has to be gone, or the Setup cannot replace the files
+    'for ($i = 0; $i -lt 60; $i++) {',
+    '  $left = @(Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $Exe })',
+    '  if ($left.Count -eq 0) { break }',
+    '  if ($i -ge 20) { $left | Stop-Process -Force -ErrorAction SilentlyContinue }',
+    '  Start-Sleep -Seconds 1',
+    '}',
+    // a copy of the settings next to the app (not in Temp: it holds the sign-in), put back below if the Setup lost any of it
+    "$Bak = Join-Path (Join-Path $Dest 'cache') 'update-backup'",
+    "robocopy (Join-Path $Dest 'settings') (Join-Path $Bak 'settings') /E /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null",
+    '$p = Start-Process -FilePath $Setup -ArgumentList $SetupArgs -PassThru',
+    '$p.WaitForExit()',
+    // the Setup may hand over to an elevated copy of itself: wait for that one too
+    "while (Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($Setup)) -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 1 }",
+    "robocopy (Join-Path $Bak 'settings') (Join-Path $Dest 'settings') /E /XC /XN /XO /R:1 /W:1 /NFL /NDL /NJH /NJS | Out-Null",
+    "if ($LASTEXITCODE -lt 8) { Remove-Item -LiteralPath $Bak -Recurse -Force -ErrorAction SilentlyContinue }",
+    'Start-Sleep -Seconds 1',
+    'Remove-Item -LiteralPath $Work -Recurse -Force -ErrorAction SilentlyContinue',
+    // the Setup was cancelled or failed: the old version has to open again
+    "$now = (Get-Item -LiteralPath $Exe -ErrorAction SilentlyContinue).VersionInfo.ProductVersion",
+    "if ($now -eq $OldVer -and -not (Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $Exe })) { Start-Process -FilePath $Exe }",
+  ].join('\r\n');
+
   function psQuote(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
 
   function startDetached(psCommand) {
@@ -69,6 +100,20 @@ module.exports = function init(ctx) {
     const child = require('child_process').spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-Command', psCommand], { detached: true, stdio: 'ignore', windowsHide: true });
     child.unref();
   }
+
+  // Folders of an update that was started earlier and not cleaned up (the Setup cancelled, the computer switched off): our own
+  // SteamEdge-update-* folders in Temp go, once they are old enough not to belong to an update that is running now
+  function sweepUpdateTemp() {
+    try {
+      const tmp = require('os').tmpdir();
+      for (const n of fs.readdirSync(tmp)) {
+        if (!/^SteamEdge-update-\d+$/.test(n)) continue;
+        const p = path.join(tmp, n);
+        try { if (Date.now() - fs.statSync(p).mtimeMs > 10 * 60 * 1000) fs.rmSync(p, { recursive: true, force: true }); } catch (_) {}
+      }
+    } catch (_) {}
+  }
+  setTimeout(sweepUpdateTemp, 20000);
 
   ipcMain.handle('update:install', async () => {
     if (installing) return { ok: false, error: 'Güncelleme zaten sürüyor.' };
@@ -93,8 +138,10 @@ module.exports = function init(ctx) {
       if (!got.ok) throw new Error(got.failure);
       sendRaw('update:progress', { phase: 'install' });
       if (installed) {
-        log('info', 'update: starting the Setup');
-        startDetached('Start-Process -FilePath ' + psQuote(file) + " -ArgumentList '/SILENT','/SUPPRESSMSGBOXES','/NORESTART','/CLOSEAPPLICATIONS'");
+        log('info', 'update: the Setup opens when the app has quit');
+        const script = path.join(work, 'update.ps1');
+        fs.writeFileSync(script, INSTALL_SCRIPT, 'utf8');
+        startDetached('& ' + psQuote(script) + ' -ProcId ' + process.pid + ' -Setup ' + psQuote(file) + ' -Exe ' + psQuote(app.getPath('exe')) + ' -Work ' + psQuote(work) + ' -Dest ' + psQuote(exeDir) + ' -OldVer ' + psQuote(app.getVersion()));
       } else {
         const extract = path.join(work, 'files');
         await new Promise((resolve, reject) => {
