@@ -48,7 +48,14 @@ function makeSetup() {
     console.log('  WARNING: Inno Setup (ISCC.exe) was not found, the Setup was not built. Install it: scoop install inno-setup');
     return;
   }
-  execFileSync(iscc, ['/Q', '/DAppVersion=' + pkg.version, '/DSourceDir=' + SOURCE, '/DOutDir=' + OUT, path.join(__dirname, 'setup.iss')], { stdio: 'inherit' });
+  // The license page shows the author notice (NOTICE) first, then the license text (LICENSE)
+  const licenseText = path.join(OUT, 'setup-license.txt');
+  const bar = '='.repeat(72) + '\r\n';
+  const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/\r?\n/g, '\r\n');
+  fs.writeFileSync(licenseText, read('NOTICE') + '\r\n' + bar + 'LICENSE\r\n' + bar + '\r\n' + read('LICENSE'));
+  try {
+    execFileSync(iscc, ['/Q', '/DAppVersion=' + pkg.version, '/DSourceDir=' + SOURCE, '/DOutDir=' + OUT, '/DLicenseText=' + licenseText, path.join(__dirname, 'setup.iss')], { stdio: 'inherit' });
+  } finally { fs.rmSync(licenseText, { force: true }); }
   const exe = path.join(OUT, 'SteamEdge-Setup-v' + pkg.version + '.exe');
   console.log('  setup    : ' + exe + ' (' + (fs.statSync(exe).size / 1024 / 1024).toFixed(1) + ' MB)');
 }

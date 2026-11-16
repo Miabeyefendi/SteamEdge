@@ -3,8 +3,12 @@
 ; Data of an installed copy sits next to the exe like a portable copy (settings, cache, logs): the [Dirs] entries let normal users write there,
 ; and an update never touches them (see src/core/installMode.js).
 #define AppName "SteamEdge"
+#define Art SourcePath + "setup-art"
 #ifndef AppVersion
   #error AppVersion is not defined
+#endif
+#ifndef LicenseText
+  #define LicenseText SourcePath + "..\LICENSE"
 #endif
 
 [Setup]
@@ -26,14 +30,23 @@ PrivilegesRequiredOverridesAllowed=dialog
 CloseApplications=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-LicenseFile={#SourcePath}\..\LICENSE
+AppCopyright=Copyright (C) 2026 Mustafa Ihsan Albayrak (Miabeyefendi)
+; The license page: the author notice (NOTICE) and the full license text, joined by build/installer.js
+LicenseFile={#LicenseText}
 SetupIconFile={#SourcePath}\..\src\assets\icon.ico
 UninstallDisplayIcon={app}\{#AppName}.exe
 OutputDir={#OutDir}
 OutputBaseFilename=SteamEdge-Setup-v{#AppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
-WizardStyle=modern
+; Follows the Windows app mode (light or dark). The images are drawn by build/make-setup-art.py from the app's own palette
+WizardStyle=modern dynamic
+WizardImageFile={#Art}\wizard-light-164x314.png,{#Art}\wizard-light-192x386.png,{#Art}\wizard-light-246x459.png,{#Art}\wizard-light-328x604.png
+WizardImageFileDynamicDark={#Art}\wizard-dark-164x314.png,{#Art}\wizard-dark-192x386.png,{#Art}\wizard-dark-246x459.png,{#Art}\wizard-dark-328x604.png
+WizardSmallImageFile={#Art}\small-55.png,{#Art}\small-64.png,{#Art}\small-83.png,{#Art}\small-110.png
+WizardSmallImageFileDynamicDark={#Art}\small-55.png,{#Art}\small-64.png,{#Art}\small-83.png,{#Art}\small-110.png
+WizardImageBackColor=#F7F4FD
+WizardImageBackColorDynamicDark=#030305
 ShowLanguageDialog=auto
 
 [Languages]

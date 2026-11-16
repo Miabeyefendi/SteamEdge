@@ -7,6 +7,28 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.2.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.2.0)
+
+The Setup looks like SteamEdge now, and the license files are ours.
+
+### Changed
+
+- **The Setup follows your Windows light or dark mode.** The wizard switches between a light and a dark look by itself, with the SteamEdge icon and name on the left panel, drawn from the app's own colors.
+- **The license page shows the author notice first.** It opens with the NOTICE (author, copyright, the attribution term) and then the full GNU AGPL v3 text, so it is clear whose license it is.
+
+### Fixed
+
+- **The installed and portable folders carried the wrong license.** The `LICENSE` file in them was Electron's MIT license, not SteamEdge's. `LICENSE` is the AGPL v3 text now, `NOTICE` sits next to it, and Electron's own license is kept as `LICENSE.electron`.
+
+### Notes
+
+- Nothing changes in the app itself. An installed 4.1.0 copy updates with **Update Now** and keeps its data.
+
+
+SHA-256 (`SteamEdge-Setup-v4.2.0.exe`): `d02cb4f4a5144dd9bf559407fc61c3b0af50f09fc3c4af067af5355edd4d34fd`
+SHA-256 (`SteamEdge-v4.2.0-win-x64.zip`): `bb2418857c55b044ad2d047143793d3ebba78fb355fc05f79f5f97c1edd33209`
+SHA-256 (`SteamEdge-v4.2.0-win-x64.rar`): `b2056be3ee95dc47d8e832d1a4d420772d3e9f961ecc2a9fee181b8559760035`
+
 ## [4.1.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.1.0)
 
 Small interface fixes, and a copy installed with the first 3.0.0 Setup keeps its data.
