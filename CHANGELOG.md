@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.3.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.0)
+
+Update Now works for installed copies: it opens the Setup and cleans up after itself.
+
+### Fixed
+
+- **Update Now did nothing for installed copies.** The app told the Setup to start and quit a second later, but the Setup began while SteamEdge was still shutting down, could not close it and cancelled itself without a word. The app now waits until every SteamEdge process is gone before the Setup starts.
+- **The Setup opens with its normal screens.** After the download the app closes and the Setup of the new version appears, instead of running unseen in the background. If you cancel it, your old version opens again.
+- **Settings come back after an update.** A copy of `settings` is kept next to the app during the update and whatever the Setup did not leave in place is put back, then the copy is removed.
+- **No leftovers.** The update leaves nothing of SteamEdge in Temp: the downloaded Setup and its folder are removed when the update ends (folders of an earlier update that was cut short are swept at the next start), and the Setup deletes the files of the old version before copying the new ones, so nothing from an older release stays in the install folder.
+
+### Notes
+
+- Your `settings`, `cache` and `logs` folders are never touched by the Setup.
+- This is the first version whose Update Now works from an installed copy: a 4.2.0 or older installed copy needs this Setup downloaded from the releases page once.
+
+
+SHA-256 (`SteamEdge-Setup-v4.3.0.exe`): `09553df7338b03b495ddf25e5599514662b4c5609f94bf36f8cbb5d710f29188`
+SHA-256 (`SteamEdge-v4.3.0-win-x64.zip`): `8206ec34429317d49aea4d84c2924ddb3d7dcfcf0601873876269fc5ef56e372`
+SHA-256 (`SteamEdge-v4.3.0-win-x64.rar`): `74c682208be456d9cdbbb0b5b502cb01213ab83066a5f23cd68c4b4a094561a1`
+
 ## [4.2.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.2.0)
 
 The Setup looks like SteamEdge now, and the license files are ours.

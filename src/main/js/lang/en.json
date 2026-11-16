@@ -1523,5 +1523,6 @@
  "Önce yeni sürüm denetlenmeli.": "Check for the new version first.",
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "This release has no update file, you can download it from the release page.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "The app folder is not writable, download from the release page.",
- "Güncelleme paketi beklenen yapıda değil.": "The update package does not have the expected structure."
+ "Güncelleme paketi beklenen yapıda değil.": "The update package does not have the expected structure.",
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge is closing, the Setup will open."
 }

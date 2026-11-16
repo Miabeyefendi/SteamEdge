@@ -90,6 +90,19 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; A mixed folder (new exe, old resources or locales) stops Electron from starting: clear them before copying
 Type: filesandordirs; Name: "{app}\resources"
 Type: filesandordirs; Name: "{app}\locales"
+; Files of an older version that the new one does not ship any more (libEGL.dll, vk_swiftshader.dll ...) must not stay behind: everything
+; the Setup copies below comes back, settings, cache and logs are never listed here
+Type: files; Name: "{app}\*.dll"
+Type: files; Name: "{app}\*.pak"
+Type: files; Name: "{app}\*.bin"
+Type: files; Name: "{app}\*.json"
+Type: files; Name: "{app}\*.html"
+Type: files; Name: "{app}\icudtl.dat"
+Type: files; Name: "{app}\version"
+Type: files; Name: "{app}\CHANGELOG.md"
+Type: files; Name: "{app}\README.txt"
+Type: files; Name: "{app}\LICENSE*"
+Type: files; Name: "{app}\NOTICE"
 
 [Dirs]
 ; Program Files is read-only for normal users: the data folders must be writable by them
