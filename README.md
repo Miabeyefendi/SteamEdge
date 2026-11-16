@@ -94,22 +94,22 @@
 
 Two ways, same program:
 
-**Installed.** Download `SteamEdge-Setup-v4.3.1.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
+**Installed.** Download `SteamEdge-Setup-v4.3.2.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
 
-**Portable.** Download `SteamEdge-v4.3.1-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
+**Portable.** Download `SteamEdge-v4.3.2-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
 
 To update, press **Update Now** in the update window: the app downloads the new version from this project's GitHub release, checks its SHA-256 and installs it (an installed copy runs the new Setup, a portable copy has its files replaced in place; settings are kept). Copies older than 3.0.0 cannot update themselves: extract the new version into an empty, new folder and copy the `settings/` folder from the old one into it.
 
 The `.rar` and the `.zip` hold the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`). The Setup is built from the same folder with Inno Setup (`build/setup.iss`). Nothing in them is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-Setup-v4.3.1.exe`:
-`af2828072c0588d4429dfb97c2c229e5ff6079c8a2f44447857ac59eb2bb7cc3`
+SHA-256 of `SteamEdge-Setup-v4.3.2.exe`:
+`5e2487237af398cdacd9a459349e07604fe041e07e32cf2a624a759967b639de`
 
-SHA-256 of `SteamEdge-v4.3.1-win-x64.zip`:
-`622766af787d92fa860bb41a9dbba5eb379533c65d9dc5ddd16bda3de13394d1`
+SHA-256 of `SteamEdge-v4.3.2-win-x64.zip`:
+`b7e8fe8944e54294a8288c4a659e8dc545663595fdb0d6c13a1a6de3f5a6da52`
 
-SHA-256 of `SteamEdge-v4.3.1-win-x64.rar`:
-`6291d46948aee636a3f55a04d1089620fd8307d456bd8f261f8817de1cad8230`
+SHA-256 of `SteamEdge-v4.3.2-win-x64.rar`:
+`43703358f6caade5f890074d360f04e75009005f4c1ee95fc3f546c5f634086b`
 
 Check one in PowerShell with `Get-FileHash .\<file name>`.
 

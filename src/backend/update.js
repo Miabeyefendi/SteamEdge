@@ -95,9 +95,16 @@ module.exports = function init(ctx) {
 
   function psQuote(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
 
-  function startDetached(psCommand) {
-    // Start-Process goes through ShellExecute, so the UAC question of an all-users Setup can appear
-    const child = require('child_process').spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-Command', psCommand], { detached: true, stdio: 'ignore', windowsHide: true });
+  // Starts update.ps1 so that it outlives this app. A PowerShell started straight with `detached: true` (no console at all) ends at once
+  // without running anything, and a plain child can end with its parent: wscript (a program without a console) starts the hidden PowerShell
+  // from a one-line script, which is the way that was tried out to keep running after the app has quit.
+  // params: [['ProcId', 123], ['Setup', 'C:\\x y\\Setup.exe'], ...] become -ProcId 123 -Setup "C:\\x y\\Setup.exe"
+  function startScript(work, script, params) {
+    const q = (v) => '""' + String(v) + '""';
+    const args = params.map(([k, v]) => '-' + k + ' ' + (typeof v === 'number' ? v : q(v))).join(' ');
+    const vbs = path.join(work, 'start.vbs');
+    fs.writeFileSync(vbs, 'CreateObject("WScript.Shell").Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ' + q(script) + ' ' + args + '", 0, False\r\n', 'utf8');
+    const child = require('child_process').spawn('wscript.exe', [vbs], { detached: true, stdio: 'ignore' });
     child.unref();
   }
 
@@ -141,7 +148,7 @@ module.exports = function init(ctx) {
         log('info', 'update: the Setup opens when the app has quit');
         const script = path.join(work, 'update.ps1');
         fs.writeFileSync(script, INSTALL_SCRIPT, 'utf8');
-        startDetached('& ' + psQuote(script) + ' -ProcId ' + process.pid + ' -Setup ' + psQuote(file) + ' -Exe ' + psQuote(app.getPath('exe')) + ' -Work ' + psQuote(work) + ' -Dest ' + psQuote(exeDir) + ' -OldVer ' + psQuote(app.getVersion()));
+        startScript(work, script, [['ProcId', process.pid], ['Setup', file], ['Exe', app.getPath('exe')], ['Work', work], ['Dest', exeDir], ['OldVer', app.getVersion()]]);
       } else {
         const extract = path.join(work, 'files');
         await new Promise((resolve, reject) => {
@@ -154,7 +161,7 @@ module.exports = function init(ctx) {
         const script = path.join(work, 'update.ps1');
         fs.writeFileSync(script, PORTABLE_SCRIPT, 'utf8');
         log('info', 'update: portable copy over ' + exeDir);
-        startDetached('& ' + psQuote(script) + ' -ProcId ' + process.pid + ' -Source ' + psQuote(source) + ' -Dest ' + psQuote(exeDir) + ' -Exe ' + psQuote(app.getPath('exe')) + ' -Work ' + psQuote(work));
+        startScript(work, script, [['ProcId', process.pid], ['Source', source], ['Dest', exeDir], ['Exe', app.getPath('exe')], ['Work', work]]);
       }
       // let the interface show "restarting" for a moment, then close for real (the tray would otherwise keep the app alive)
       setTimeout(() => { ctx.isQuitting = true; app.quit(); }, 1200);

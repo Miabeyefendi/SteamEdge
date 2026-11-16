@@ -7,6 +7,23 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.3.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.2)
+
+Update Now really starts the Setup now.
+
+### Fixed
+
+- **Update Now closed the app and then did nothing.** The small helper that waits for SteamEdge to quit and then opens the Setup was started in a way Windows ended at once, so nothing after the download ever ran (4.1.0 to 4.3.1). It is started through `wscript` now, which keeps running after the app has quit. Tried out with the real start code: the helper survived the app quitting, the Setup window showed up, cancelling the Setup opened the old version again, and the Temp folder and the settings backup were cleaned up either way. The portable update uses the same start.
+
+### Notes
+
+- An installed or portable copy of 4.3.1 or older still has the broken button: run this Setup (or extract this archive) once, from then on **Update Now** works.
+
+
+SHA-256 (`SteamEdge-Setup-v4.3.2.exe`): `5e2487237af398cdacd9a459349e07604fe041e07e32cf2a624a759967b639de`
+SHA-256 (`SteamEdge-v4.3.2-win-x64.zip`): `b7e8fe8944e54294a8288c4a659e8dc545663595fdb0d6c13a1a6de3f5a6da52`
+SHA-256 (`SteamEdge-v4.3.2-win-x64.rar`): `43703358f6caade5f890074d360f04e75009005f4c1ee95fc3f546c5f634086b`
+
 ## [4.3.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.1)
 
 The status labels in Recent Activity are filled again.
