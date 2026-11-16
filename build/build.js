@@ -123,6 +123,9 @@ async function main() {
   for (const d of ['settings', 'cache']) {
     fs.mkdirSync(path.join(TARGET, d), { recursive: true });
   }
+  // Electron puts its own MIT license in LICENSE: keep it as LICENSE.electron and ship ours (AGPL) and the NOTICE as the main files
+  if (fs.existsSync(path.join(TARGET, 'LICENSE'))) fs.renameSync(path.join(TARGET, 'LICENSE'), path.join(TARGET, 'LICENSE.electron'));
+  for (const f of ['LICENSE', 'NOTICE']) fs.copyFileSync(path.join(ROOT, f), path.join(TARGET, f));
   const trimmed = trimLocales(TARGET);
   const unused = trimUnused(TARGET);
   print(TARGET);
