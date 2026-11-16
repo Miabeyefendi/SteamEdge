@@ -7,6 +7,27 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.1.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.1.0)
+
+Small interface fixes, and a copy installed with the first 3.0.0 Setup keeps its data.
+
+### Fixed
+
+- **Page titles sit at the same height on every page.** Overview, Inventory & Market, Achievements, Keys and Settings used to start 2 to 5 pixels off from the pages with a header band, in both window sizes.
+- **The Overview shows both cards of its right column whole in a short window.** The Quick Actions card used to be cut off at the bottom; it now fits, with its four buttons in two columns.
+- **The Hour Booster hint is short and quiet.** The long amber paragraph under "Sync playtimes" is one plain sentence now; amber is kept for real warnings.
+- **A copy installed with the first 3.0.0 Setup keeps its data.** That Setup kept settings and accounts in `%APPDATA%\SteamEdge`; since 3.0.0 was re-released, an installed copy keeps them in the `settings`, `cache` and `logs` folders next to the exe, like the portable copy. The first start of such a copy takes the data from `%APPDATA%\SteamEdge` over once and leaves the old folder where it is.
+
+### Notes
+
+- **Update Now** works from any 3.0.0 copy: this is the first version it can be used for, since 3.0.0 was the newest one until now.
+- Releases 1.1.1 to 1.7.9 are marked "Discontinued - do not use" in their titles.
+
+
+SHA-256 (`SteamEdge-Setup-v4.1.0.exe`): `716f3f888aae3811ce5414eead49a43c62a43cfdf034bccefcc0a9e001971c02`
+SHA-256 (`SteamEdge-v4.1.0-win-x64.zip`): `32b0a55c1de0dc399d22d172e3d13e045de7e7889e70b4d9eee7792425098916`
+SHA-256 (`SteamEdge-v4.1.0-win-x64.rar`): `6b996d2bd588c0283fda6271d97a196039a40d5024afe835b0968662a1865d94`
+
 ## [3.0.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/3.0.0)
 
 SteamEdge now comes with a Setup, and the Update button installs the new version for you.

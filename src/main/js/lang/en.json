@@ -1363,7 +1363,7 @@
  "Saat yükseltme listesi boş olduğu için başlatılmadı.": "Not started because the hour boosting list is empty.",
  "Saat Yükseltme": "Hour boosting",
  "Kartlar bitti; saat yükseltme başladı.": "The cards are done; hour boosting started.",
- "Tek oyunda \"Seçililerin en yükseği\" hedefi eşitlenecek bir şey bırakmaz; süreyi ve eş zamanlı sınırı kendin belirleyebilirsin. İki ya da daha fazla oyun seçince eşitleme devreye girer.": "With a single game the \"Highest of the selected\" target has nothing to equalise; you can set the duration and the simultaneous limit yourself. Syncing starts once you select two or more games.",
+ "Eşitleme için iki ya da daha fazla oyun gerekir; tek oyunda yine de süreyi ve sınırı ayarlayabilirsin.": "Syncing needs two or more games; with one game you can still set the duration and the limit.",
  "Hesap görünürlüğü Görünmez iken oyun adı zaten görünmez.": "While Account visibility is Invisible the game name is not shown anyway.",
  "İade Süresindeki Oyunları Atla": "Skip games in the refund window",
  "Son 14 günde alınıp 2 saatten az oynanan oyunlardan kart düşürülmez": "Games bought in the last 14 days and played under 2 hours are not farmed",

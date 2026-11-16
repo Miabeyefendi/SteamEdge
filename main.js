@@ -198,6 +198,9 @@ const CACHE_DIR = path.join(DATA_ROOT, 'cache');
 const LOG_DIR = path.join(DATA_ROOT, 'logs');
 try { fs.mkdirSync(CONFIG_DIR, { recursive: true }); } catch (_) {}
 try { fs.mkdirSync(CACHE_DIR, { recursive: true }); } catch (_) {}
+// A copy installed by the first 3.0.0 Setup has its data in AppData: take it over once (see installMode.importLegacyAppData)
+const IMPORTED_FROM = app.isPackaged && installMode.isInstalled(app.getPath('exe')) ? installMode.importLegacyAppData(app.getPath('userData'), CONFIG_DIR, CACHE_DIR) : null;
+if (IMPORTED_FROM) setTimeout(() => log('info', 'imported settings from ' + IMPORTED_FROM), 0);
 // Set up before anything can log. The level is read on every line: `settings` is only loaded further down, until then errors only.
 const logger = createLogger({ dir: LOG_DIR, level: () => settings.logLevel, legacyDir: CACHE_DIR });
 // Files an older version wrote under a Turkish name get the current one before anything reads them

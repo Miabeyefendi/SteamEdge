@@ -76,6 +76,17 @@ https.get = (url, _opts, cb) => {
   fs.writeFileSync(path.join(tmp, installMode.LANG_FILE), 'xx');
   check('an unknown language code is ignored', installMode.setupLanguage(exe) === null);
 
+  // ---- data left in AppData by the first 3.0.0 Setup ----
+  const ad = path.join(tmp, 'appdata'), cfg = path.join(tmp, 'new', 'settings'), cch = path.join(tmp, 'new', 'cache');
+  fs.mkdirSync(path.join(ad, 'settings', 'accounts'), { recursive: true }); fs.mkdirSync(path.join(ad, 'cache', 'chromium'), { recursive: true });
+  fs.mkdirSync(cfg, { recursive: true }); fs.mkdirSync(cch, { recursive: true });
+  check('no data in AppData: nothing imported', installMode.importLegacyAppData(ad, cfg, cch) === null);
+  fs.writeFileSync(path.join(ad, 'settings', 'session.json'), 'S'); fs.writeFileSync(path.join(ad, 'settings', 'accounts', '1.json'), 'A'); fs.writeFileSync(path.join(ad, 'cache', 'prices.json'), 'P');
+  check('data in AppData is taken over once', installMode.importLegacyAppData(ad, cfg, cch) === path.join(ad, 'settings'));
+  check('session, account file and price cache arrived, chromium did not', fs.readFileSync(path.join(cfg, 'session.json'), 'utf8') === 'S' && fs.existsSync(path.join(cfg, 'accounts', '1.json')) && fs.existsSync(path.join(cch, 'prices.json')) && !fs.existsSync(path.join(cch, 'chromium')));
+  fs.writeFileSync(path.join(ad, 'settings', 'session.json'), 'S2');
+  check('a copy that already has its data is left alone', installMode.importLegacyAppData(ad, cfg, cch) === null && fs.readFileSync(path.join(cfg, 'session.json'), 'utf8') === 'S');
+
   fs.rmSync(tmp, { recursive: true, force: true });
   process.exit(failures ? 1 : 0);
 })();

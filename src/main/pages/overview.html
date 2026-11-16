@@ -7,7 +7,7 @@
 -->
 <div style="flex:1;overflow-y:auto;padding:24px 26px 30px 44px;display:flex;flex-direction:column;gap:18px;width:100%;margin:0">
 
-  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px">
+  <div class="pg-hd-up" style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
     <div style="display:flex;flex-direction:column;gap:6px">
       <span style="font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#8B8F9E">Konsol</span>
       <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.015em;color:#DCE2FA">Genel Bakış</h1>
@@ -106,7 +106,7 @@
 
     <div style="display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto">
 
-      <div data-mod="card" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden;display:flex;flex-direction:column;flex:56 1 0;min-height:274px">
+      <div data-mod="card" style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden;display:flex;flex-direction:column;flex:56 1 0;min-height:274px" class="ov-task">
         <div style="height:48px;flex-shrink:0;padding:0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1D2432">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Aktif Görev</span>
           <div id="gRunPill" style="display:flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:12px;background:#101621;border:1px solid #B37E24">
@@ -123,11 +123,11 @@
         </div>
       </div>
 
-      <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden;flex:44 1 0;min-height:184px;display:flex;flex-direction:column">
+      <div style="border:1px solid #2B3345;border-radius:12px;background:#0D1118;overflow:hidden;flex:44 1 0;min-height:184px;display:flex;flex-direction:column" class="ov-qa">
         <div style="height:36px;flex-shrink:0;padding:0 16px;display:flex;align-items:center;border-bottom:1px solid #1D2432">
           <span style="font-size:11px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:#8B8F9E">Hızlı İşlemler</span>
         </div>
-        <div style="flex:1;min-height:0;padding:10px 14px;display:flex;flex-direction:column;gap:7px;justify-content:center">
+        <div class="ov-qa-body" style="flex:1;min-height:0;padding:10px 14px;display:flex;flex-direction:column;gap:7px;justify-content:center">
           <button id="qaGames" class="h-brand" style="flex:1 1 auto;min-height:28px;max-height:36px;padding:0 13px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:flex-start;gap:9px">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
             Oyun Listesini Yenile

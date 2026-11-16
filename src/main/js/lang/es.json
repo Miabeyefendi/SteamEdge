@@ -1363,7 +1363,7 @@
  "Saat yükseltme listesi boş olduğu için başlatılmadı.": "No se inició porque la lista de impulso de horas está vacía.",
  "Saat Yükseltme": "Impulso de horas",
  "Kartlar bitti; saat yükseltme başladı.": "Los cromos terminaron; el impulso de horas ha empezado.",
- "Tek oyunda \"Seçililerin en yükseği\" hedefi eşitlenecek bir şey bırakmaz; süreyi ve eş zamanlı sınırı kendin belirleyebilirsin. İki ya da daha fazla oyun seçince eşitleme devreye girer.": "Con un solo juego el objetivo \"El más alto de los seleccionados\" no iguala nada; puedes fijar tú la duración y el límite simultáneo. La igualación se activa al seleccionar dos o más juegos.",
+ "Eşitleme için iki ya da daha fazla oyun gerekir; tek oyunda yine de süreyi ve sınırı ayarlayabilirsin.": "La sincronización necesita dos o más juegos; con uno solo aún puedes fijar la duración y el límite.",
  "Hesap görünürlüğü Görünmez iken oyun adı zaten görünmez.": "Mientras la visibilidad de la cuenta sea Invisible, el nombre del juego ya no se muestra.",
  "İade Süresindeki Oyunları Atla": "Omitir juegos en el plazo de reembolso",
  "Son 14 günde alınıp 2 saatten az oynanan oyunlardan kart düşürülmez": "No se farmean los juegos comprados en los últimos 14 días y jugados menos de 2 horas",

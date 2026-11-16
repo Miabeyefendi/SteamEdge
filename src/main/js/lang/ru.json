@@ -1363,7 +1363,7 @@
  "Saat yükseltme listesi boş olduğu için başlatılmadı.": "Не запущено, так как список накрутки часов пуст.",
  "Saat Yükseltme": "Накрутка часов",
  "Kartlar bitti; saat yükseltme başladı.": "Карточки собраны; накрутка часов запущена.",
- "Tek oyunda \"Seçililerin en yükseği\" hedefi eşitlenecek bir şey bırakmaz; süreyi ve eş zamanlı sınırı kendin belirleyebilirsin. İki ya da daha fazla oyun seçince eşitleme devreye girer.": "С одной игрой цель «Наибольшее из выбранных» ничего не выравнивает; длительность и лимит одновременных игр можно задать самостоятельно. Выравнивание включается, когда выбрано две или больше игр.",
+ "Eşitleme için iki ya da daha fazla oyun gerekir; tek oyunda yine de süreyi ve sınırı ayarlayabilirsin.": "Для синхронизации нужно два или больше игр; с одной игрой можно задать длительность и лимит.",
  "Hesap görünürlüğü Görünmez iken oyun adı zaten görünmez.": "Пока видимость аккаунта «Невидимка», название игры и так не видно.",
  "İade Süresindeki Oyunları Atla": "Пропускать игры в периоде возврата",
  "Son 14 günde alınıp 2 saatten az oynanan oyunlardan kart düşürülmez": "Игры, купленные за последние 14 дней и сыгранные менее 2 часов, не фармятся",
