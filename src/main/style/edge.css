@@ -573,3 +573,14 @@ body.e-switching .e-main,body.e-switching #tbProfile{cursor:progress}
 /* Buttons that carry no font size of their own follow the scale (12 px), not the browser's 13.33 px */
 .edge button{font-size:12px}
 
+
+/* Title rows of pages without a header band start 4px (2px compact) higher so every page title sits at the same height */
+.pg-hd-up{margin-top:-4px}
+body.e-compact .pg-hd-up{margin-top:-2px}
+/* Short windows: the right column of the overview must show both cards whole, the quick actions in two columns */
+body.e-compact .ov-task{min-height:226px!important}
+body.e-compact .ov-qa{min-height:112px!important}
+body.e-compact .ov-qa-body{display:grid!important;grid-template-columns:1fr 1fr;gap:7px!important;align-content:center}
+/* Settings has no eyebrow line above its title: keep the title where the other pages have it */
+.pg-hd-noeb{padding-top:20px}
+body.e-compact .pg-hd-noeb{padding-top:0}

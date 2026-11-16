@@ -1363,7 +1363,7 @@
  "Saat yükseltme listesi boş olduğu için başlatılmadı.": "Nicht gestartet, weil die Stunden-Boost-Liste leer ist.",
  "Saat Yükseltme": "Stunden-Boost",
  "Kartlar bitti; saat yükseltme başladı.": "Die Karten sind fertig; der Stunden-Boost wurde gestartet.",
- "Tek oyunda \"Seçililerin en yükseği\" hedefi eşitlenecek bir şey bırakmaz; süreyi ve eş zamanlı sınırı kendin belirleyebilirsin. İki ya da daha fazla oyun seçince eşitleme devreye girer.": "Mit einem einzelnen Spiel gleicht das Ziel „Höchster der ausgewählten“ nichts an; Dauer und gleichzeitiges Limit kannst du selbst festlegen. Der Abgleich greift, sobald du zwei oder mehr Spiele auswählst.",
+ "Eşitleme için iki ya da daha fazla oyun gerekir; tek oyunda yine de süreyi ve sınırı ayarlayabilirsin.": "Der Abgleich braucht mindestens zwei Spiele; bei einem Spiel kannst du Dauer und Limit trotzdem einstellen.",
  "Hesap görünürlüğü Görünmez iken oyun adı zaten görünmez.": "Solange die Kontosichtbarkeit auf Unsichtbar steht, ist der Spielname ohnehin nicht zu sehen.",
  "İade Süresindeki Oyunları Atla": "Spiele im Rückgabezeitraum überspringen",
  "Son 14 günde alınıp 2 saatten az oynanan oyunlardan kart düşürülmez": "Spiele, die in den letzten 14 Tagen gekauft und weniger als 2 Stunden gespielt wurden, werden nicht gefarmt",
