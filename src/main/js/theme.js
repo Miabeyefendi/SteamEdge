@@ -2,23 +2,15 @@
 // Colours are written inline in the pages and in JS (like #0D1118). Moving them all to variables
 // would have meant touching every file; instead the colours of the dark theme are swapped at run time
 // for the selected palette's counterparts: inline styles, CSS rules and every node added later.
-// The dark theme is the source itself, there is no mapping. Palettes are from Vantagraph (R34Purple, VantaWhite).
+// The pages are written in the colours of the source (a navy dark). Both themes, VantaBlack and VantaWhite, are palettes of Vantagraph's own schemes mapped over it.
 // Since the login screen cannot read the settings the choice is also kept in localStorage.
 (function () {
-  // The dark theme is the source. The coloured dark themes are built from a short description each (the roles below), the White theme
-  // is written out. R34 Purple and Crimson are Vantagraph's colour.ini values, Olive and Indigo follow the same structure. The values are
-  // the Vantagraph ones 12 to 13 percent darker (the app showed them bright), cards sit where the 1.9.6 Midnight Purple had them, and the
-  // outlines of fields and of selected items are about 2.7 : 1 (calm, still visible). scripts: see docs/guides/durum.md
+  // The source is the page colours as written. VantaBlack is built from a short description (the roles below), VantaWhite is written out.
   const SURF = ['030305', '090c12', '0d1118', '101621', '151c28', '1d2432', '2b3345', '333d4d', '252a3a', '1e2836', '0e1620', '0f1720'];
+  // VantaBlack: the neutral near-black of Vantagraph's VantaBlack scheme (window 040404, panel 080808, menu 171717, text F0F5F2, accent B0B5B0). The surfaces keep the
+  // order of the source ones; the buttons are the light accent with dark text (ctaText), the status colours stay readable on black.
   const THEMES = {
-    // violet surfaces, gold secondary text, blue progress
-    r34: { surf: ['06080F', '080A15', '130A25', '150B29', '1D0D37', '251444', '2C1850', '351D60', '281648', '150A28', '110921', '080A15'], title: 'DFDAE7', body: 'C7BFD6', muted: 'B09446', dim: 'A28841', brand: '6B37C5', brandText: 'CCB36A', brandBorder: '6B37C4', focus: '8243F0', info: '5282CD', warn: 'BF9039', warn2: 'CA993D', badText: 'E05E75', field: '5C556B' },
-    // red-black surfaces, amber accent (the buttons are amber with dark text)
-    crimson: { surf: ['060A0D', '080C11', '2A0A10', '2F0C11', '47111B', '4E141D', '5C1822', '6E1D29', '53161F', '2E0B11', '25090E', '080C11'], title: 'DFD4D4', body: 'C7B5B7', muted: 'AB838A', dim: 'A6848A', brand: 'B07F33', brandText: 'CA9F56', brandBorder: '785623', focus: '8F6729', info: 'BF8D41', warn: 'C5913D', warn2: 'D19A40', badText: 'E06B7D', field: '6F575A', ctaText: '1A0A0D' },
-    // olive panels on a violet window: green accents, purple progress
-    olive: { surf: ['0A060F', '0E0715', '111804', '121B05', '1C0D2A', '1F2C07', '243408', '2B3E0A', '202F07', '121B05', '0F1604', '0E0715'], title: 'DFDBD0', body: 'C2C1AB', muted: '94A26A', dim: '889561', brand: '729B38', brandText: '9FBE63', brandBorder: '4B6625', focus: '5A7A2C', info: '917AC5', warn: 'BF9039', warn2: 'CA993D', badText: 'E06C7D', field: '5B5E4D', ctaText: '0F1704' },
-    // indigo surfaces, gold accents (Start and Stop must never be two reds)
-    indigo: { surf: ['070A15', '090E1C', '0E1831', '101B36', '16274B', '1D315E', '223A6E', '294684', '1F3463', '0F1B35', '0C162C', '090E1C'], title: 'DADFE8', body: 'B7C2D6', muted: '8A9EC5', dim: '7F92B5', brand: 'C59533', brandText: 'D5AC5D', brandBorder: '785B1F', focus: '8F6C25', info: '6294D3', warn: 'C5913D', warn2: 'D19A40', badText: 'E07988', field: '555E71', ctaText: '1A1203', extra: { 'e2703a': 'F08050' } },
+    dark: { surf: ['040404', '080808', '0B0B0B', '0F0F0F', '141414', '1A1A1A', '242424', '2D2D2D', '1F1F1F', '181818', '0A0A0A', '080808'], title: 'F0F5F2', body: 'C5CAC6', muted: '9BA09C', dim: '8A8F8B', brand: 'B0B5B0', brandText: 'F0F5F2', brandBorder: '6E736F', focus: 'F0F5F2', info: 'B0B5B0', warn: 'C9A04A', warn2: 'D8B050', badText: 'FF4D6D', field: '5A5F5B', ctaText: '0B0B0B' },
   };
   function build(t) {
     const m = {};
@@ -30,30 +22,31 @@
     return m;
   }
   const PALETTE = {
-    r34: build(THEMES.r34), crimson: build(THEMES.crimson), olive: build(THEMES.olive), indigo: build(THEMES.indigo),
+    dark: build(THEMES.dark),
     white: {
       '030305': 'e4e2dc', '090c12': 'f5f4f2', '0d1118': 'ffffff', '101621': 'f0eeea', '151c28': 'eceae6',
       '1d2432': 'e0ddd6', '2b3345': 'd8d4cc', '333d4d': 'c8c4bc', '252a3a': 'ddd9d2', '1e2836': 'e6e3dd',
       '0e1620': 'f2f0ec', 'dce2fa': '1a1a1a', 'b9c0d6': '3a3a3a', '8b8f9e': '595959', '7f879b': '5e5e5e',
-      'c2aaee': '5624b3', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '595959', '0f1720': 'f5f4f2', '555a67': '9c9b99', '5322ab': 'a287d5',
+      'c2aaee': '1a1a1a', '5624b3': '1a1a1a', '7031cc': '3a3a3a', 'e8eaf0': '1a1a1a', 'cbd5e1': '3a3a3a', '94a3b8': '595959', '0f1720': 'f5f4f2', '555a67': '9c9b99', '5322ab': '8a8a8a',
       // the status colours are text on the light surfaces too, and the light green, amber and cyan of the dark theme do not read there
       '5fb324': '30650d', 'b37e24': '7d5208', '24aeb3': '0a6a6f', 'b32453': 'a01f4a', 'e45a86': 'a01f4a', 'e0b43a': 'a87c00',
       // older pastel text colours in the page styles (light enough to vanish on white)
       '9aabbd': '595959', '6f8195': '5e5e5e', '9fb2c4': '595959', '9ca3af': '595959', '7a8a9a': '5e5e5e', 'e2e8f0': '1a1a1a', 'e5e7eb': '1a1a1a', 'f0f4ff': '1a1a1a',
       'e8eaf2': '1a1a1a', 'cdd9e5': '3a3a3a', 'a9cdff': '1b4a94', '4f8ef7': '1b57b8', '7fb0ff': '1b4a94', '93c5fd': '1b4a94', '8fb4d8': '1b4a94',
       '22c55e': '17703a', '8ee39d': '17652c', '7fd48c': '17652c', '57c66a': '17652c', 'f59e0b': '7d5208', 'e8bd6f': '7d5208', 'e8a33d': '7d5208',
-      'e2703a': '9a3f12', 'ef4444': 'b01c1c', 'd5c4ff': '5624b3', 'bda6ff': '5624b3', 'a78bfa': '5624b3',
+      'e2703a': '9a3f12', 'ef4444': 'b01c1c', 'd5c4ff': '1a1a1a', 'bda6ff': '1a1a1a', 'a78bfa': '1a1a1a',
     },
   };
   // text on the brand buttons: white everywhere except where the brand colour is light (amber, green)
   const CTA_TEXT = {};
   for (const k in THEMES) if (THEMES[k].ctaText) CTA_TEXT[k] = THEMES[k].ctaText.toLowerCase();
-  // the mark of the app comes in the theme's own colours (its S is light: the white theme gets dark letters); R34 Purple keeps the violet one.
+  CTA_TEXT.white = 'ffffff';      // VantaWhite: the accent is the near-black of the scheme, its buttons carry white text
+  // the mark of the app comes in the theme's own colours (its S is light: the white theme gets dark letters)
   // The files are src/assets/logo-mark-<name>.svg (a filter would be switched off by the light mode of the performance setting)
-  const LOGO_FILE = { white: 'dark', crimson: 'crimson', olive: 'olive', indigo: 'indigo' };
-  // names of earlier versions: Midnight Purple is R34 Purple now, the high contrast theme is gone
-  const OLD_NAMES = { midnight: 'r34', contrast: 'dark' };
-  // 'auto' is the dark theme (Windows' own high contrast mode is handled by the forced-colors rules in edge.css).
+  const LOGO_FILE = { white: 'dark' };
+  // names of earlier versions: the coloured themes and the high contrast one are gone, they become VantaBlack
+  const OLD_NAMES = { midnight: 'dark', contrast: 'dark', r34: 'dark', crimson: 'dark', olive: 'dark', indigo: 'dark' };
+  // 'auto' is VantaBlack (Windows' own high contrast mode is handled by the forced-colors rules in edge.css).
   function resolve(name) {
     if (OLD_NAMES[name]) name = OLD_NAMES[name];
     return PALETTE[name] ? name : 'dark';
@@ -98,11 +91,11 @@
   function applyTheme(name) {
     try { localStorage.setItem('se_theme', name === 'auto' || PALETTE[name] || OLD_NAMES[name] ? (OLD_NAMES[name] || name) : 'dark'); } catch (_) {}
     const choice = resolve(name);
-    const previous = document.documentElement.getAttribute('data-theme') || 'dark';
+    const previous = document.documentElement.getAttribute('data-theme') || 'source';
     if (previous === choice) return;
-    // Returning from another theme reloads the page: the mapping cannot be undone, the source is dark.
+    // Returning from another theme reloads the page: the mapping cannot be undone, the source is the colours as written.
     // If Settings is open it returns to the same section (the same key as the language change, see i18n.js).
-    if (previous !== 'dark') {
+    if (previous !== 'source') {
       try { if (typeof currentSetSec === 'string' && typeof I18N_RETURN_KEY === 'string') sessionStorage.setItem(I18N_RETURN_KEY, currentSetSec); } catch (_) {}
       location.reload(); return;
     }
@@ -110,12 +103,10 @@
     document.documentElement.setAttribute('data-theme', choice);
     document.documentElement.style.colorScheme = choice === 'white' ? 'light' : 'dark';
     rules();
-    // In the white theme the light text colour turns dark; the text of the purple buttons and the white
-    // letter in the logo must stay light.
+    // In the white theme the light text colour turns dark; the knobs of the switches that are on stay light on the near-black accent.
     if (choice === 'white') {
       const st = document.createElement('style');
-      st.textContent = '[style*="background:#5624B3"],[style*="background: rgb(86, 36, 179)"]{color:#fff !important}'
-        + '.e-toggle.on .e-knob{background:#fff !important}'
+      st.textContent = '.e-toggle.on .e-knob{background:#fff !important}'
         // the inline knobs of the other switches are the title colour, which is dark in this theme: an ON knob stays light on the purple
         + 'div[style*="width:16px"][style*="margin-left:16px"],div[style*="width: 16px"][style*="margin-left: 16px"]{background:#fff !important}';
       document.head.appendChild(st);
@@ -136,8 +127,6 @@
   window.themePalettes = PALETTE;      // read by the contrast test
   window.themeCtaText = CTA_TEXT;
   let initial = 'auto'; try { initial = localStorage.getItem('se_theme') || 'auto'; } catch (_) {}
-  if (resolve(initial) !== 'dark') {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(initial));
-    else applyTheme(initial);
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => applyTheme(initial));
+  else applyTheme(initial);
 })();

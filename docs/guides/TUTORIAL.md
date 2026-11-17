@@ -136,7 +136,7 @@ Everything the app can be told to do, grouped: General, Card farming, Market, In
 
 Changes stay in the page until you press **Save**. Nothing is written before that, and leaving the page with unsaved changes asks first. After Save, a running card farm or hours booster that the changed settings affect pauses for about five seconds and continues from the same game with the new values; settings that do not touch a running job apply at once. **Reset** loads the defaults into the page and also waits for Save; it keeps the app language.
 
-The theme (Automatic, Black, White, R34 Purple, Crimson, Olive, Indigo) is under General and applies to the login screen as well. Automatic is Black. R34 Purple and Crimson are Vantagraph's palettes; Olive and Indigo follow the same pattern (tinted surfaces with a complementary accent). **Interface scale** (80 to 150 percent, 100 by default) enlarges or shrinks the whole interface; Ctrl + / - / 0 change it too, and the window that opens on the first start asks for it. If the window is too small for the layout at the chosen scale, the scale shrinks to what fits. Dim text reads at 4.5 : 1 or better against its surface in every theme, no text is smaller than 11 pixels, and the contrast themes of Windows (forced colors) are followed.
+The theme (Automatic, VantaBlack, VantaWhite) is under General and applies to the login screen as well. Automatic is VantaBlack. Both are the palettes of Vantagraph's own schemes of the same names. **Interface scale** (80 to 150 percent, 100 by default) enlarges or shrinks the whole interface; Ctrl + / - / 0 change it too, and the window that opens on the first start asks for it. If the window is too small for the layout at the chosen scale, the scale shrinks to what fits. Dim text reads at 4.5 : 1 or better against its surface in every theme, no text is smaller than 11 pixels, and the contrast themes of Windows (forced colors) are followed.
 
 The switches and the side menu work from the keyboard: Tab moves between them, Enter or Space presses one, and a screen reader announces them as switches and buttons, with the open page marked as the current one.
 
@@ -315,7 +315,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `language` | `en` | Interface language: `tr`, `en`, `de`, `es`, `zh`, `ru` |
 | `autoLaunch` | `false` | Start with Windows |
 | `startInTray` | `true` | When Windows starts the app (`autoLaunch`) the window stays closed and the app runs in the tray; starting it yourself always opens the window |
-| `theme` | `auto` | Colour theme: `auto` (black), `dark` (Black), `white`, `r34` (R34 Purple), `crimson`, `olive`, `indigo` |
+| `theme` | `auto` | Colour theme: `auto` (VantaBlack), `dark` (VantaBlack), `white` (VantaWhite) |
 | `density` | `auto` | Spacing and row height: `auto` (compact while the window is short), `comfortable`, `compact` |
 | `uiScale` | `100` | Interface scale in percent: `80`, `90`, `100`, `110`, `125`, `150`. A window too small for the layout at that scale shrinks it to what fits |
 | `perfMode` | `auto` | Performance: `auto`, `full`, `light` (no animations, blur or shadows) |

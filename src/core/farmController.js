@@ -20,7 +20,7 @@
 // the main process badge watcher hands over the current list through `updateGames`; a finished
 // game is removed, the pool is refilled, and when no game is left the job stops by itself.
 // How often a single open game is looked at again (nothing is sent to Steam then, the timer only keeps the job's tick alive)
-const SINGLE_GAME_TICK_MS = 60000;
+const SINGLE_GAME_TICK_MS = 80000;
 
 class FarmController {
   // ownerId: the name of this job's game list in the engine ('card' | 'sequential'). So that when another job on the same
@@ -117,7 +117,8 @@ class FarmController {
   hold() {
     if (!this.running || this.heldAt) return;
     this.heldAt = Date.now();
-    if (this.mode !== 'fast' && this.timer) { clearTimeout(this.timer); this.timer = null; }
+    // The loop of fast mode (its rotation) stops too: it only restarts the list, and nothing is counted while the other device plays
+    if (this.timer && (this.mode !== 'fast' || this.phaseName === 'rotate')) { clearTimeout(this.timer); this.timer = null; }
     if (this._napFn) { const r = this._napFn; this._napFn = null; clearTimeout(this.timer); this.timer = null; r(); }
   }
 
@@ -132,6 +133,8 @@ class FarmController {
       this.timerEnd += d;
       this.timer = setTimeout(() => this._roundTimeUp(), Math.max(1000, this.timerEnd - Date.now()));
     }
+    // The rotation of fast mode goes on from where it stood: the list is sent again once (the engine does it too when Steam says the other device stopped)
+    if (this.mode === 'fast' && this.phaseName === 'rotate' && !this.timer) { this._singleSent = null; this._fastRotate(); }
   }
 
   _cleanup() {
@@ -226,7 +229,7 @@ class FarmController {
     if (!this.running) return;
     this.emit('farm:tick', {
       running: true, mode: this.mode, activeAppids: this._playingApps(),
-      currentAppid: activeAppid, elapsedMs: Date.now() - this.startedAt, durationMs: this.durationMs,
+      currentAppid: activeAppid, elapsedMs: (this.heldAt || Date.now()) - this.startedAt, durationMs: this.durationMs, held: !!this.heldAt,
       sessionStart: this.sessionStart, gameCount: this.games.length,
     });
     if (this.timer2) clearTimeout(this.timer2);
@@ -310,15 +313,17 @@ class FarmController {
     if (!this.running) return;
     this.emit('farm:tick', {
       running: true, mode: 'fast', phase, activeAppids: all, currentAppid: this.currentActiveAppid,
-      elapsedMs: Date.now() - this.startedAt, durationMs,
+      elapsedMs: (this.heldAt || Date.now()) - this.startedAt, durationMs, held: !!this.heldAt,
       sessionStart: this.sessionStart, gameCount: this.games.length,
     });
     if (this.timer2) clearTimeout(this.timer2);
-    if (Date.now() - this.startedAt < durationMs) this.timer2 = setTimeout(() => this._fastHoldTick(all, durationMs, phase), 1000);
+    // While held the clock stands still (elapsed is frozen at the moment it was held) and the tick goes on, so the page keeps showing the pause
+    if ((this.heldAt || Date.now()) - this.startedAt < durationMs) this.timer2 = setTimeout(() => this._fastHoldTick(all, durationMs, phase), 1000);
   }
 
   _fastRotate() {
     if (!this.running) return;
+    if (this.heldAt) return;        // another device plays: nothing is sent and no clock runs; release() starts the rotation again
     const pool = this.fastPool.length ? this.fastPool : this.games;
     if (!pool.length) { this.stop('finished'); return; }
     const all = pool.map((g) => g.appid);

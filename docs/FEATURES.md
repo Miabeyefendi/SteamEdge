@@ -33,14 +33,10 @@
 | <img src="../design/screenshots/Market2.png" alt="Market, order book"><br><sub>Market, order book</sub> | <img src="../design/screenshots/Chat.png" alt="Steam chat"><br><sub>Steam chat</sub> |
 | <img src="../design/screenshots/SettingsGeneral.png" alt="Settings"><br><sub>Settings</sub> |  |
 
-**Themes: Black, White, R34 Purple, Crimson, Olive, Indigo (Settings > General > Theme)**
+**Themes: VantaBlack, VantaWhite (Settings > General > Theme)**
 
-| Black | White | R34 Purple |
-|---|---|---|
-| <img src="../design/screenshots/themes/overview-dark.png" alt="Black"> | <img src="../design/screenshots/themes/overview-white.png" alt="White"> | <img src="../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
-
-| Crimson | Olive | Indigo |
-|---|---|---|
-| <img src="../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
+| VantaBlack | VantaWhite |
+|---|---|
+| <img src="../design/screenshots/themes/overview-dark.png" alt="VantaBlack"> | <img src="../design/screenshots/themes/overview-white.png" alt="VantaWhite"> |
 
 </div>
