@@ -230,6 +230,7 @@ module.exports = function init(ctx) {
       catch (e) { log('error', '[' + entry.accountName + '] proxy not used, connection stopped: ' + e.message); return { ok: false, error: e.message }; }
       // G3: carry drop/reconnect events to the interface
       ctx.bindConnectionState(eng, entry.steamID);
+      eng.onEvent = (name, detail) => ctx.logger.event(entry.steamID, name, detail);   // events.log
       ctx.applyChatSettings(eng);
       // Incoming chat message: it lands on the interface and the notification under the name of the account it arrived on.
       eng.onChatMessage = (m) => {

@@ -282,6 +282,7 @@ module.exports = function init(ctx) {
   // proceeding: { startPoint } - when a setting changes the job is resumed with the same start and total duration.
   function boostStart(steamID, request) {
     const s = accounts.get(steamID);
+    if (s && s.engine && typeof s.engine._event === 'function') s.engine._event('boost.start', 'games=' + ((request && request.appids && request.appids.length) || (request && request.games && request.games.length) || '?'));
     if (!s || !s.engine || !s.ready) return { ok: false, error: 'Bağlı değil.' };
     const b = boostStatus(s);
     boostClear(s);
@@ -413,6 +414,7 @@ module.exports = function init(ctx) {
     const s = accounts.get(steamID);
     const b = s && s.boost;
     if (!b) return;
+    if (s.engine && typeof s.engine._event === 'function') s.engine._event('boost.finish', 'cause=' + (cause || '?'));
     const wasRunning = b.runningFlag;
     boostClear(s);
     b.runningFlag = false;

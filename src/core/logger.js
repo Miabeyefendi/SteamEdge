@@ -2,6 +2,8 @@
 //   steamedge.log   events at the level chosen in Settings > Advanced > "Log file"
 //   connection.log  every drop, reconnect attempt and reconnect of every account, one line each. It is read back at start for the
 //                   connection history in Settings, so a "reconnecting for hours" can be looked up instead of guessed.
+//   events.log      what changed, one line each: visibility sent and what Steam reports, games sent, jobs started and stopped, achievements, settings changed,
+//                   connection events. Nothing is written while nothing changes, so a question like "when did it stop working" can be read off it.
 //   crash.log       errors nothing else caught. Written whatever the level: when someone says "an error showed up" there is something to read.
 // Each file rotates to <name>.1 past its size, one backup, so the disk does not fill up. Up to 1.7.9 a single steamedge.log lived in cache/;
 // it is moved here once.
@@ -12,7 +14,7 @@ const path = require('path');
 
 const RANK = { error: 0, warn: 1, info: 2, debug: 3 };
 const MB = 1024 * 1024;
-const LIMIT = { app: 2 * MB, connection: MB, crash: MB };
+const LIMIT = { app: 2 * MB, connection: MB, crash: MB, events: 2 * MB };
 // The connection history kept in memory: a week is more than the summary asks for (24 hours), the cap keeps a flapping network from growing it
 const HISTORY_MS = 7 * 24 * 3600 * 1000;
 const HISTORY_MAX = 5000;
@@ -51,6 +53,7 @@ function createLogger({ dir, level, legacyDir, now = Date.now }) {
     app: path.join(dir, 'steamedge.log'),
     connection: path.join(dir, 'connection.log'),
     crash: path.join(dir, 'crash.log'),
+    events: path.join(dir, 'events.log'),
   };
   const levelOf = () => { try { return level(); } catch (_) { return 'error'; } };
 
@@ -101,16 +104,25 @@ function createLogger({ dir, level, legacyDir, now = Date.now }) {
     append(files.crash, LIMIT.crash, line);
   }
 
+  // One line of events.log: "<ISO time>\t<steamID>\t<name>\t<detail>". Written while the "Log file" setting is not off. The detail is free text on one line and
+  // must never carry a token, a password or a proxy address: only names, numbers and states.
+  function event(steamID, name, detail) {
+    if (levelOf() === 'off') return;
+    const text = String(detail == null ? '' : detail).replace(/[\r\n\t]+/g, ' ').slice(0, 400);
+    append(files.events, LIMIT.events, new Date(now()).toISOString() + '\t' + String(steamID || '-') + '\t' + name + '\t' + text);
+  }
+
   // event: started | stopped | connected | dropped | waiting | attempt | reconnected | abandoned | blocked | unblocked (a game of the account open elsewhere). steamID '-' for a line about the app itself.
   // The history on screen is kept even with the log off; only the file follows the setting.
-  function connection(steamID, event, fields) {
-    const e = { ts: now(), steamID: String(steamID || '-'), event };
+  function connection(steamID, name, fields) {
+    const e = { ts: now(), steamID: String(steamID || '-'), event: name };
     if (fields) {
       FIELDS.forEach((k) => { if (fields[k] != null) e[k] = fields[k]; });
       if (fields.cause) e.cause = String(fields.cause);
     }
     remember(e);
     if (levelOf() !== 'off') append(files.connection, LIMIT.connection, formatConnection(e));
+    event(steamID, 'conn.' + name, fields ? Object.keys(fields).filter((k) => fields[k] != null).map((k) => k + '=' + fields[k]).join(' ') : '');
   }
 
   // The connection of one account over the last `spanMs`: drops, the time it was down, the longest drop, the last cause. A drop still open
@@ -149,7 +161,7 @@ function createLogger({ dir, level, legacyDir, now = Date.now }) {
     return out;
   }
 
-  return { dir, files, log, crash, connection, connectionSummary };
+  return { dir, files, log, crash, connection, connectionSummary, event };
 }
 
 module.exports = { createLogger, formatConnection, parseConnection };

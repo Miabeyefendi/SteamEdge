@@ -45,6 +45,7 @@ module.exports = function init(ctx) {
     farmExcluded: [],                // card farming blacklist (appids); unlike the queue state it never expires
     grLastRun: null,                 // the last Realistic Mode start of this account { gameEntries, spanMs, optionList }: what the schedule repeats
     jobSettings: {},                 // this account's own values of ACCOUNT_SCOPED_SETTINGS (the ones it changed); the rest comes from the general settings
+    farmAchAt: 0,                    // when the farm last unlocked an achievement for this account (or first started counting): the wait for the next one survives a restart
     favoriteGames: [],               // games starred in the Hour Booster, Realistic Mode and Achievements lists (shown first)
   };
 

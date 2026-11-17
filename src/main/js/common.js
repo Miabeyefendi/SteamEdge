@@ -1516,7 +1516,7 @@
         e.stopPropagation();
         closeVis();
         const state = b.getAttribute('data-vis'), before = visState();
-        if (state === before) return;
+        // The same choice again is sent too: the page may show a state Steam does not have (an account that was switched to), and this is how it is set right
         appSettings.personaState = state;
         paintVisibility();
         // The answer is what was really saved: a page of another account (a switch under way) gets that account's value back, not this one

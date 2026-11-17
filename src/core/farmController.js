@@ -19,6 +19,9 @@
 // stopped once the games in the first pool were done while the interface still said "running". Now
 // the main process badge watcher hands over the current list through `updateGames`; a finished
 // game is removed, the pool is refilled, and when no game is left the job stops by itself.
+// How often a single open game is looked at again (nothing is sent to Steam then, the timer only keeps the job's tick alive)
+const SINGLE_GAME_TICK_MS = 60000;
+
 class FarmController {
   // ownerId: the name of this job's game list in the engine ('card' | 'sequential'). So that when another job on the same
   // account (hour boosting, Realistic Mode) is running they do not close each other's games.
@@ -43,6 +46,7 @@ class FarmController {
     this._held = 0;                     // fast warm-up: time held in this batch
     this.timerEnd = 0;
     this.generation = 0;                // every start() is a new generation: an old loop must not interfere with the restart
+    this._singleSent = null;            // the appid of the one game that is open and was already sent (see _fastRotate and _runRoundRobin)
   }
 
   // opts.loop === false → runs a single round and stops by itself when the queue ends (Hour Booster with "Repeat
@@ -55,9 +59,14 @@ class FarmController {
   // opts.fastRotateMinSec / MaxSec → the interval at which the featured game changes in 'fast' mode (seconds).
   // opts.shuffle → in sequential mode the game order is shuffled every round (Hour Booster).
   // opts.proceeding → { index, passedMs }: to resume where it was after a settings change.
+  // One line in events.log (through the engine, which knows the account); the fake engines of the tests have no such method
+  _ev(name, detail) { if (this.engine && typeof this.engine._event === 'function') this.engine._event(name, detail); }
+
   start(mode, games, durationMs, opts) {
+    this._ev('farm.start', 'mode=' + mode + ' games=' + (games || []).length + (durationMs ? ' durationMs=' + durationMs : ''));
     this._cleanup();
     this.running = false;
+    this._singleSent = null;
     this.generation++;
     this.mode = mode;
     this.opts = { ...(opts || {}) };
@@ -135,10 +144,12 @@ class FarmController {
   // cause: 'user' | 'finished' | 'duration' | 'gameFinished' | 'boost' | 'setting' | 'schedule' - the interface and the
   // statistics read this. 'duration' and 'gameFinished': a game finished while moving on is off.
   stop(cause) {
+    if (this.running) this._ev('farm.stop', 'cause=' + (cause || '?'));
     const wasRunning = this.running;
     this.running = false;
     this._cleanup();
     this.currentActiveAppid = null;
+    this._singleSent = null;
     this.phaseName = null;
     if (this.engine) this.engine.stop(this.ownerId);
     this.emit('farm:tick', { running: false, cause: cause || 'user', wasRunning: wasRunning });
@@ -194,7 +205,9 @@ class FarmController {
     }
     const g = this.games[this.index];
     this.currentActiveAppid = g.appid;
-    this.engine.play([g.appid], this.ownerId);
+    // One game only: when its time is up it is the same game again, which stays open (see _fastRotate)
+    if (!(this.games.length === 1 && this._singleSent === g.appid)) this.engine.play([g.appid], this.ownerId);
+    this._singleSent = this.games.length === 1 ? g.appid : null;
     this.startedAt = Date.now() - (passedMs || 0);
     this._tick(g.appid);
     const remainingMs = Math.max(1000, this.durationMs - (passedMs || 0));
@@ -279,8 +292,10 @@ class FarmController {
     if (!this.running) return;
     if (this.phaseName !== 'rotate') return;           // warm-up reads the list in its own loop
     this.fastPool = this.games.slice(0, this.maxGames);
+    this._ev('farm.pool', 'count=' + this.fastPool.length + ' ids=' + this.fastPool.slice(0, 12).map((g) => g.appid).join(','));
     if (!this.fastPool.length) { this.stop('finished'); return; }
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
+    this._singleSent = null;                           // the pool changed: the list goes to Steam again
     this._fastRotate();
   }
 
@@ -310,9 +325,16 @@ class FarmController {
     const g = pool[this.index % pool.length];
     this.index++;
     this.currentActiveAppid = g.appid;
-    this.engine.play(all, this.ownerId); // gamesPlayed refresh - the drop is triggered at this moment
+    // With one game there is nothing to rotate: the same list sent again every 10-15 seconds only restarts that game's session on Steam, and a game that is
+    // restarted all the time does not drop its cards (two accounts ran 13 hours on one game each and not a card came). The game is opened once and
+    // stays open; it is sent again only when the pool changes (_refreshPool) or the connection comes back (the engine does that itself).
+    const single = pool.length === 1;
+    if (!single || this._singleSent !== g.appid) {
+      this.engine.play(all, this.ownerId); // gamesPlayed refresh - the drop is triggered at this moment
+      this._singleSent = single ? g.appid : null;
+    }
     this.startedAt = Date.now();
-    const wait = this._rotateMs();
+    const wait = single ? SINGLE_GAME_TICK_MS : this._rotateMs();
     this._fastHoldTick(all, wait, 'rotate:' + g.appid);
     this.timer = setTimeout(() => { if (this.running) this._fastRotate(); }, wait);
   }

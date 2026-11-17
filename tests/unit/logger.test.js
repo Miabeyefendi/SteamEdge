@@ -124,5 +124,21 @@ check('basarimsiz.json becomes no-achievements.json', read(path.join(cache, 'no-
 check('a .bozuk file becomes .corrupt', read(path.join(settingsDir, 'settings.json.corrupt')) === 'broken');
 check('an existing .corrupt is not overwritten', read(path.join(settingsDir, 'accounts.json.corrupt')) === 'new broken' && fs.existsSync(path.join(settingsDir, 'accounts.json.bozuk')));
 
+// events.log: one tab separated line per event, a connection line goes there too, a multi-line detail stays on one line, nothing while the log is off
+{
+  const evDir = path.join(root, 'events');
+  let evLevel = 'error';
+  const ev = createLogger({ dir: evDir, level: () => evLevel, now: () => clock });
+  ev.event('7656', 'persona.send', 'invisible choice=invisible\nhideGame=0');
+  ev.connection('7656', 'dropped', { cause: 'LoggedInElsewhere' });
+  const lines = read(ev.files.events).trim().split('\n');
+  check('an event is one line: time, account, name, detail', lines.length === 2 && lines[0].split('\t').length === 4 && lines[0].split('\t')[2] === 'persona.send');
+  check('a line break inside the detail is flattened', lines[0].endsWith('invisible choice=invisible hideGame=0'));
+  check('a connection event is written to events.log too', lines[1].split('\t')[2] === 'conn.dropped' && lines[1].includes('LoggedInElsewhere'));
+  evLevel = 'off';
+  ev.event('7656', 'games.send', 'count=1');
+  check('nothing is written while the log is off', read(ev.files.events).trim().split('\n').length === 2);
+}
+
 fs.rmSync(root, { recursive: true, force: true });
 process.exit(failures ? 1 : 0);

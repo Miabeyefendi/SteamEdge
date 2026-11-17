@@ -2,7 +2,7 @@
 // gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, hideNameOf, personaName, personaOf, pruneAccountRecords, resetMarketCaches, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData } = ctx;
+  const { logger, ACCOUNT_SCOPED, ACCOUNT_SCOPED_SETTINGS, ACCOUNT_SETTING_KEYS, DATA_ROOT, DEFAULT_SETTINGS, HISTORY_FILE, JSON_SIDE_FILES, PRICE_FILE, accountBoostRunning, accountData, accountName, accounts, activeAccountData, applyActiveProxy, applyParentalPin, applyPersona, applySettings, boostFinish, boostStart, cleanAppIds, currentPriceCurrency, delayFarm, fs, ipcMain, log, parseProxy, hideNameOf, personaName, personaOf, pruneAccountRecords, resetMarketCaches, resumeFarm, rewriteTokenFiles, saveSettings, settingFor, setupTrayMenu, shell, startCardFarm, tokenProtectionAvailable, translation, windowFit, writeAccountData } = ctx;
 
   // ---- settings IPC ----
   // The settings object that goes to the renderer. accountCurrency = the account's Steam wallet currency (prices are fetched in
@@ -48,7 +48,8 @@ module.exports = function init(ctx) {
     }
     ['farmExcluded', 'favoriteGames'].forEach((k) => { if (k in received) received[k] = cleanAppIds(received[k]); });
     if ('personaState' in received) received.personaState = personaName(received.personaState);
-    const personaChanged = 'personaState' in received && received.personaState !== personaOf(ctx.activeSteamID);
+    // Sent again even when it equals the saved choice: the saved choice and what Steam shows can differ, and choosing the same state again must set it right
+    const personaChanged = 'personaState' in received;
     if ('hideGameName' in received) received.hideGameName = !!received.hideGameName;
     const hideChanged = 'hideGameName' in received && received.hideGameName !== hideNameOf(ctx.activeSteamID);
     if ('uiScale' in received) received.uiScale = windowFit.normalizeScale(received.uiScale);      // the selector sends text
@@ -82,8 +83,12 @@ module.exports = function init(ctx) {
     if (writtenToAccount) writeAccountData(ctx.activeSteamID);
     if (pinChanged) applyParentalPin(ctx.activeSteamID);
     if (personaChanged || hideChanged) applyPersona(ctx.activeSteamID);
+    // events.log: names only (the values of a PIN or a proxy never go there); the visibility choice is a plain word
+    if (personaChanged || hideChanged) typeof logger !== 'undefined' && logger.event(ctx.activeSteamID, 'settings.visibility', 'persona=' + personaOf(ctx.activeSteamID) + ' hideGame=' + (hideNameOf(ctx.activeSteamID) ? 1 : 0));
+    if (scopedChanged.length || writtenToAccount) typeof logger !== 'undefined' && logger.event(ctx.activeSteamID, 'settings.account', 'keys=' + scopedChanged.concat(ACCOUNT_SETTING_KEYS.filter((k) => k in (patch || {}) && k !== 'parentalPin' && k !== 'proxyUrl')).join(','));
     if (writtenToAccount) applyActiveProxy();      // no-op unless the proxy of the account on screen changed
     const changed = Object.keys(received).filter((k) => JSON.stringify(ctx.settings[k]) !== JSON.stringify(received[k]));
+    if (changed.length) typeof logger !== 'undefined' && logger.event('-', 'settings.general', 'keys=' + changed.join(','));
     if (!changed.length) {
       if (!scopedChanged.length) return { ok: true, changedOne: [], appliedOne: [] };
       ctx.settingSaveTime = Date.now();

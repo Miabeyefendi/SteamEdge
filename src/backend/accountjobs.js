@@ -313,13 +313,18 @@ module.exports = function init(ctx) {
     if (!s) return;
     const old = s.watcher;
     stopCardWatcher(s);
+    // The wait for the next achievement of "Unlock achievements while farming" counts from the last unlock of the ACCOUNT, kept in its file: it used to start
+    // again with every start of the app, so an app that was closed and opened every half hour or so never reached the 20 to 40 minutes (13 hours, no unlock).
+    // An account that never unlocked one starts counting at its first farm, and keeps that time over restarts.
+    const v = ctx.accountData(steamID);
+    if (!(v.farmAchAt > 0)) { v.farmAchAt = Date.now(); ctx.writeAccountDataDelayed(steamID); }
     s.watcher = {
       timer: null, achievementTimer: null, occupiedFlag: false, achievementBusy: false, failure: 0,
       // When continuing (a settings change) the previous measurement is kept, otherwise the drop in between would be lost.
       leftover: old && old.leftover ? old.leftover : new Map((gameList || []).map((g) => [g.appid, g.remaining])),
       nameList: new Map((gameList || []).map((g) => [g.appid, g.name])),
       sessionDropped: old ? old.sessionDropped || 0 : 0,
-      lastAchievement: old ? old.lastAchievement || 0 : Date.now(),
+      lastAchievement: old ? old.lastAchievement || 0 : v.farmAchAt,
     };
     s.watcher.timer = setInterval(() => watchCards(steamID), CARD_WATCH_MS);
     s.watcher.achievementTimer = setInterval(() => openCardAchievements(steamID), 60000);
@@ -397,7 +402,9 @@ module.exports = function init(ctx) {
       trace.lastAchievement = Date.now();
       trace.achievementWait = 0;
       const v = ctx.accountData(steamID);
+      v.farmAchAt = trace.lastAchievement;
       v.achLog.unshift({ appid, game: data.gameName || null, apiName: picked.apiName, name: picked.name, unlock: true, ts: Date.now() });
+      logger.event(steamID, 'ach.unlock', 'app=' + appid + ' api=' + picked.apiName + ' by=farm');
       if (v.achLog.length > 2000) v.achLog.length = 2000;
       ctx.writeAccountDataDelayed(steamID);
       accountEvent(steamID, {
