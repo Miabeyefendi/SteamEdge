@@ -33,14 +33,10 @@
 | <img src="../../design/screenshots/Market2.png" alt="市场，订单簿"><br><sub>市场，订单簿</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam 聊天"><br><sub>Steam 聊天</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="设置"><br><sub>设置</sub> |  |
 
-**主题：黑色、白色、R34 Purple、Crimson、Olive、Indigo（设定 > 一般 > 主题）**
+**主题：VantaBlack, VantaWhite（设定 > 一般 > 主题）**
 
-| 黑色 | 白色 | R34 Purple |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="黑色"> | <img src="../../design/screenshots/themes/overview-white.png" alt="白色"> | <img src="../../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
-
-| Crimson | Olive | Indigo |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
+| VantaBlack | VantaWhite |
+|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="VantaBlack"> | <img src="../../design/screenshots/themes/overview-white.png" alt="VantaWhite"> |
 
 </div>

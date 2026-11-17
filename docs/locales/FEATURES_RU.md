@@ -33,14 +33,10 @@
 | <img src="../../design/screenshots/Market2.png" alt="Площадка, стакан заявок"><br><sub>Площадка, стакан заявок</sub> | <img src="../../design/screenshots/Chat.png" alt="Чат Steam"><br><sub>Чат Steam</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Настройки"><br><sub>Настройки</sub> |  |
 
-**Темы: чёрная, белая, R34 Purple, Crimson, Olive, Indigo (Настройки > Общие > Тема)**
+**Темы: VantaBlack, VantaWhite (Настройки > Общие > Тема)**
 
-| Чёрная | Белая | R34 Purple |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="Чёрная"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Белая"> | <img src="../../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
-
-| Crimson | Olive | Indigo |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
+| VantaBlack | VantaWhite |
+|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="VantaBlack"> | <img src="../../design/screenshots/themes/overview-white.png" alt="VantaWhite"> |
 
 </div>

@@ -33,14 +33,10 @@
 | <img src="../../design/screenshots/Market2.png" alt="Pazar, sipariş defteri"><br><sub>Pazar, sipariş defteri</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam sohbeti"><br><sub>Steam sohbeti</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ayarlar"><br><sub>Ayarlar</sub> |  |
 
-**Temalar: Siyah, Beyaz, R34 Purple, Crimson, Olive, Indigo (Ayarlar > Genel > Tema)**
+**Temalar: VantaBlack, VantaWhite (Ayarlar > Genel > Tema)**
 
-| Siyah | Beyaz | R34 Purple |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="Siyah"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Beyaz"> | <img src="../../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
-
-| Crimson | Olive | Indigo |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
+| VantaBlack | VantaWhite |
+|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="VantaBlack"> | <img src="../../design/screenshots/themes/overview-white.png" alt="VantaWhite"> |
 
 </div>

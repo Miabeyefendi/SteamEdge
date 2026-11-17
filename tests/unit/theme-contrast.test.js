@@ -1,4 +1,4 @@
-// Colour contrast of the themes (black, white, R34 Purple, Crimson, Olive, Indigo) and the rules the pages follow for readable text.
+// Colour contrast of the themes (VantaBlack, VantaWhite) and the rules the pages follow for readable text.
 // theme.js is loaded the way a page loads it (with stand-ins for the browser) and its palettes are read back from it.
 // Run with `npm test` (tests/run.js).
 const fs = require('fs');
@@ -18,16 +18,16 @@ sandbox.window.localStorage = sandbox.localStorage;
 vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'src', 'main', 'js', 'theme.js'), 'utf8'), sandbox);
 const PAL = sandbox.window.themePalettes;
-check('theme.js hands its palettes over (r34, crimson, olive, indigo, white)', !!PAL && !!PAL.r34 && !!PAL.crimson && !!PAL.olive && !!PAL.indigo && !!PAL.white && !PAL.contrast && !PAL.midnight);
+check('theme.js hands its palettes over (dark = VantaBlack, white = VantaWhite, nothing else)', !!PAL && !!PAL.dark && !!PAL.white && Object.keys(PAL).length === 2);
 const CTA = sandbox.window.themeCtaText || {};
 
 const lum = (h) => { const c = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((v) => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
 const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
 
-// the colours of the dark theme, which is the source; every other theme maps them
+// the colours the pages are written in (the source); both themes map them
 const TEXT = { title: 'dce2fa', body: 'b9c0d6', muted: '8b8f9e', dim: '7f879b', accent: 'c2aaee', ok: '5fb324', warn: 'b37e24', info: '24aeb3', red: 'e45a86' };
 const SURFACE = { page: '030305', alt: '090c12', card: '0d1118', raised: '101621', field: '151c28' };
-const themes = { dark: {}, white: PAL.white, r34: PAL.r34, crimson: PAL.crimson, olive: PAL.olive, indigo: PAL.indigo };
+const themes = { dark: PAL.dark, white: PAL.white };
 for (const [name, map] of Object.entries(themes)) {
   const to = (h) => (map && map[h]) || h;
   const need = 4.5;

@@ -33,14 +33,10 @@
 | <img src="../../design/screenshots/Market2.png" alt="Mercado, libro de órdenes"><br><sub>Mercado, libro de órdenes</sub> | <img src="../../design/screenshots/Chat.png" alt="Chat de Steam"><br><sub>Chat de Steam</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="Ajustes"><br><sub>Ajustes</sub> |  |
 
-**Temas: Negro, Blanco, R34 Purple, Crimson, Olive, Indigo (Ajustes > General > Tema)**
+**Temas: VantaBlack, VantaWhite (Ajustes > General > Tema)**
 
-| Negro | Blanco | R34 Purple |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-dark.png" alt="Negro"> | <img src="../../design/screenshots/themes/overview-white.png" alt="Blanco"> | <img src="../../design/screenshots/themes/overview-r34.png" alt="R34 Purple"> |
-
-| Crimson | Olive | Indigo |
-|---|---|---|
-| <img src="../../design/screenshots/themes/overview-crimson.png" alt="Crimson"> | <img src="../../design/screenshots/themes/overview-olive.png" alt="Olive"> | <img src="../../design/screenshots/themes/overview-indigo.png" alt="Indigo"> |
+| VantaBlack | VantaWhite |
+|---|---|
+| <img src="../../design/screenshots/themes/overview-dark.png" alt="VantaBlack"> | <img src="../../design/screenshots/themes/overview-white.png" alt="VantaWhite"> |
 
 </div>

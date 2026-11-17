@@ -64,17 +64,13 @@ app.whenReady().then(async () => {
   await wait(200);
   check('Enter turns it off again', (await js("document.querySelector('#tab-settings [data-set=closeToTray]').getAttribute('aria-checked')")) === 'false');
   check('the interface scale is a choice from 80 to 150 percent, 100 by default', (await js("[...document.querySelector('#tab-settings [data-set=uiScale]').options].map((o) => o.value).join()")) === '80,90,100,110,125,150' && (await js("document.querySelector('#tab-settings [data-set=uiScale]').value")) === '100');
-  check('the theme choice has automatic, black, white and the four Vantagraph themes', (await js("[...document.querySelector('#tab-settings [data-set=theme]').options].map((o) => o.value).join()")) === 'auto,dark,white,r34,crimson,olive,indigo');
+  check('the theme choice has automatic, VantaBlack and VantaWhite', (await js("[...document.querySelector('#tab-settings [data-set=theme]').options].map((o) => o.value).join()")) === 'auto,dark,white');
   await shot('settings-appearance');
 
-  // a coloured theme: the surfaces and the dim text follow it, the field outline is lighter than the surface
-  await js("applyTheme('crimson')");
-  await wait(500);
-  check('the Crimson theme is applied', (await js("document.documentElement.getAttribute('data-theme')")) === 'crimson');
-  const field = await js("getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).borderTopColor + '|' + getComputedStyle(document.querySelector('#tab-settings [data-set=language]')).color");
-  check('a field has the Crimson outline and text', field === 'rgb(111, 87, 90)|rgb(199, 181, 183)', field);
-  await shot('theme-crimson');
-  check('the choice is kept for the login screen too', (await js("localStorage.getItem('se_theme')")) === 'crimson');
+  // the default is VantaBlack and the choice is kept for the login screen too (switching to VantaWhite reloads the page, see theme-contrast for its palette)
+  check('the default theme is VantaBlack', (await js("document.documentElement.getAttribute('data-theme')")) === 'dark');
+  check('the choice is kept for the login screen too', ['auto', 'dark'].includes(await js("localStorage.getItem('se_theme')")));
+  await shot('theme-vantablack');
 
   log('console errors', JSON.stringify(consoleErr));
   if (consoleErr.length) failures++;
