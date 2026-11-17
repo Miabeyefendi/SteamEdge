@@ -693,6 +693,8 @@ class SteamEngine {
   }
   // The open games again (after a logon, on the heartbeat), unless a game of the account is open on another device
   _resendGames() {
+    // The visibility goes with it: it is one more message and keeps the choice of the account true if anything on Steam's side moved it back to online
+    this._applyPersona();
     if (this.playingBlocked || !this._playing || !this._playing.length) return;
     try { this.user.gamesPlayed(this._playing); } catch (_) {}
   }
