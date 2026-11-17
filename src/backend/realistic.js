@@ -2,7 +2,7 @@
 // gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { CACHE_DIR, SYNC_MAX_GAMES, accountBroadcast, accountData, accountEvent, accountName, accounts, activeAccountData, addFeed, boostFinish, boostStart, buildSyncSteps, delayFarm, ipcMain, log, path, readJson, resumeFarm, saveSettings, settingFor, simulateSync, slotOf, startCardFarm, startSequential, writeAccountDataDelayed, writeJson } = ctx;
+  const { logger, CACHE_DIR, SYNC_MAX_GAMES, accountBroadcast, accountData, accountEvent, accountName, accounts, activeAccountData, addFeed, boostFinish, boostStart, buildSyncSteps, delayFarm, ipcMain, log, path, readJson, resumeFarm, saveSettings, settingFor, simulateSync, slotOf, startCardFarm, startSequential, writeAccountDataDelayed, writeJson } = ctx;
 
   // ================== REALISTIC MODE (G2) ==================
   // Purpose: to keep a single game open and over the chosen time unlock the achievements from the MOST COMMON TO THE RARE,
@@ -177,6 +177,7 @@ module.exports = function init(ctx) {
       });
       const v = accountData(steamID);
       v.achLog.unshift({ appid: goalAppid, game: goalTitle, apiName: goal.apiName, name: goal.name, unlock: true, ts: Date.now() });
+      typeof logger !== 'undefined' && logger.event(steamID, 'ach.unlock', 'app=' + goalAppid + ' api=' + goal.apiName + ' by=realistic');
       if (v.achLog.length > 2000) v.achLog.length = 2000;
       writeAccountDataDelayed(steamID);
       if (steamID !== ctx.activeSteamID) {

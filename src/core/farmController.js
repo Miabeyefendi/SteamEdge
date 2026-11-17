@@ -59,7 +59,11 @@ class FarmController {
   // opts.fastRotateMinSec / MaxSec → the interval at which the featured game changes in 'fast' mode (seconds).
   // opts.shuffle → in sequential mode the game order is shuffled every round (Hour Booster).
   // opts.proceeding → { index, passedMs }: to resume where it was after a settings change.
+  // One line in events.log (through the engine, which knows the account); the fake engines of the tests have no such method
+  _ev(name, detail) { if (this.engine && typeof this.engine._event === 'function') this.engine._event(name, detail); }
+
   start(mode, games, durationMs, opts) {
+    this._ev('farm.start', 'mode=' + mode + ' games=' + (games || []).length + (durationMs ? ' durationMs=' + durationMs : ''));
     this._cleanup();
     this.running = false;
     this._singleSent = null;
@@ -140,6 +144,7 @@ class FarmController {
   // cause: 'user' | 'finished' | 'duration' | 'gameFinished' | 'boost' | 'setting' | 'schedule' - the interface and the
   // statistics read this. 'duration' and 'gameFinished': a game finished while moving on is off.
   stop(cause) {
+    if (this.running) this._ev('farm.stop', 'cause=' + (cause || '?'));
     const wasRunning = this.running;
     this.running = false;
     this._cleanup();
@@ -287,6 +292,7 @@ class FarmController {
     if (!this.running) return;
     if (this.phaseName !== 'rotate') return;           // warm-up reads the list in its own loop
     this.fastPool = this.games.slice(0, this.maxGames);
+    this._ev('farm.pool', 'count=' + this.fastPool.length + ' ids=' + this.fastPool.slice(0, 12).map((g) => g.appid).join(','));
     if (!this.fastPool.length) { this.stop('finished'); return; }
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     this._singleSent = null;                           // the pool changed: the list goes to Steam again

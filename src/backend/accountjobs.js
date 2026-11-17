@@ -404,6 +404,7 @@ module.exports = function init(ctx) {
       const v = ctx.accountData(steamID);
       v.farmAchAt = trace.lastAchievement;
       v.achLog.unshift({ appid, game: data.gameName || null, apiName: picked.apiName, name: picked.name, unlock: true, ts: Date.now() });
+      logger.event(steamID, 'ach.unlock', 'app=' + appid + ' api=' + picked.apiName + ' by=farm');
       if (v.achLog.length > 2000) v.achLog.length = 2000;
       ctx.writeAccountDataDelayed(steamID);
       accountEvent(steamID, {

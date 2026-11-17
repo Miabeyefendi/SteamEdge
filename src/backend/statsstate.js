@@ -116,6 +116,7 @@ module.exports = function init(ctx) {
     const v = owner === ctx.activeSteamID ? ctx.activeAccountData() : ctx.accountData(owner);
     const { steamID: _owner, ...rest } = entry || {};
     v.achLog.unshift({ ...rest, ts: Date.now() });
+    { const a = accounts.get(owner); if (a && a.engine && typeof a.engine._event === 'function') a.engine._event('ach.' + (rest.unlock === false ? 'lock' : 'unlock'), 'app=' + (rest.appid || '?') + ' api=' + (rest.apiName || '?')); }
     if (v.achLog.length > 2000) v.achLog.length = 2000;
     pruneAccountRecords(v); ctx.writeAccountDataDelayed(owner);
     return { ok: true };

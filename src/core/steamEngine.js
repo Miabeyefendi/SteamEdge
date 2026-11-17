@@ -124,6 +124,15 @@ class SteamEngine {
       }
     });
     user.on('accountInfo', (name) => { if (user === this.user) this.persona = name; });
+    // What Steam itself says about this account's own state (only a change is written): next to what was sent it shows whether Steam kept it
+    user.on('user', (sid, u) => {
+      if (user !== this.user || !u) return;
+      let mine = false;
+      try { mine = sid.getSteamID64() === this.steamID; } catch (_) {}
+      if (!mine) return;
+      const seen = 'state=' + u.persona_state + ' game=' + (u.gameid || u.game_played_app_id || 0);
+      if (seen !== this._seenState) { this._seenState = seen; this._event('steam.own', seen); }
+    });
     if (this._listenerSetUp) this._attachRunListeners(user);
     return user;
   }
@@ -647,7 +656,14 @@ class SteamEngine {
   _applyPersona() {
     if (!this.user || !this.user.steamID) return;
     const name = (this._hideGameName && this._playing.length > 0) ? 'invisible' : this._persona;
-    try { this.user.setPersona(SteamEngine.PERSONA_STATE[name]); } catch (_) {}
+    try { this.user.setPersona(SteamEngine.PERSONA_STATE[name]); } catch (e) { this._event('persona.error', e && e.message); return; }
+    // Sent often (every resend); written when what is sent changes
+    const sent = name + ' choice=' + this._persona + ' hideGame=' + (this._hideGameName ? 1 : 0) + ' playing=' + (this._playing || []).length;
+    if (sent !== this._sentPersona) { this._sentPersona = sent; this._event('persona.send', sent); }
+  }
+  // Tells the app's event log (events.log) something changed; the app sets onEvent per account. Never throws.
+  _event(name, detail) {
+    if (typeof this.onEvent === 'function') { try { this.onEvent(name, detail); } catch (_) {} }
   }
   // An unknown value (an old caller passing true/false, a hand-edited file) is "online"
   static personaName(v) {
@@ -684,6 +700,8 @@ class SteamEngine {
         seen.add(id); union.push(id);
       });
     });
+    const sentIds = union.join(',') + (this.playingBlocked ? ' blocked' : '');
+    if (sentIds !== this._sentGames) { this._sentGames = sentIds; this._event('games.send', 'count=' + union.length + ' ids=' + union.slice(0, 12).join(',') + (union.length > 12 ? ',...' : '') + ' owners=' + [...this._owners.keys()].join('+') + (this.playingBlocked ? ' blocked' : '')); }
     this._playing = union;
     // Steam's word may have come before the listener was there (the first logon): the instance keeps it
     const word = this.user && this.user.playingState;
@@ -702,6 +720,7 @@ class SteamEngine {
   _setPlayingBlocked(blocked, appid) {
     if (this.playingBlocked === blocked) return;
     this.playingBlocked = blocked;
+    this._event('games.blocked', (blocked ? 'yes' : 'no') + (appid ? ' app=' + appid : ''));
     if (!blocked) this._resendGames();
     if (typeof this.onPlaying === 'function') { try { this.onPlaying(blocked, appid); } catch (_) {} }
   }
