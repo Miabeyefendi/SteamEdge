@@ -474,14 +474,14 @@
         + taskRow(activeTask) + otherAccountJobs();
       bindOtherAccountJobs(box);
 
-      const git = (direction)=>{
+      const step = (direction)=>{
         taskIndex = (taskIndex + direction + taskList.length) % taskList.length;
         renderOverviewActive();
       };
-      const onc = box.querySelector('[data-gorev-onceki]');
-      const latest = box.querySelector('[data-gorev-sonraki]');
-      if (onc) onc.onclick = ()=>git(-1);
-      if (latest) latest.onclick = ()=>git(1);
+      const prevBtn = box.querySelector('[data-task-prev]');
+      const nextBtn = box.querySelector('[data-task-next]');
+      if (prevBtn) prevBtn.onclick = ()=>step(-1);
+      if (nextBtn) nextBtn.onclick = ()=>step(1);
 
       paintPanelButtons();
       renderTaskDetail(activeTask, heroId);
@@ -516,10 +516,10 @@
       return '<div style="display:flex;align-items:center;gap:8px;padding-bottom:2px">'
         + '<span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;'
           + 'color:#8B8F9E;flex:1">' + esc(tf('# iş birlikte çalışıyor', count)) + '</span>'
-        + ok('data-gorev-onceki', '‹')
+        + ok('data-task-prev', '‹')
         + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:#C2AAEE;'
           + 'min-width:32px;text-align:center">' + (taskIndex+1) + ' / ' + count + '</span>'
-        + ok('data-gorev-sonraki', '›')
+        + ok('data-task-next', '›')
         + '</div>';
     }
 

@@ -124,7 +124,7 @@ body.e-light .acct-row .run-dot{opacity:1!important;transform:none!important}
 .e-identity-row:hover .v{color:var(--e-brandSoft,#C2AAEE)}
 .e-identity-row .k{font-size:12px;color:var(--e-off)}
 .e-identity-row .v{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Geist Mono",monospace;font-size:12px;font-weight:700;color:var(--e-title)}
-.e-identity-row .v.bos{font-weight:500;color:var(--e-off)}
+.e-identity-row .v.empty{font-weight:500;color:var(--e-off)}
 .e-identity-sub{display:flex;gap:8px}
 .e-identity-sub button{flex:1 1 auto;min-width:0;padding:0 12px;white-space:nowrap;height:28px;border-radius:999px;background:transparent;border:1px solid var(--e-bdPassive);color:var(--e-sub);font-size:12px;font-weight:600;letter-spacing:.08em;cursor:pointer}
 .e-identity-sub button:hover{border-color:var(--e-brand);color:var(--e-title)}

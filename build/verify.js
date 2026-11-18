@@ -118,9 +118,9 @@ htmlFiles.forEach((f) => {
   // bug contained "<div>" so the file looked unbalanced.
   // A block wrapped in a comment would produce a false alarm the same way.
   const m = stripHtmlComments(read(f));
-  const ac = (m.match(/<div\b/g) || []).length;
+  const opens = (m.match(/<div\b/g) || []).length;
   const close = (m.match(/<\/div>/g) || []).length;
-  if (ac !== close) fail(relative(f) + ' <div> ' + ac + ' / </div> ' + close);
+  if (opens !== close) fail(relative(f) + ' <div> ' + opens + ' / </div> ' + close);
 });
 console.log('  ' + htmlFiles.length + ' pages checked');
 

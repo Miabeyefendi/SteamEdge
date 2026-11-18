@@ -99,11 +99,11 @@ class FarmController {
   // would start over when the job is rebuilt (with the 2 hour threshold 1 hour 50 minutes would be wasted).
   location() {
     if (this.running && this.mode === 'fast' && this.phaseName === 'warmup' && this.startedAt && this._batchIds) {
-      const dk = Math.floor((Date.now() - this.startedAt) / 60000);
-      if (dk > 0) {
+      const minutes = Math.floor((Date.now() - this.startedAt) / 60000);
+      if (minutes > 0) {
         const ids = new Set(this._batchIds);
-        this.games.forEach((g) => { if (ids.has(g.appid)) g.playtimeMin = (g.playtimeMin || 0) + dk; });
-        this.startedAt += dk * 60000;          // so the same time is not credited a second time
+        this.games.forEach((g) => { if (ids.has(g.appid)) g.playtimeMin = (g.playtimeMin || 0) + minutes; });
+        this.startedAt += minutes * 60000;          // so the same time is not credited a second time
       }
     }
     return {

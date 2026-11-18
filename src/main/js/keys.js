@@ -19,8 +19,8 @@
 
     function kyIsVisible(){ return designed.keys && !designed.keys.classList.contains('hidden'); }
     function kyWait(ms){
-      const sn = Math.max(0, Math.round(ms / 1000));
-      const h = Math.floor(sn / 3600), m = Math.floor((sn % 3600) / 60), s = sn % 60;
+      const seconds = Math.max(0, Math.round(ms / 1000));
+      const h = Math.floor(seconds / 3600), m = Math.floor((seconds % 3600) / 60), s = seconds % 60;
       return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(s).padStart(2, '0');
     }
 

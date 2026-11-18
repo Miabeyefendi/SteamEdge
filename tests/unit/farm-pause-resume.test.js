@@ -9,8 +9,16 @@ const src = require('../main-source')();
 let failures = 0;
 const check = (name, condition, extra) => { if (!condition) failures++; console.log((condition ? 'PASS ' : 'FAIL ') + name + (extra ? '  ' + extra : '')); };
 const cut = (from, to) => src.slice(src.indexOf(from), src.indexOf(to));
+// one top-level function, from its head to the brace that closes it
+const fn = (head) => {
+  const a = src.indexOf(head);
+  let i = src.indexOf('{', a), depth = 0;
+  for (; i < src.length; i++) { if (src[i] === '{') depth++; else if (src[i] === '}' && --depth === 0) break; }
+  return src.slice(a, i + 1) + '\n';
+};
 const code = cut('function accountBoostRunning(s)', '// The kinds of job that run on an account')
-  + cut('function delayFarm(steamID, reasonWhy)', '// Stops all jobs of an account')
+  // delayFarm and resumeFarm close cardfarm.js: what follows them is the next module, so they are cut up to their own last brace
+  + fn('function delayFarm(steamID, reasonWhy)') + fn('function resumeFarm(steamID, forceIt)')
   + cut('function bindConnectionState(eng, steamID)', '// The "Reconnect" button in the interface');
 
 const started = [], events = [], conn = [];
