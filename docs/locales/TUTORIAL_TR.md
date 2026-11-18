@@ -40,7 +40,7 @@ Buradan iki sonuç çıkıyor ve uygulamanın davranışının çoğunu bu ikisi
 
 ### Dosya düzeni
 
-Her şey exe'nin yanında durur. Kayıt defterine ya da `Program Files` altına hiçbir şey yazılmaz; `AppData` yalnızca exe'nin yanındaki klasöre yazılamadığında yedek olarak kullanılır.
+Her şey exe'nin yanında durur; taşınabilir kopyada da kurulu kopyada da (Setup bu klasörlere normal kullanıcıların yazmasına izin verir). `AppData` yalnızca exe'nin yanındaki klasöre yazılamadığında yedek olarak kullanılır.
 
 ```
 SteamEdge/
@@ -61,6 +61,7 @@ SteamEdge/
     chromium/                  görsel ve sayfa önbelleği
   logs/
     steamedge.log              Ayarlar'da seçilen seviyedeki olaylar: hata bildirimine eklenecek kayıt
+    events.log                 her değişiklik için bir satır: gönderilen görünürlük ve Steam'in bildirdiği, gönderilen oyunlar, işler, başarımlar, ayarlar
     connection.log             Steam bağlantısının her kopması, yeniden bağlanma denemesi ve geri gelişi, her biri bir satır
     crash.log                  başka hiçbir yerin yakalamadığı hatalar, her seviyede yazılır
 ```
@@ -73,13 +74,13 @@ SteamEdge/
 
 ### Gereksinimler
 
-Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarılmış hâlde yaklaşık 290 MB disk alanı. Steam istemcisi gerekmez ve hiç açılmaz.
+Windows 10 ya da üstü, 64 bit. Steam Guard kurulu bir Steam hesabı. Çıkarılmış ya da kurulmuş hâlde yaklaşık 300 MB disk alanı. Steam istemcisi gerekmez ve hiç açılmaz.
 
 ### Adım adım
 
-1. [Yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) en son `.rar` dosyasını indir.
-2. Kendi sahip olduğun bir klasöre çıkar. `Program Files` olmasın; uygulama ayarlarını kendi yanına yazıyor.
-3. `SteamEdge.exe` dosyasını çalıştır.
+1. [Yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) `SteamEdge-Setup-v<sürüm>.exe` dosyasını ya da taşınabilir `.rar` (veya `.zip`) dosyasını indir.
+2. Setup'ı çalıştır: lisansı gösterir, nereye kurulacağını (varsayılan Program Files) ve SteamEdge'in hangi dilde açılacağını sorar. Taşınabilir kopya için arşivi kendi sahip olduğun bir klasöre çıkar.
+3. `SteamEdge.exe` dosyasını çalıştır ya da SteamEdge'i Başlat menüsünden aç.
 4. Giriş yap. Kolay yol QR sekmesi: kodu Steam mobil uygulamasıyla okut ve onayla. Parola sekmesi kullanıcı adı, parola ve bir Steam Guard kodu ister.
 
 ### Kurulumu doğrulama
@@ -94,7 +95,7 @@ Eski bir sürümün yazdığı dosyalar ilk okunduğunda dönüştürülür, yan
 
 ### Kaldırma
 
-Klasörü sil. İşlemin tamamı bu.
+Taşınabilir kopya: klasörü sil, işlemin tamamı bu. Kurulu kopya: SteamEdge'i Windows Ayarlar > Uygulamalar'dan kaldır; sonunda ayarlarını, hesaplarını ve kayıtlı girişini de silmek isteyip istemediğini sorar.
 
 ---
 
@@ -136,7 +137,7 @@ Uygulamaya söylenebilecek her şey, gruplanmış hâlde: Genel, Kart Düşürme
 
 Değişiklikler **Kaydet**'e basana kadar sayfada bekler; öncesinde diske hiçbir şey yazılmaz ve kaydedilmemiş değişiklikle sayfadan çıkarken sorulur. Kaydet'ten sonra, değişen ayarlardan etkilenen bir kart düşürme ya da saat yükseltme yaklaşık beş saniye duraklar ve aynı oyundan yeni değerlerle devam eder; çalışan bir işe dokunmayan ayarlar hemen uygulanır. **Sıfırla** varsayılanları sayfaya yükler, o da Kaydet'i bekler; uygulama dilini değiştirmez.
 
-Tema (Otomatik, VantaBlack, VantaWhite) Genel bölümündedir, giriş ekranına da uygulanır. Otomatik, VantaBlack temadır. İkisi de Vantagraph'ın aynı adlı şemalarının paletleridir. **Arayüz ölçeği** (yüzde 80 ile 150 arası, varsayılan 100) bütün arayüzü büyütür ya da küçültür; Ctrl + / - / 0 tuşları da onu değiştirir ve ilk açılışta çıkan pencere de bunu sorar. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek, sığan değere küçülür. Soluk metin her temada zeminine karşı 4,5 : 1 ya da daha iyi okunur, hiçbir metin 11 pikselden küçük değildir ve Windows'un karşıtlık temaları (zorunlu renkler) izlenir.
+Tema (Otomatik, VantaBlack, VantaWhite) Genel bölümündedir, giriş ekranına da uygulanır. Otomatik, VantaBlack demektir. İkisi de Vantagraph'ın aynı adlı şemalarının paletleridir. **Arayüz ölçeği** (yüzde 80 ile 150 arası, varsayılan 100) bütün arayüzü büyütür ya da küçültür; Ctrl + / - / 0 tuşları da onu değiştirir ve ilk açılışta çıkan pencere de bunu sorar. Pencere seçilen ölçekte yerleşime yetmiyorsa ölçek, sığan değere küçülür. Soluk metin her temada zeminine karşı 4,5 : 1 ya da daha iyi okunur, hiçbir metin 11 pikselden küçük değildir ve Windows'un karşıtlık temaları (zorunlu renkler) izlenir.
 
 Anahtarlar ve yan menü klavyeyle kullanılır: Tab aralarında gezdirir, Enter ya da Boşluk birine basar, ekran okuyucu onları anahtar ve düğme olarak, açık sayfayı da geçerli sayfa olarak duyurur.
 
@@ -174,11 +175,11 @@ Modlar:
 
 Kartlar bir programa göre gelmez ve Steam "kart düştü" diye bir olay yollamaz. Uygulama her hesabın rozet sayfalarını üç dakikada bir yeniden okur ve kalan kart toplamındaki dürüst farkı bildirir, uydurma bir sayaç göstermez.
 
-**Kara liste.** Kuyruk satırındaki kırmızı düğme oyunu kara listeye alır: **Kara listedekiler** sekmesinden çıkarana kadar ne elle ne zamanlayıcıyla farm edilir. Liste hesaba aittir ve kuyruk durumunun geri kalanından farklı olarak saklama süresiyle silinmez; 1.4.5'ten önce kuyruktan çıkardığın oyunlar kara listeye kendiliğinden taşındı.
+**Kara liste.** Kuyruk satırındaki kırmızı düğme oyunu kara listeye alır: **Kara listedekiler** sekmesinden çıkarana kadar ne elle ne zamanlayıcıyla kart düşürülür. Liste hesaba aittir ve kuyruk durumunun geri kalanından farklı olarak saklama süresiyle silinmez; 1.4.5'ten önce kuyruktan çıkardığın oyunlar kara listeye kendiliğinden taşındı.
 
-**Tüm kartlar bitince** seçeneği **Saat yükseltmeyi başlat** da olabilir: hesabın hatırlanan saat yükseltme listesi çalışmaya başlar, **Aynı anda en fazla oyun** ile sınırlıdır. Liste boşsa hiçbir şey başlamaz ve etkinlik akışı bunu söyler.
+**Tüm kartlar bitince** seçeneği **Saat yükseltmeyi başlat** da olabilir: hesabın hatırlanan saat yükseltme listesi çalışmaya başlar, **Aynı anda maksimum oyun** ile sınırlıdır. Liste boşsa hiçbir şey başlamaz ve etkinlik akışı bunu söyler.
 
-**İade süresi.** **İade süresindeki oyunları atla** açıkken (Kart Düşür sayfası ya da Ayarlar > Kart düşürme), son 14 günde alınıp 2 saatten az oynanan oyunlar kuyruğa girmez: Steam bu oyunlarda iade hakkını o saat sınırına kadar korur, kart toplamak onu bitirir. Satın alma tarihi Steam'in lisans kayıtlarından okunur; okunamazsa hiçbir oyun atlanmaz. Zamanlayıcı da aynı süzgeci kullanır.
+**İade süresi.** **İade süresindeki oyunları atla** açıkken (Kart Düşür sayfası ya da Ayarlar > Kart Düşürme), son 14 günde alınıp 2 saatten az oynanan oyunlar kuyruğa girmez: Steam bu oyunlarda iade hakkını o saat sınırına kadar korur, kart düşürmek onu bitirir. Satın alma tarihi Steam'in lisans kayıtlarından okunur; okunamazsa hiçbir oyun atlanmaz. Zamanlayıcı da aynı süzgeci kullanır.
 
 ### Saat yükseltici
 
@@ -208,7 +209,7 @@ Bazı oyunlar başarım yazarken oyunun açık olmasını ister. Uygulama yazma 
 
 ### Gerçekçi Mod
 
-Tek oyunu açık tutar ve başarımlarını oturum boyunca, en yaygından en nadire doğru açar. Amaç bıraktığı iz: bir dakikada yüzlerce başarımın açılması hem profilde hem üçüncü parti sitelerde hemen göze çarpar.
+Bir oyunun başarımlarını oturum boyunca, en yaygından en nadire doğru açar. **Oyunları aynı anda oynat** açıkken (varsayılan) sıradaki oyunlar beşer beşer birlikte açık durur: bir grubun her oyunu grubun bütün süresini kullanır, gruplar birbirinin ardından gelir. Kapalıyken oyunlar sırayla oynanır. Amaç bıraktığı iz: bir dakikada yüzlerce başarımın açılması hem profilde hem üçüncü parti sitelerde hemen göze çarpar.
 
 **Oyunun %100 süresi** bütün sayfanın üzerine kurulduğu sayıdır: bu oyunu bütün başarımlarıyla bitirmek kaç saat sürer. Girersen o oyun için hatırlanır. Boş bırakırsan oyun türünden tahmin edilir, ama o tahmin senin oynadığın süreye dayanır ve çok oynadığın oyunlarda şişer.
 
@@ -256,7 +257,7 @@ Steam hesabı Aile Görünümü kullanıyorsa Steam, PIN girilene kadar web sayf
 
 ### Kart düşürme zamanlayıcısı
 
-**Kart düşürme zamanlayıcısı** açıkken (Ayarlar > Kart düşürme), saat aralığı başlayınca bağlı her hesapta kart düşürme kendiliğinden başlar, aralık bitince onun başlattığı işler durur. Aralık geceyi aşabilir, örneğin 22:00 - 07:00. Kuyruk elle başlatmadaki gibi kurulur: **Varsayılan öncelik modu**, kuyruktan çıkardığın oyunlar, **Hiç oynanmamış oyunları atla** ve **Oyun başına süre** kullanılır.
+**Kart düşürme zamanlayıcısı** açıkken (Ayarlar > Kart Düşürme), saat aralığı başlayınca bağlı her hesapta kart düşürme kendiliğinden başlar, aralık bitince onun başlattığı işler durur. Aralık geceyi aşabilir, örneğin 22:00 - 07:00. Kuyruk elle başlatmadaki gibi kurulur: **Varsayılan öncelik modu**, kuyruktan çıkardığın oyunlar, **Hiç oynanmamış oyunları atla** ve **Oyun başına süre** kullanılır.
 
 Elle başlattığın bir işi zamanlayıcı asla durdurmaz ve bir hesap aralık başına en fazla bir kez başlatılır: aralık içinde elle durdurursan sonraki aralığa kadar durur. Yalnızca bağlı hesaplar başlatılır; zamanlayıcı kimseye giriş yapmaz.
 
@@ -336,7 +337,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `farmSkipUnplayed` | `false` | Hiç oynanma süresi kayıtlı olmayan oyunları kuyruğa almaz |
 | `keyForwardOwned` | `false` | Hesabın zaten sahip olduğu anahtarı sıradaki bağlı hesapta dene |
 | `farmSkipRecent` | `false` | Son 14 günde alınıp 2 saatten az oynanan oyunları dışarıda bırak |
-| `farmFinishedAction` | `none` | `none` ya da `exit`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır. Ya da hesabın hatırlanan saat yükseltme listesini başlatan `boost`. |
+| `farmFinishedAction` | `none` | `none`, `exit` ya da `boost`: tüm kartlar toplanınca, başka iş çalışmıyorsa 20 saniye sonra uygulamayı kapatır ya da hesabın hatırlanan saat yükseltme listesini başlatır |
 | `farmScheduleEnabled` | `false` | Kart düşürmeyi aşağıdaki saat aralığında kendiliğinden başlat |
 | `farmScheduleFrom` | `22:00` | Aralığın başlangıcı |
 | `farmScheduleTo` | `07:00` | Aralığın sonu. Bitiş başlangıçtan önceyse aralık geceyi aşar |
@@ -352,18 +353,18 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | `priceRefreshHours`* | `24` | Çekilmiş bir fiyat kaç saat taze sayılır |
 | `historyRefreshHours`* | `72` | Satış ortalaması kaç saat taze sayılır |
 | `fetchAvgWithPrice` | `true` | Ortalamayı fiyatla aynı turda çek. Kapalıyken öğe başına tek istek gider, ortalamalar yalnızca Ortalama düğmesiyle gelir |
-| `bookDepth` | `5` | Detay panelindeki sipariş defteri satırı |
+| `bookDepth` | `5` | Detay panelindeki sipariş defteri satır sayısı |
 | `bulkSellLimit` | `50` | Toplu satış bu kadar öğelik partilere bölünür. `0` Steam durdurana kadar listeler |
 | `sellBatchWaitMin` | `5` | Partiler arası bekleme (dakika). Sonraki parti kendiliğinden başlar |
 | `priceDropThreshold` | `10` | Steam'in 24 saatlik ortalamasının yüzde kaç altı fiyat düşüşü sayılır |
 
 ### Saat yükseltici
 
-| `boostMaxGames` | `32` | Aynı anda açık oyun sayısı. Saat eşitleme çalışırken kullanılmaz: o kendisi 32'ye kadar açar |
+| Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
+| `boostMaxGames` | `32` | Aynı anda açık oyun sayısı. Saat eşitleme çalışırken kullanılmaz: o kendisi 32'ye kadar açar |
 | `boostSync` | `true` | Seçimi ortak bir toplama çek. `highest` hedefi yalnızca iki ya da daha çok oyun seçiliyken geçerlidir |
 | `boostDurationSec` | `3600` | Oturum süresi |
-| `boostSync` | `false` | Seçimi ortak bir toplama çek |
 | `boostSyncMode` | `highest` | Hedef: seçililerin en yükseği, elle girilen saat ya da kütüphanenin en yükseği |
 | `boostSyncStrategy` | `parallel` | `parallel` hepsi birden, `staged` sıralı |
 | `boostAutoRestart` | `false` | Süre dolunca kuyruğu yeniden başlat |
@@ -377,13 +378,14 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 |---|---|---|
 | `grDurationSec` | `7200` | Oturum süresi |
 | `grModel` | `linear` | Dağıtım modeli |
-| `grTcGame` | `{}` | Oyun başına Oyunun %100 süresi, saat cinsinden |
+| `grTcGame` | `{}` | Oyun başına %100 bitirme süresi, saat cinsinden |
 | `grCatchUp` | `true` | Geride kalan birikimi oturumun başına sıkıştır |
 | `grSpeed` | `1` | Tüm çizelge için hız çarpanı |
 | `grUltraMultiplier` | `3` | %5 altındaki başarımlar ne kadar uzun bekler |
 | `grCatchUpShare` | `20` | Telafi sıkışmasına ayrılan sürenin yüzdesi |
 | `grFinishedRatio` | `50` | Bitmiş oyunda çizelge hangi orana iner |
 | `grKeepHours` | `true` | Başarımlar bitince saat toplamayı sürdür |
+| `grParallel` | `true` | Sıradaki oyunları aynı anda, beşer beşer oynatır (bir grubun her oyunu grubun bütün süresini kullanır, grup en uzun oyunu kadar sürer); kapalıyken sırayla oynatır |
 | `grSkipUltraRare` | `false` | %5 altındaki başarımları tamamen atla |
 | `grScheduleEnabled` | `false` | Gerçekçi Modu aşağıdaki saat aralığında, hesabın son başlatmasını tekrarlayarak kendiliğinden başlat |
 | `grScheduleFrom` | `22:00` | Aralığın başlangıcı |
@@ -394,7 +396,7 @@ Ayarlar `settings/settings.json` dosyasında durur. Aşağıdaki anahtarların �
 | Anahtar | Varsayılan | Ne yapar |
 |---|---|---|
 | `personaState` | `online` | Arkadaşlarının Steam'de ne gördüğü, üst çubuktan seçilir: `online`, `away` ya da `invisible`. Hesap başına saklanır, her girişte ve yeniden bağlanmada yeniden gönderilir |
-| `hideGameName` | `false` | Oyun açıkken görünmez olursun, oyun görünmez; oyun kapanınca seçtiğin görünürlüğe dönersin |
+| `hideGameName` | `false` | Oyun açıkken görünmez olursun, böylece oyun görünmez; oyun kapanınca seçtiğin görünürlüğe dönersin |
 | `parentalPin` | boş | Web sayfalarının kilidini açmak için hesabın Steam Aile Görünümü PIN'i. Hesaba özel saklanır, dışa aktarılmaz |
 | `protectTokens` | `false` | Kayıtlı giriş anahtarlarını Windows DPAPI ile şifreli sakla. Bu Windows kullanıcısına ve bilgisayara özeldir, dışa aktarılmaz |
 | `proxyUrl` | boş | Hesabın vekili: `http://`, `https://` ya da `socks5://`, isteğe bağlı `kullanıcı:parola@` ile. Parola hesabın dosyasında saklanır; **Giriş anahtarlarını şifrele** açıkken şifrelenir. Hesap başına saklanır, dışa aktarılmaz |
@@ -469,7 +471,7 @@ Ayar klasörü **Giriş anahtarlarını şifrele** açıkken başka bir bilgisay
 
 ### Hata bildirimi için kayıt toplama
 
-Kayıtlar exe'nin yanındaki `logs/` klasöründedir; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** > Aç klasörü açar. `steamedge.log` olayları, `connection.log` Steam bağlantısının her kopup gelişini, `crash.log` başka hiçbir yerin yakalamadığı hataları tutar. Bağlantı olaylarını, kuyruk kararlarını ve hataları tutar. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyaları ekle. Her dosya sınırlıdır: 2 MB'ı (diğer ikisinde 1 MB) geçince `<ad>.1` adıyla kenara alınır ve yeni bir dosya başlar, böylece bir önceki parça hep durur.
+Kayıtlar exe'nin yanındaki `logs/` klasöründedir; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** > Aç klasörü açar. `steamedge.log` olayları, `events.log` her değişikliği tek satırda (görünürlük, oyunlar, işler, başarımlar, ayarlar), `connection.log` Steam bağlantısının her kopup gelişini, `crash.log` başka hiçbir yerin yakalamadığı hataları tutar. Kayıtlar bağlantı olaylarını, kuyruk kararlarını ve hataları içerir. Parolanı ya da oturum anahtarını **içermez**, yani eklemek güvenlidir; yine de göndermeden önce göz at. Varsayılan olarak yalnızca hatalar yazılır; Ayarlar > Gelişmiş & Veri > **Kayıt dosyası** seçeneğini **Ayrıntılı (hata ayıklama)** yap, sorunu tekrarla ve dosyaları ekle. Her dosya sınırlıdır: 2 MB'ı (diğer ikisinde 1 MB) geçince `<ad>.1` adıyla kenara alınır ve yeni bir dosya başlar, böylece bir önceki parça hep durur.
 
 ---
 
@@ -497,16 +499,16 @@ Evet, 3.0.0'dan beri. Daha yeni bir sürüm çıkınca güncelleme penceresinde 
 </details>
 
 <details>
-<summary><b>Neden her şey cüzdan kurumda?</b></summary>
+<summary><b>Neden her şey cüzdanımın kurunda?</b></summary>
 
 Steam öyle gönderdiği için. Çevirmek bir kur uydurmak olurdu.
 
 </details>
 
 <details>
-<summary><b>Kurulumumu başka makineye taşıyabilir miyim?</b></summary>
+<summary><b>Kurulumumu başka bir bilgisayara taşıyabilir miyim?</b></summary>
 
-Klasörü kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın olduğunu unutma, gizli kopyala. Ayarlar > Genel altındaki Yedekleme kutusu ayarları ve hesap verilerini oturum anahtarı olmadan tek dosyaya da aktarabilir. **Giriş anahtarlarını şifrele** açıkken anahtarlar başka bir bilgisayarda ya da Windows kullanıcısında açılmaz, orada yeniden giriş yap.
+Klasörü (kurulu kopyada kurulum klasörünü) kopyala, her şey içinde. `settings/` klasöründe oturum anahtarın olduğunu unutma, gizli kopyala. Ayarlar > Genel altındaki Yedekleme kutusu ayarları ve hesap verilerini oturum anahtarı olmadan tek dosyaya da aktarabilir. **Giriş anahtarlarını şifrele** açıkken anahtarlar başka bir bilgisayarda ya da Windows kullanıcısında açılmaz, orada yeniden giriş yap.
 
 </details>
 

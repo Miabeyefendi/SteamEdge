@@ -1,4 +1,4 @@
-[← README'ye dön](../../README.md)
+[← README'ye dön](./README_TR.md)
 
 # ❓ Sık sorulanlar
 
@@ -12,7 +12,7 @@ Hayır. SteamEdge doğrudan Steam'in kendi ağ protokolüyle konuşur. İstemci 
 <details>
 <summary><b>Hesabım yasaklanır mı?</b></summary>
 
-Oyunları boşta çalıştırmak ve protokol üzerinden başarım açmak pek çok aracın yaptığı iş ve Valve bu konuda açık bir tutum belirtmiş değil. Bu, güvenli olduğu anlamına gelmez. Riski sen alıyorsun. Karar vermeden önce aşağıdaki sorumluluk reddini oku.
+Oyunları boşta çalıştırmak ve protokol üzerinden başarım açmak pek çok aracın yaptığı iş ve Valve bu konuda açık bir tutum belirtmiş değil. Bu, güvenli olduğu anlamına gelmez. Riski sen alıyorsun. Karar vermeden önce [README](./README_TR.md#sorumluluk-reddi)'deki sorumluluk reddini oku.
 
 </details>
 
@@ -33,6 +33,6 @@ Bazı başarımları oyun sunucusu yazar, istemci değil; Steam hiçbir istemcin
 <details>
 <summary><b>Güncellemeden sonra bozuldu, ne yapmalıyım?</b></summary>
 
-Yeni sürümün boş ve yeni bir klasöre çıkarıldığından, yalnızca `settings/` klasörünün kopyalandığından emin ol; eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır. Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `logs/` klasöründeki kayıtlara bak. Hâlâ bozuksa bir hata bildirimi aç ve o kayıtları ekle.
+**Şimdi Güncelle** `settings/`, `cache/` ve `logs/` klasörlerini korur, gerisini değiştirir; başka bir şey gerekmez. Elle güncellediysen yeni sürümün boş ve yeni bir klasöre çıkarıldığından, yalnızca `settings/` klasörünün kopyalandığından emin ol; eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır ve uygulama bunu açılışta söyler. Önce rehberin [sorun giderme bölümüne](./TUTORIAL_TR.md#-sorun-giderme), sonra `logs/` klasöründeki kayıtlara bak (önce Ayarlar > Gelişmiş & Veri > Kayıt dosyası ayarını Ayrıntılı (hata ayıklama) yap). Hâlâ bozuksa bir hata bildirimi aç ve o kayıtları ekle.
 
 </details>

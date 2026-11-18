@@ -40,7 +40,7 @@ De ahí se derivan dos consecuencias, y explican casi todo el comportamiento de 
 
 ### Estructura de archivos
 
-Todo vive junto al ejecutable. No se escribe nada en el registro ni en `Program Files`; `AppData` solo se usa como alternativa cuando no se puede escribir en la carpeta del ejecutable.
+Todo vive junto al ejecutable, tanto en la copia portátil como en la instalada (el Setup permite que los usuarios normales escriban en esas carpetas). `AppData` solo se usa como alternativa cuando no se puede escribir en la carpeta del ejecutable.
 
 ```
 SteamEdge/
@@ -61,6 +61,7 @@ SteamEdge/
     chromium/                  caché de imágenes y páginas
   logs/
     steamedge.log              eventos al nivel elegido en Ajustes: el registro que adjuntar a un informe de fallo
+    events.log                 una línea por cada cambio: visibilidad enviada y la que Steam informa, juegos enviados, tareas, logros, ajustes
     connection.log             cada caída, intento de reconexión y regreso de la conexión con Steam, una línea cada uno
     crash.log                  errores que nada más capturó, escritos con cualquier nivel
 ```
@@ -73,13 +74,13 @@ SteamEdge/
 
 ### Requisitos
 
-Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 290 MB de espacio en disco una vez extraído. El cliente de Steam no hace falta y no se abre en ningún momento.
+Windows 10 o superior, 64 bits. Una cuenta de Steam con Steam Guard activado. Unos 300 MB de espacio en disco una vez extraído o instalado. El cliente de Steam no hace falta y no se abre en ningún momento.
 
 ### Paso a paso
 
-1. Descarga el `.rar` más reciente desde la [página de publicaciones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
-2. Extráelo en una carpeta tuya. No en `Program Files`, porque la aplicación escribe sus ajustes junto a sí misma.
-3. Ejecuta `SteamEdge.exe`.
+1. Descarga `SteamEdge-Setup-v<versión>.exe` o el `.rar` (o `.zip`) portátil desde la [página de publicaciones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+2. Ejecuta el Setup: muestra la licencia y pregunta dónde instalar (Program Files por defecto) y en qué idioma se abre SteamEdge. Para la copia portátil, extrae el archivo en una carpeta tuya.
+3. Ejecuta `SteamEdge.exe` o abre SteamEdge desde el menú Inicio.
 4. Inicia sesión. La pestaña QR es el camino más cómodo: escanea el código con la app móvil de Steam y aprueba. La pestaña de contraseña pide usuario, contraseña y un código de Steam Guard.
 
 ### Verificar la instalación
@@ -94,7 +95,7 @@ Los archivos escritos por una versión anterior se convierten la primera vez que
 
 ### Desinstalar
 
-Borra la carpeta. Ese es todo el procedimiento.
+Copia portátil: borra la carpeta, ese es todo el procedimiento. Copia instalada: desinstala SteamEdge desde Configuración de Windows > Aplicaciones; al final pregunta si también quieres borrar tus ajustes, cuentas e inicio de sesión guardado.
 
 ---
 
@@ -142,7 +143,7 @@ Los interruptores y el menú lateral funcionan con el teclado: Tab pasa de uno a
 
 La densidad de la interfaz es Automática por defecto: pasa a compacta mientras la ventana es baja (menos de unos 720 píxeles) y vuelve a ser cómoda cuando la haces más alta. El menú lateral se cierra solo en una ventana de menos de 1000 píxeles de ancho, y la ventana recuerda su tamaño, su posición y si estaba maximizada. Por debajo de 900 x 560 píxeles (la pantalla de inicio de sesión, 900 x 640) el diseño ya no se comprime más: toda la página se escala para caber, hasta tres cuartos, de modo que incluso una ventana de 675 x 420 muestra todos los botones.
 
-En **Módulos** puedes desactivar páginas (cartas, horas, inventario, Modo realista, logros, claves, chat) y subir o bajar las demás. Una página desactivada desaparece del menú, del resumen y de la barra superior, no se puede abrir y no pide nada a Steam; las tareas programadas siguen en segundo plano según sus ajustes. El **modo de rendimiento** es Automático, Completo o Ligero. Ligero quita animaciones, transiciones, desenfoque y sombras; Automático lo activa cuando el sistema pide menos movimiento o el equipo es modesto, y **Ajustar para este equipo** elige un modo según los núcleos y la memoria que encuentra. La primera vez que arranca, la app pregunta qué páginas quieres. Un inventario largo se dibuja en segundo plano, así que la página sigue siendo usable mientras aparecen 3000 filas. Otras dos tarjetas desactivan funciones pequeñas (el cuadro de actividad del resumen, las estrellas de favoritos, los botones Mis anuncios y Exportar CSV, el selector de los inventarios de otros juegos) y elementos de la barra superior (el cuadro de búsqueda y los botones de notificaciones y de actualización); los botones de ajustes y de cuenta siempre se quedan.
+En **Módulos** puedes desactivar páginas (cromos, horas, inventario, Modo realista, logros, claves, chat) y subir o bajar las demás. Una página desactivada desaparece del menú, del resumen y de la barra superior, no se puede abrir y no pide nada a Steam; las tareas programadas siguen en segundo plano según sus ajustes. El **modo de rendimiento** es Automático, Completo o Ligero. Ligero quita animaciones, transiciones, desenfoque y sombras; Automático lo activa cuando el sistema pide menos movimiento o el equipo es modesto, y **Ajustar para este equipo** elige un modo según los núcleos y la memoria que encuentra. La primera vez que arranca, la app pregunta qué páginas quieres. Un inventario largo se dibuja en segundo plano, así que la página sigue siendo usable mientras aparecen 3000 filas. Otras dos tarjetas desactivan funciones pequeñas (el cuadro de actividad del resumen, las estrellas de favoritos, los botones Mis anuncios y Exportar CSV, el selector de los inventarios de otros juegos) y elementos de la barra superior (el cuadro de búsqueda y los botones de notificaciones y de actualización); los botones de ajustes y de cuenta siempre se quedan.
 
 ### Chat
 
@@ -174,7 +175,7 @@ Los modos:
 
 Los cromos no llegan según un horario y Steam no envía ningún evento de "ha caído un cromo". La aplicación vuelve a leer las páginas de insignias de cada cuenta cada tres minutos y reporta la diferencia honesta del total de cromos restantes en lugar de un contador inventado.
 
-**Lista negra.** El botón rojo de una fila de la cola pone el juego en la lista negra: no se farmea nunca, ni a mano ni por la programación, hasta que lo quites en la pestaña **Lista negra**. La lista pertenece a la cuenta y, a diferencia del resto del estado de la cola, no caducan con el período de retención; los juegos que quitaste de la cola antes de la 1.4.5 pasaron automáticamente a la lista negra.
+**Lista negra.** El botón rojo de una fila de la cola pone el juego en la lista negra: no se farmea nunca, ni a mano ni por la programación, hasta que lo quites en la pestaña **Lista negra**. La lista pertenece a la cuenta y, a diferencia del resto del estado de la cola, no caduca con el período de retención; los juegos que quitaste de la cola antes de la 1.4.5 pasaron automáticamente a la lista negra.
 
 **Cuando se obtienen todos los cromos** también puede ser **Iniciar el impulso de horas**: arranca la lista de impulso de horas recordada de la cuenta, limitada por **Máx. juegos a la vez**. Con la lista vacía no empieza nada y el registro de actividad lo indica.
 
@@ -191,7 +192,7 @@ Ejecuta hasta 32 juegos a la vez. Steam cuenta el tiempo de cada juego abierto p
 
 Las barras de progreso comparten una línea temporal: una barra es uno menos el tiempo restante del juego dividido entre la duración del trabajo completo. Un juego que termina a las cuatro horas de una tanda de treinta y cinco empieza casi lleno; uno que corre hasta el final empieza vacío. Cada uno llega al 100% exactamente cuando alcanza su objetivo.
 
-**Igualar tiempos** (página Impulso de horas) sube los juegos seleccionados a un total común. El objetivo **El más alto de los seleccionados** necesita dos o más juegos seleccionados: con un solo juego no hay nada que igualar, así que la duración y el límite siguen siendo tuyos. Un objetivo de horas manual o el más alto de la biblioteca sí funciona con un juego. Con **Todos a la vez**, todos los juegos seleccionados corren juntos, hasta los 32 de Steam, diga lo que diga **Límite simultáneo**, y el juego que llega al objetivo sale de la lista; **Uno a uno** sube solo al juego más atrasado y deja entrar al siguiente cuando lo alcanza. El interruptor viene activado por defecto.
+**Igualar tiempos** (página Impulsor de horas) sube los juegos seleccionados a un total común. El objetivo **El más alto de los seleccionados** necesita dos o más juegos seleccionados: con un solo juego no hay nada que igualar, así que la duración y el límite siguen siendo tuyos. Un objetivo de horas manual o el más alto de la biblioteca sí funciona con un juego. Con **Todos a la vez**, todos los juegos seleccionados corren juntos, hasta los 32 de Steam, diga lo que diga **Límite simultáneo**, y el juego que llega al objetivo sale de la lista; **Uno por uno** sube solo al juego más atrasado y deja entrar al siguiente cuando lo alcanza. El interruptor viene activado por defecto.
 
 ### Logros
 
@@ -208,7 +209,7 @@ Algunos juegos solo aceptan escrituras de logros mientras el juego está abierto
 
 ### Modo realista
 
-Mantiene un juego abierto y va desbloqueando sus logros a lo largo de la sesión, del más común al más raro. La razón es el rastro que deja: cientos de logros apareciendo en un minuto se ve a la legua en un perfil y en sitios de terceros.
+Va desbloqueando los logros de un juego a lo largo de la sesión, del más común al más raro. Con **Jugar los juegos a la vez** activado (por defecto), los juegos de la cola están abiertos juntos, de cinco en cinco: cada juego de un grupo tiene todo el tiempo de su grupo, y los grupos van uno tras otro. Desactivado, los juegos van uno detrás de otro. La razón es el rastro que deja: cientos de logros apareciendo en un minuto se ven a la legua en un perfil y en sitios de terceros.
 
 **El tiempo de completado al 100%** es el número sobre el que se construye toda la página: cuántas horas cuesta terminar este juego con todos sus logros. Introdúcelo y queda recordado para ese juego. Déjalo vacío y se estima a partir del tipo de juego, pero esa estimación es tu propio tiempo jugado multiplicado por un factor, así que se infla en juegos que has jugado mucho.
 
@@ -226,9 +227,9 @@ Con **Intervalos aleatorios**, los intervalos varían hasta un 40 % en ambos sen
 
 ### Inventario y mercado
 
-El valor de un artículo es la **mediana ponderada por cantidad de las ventas realizadas**, no el listado activo más barato. Que alguien publique un cromo a 999.999 no lo mueve.
+El valor de un artículo es la **mediana ponderada por cantidad de las ventas realizadas**, no el anuncio activo más barato. Que alguien publique un cromo a 999.999 no lo mueve.
 
-Los precios llegan en la **moneda del monedero** de tu cuenta y se muestran exactamente como llegan. No hay conversión, deliberadamente: convertir significaría inventarse un tipo de cambio.
+Los precios llegan en la **moneda de la cartera** de tu cuenta y se muestran exactamente como llegan. No hay conversión, deliberadamente: convertir significaría inventarse un tipo de cambio.
 
 El precio y la media de ventas se obtienen **por artículo, juntos**, y después la cola pasa al siguiente. Ambos comparten el único presupuesto de mercado de Steam, y el límite se cuenta en peticiones, no en artículos; la aplicación envía 18 peticiones y espera el enfriamiento de Steam, de unos 32 segundos. El intervalo entre peticiones está en Ajustes > Avanzado y datos; la tolerancia de Steam varía según la cuenta.
 
@@ -254,21 +255,21 @@ Las claves entran en una cola por cuenta que funciona en segundo plano. Se acept
 
 Si la cuenta de Steam usa la Vista familiar, Steam no sirve páginas web hasta que se introduce el PIN, y las páginas de inventario, mercado e insignias no cargan. Introduce el PIN en Ajustes > Privacidad y seguridad > **PIN de Vista familiar** y SteamEdge desbloquea con él cada nueva sesión web. El PIN se guarda como texto plano en el archivo de la cuenta bajo `settings/accounts/` y no entra en las copias exportadas. Se cifra si **Cifrar los tokens de inicio de sesión** está activado.
 
-### Programación de la recolección de cartas
+### Programación del farmeo de cromos
 
-Con **Programación de cartas** activada (Ajustes > Farmeo de cromos), la recolección empieza sola en cada cuenta conectada cuando se abre el horario, y las tareas que inició se detienen cuando termina. El horario puede pasar de medianoche, por ejemplo 22:00 - 07:00. La cola se arma como en un inicio manual: tu **Modo de prioridad predeterminado**, los juegos que quitaste de la cola, **Omitir juegos nunca jugados** y **Tiempo por juego**.
+Con **Programación del farmeo de cromos** activada (Ajustes > Farmeo de cromos), el farmeo empieza solo en cada cuenta conectada cuando se abre el horario, y las tareas que inició se detienen cuando termina. El horario puede pasar de medianoche, por ejemplo 22:00 - 07:00. La cola se arma como en un inicio manual: tu **Modo de prioridad predeterminado**, los juegos que quitaste de la cola, **Omitir juegos nunca jugados** y **Tiempo por juego**.
 
 La programación nunca detiene una tarea que iniciaste a mano, y una cuenta se inicia como máximo una vez por horario: si la detienes a mano dentro del horario, sigue detenida hasta el siguiente. Solo se inician las cuentas conectadas; la programación no inicia sesión por nadie.
 
 ### Navegación rápida
 
-**Ctrl+K** abre la paleta de comandos: escribe para encontrar una página, una sección de los ajustes, un ajuste concreto, otra cuenta o una acción de la página abierta (Iniciar o Detener, por ejemplo) y pulsa Enter. Las flechas recorren la lista y Esc la cierra. **Ctrl+1** a **Ctrl+7** abren las páginas del menú lateral en el orden en que se muestran (una página desactivada cierra los números), **Ctrl+8** abre el chat si está activado y **Ctrl+9** abre los ajustes. **?** o **Ctrl+/** lista los atajos con los números actuales. Los atajos esperan mientras haya una ventana de pregunta abierta.
+**Ctrl+K** abre la paleta de comandos: escribe para encontrar una página, una sección de los ajustes, un ajuste concreto, otra cuenta o una acción de la página abierta (Iniciar o Detener, por ejemplo) y pulsa Enter. Las flechas recorren la lista y Esc la cierra. **Ctrl+1** a **Ctrl+7** abren las páginas del menú lateral en el orden en que se muestran (si una página está desactivada, los números se corren), **Ctrl+8** abre el chat si está activado y **Ctrl+9** abre los ajustes. **?** o **Ctrl+/** lista los atajos con los números actuales. Los atajos esperan mientras haya una ventana de pregunta abierta.
 
 En los ajustes, el cuadro **Buscar en los ajustes** sobre las secciones encuentra un ajuste concreto por su nombre o por lo que dice su ayuda, abre su sección e ilumina la fila. Una sección con cambios sin guardar lleva un punto; tras Guardar, las secciones guardadas muestran una marca unos segundos y se nombran en el mensaje.
 
 ### Reanudar tareas sin terminar
 
-Una tarea que está en marcha cuando la app termina (el PC se apaga, la app se cierra, falla) se guarda en `settings/resume.json`, y cuando la cuenta se conecta en el siguiente inicio continúa donde lo dejó: una recolección de cartas en su juego y su minuto, un impulso de horas (todos a la vez o uno a uno) con el tiempo que le quedaba, una ejecución del Modo realista con lo que quedaba de su objetivo durante el tiempo restante. El tiempo con la app parada no cuenta: un impulso al que le quedaban tres horas vuelve a tener tres horas. Un impulso que sincroniza horas vuelve a leer los tiempos de juego, porque se movieron mientras corría. El archivo se escribe al empezar o terminar una tarea y cada medio minuto mientras haya una en marcha, así que un corte de luz pierde como mucho medio minuto.
+Una tarea que está en marcha cuando la app termina (el PC se apaga, la app se cierra, falla) se guarda en `settings/resume.json`, y cuando la cuenta se conecta en el siguiente inicio continúa donde lo dejó: un farmeo de cromos en su juego y su minuto, un impulso de horas (todos a la vez o uno a uno) con el tiempo que le quedaba, una ejecución del Modo realista con lo que quedaba de su objetivo durante el tiempo restante. El tiempo con la app parada no cuenta: un impulso al que le quedaban tres horas vuelve a tener tres horas. Un impulso que sincroniza horas vuelve a leer los tiempos de juego, porque se movieron mientras corría. El archivo se escribe al empezar o terminar una tarea y cada medio minuto mientras haya una en marcha, así que un corte de luz pierde como mucho medio minuto.
 
 Las tareas que detuviste a mano o que terminaron no se reanudan. Las que inició el programador se dejan al programador (él las inicia dentro de su rango horario) y una entrada de más de una semana se descarta. Si inicias algo en la cuenta antes de que la página esté lista, la entrada antigua se descarta. El registro de actividad y una notificación dicen cuántas tareas volvieron. Se desactiva en Ajustes > General > **Reanudar al iniciar las tareas sin terminar**; el archivo se elimina entonces.
 
@@ -290,7 +291,7 @@ La estrella de un juego en la biblioteca del Impulsor de horas, en la lista de j
 
 ### Chat
 
-Los mensajes de amigos van por el mismo protocolo de red que todo lo demas, sin cliente de Steam de por medio. Abrir una conversacion la marca como leida en Steam, y la persona a la que escribes ve el indicador de escritura.
+Los mensajes de amigos van por el mismo protocolo de red que todo lo demás, sin cliente de Steam de por medio. Abrir una conversación la marca como leída en Steam, y la persona a la que escribes ve el indicador de escritura.
 
 **Los chats de grupo quedan fuera.** Son un concepto aparte en el protocolo (chat room groups) y piden una pantalla propia.
 
@@ -337,7 +338,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `keyForwardOwned` | `false` | Probar una clave que la cuenta ya tiene en la siguiente cuenta conectada |
 | `farmSkipRecent` | `false` | Dejar fuera los juegos comprados en los últimos 14 días y jugados menos de 2 horas |
 | `farmFinishedAction` | `none` | `none` o `exit`: cierra la aplicación 20 segundos después de obtener todos los cromos, si no hay otra tarea en marcha. O `boost`: iniciar la lista de impulso de horas recordada de la cuenta. |
-| `farmScheduleEnabled` | `false` | Iniciar la recolección de cartas sola dentro del horario de abajo |
+| `farmScheduleEnabled` | `false` | Iniciar el farmeo de cromos solo dentro del horario de abajo |
 | `farmScheduleFrom` | `22:00` | Inicio del horario |
 | `farmScheduleTo` | `07:00` | Fin del horario. Si el fin es anterior al inicio, el horario pasa de medianoche |
 | `farmExcluded` | vacío | Lista negra del farmeo de cromos (app ids). Se guarda por cuenta, no caduca, no se exporta |
@@ -359,11 +360,11 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 
 ### Impulsor de horas
 
-| `boostMaxGames` | `32` | Juegos abiertos a la vez. No se usa mientras corre la igualación de horas: ella abre hasta 32 por sí sola |
+| Clave | Por defecto | Qué hace |
 |---|---|---|
+| `boostMaxGames` | `32` | Juegos abiertos a la vez. No se usa mientras corre la igualación de horas: ella abre hasta 32 por sí sola |
 | `boostSync` | `true` | Sube la selección a un total común. El objetivo `highest` solo se aplica con dos o más juegos seleccionados |
 | `boostDurationSec` | `3600` | Duración de la sesión |
-| `boostSync` | `false` | Llevar la selección a un total común |
 | `boostSyncMode` | `highest` | Objetivo: el `highest` seleccionado, horas `manual`, o el más alto de la `library` |
 | `boostSyncStrategy` | `parallel` | `parallel` es todos a la vez, `staged` es uno por uno |
 | `boostAutoRestart` | `false` | Volver a lanzar la cola cuando acaba la sesión |
@@ -384,6 +385,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | `grCatchUpShare` | `20` | Porcentaje de la sesión que se lleva la ráfaga de recuperación |
 | `grFinishedRatio` | `50` | Cuánto se comprime el calendario en un juego ya terminado |
 | `grKeepHours` | `true` | Seguir acumulando horas cuando terminen los desbloqueos |
+| `grParallel` | `true` | Juega los juegos de la cola a la vez, de cinco en cinco (cada juego de un grupo tiene todo el tiempo del grupo, que dura lo que su juego más largo); desactivado, van uno tras otro |
 | `grSkipUltraRare` | `false` | Saltarse por completo los logros por debajo del 5% |
 | `grScheduleEnabled` | `false` | Iniciar el Modo realista solo dentro del horario de abajo, repitiendo el último inicio de la cuenta |
 | `grScheduleFrom` | `22:00` | Inicio del horario |
@@ -407,7 +409,7 @@ Los ajustes viven en `settings/settings.json`. La mayoría de las claves de abaj
 | Clave | Por defecto | Qué hace |
 |---|---|---|
 | `reconnectPolicy` | `unlimited` | Reconexión tras perder la conexión: `unlimited` (sin límite), `10`, `3`, `off` (desactivado) |
-| `sessionTimeout` | `never` | Cierra todas las sesiones tras estos minutos sin actividad (30, 120 u 480). Las tareas en marcha no cuentan como inactividad; solo tu propia interacción reinicia el contador. Al cumplirse, todas las cuentas se desconectan, se olvida la sesión activa y se abre la pantalla de inicio de sesión |
+| `sessionTimeout` | `never` | Cierra todas las sesiones tras estos minutos sin actividad (30, 120 o 480). Las tareas en marcha no cuentan como inactividad; solo tu propia interacción reinicia el contador. Al cumplirse, todas las cuentas se desconectan, se olvida la sesión activa y se abre la pantalla de inicio de sesión |
 | `apiRequestDelayMs` | `350` | Intervalo mínimo entre peticiones al mercado. Más bajo es más rápido pero más cerca del límite de Steam (HTTP 429) |
 | `logLevel` | `error` | Qué se escribe en `logs/steamedge.log`: `off`, `error`, `warn`, `info`, `debug`. `off` también detiene `logs/connection.log` |
 
@@ -469,7 +471,7 @@ La carpeta de ajustes se copió a otro equipo o usuario de Windows con **Cifrar 
 
 ### Recoger un registro para informar de un fallo
 
-Los registros están en la carpeta `logs/`, junto al ejecutable; Ajustes > Avanzado y datos > **Archivo de registro** > Abrir la abre. `steamedge.log` guarda los eventos, `connection.log` cada caída y regreso de la conexión con Steam, `crash.log` los errores que nada más capturó. Anota eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo. Por defecto solo se escriben errores; pon Ajustes > Avanzado y datos > **Archivo de registro** en **Detallado (depuración)**, reproduce el problema y adjunta los archivos. Cada archivo tiene tope: al pasar de 2 MB (1 MB los otros dos) se aparta como `<nombre>.1` y empieza un archivo nuevo, de modo que siempre se conserva una parte anterior.
+Los registros están en la carpeta `logs/`, junto al ejecutable; Ajustes > Avanzado y datos > **Archivo de registro** > Abrir la abre. `steamedge.log` guarda los eventos, `events.log` una línea por cada cambio (visibilidad, juegos, tareas, logros, ajustes), `connection.log` cada caída y regreso de la conexión con Steam, `crash.log` los errores que nada más capturó. Recogen eventos de conexión, decisiones de cola y errores. **No** contiene tu contraseña ni tu token de sesión, así que es seguro adjuntarlo; aun así, échale un vistazo antes de publicarlo. Por defecto solo se escriben errores; pon Ajustes > Avanzado y datos > **Archivo de registro** en **Detallado (depuración)**, reproduce el problema y adjunta los archivos. Cada archivo tiene tope: al pasar de 2 MB (1 MB los otros dos) se aparta como `<nombre>.1` y empieza un archivo nuevo, de modo que siempre se conserva una parte anterior.
 
 ---
 
@@ -497,7 +499,7 @@ Sí, desde la 3.0.0. Cuando existe una versión más nueva, la ventana de actual
 </details>
 
 <details>
-<summary><b>¿Por qué está todo en la moneda de mi monedero?</b></summary>
+<summary><b>¿Por qué está todo en la moneda de mi cartera?</b></summary>
 
 Porque así es como lo envía Steam. Convertir significaría inventarse un tipo de cambio.
 
@@ -506,7 +508,7 @@ Porque así es como lo envía Steam. Convertir significaría inventarse un tipo 
 <details>
 <summary><b>¿Puedo llevarme mi configuración a otro equipo?</b></summary>
 
-Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado. La sección Copia de seguridad de Ajustes > General también puede exportar ajustes y datos por cuenta a un único archivo, sin el token de sesión. Con **Cifrar los tokens de inicio de sesión** activado, los tokens no se abren en otro equipo ni con otro usuario de Windows; inicia sesión de nuevo allí.
+Copia la carpeta (en una copia instalada, la carpeta de instalación). Está todo dentro. Recuerda que `settings/` incluye tu token de sesión, así que cópiala en privado. La sección Copia de seguridad de Ajustes > General también puede exportar ajustes y datos por cuenta a un único archivo, sin el token de sesión. Con **Cifrar los tokens de inicio de sesión** activado, los tokens no se abren en otro equipo ni con otro usuario de Windows; inicia sesión de nuevo allí.
 
 </details>
 
@@ -520,9 +522,9 @@ Copia la carpeta. Está todo dentro. Recuerda que `settings/` incluye tu token d
 | **Página de insignia** | La página de Steam que indica cuántas caídas de cromos le quedan a un juego |
 | **Caída** | Un cromo concedido por tiempo jugado |
 | **market_hash_name** | El nombre exacto que usa el mercado para un artículo |
-| **Libro de órdenes** | La tabla en vivo de órdenes de compra y listados de venta de un artículo |
+| **Libro de órdenes** | La tabla en vivo de órdenes de compra y anuncios de venta de un artículo |
 | **Logro protegido** | Uno que solo el servidor del juego puede fijar; ningún cliente puede |
-| **Venta realizada** | Una transacción completada, frente a un listado activo |
+| **Venta realizada** | Una transacción completada, frente a un anuncio activo |
 | **Esquema** | La definición que hace Steam de los logros y estadísticas de un juego |
 | **Token de sesión** | La credencial que te mantiene con la sesión iniciada. Trátala como una contraseña |
 | **Tc** | Tiempo de completado al 100%: horas para terminar un juego con todos sus logros |

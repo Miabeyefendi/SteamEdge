@@ -1,4 +1,4 @@
-[← Volver al README](../../README.md)
+[← Volver al README](./README_ES.md)
 
 # 🧭 Hoja de ruta
 
@@ -7,20 +7,25 @@
 - [x] Modo realista rehecho según el diseño
 - [x] Cola de mercado por objeto, precio y media juntos
 - [x] Todos los textos generados en ejecución traducidos, con formas de plural en todos los idiomas (1.3.0)
-- [x] Temas: Oscuro, Púrpura medianoche, Blanco (1.3.0)
+- [x] Temas, pantalla de inicio de sesión incluida (1.3.0)
 - [x] Electron 41 (1.3.2)
 - [x] Inglés por defecto y el resto del texto de la interfaz traducido (1.3.3)
 - [x] Todo el código en inglés: identificadores, comentarios, ids de elementos, canales IPC, claves de ajustes y nombres de archivo (1.4.0)
 - [x] Diseño fluido para pantallas pequeñas y una ventana que recuerda su lugar (1.4.9)
 - [x] Módulos, un modo ligero y un diseño que se ajusta a cualquier ventana (1.5.1 y 1.5.2)
 - [x] Las tareas en marcha continúan donde se quedaron tras un reinicio (1.5.3)
-- [x] Escala de la interfaz, tema de alto contraste, texto legible y uso con teclado (1.5.4)
+- [x] Escala de la interfaz, texto legible y uso con teclado (1.5.4)
 - [x] Paleta de comandos, atajos y un cuadro de búsqueda en los ajustes (1.5.5)
 - [x] Dificultad del Modo realista tomada de tiempos de juego reales (1.5.6)
 - [x] Menos memoria de vídeo, sin redibujado constante en reposo y una descarga más pequeña (1.5.7)
 - [x] Un modo de poca memoria para equipos modestos (1.5.8)
 - [x] Un solo temporizador ligero en lugar de animaciones interminables (1.5.9)
 - [x] Cuentas y tareas (1.6.0): el primer clic en una cuenta cambia a ella, lo que se ejecuta o terminó en cada cuenta se ve en la barra superior y en la lista de cuentas, Iniciar y Detener siguen el estado de su tarea en todas las páginas, el Modo realista desbloquea los logros del más común al más raro, y el modo rápido mantiene los juegos que ya superaron el umbral mientras los demás se llevan hasta él
+- [x] El Modo realista abre a la vez los juegos de la cola, de cinco en cinco (1.7.4 y 1.7.6)
+- [x] La conexión vuelve sola tras un corte, con un historial de conexión (1.7.8 y 1.8.0)
+- [x] Un Setup junto a la copia portátil, y Actualizar ahora, que descarga, comprueba e instala la nueva versión (3.0.0 a 4.3.2)
+- [x] Dos temas, VantaBlack y VantaWhite, de los esquemas de Vantagraph (4.3.4)
+- [x] Un registro de eventos, `logs/events.log`, que muestra lo que se envió a Steam y lo que volvió (4.3.3 y 4.3.5)
 - [ ] Una descarga más pequeña
 - [ ] Aún menos uso de la tarjeta gráfica y de su memoria de vídeo
 - [ ] Aún menos uso de memoria (RAM)
