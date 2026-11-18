@@ -41,7 +41,7 @@
 ## 🔐 安全与你的 Steam 登录
 
 > [!WARNING]
-> **SteamEdge 可以代你操作 Steam 账号：集卡、挂时长、解锁成就、在市场上架物品。下面如实说明它如何处理你的登录、把登录信息存在哪里、会向网络发送什么，方便你判断自己是否放心使用。**
+> **SteamEdge 可以代你操作 Steam 账号：挂卡、挂时长、解锁成就、在市场上架物品。下面如实说明它如何处理你的登录、把登录信息存在哪里、会向网络发送什么，方便你判断自己是否放心使用。**
 
 **简而言之：**密码从不写入磁盘，应用只与 Steam、其图片服务器和 GitHub 的公开版本列表通信，没有遥测、没有分析，也没有我的服务器。它保存什么、存在哪里，以及如何自行验证，见[隐私与安全](./PRIVACY_ZH.md)。
 
@@ -49,15 +49,15 @@
 
 ## ✨ 功能重点
 
-- **卡牌收集** - 让游戏显示为「游玩中」以掉落集换式卡牌。
+- **卡牌掉落** - 让游戏显示为“游玩中”以掉落集换式卡牌。
 - **时数提升** - 同时最多开启 32 款游戏，并可选择时数同步，把选定的游戏拉到相同的总时数。
 - **成就管理** - 直接从 Steam 协议读取真实的锁定与解锁状态，然后批量解锁或重新锁定。
-- **拟真模式** - 保持单一游戏开启，并将成就由最常见到最稀有依次分散在整个时段解锁，让个人资料看起来像真的玩过。
+- **拟真模式** - 将一款游戏的成就由最常见到最稀有依次解锁，分散在真实玩家所需的时间里，让个人资料看起来像真的玩过。队列中的游戏可以同时运行，每次五款。
 - **库存与市集** - 真实成交记录、挂单簿、批量平均价与出售，全部以你的钱包货币显示。
 - **产品序号** - 粘贴一串序号，它们会在后台逐个兑换。
 - **多账号** - 多个账号同时连接，各自在后台运行，切换时不会丢失进度。
 - **不需要 Steam 客户端** - 直接使用 Steam 自己的网络协议。
-- **免安装** - 解压缩即可运行。
+- **安装版或免安装版** - 用 Setup 安装，或解压缩后直接运行。两种方式下数据都放在可执行文件旁边，“立即更新”会带来下一个版本。
 
 **[查看全部功能 →](./FEATURES_ZH.md)**
 
@@ -69,9 +69,9 @@
 
 | | |
 |:-:|:-:|
-| <img src="../../design/screenshots/CardFarming.png" alt="卡牌收集"><br><sub>卡牌收集</sub> | <img src="../../design/screenshots/HourBoostr.png" alt="时长提升"><br><sub>时长提升</sub> |
+| <img src="../../design/screenshots/CardFarming.png" alt="卡牌掉落"><br><sub>卡牌掉落</sub> | <img src="../../design/screenshots/HourBoostr.png" alt="时数提升"><br><sub>时数提升</sub> |
 | <img src="../../design/screenshots/Achievements.png" alt="成就"><br><sub>成就</sub> | <img src="../../design/screenshots/RealisticMode.png" alt="拟真模式"><br><sub>拟真模式</sub> |
-| <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="拟真模式，高级"><br><sub>拟真模式，高级</sub> | <img src="../../design/screenshots/Market.png" alt="库存与市集"><br><sub>库存与市场</sub> |
+| <img src="../../design/screenshots/RealisticModeAdvanced.png" alt="拟真模式，高级"><br><sub>拟真模式，高级</sub> | <img src="../../design/screenshots/Market.png" alt="库存与市集"><br><sub>库存与市集</sub> |
 | <img src="../../design/screenshots/Market2.png" alt="市场，订单簿"><br><sub>市场，订单簿</sub> | <img src="../../design/screenshots/Chat.png" alt="Steam 聊天"><br><sub>Steam 聊天</sub> |
 | <img src="../../design/screenshots/SettingsGeneral.png" alt="设置"><br><sub>设置</sub> |  |
 
@@ -87,15 +87,20 @@
 |---|---|
 | 操作系统 | Windows 10 以上，64 位 |
 | Steam 账号 | 已设置 Steam 两步验证，手机或电子邮件皆可 |
-| 磁盘空间 | 解压缩后约 290 MB |
+| 磁盘空间 | 解压缩或安装后约 300 MB |
 | Steam 客户端 | 不需要，也不会使用 |
 
 ### 安装
 
-1. 从[发行页面](https://github.com/Miabeyefendi/SteamEdge/releases/latest)下载最新的 `.rar`。
-2. 解压缩到任意位置。请选择你有权限的文件夹，不要放在 `Program Files`。
-3. 运行 `SteamEdge.exe`。没有任何安装步骤，也不会在该文件夹之外写入任何东西。
-4. 更新时请把新版本解压到一个全新的空文件夹，再把旧文件夹中的 `settings/` 复制过去。在程序开启时直接覆盖旧文件夹会让两个版本的文件混在一起。
+两种方式，同一个程序：
+
+**安装版。** 从[发行页面](https://github.com/Miabeyefendi/SteamEdge/releases/latest)下载 `SteamEdge-Setup-v<版本>.exe`。Setup 会显示许可协议，询问安装位置（默认为 Program Files，任何文件夹都可以）以及 SteamEdge 使用的语言。你的设置和账号与免安装版一样，保存在可执行文件旁边的 `settings` 和 `cache` 文件夹中，复制这两个文件夹即可在两种版本之间迁移。更新不会动它们。
+
+**免安装版。** 下载 `SteamEdge-v<版本>-win-x64.rar`（或 `.zip`），解压缩到任意位置，运行 `SteamEdge.exe`。不会安装任何东西，也不会在该文件夹之外写入任何东西。
+
+更新时，在更新窗口中点击“立即更新”：程序会从本项目的 GitHub 发布页下载新版本，校验其 SHA-256 后安装（安装版会运行新的 Setup，免安装版则就地替换文件；设置会保留）。早于 3.0.0 的副本无法自行更新：请把新版本解压到一个全新的空文件夹，再把旧文件夹中的 `settings/` 复制进去。
+
+每个文件的 SHA-256 写在[英文 README](../../README.md#install) 和版本说明中。可在 PowerShell 中用 `Get-FileHash .\<文件名>` 校验。
 
 ---
 
@@ -103,7 +108,7 @@
 
 首次启动会出现登录画面。用 Steam 手机应用程序扫描 QR 码，或切换到密码标签页输入账号密码与 Steam 两步验证码。除了可执行文件旁 `settings/` 内的一组会话令牌之外，不会保存任何东西。
 
-登录之后，「总览」会显示正在运行的工作与可用的功能。开启**卡牌收集**，刷新列表，选择模式并按下开始。其余的可以等你读完[教程](./TUTORIAL_ZH.md)再说。
+登录之后，“总览”会显示正在运行的工作与可用的功能。打开**卡牌掉落**，刷新列表，选择模式并按下开始。其余的可以等你读完[教程](./TUTORIAL_ZH.md)再说。
 
 ---
 
@@ -166,7 +171,7 @@
 
 ### 免责声明
 
-本软件以「现状」提供，不附任何形式的保证。你完全自行承担运行风险，并须自行
+本软件以“现状”提供，不附任何形式的保证。你完全自行承担运行风险，并须自行
 负责一切使用行为，包括遵守本软件所互动之任何第三方平台的服务条款。Valve 与
 Steam 与作者并无隶属关系，亦未为本项目背书；其名称与商标属于各自所有人。
 在适用法律允许的最大范围内，作者对账号封锁、数据丢失或任何其他损害概不负责。

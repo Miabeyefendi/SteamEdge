@@ -40,7 +40,7 @@ Daraus folgen zwei Dinge, und sie erklären das meiste am Verhalten der Anwendun
 
 ### Dateiaufbau
 
-Alles liegt neben der ausführbaren Datei. Nichts wird in die Registrierung oder nach `Program Files` geschrieben; `AppData` dient nur als Ausweichort, wenn der Ordner neben der ausführbaren Datei nicht beschreibbar ist.
+Alles liegt neben der ausführbaren Datei, bei der portablen wie bei der installierten Kopie (das Setup erlaubt normalen Benutzern, in diese Ordner zu schreiben). `AppData` dient nur als Ausweichort, wenn der Ordner neben der ausführbaren Datei nicht beschreibbar ist.
 
 ```
 SteamEdge/
@@ -61,6 +61,7 @@ SteamEdge/
     chromium/                  Bild- und Seitencache
   logs/
     steamedge.log              Ereignisse auf der in den Einstellungen gewählten Stufe: das Protokoll für einen Fehlerbericht
+    events.log                 eine Zeile pro Änderung: gesendete Sichtbarkeit und was Steam meldet, gesendete Spiele, Aufgaben, Errungenschaften, Einstellungen
     connection.log             jeder Abbruch, Wiederverbindungsversuch und jede Rückkehr der Steam-Verbindung, je eine Zeile
     crash.log                  Fehler, die sonst nichts abgefangen hat, auf jeder Stufe geschrieben
 ```
@@ -73,13 +74,13 @@ SteamEdge/
 
 ### Voraussetzungen
 
-Windows 10 oder neuer, 64 Bit. Ein Steam-Konto mit aktiviertem Steam Guard. Etwa 290 MB Speicherplatz nach dem Entpacken. Der Steam-Client wird nicht gebraucht und nie gestartet.
+Windows 10 oder neuer, 64 Bit. Ein Steam-Konto mit aktiviertem Steam Guard. Etwa 300 MB Speicherplatz nach dem Entpacken oder Installieren. Der Steam-Client wird nicht gebraucht und nie gestartet.
 
 ### Schritt für Schritt
 
-1. Lade das neueste `.rar` von der [Veröffentlichungsseite](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
-2. Entpacke es in einen Ordner, der dir gehört. Nicht `Program Files`, denn die Anwendung schreibt ihre Einstellungen neben sich selbst.
-3. Starte `SteamEdge.exe`.
+1. Lade `SteamEdge-Setup-v<Version>.exe` oder das portable `.rar` (oder `.zip`) von der [Veröffentlichungsseite](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+2. Starte das Setup: Es zeigt die Lizenz und fragt, wohin installiert wird (standardmäßig Program Files) und in welcher Sprache SteamEdge startet. Für die portable Kopie entpackst du das Archiv stattdessen in einen Ordner, der dir gehört.
+3. Starte `SteamEdge.exe` oder öffne SteamEdge über das Startmenü.
 4. Melde dich an. Der QR-Weg ist der einfachere: Code mit der Steam-App scannen und bestätigen. Der Passwort-Reiter will Benutzernamen, Passwort und einen Steam-Guard-Code.
 
 ### Installation prüfen
@@ -94,7 +95,7 @@ Dateien, die eine ältere Version geschrieben hat, werden beim ersten Lesen umge
 
 ### Deinstallieren
 
-Ordner löschen. Das ist der ganze Vorgang.
+Portable Kopie: Ordner löschen, das ist der ganze Vorgang. Installierte Kopie: SteamEdge in den Windows-Einstellungen > Apps deinstallieren; am Ende wird gefragt, ob auch deine Einstellungen, Konten und die gespeicherte Anmeldung gelöscht werden sollen.
 
 ---
 
@@ -108,7 +109,7 @@ Darüber sechs Kacheln: verbleibende Karten, Bibliothek, diese Sitzung, Inventar
 
 ### Karten farmen
 
-Die Warteschlange der Spiele mit verbleibenden Karten, aus deinen Abzeichenseiten gelesen, filterbar nach 1-2 oder 3+ Karten. Mit den Pfeilen oder **Ganz nach oben** umsortieren (der Modus wechselt dabei zu Priorität), mit ✕ entfernen; Reihenfolge und Entfernungen werden gemerkt. Rechts: Farm-Modus, Timer pro Spiel (wie lange jedes Spiel läuft, bevor das nächste übernimmt, mit Schnellwahl; der schnelle Modus hat seinen eigenen Rhythmus und blendet den Timer aus), **Automatisierung** (erhaltene Karten automatisch anbieten, bei Kartendrop benachrichtigen, Errungenschaften beim Stundensammeln freischalten) und **Letzte Drops**. Starten drücken.
+Die Warteschlange der Spiele mit verbleibenden Karten, aus deinen Abzeichenseiten gelesen, filterbar nach 1-2 oder 3+ Karten. Mit den Pfeilen oder **Ganz nach oben** umsortieren (der Modus wechselt dabei zu Priorität), mit ✕ entfernen; Reihenfolge und Entfernungen werden gemerkt. Rechts: Farm-Modus, Timer pro Spiel (wie lange jedes Spiel läuft, bevor das nächste übernimmt, mit Schnellwahl; der schnelle Modus hat seinen eigenen Rhythmus und graut den Timer aus), **Automatisierung** (erhaltene Karten automatisch anbieten, bei Kartendrop benachrichtigen, Errungenschaften beim Stundensammeln freischalten) und **Letzte Drops**. Starten drücken.
 
 ### Inventar & Markt
 
@@ -134,7 +135,7 @@ Füge Produktschlüssel ein, einen pro Zeile oder als "Spielname, Tab, Schlüsse
 
 Alles, was man der App sagen kann, gruppiert: Allgemein, Karten farmen, Markt, Inventar, Stunden-Booster, Errungenschaften, Benachrichtigungen, Datenschutz & Sicherheit, Statistiken, Erweitert & Daten und Über. Die rechte Spalte zeigt das Konto (Level, Verbindungsstatus, kopierbare Steam-IDs) und die Konfiguration (letzte Speicherung, ungespeicherte Änderungen).
 
-Änderungen bleiben auf der Seite, bis du **Speichern** drückst. Vorher wird nichts geschrieben, und wer die Seite mit ungespeicherten Änderungen verlässt, wird gefragt. Nach dem Speichern pausiert ein laufendes Kartenfarmen oder Stunden-Boosten, das von den geänderten Einstellungen betroffen ist, etwa fünf Sekunden und macht mit denselben Spielen und den neuen Werten weiter; Einstellungen, die einen laufenden Auftrag nicht berühren, gelten sofort. **Zurücksetzen** lädt die Standardwerte in die Seite und wartet ebenfalls auf Speichern; die App-Sprache bleibt.
+Änderungen bleiben auf der Seite, bis du **Speichern** drückst. Vorher wird nichts geschrieben, und wer die Seite mit ungespeicherten Änderungen verlässt, wird gefragt. Nach dem Speichern pausiert ein laufendes Kartenfarmen oder Stunden-Boosten, das von den geänderten Einstellungen betroffen ist, etwa fünf Sekunden und macht mit demselben Spiel und den neuen Werten weiter; Einstellungen, die einen laufenden Auftrag nicht berühren, gelten sofort. **Zurücksetzen** lädt die Standardwerte in die Seite und wartet ebenfalls auf Speichern; die App-Sprache bleibt.
 
 Das Farbschema (Automatisch, VantaBlack, VantaWhite) steht unter Allgemein und gilt auch für den Anmeldebildschirm. Automatisch ist VantaBlack. Beide sind die Paletten der gleichnamigen Vantagraph-Schemata. **Oberflächenmaßstab** (80 bis 150 Prozent, standardmäßig 100) vergrößert oder verkleinert die gesamte Oberfläche; auch Strg + / - / 0 ändern ihn, und das Fenster beim ersten Start fragt danach. Ist das Fenster für das Layout im gewählten Maßstab zu klein, schrumpft der Maßstab auf das, was passt. Abgeblasster Text hat in jedem Design mindestens 4,5 : 1 zum Untergrund, kein Text ist kleiner als 11 Pixel, und die Kontrastdesigns von Windows (erzwungene Farben) werden befolgt.
 
@@ -142,7 +143,7 @@ Die Schalter und das Seitenmenü lassen sich mit der Tastatur bedienen: Tab wech
 
 Die Oberflächendichte steht standardmäßig auf Automatisch: Sie wird kompakt, solange das Fenster niedrig ist (unter etwa 720 Pixel), und wird wieder geräumig, wenn das Fenster höher wird. Das Seitenmenü schließt sich von selbst, wenn das Fenster schmaler als 1000 Pixel ist, und das Fenster merkt sich Größe, Position und ob es maximiert war. Unter 900 x 560 Pixeln (der Anmeldebildschirm 900 x 640) wird das Layout nicht weiter gestaucht: die ganze Seite wird passend verkleinert, bis auf drei Viertel, sodass selbst ein Fenster von 675 x 420 jede Schaltfläche zeigt.
 
-Unter **Module** schaltest du Seiten aus (Karten, Stunden, Inventar, Realistischer Modus, Erfolge, Schlüssel, Chat) und verschiebst die übrigen nach oben oder unten. Eine ausgeschaltete Seite verschwindet aus Menü, Übersicht und Kopfleiste, lässt sich nicht öffnen und fragt nichts bei Steam an; zeitgesteuerte Aufgaben laufen gemäß ihren Einstellungen im Hintergrund weiter. Der **Leistungsmodus** ist Automatisch, Voll oder Leicht. Leicht schaltet Animationen, Übergänge, Unschärfe und Schatten aus; Automatisch aktiviert ihn, wenn das System weniger Bewegung wünscht oder der Computer schwach ist, und **Für diesen Computer einrichten** wählt anhand von Kernen und Speicher einen Modus. Beim ersten Start fragt die App, welche Seiten du willst. Ein langes Inventar wird im Hintergrund gezeichnet, die Seite bleibt also bedienbar, während 3000 Zeilen erscheinen. Zwei weitere Karten schalten kleine Funktionen aus (das Aktivitätsfeld der Übersicht, die Favoriten-Sterne, die Schaltflächen „Meine Angebote“ und „CSV exportieren“, die Auswahl der Inventare anderer Spiele) und Elemente der Kopfleiste (das Suchfeld, die Schaltflächen für Benachrichtigungen und Updates); die Schaltflächen für Einstellungen und Konto bleiben immer.
+Unter **Module** schaltest du Seiten aus (Karten, Stunden, Inventar, Realistischer Modus, Errungenschaften, Schlüssel, Chat) und verschiebst die übrigen nach oben oder unten. Eine ausgeschaltete Seite verschwindet aus Menü, Übersicht und Kopfleiste, lässt sich nicht öffnen und fragt nichts bei Steam an; zeitgesteuerte Aufgaben laufen gemäß ihren Einstellungen im Hintergrund weiter. Der **Leistungsmodus** ist Automatisch, Voll oder Leicht. Leicht schaltet Animationen, Übergänge, Unschärfe und Schatten aus; Automatisch aktiviert ihn, wenn das System weniger Bewegung wünscht oder der Computer schwach ist, und **Für diesen Computer einrichten** wählt anhand von Kernen und Speicher einen Modus. Beim ersten Start fragt die App, welche Seiten du willst. Ein langes Inventar wird im Hintergrund gezeichnet, die Seite bleibt also bedienbar, während 3000 Zeilen erscheinen. Zwei weitere Karten schalten kleine Funktionen aus (das Aktivitätsfeld der Übersicht, die Favoriten-Sterne, die Schaltflächen „Meine Angebote“ und „CSV exportieren“, die Auswahl der Inventare anderer Spiele) und Elemente der Kopfleiste (das Suchfeld, die Schaltflächen für Benachrichtigungen und Updates); die Schaltflächen für Einstellungen und Konto bleiben immer.
 
 ### Chat
 
@@ -174,11 +175,11 @@ Die Modi:
 
 Karten kommen nicht nach Plan, und Steam sendet kein Ereignis "eine Karte ist gefallen". Die App liest die Abzeichenseiten jedes Kontos alle drei Minuten neu und meldet die ehrliche Differenz der verbleibenden Karten statt eines erfundenen Zählers.
 
-**Sperrliste.** Die rote Taste in einer Zeile der Warteschlange setzt das Spiel auf die Sperrliste: Es wird weder von Hand noch durch den Zeitplan gefarmt, bis du es im Tab **Sperrliste** wieder entfernst. Die Liste gehört zum Konto und laufen, anders als der übrige Warteschlangenzustand, nicht mit der Aufbewahrungsdauer ab; Spiele, die du vor 1.4.5 aus der Warteschlange entfernt hast, wurden automatisch auf die Sperrliste verschoben.
+**Sperrliste.** Die rote Taste in einer Zeile der Warteschlange setzt das Spiel auf die Sperrliste: Es wird weder von Hand noch durch den Zeitplan gefarmt, bis du es im Tab **Sperrliste** wieder entfernst. Die Liste gehört zum Konto und läuft, anders als der übrige Warteschlangenzustand, nicht mit der Aufbewahrungsdauer ab; Spiele, die du vor 1.4.5 aus der Warteschlange entfernt hast, wurden automatisch auf die Sperrliste verschoben.
 
 **Wenn alle Karten gesammelt sind** kann auch auf **Stunden-Boost starten** stehen: Die gemerkte Stunden-Boost-Liste des Kontos startet, begrenzt durch **Max. Spiele gleichzeitig**. Bei leerer Liste startet nichts und der Aktivitätsfeed sagt das.
 
-**Rückgabezeitraum.** Ist **Spiele im Rückgabezeitraum überspringen** an (Seite Karten farmen oder Einstellungen > Kartenfarmen), kommen Spiele, die in den letzten 14 Tagen gekauft und weniger als 2 Stunden gespielt wurden, nicht in die Warteschlange: Steam erhält hier das Rückgaberecht bis zu dieser Stundengrenze, und Kartenfarmen würde es beenden. Das Kaufdatum wird aus den Lizenzdaten von Steam gelesen; lässt es sich nicht lesen, wird kein Spiel übersprungen. Der Zeitplan nutzt denselben Filter.
+**Rückgabezeitraum.** Ist **Spiele im Rückgabezeitraum überspringen** an (Seite Karten farmen oder Einstellungen > Karten farmen), kommen Spiele, die in den letzten 14 Tagen gekauft und weniger als 2 Stunden gespielt wurden, nicht in die Warteschlange: Steam erhält hier das Rückgaberecht bis zu dieser Stundengrenze, und Kartenfarmen würde es beenden. Das Kaufdatum wird aus den Lizenzdaten von Steam gelesen; lässt es sich nicht lesen, wird kein Spiel übersprungen. Der Zeitplan nutzt denselben Filter.
 
 ### Stunden-Booster
 
@@ -191,7 +192,7 @@ Lässt bis zu 32 Spiele gleichzeitig laufen. Steam rechnet die Zeit jedem offene
 
 Die Fortschrittsbalken liegen auf einer gemeinsamen Zeitachse: ein Balken ist eins minus der Restzeit des Spiels geteilt durch die Länge des gesamten Auftrags. Ein Spiel, das vier Stunden in einen 35-Stunden-Lauf hinein fertig ist, startet fast voll; eines, das bis zum Ende läuft, startet leer. Jeder erreicht genau dann 100%, wenn sein Spiel das Ziel erreicht.
 
-**Spielzeiten angleichen** (Seite Stunden-Booster) zieht die ausgewählten Spiele auf eine gemeinsame Summe. Das Ziel **Höchster Wert der Auswahl** braucht zwei oder mehr ausgewählte Spiele: Bei einem einzelnen Spiel gibt es nichts anzugleichen, daher bleiben Dauer und Limit bei dir. Ein manuelles Stundenziel oder der höchste Wert der Bibliothek funktioniert auch mit einem Spiel. Bei **Alle gleichzeitig** laufen alle ausgewählten Spiele zusammen, bis zu Steams 32, egal was **Gleichzeitiges Limit** sagt, und ein Spiel, das das Ziel erreicht, fällt aus der Liste; **Nacheinander** zieht das am weitesten zurückliegende Spiel allein vor und nimmt das nächste auf, wenn es aufgeholt hat. Der Schalter ist standardmäßig an.
+**Spielzeiten angleichen** (Seite Stunden-Booster) zieht die ausgewählten Spiele auf eine gemeinsame Summe. Das Ziel **Höchster Wert der Auswahl** braucht zwei oder mehr ausgewählte Spiele: Bei einem einzelnen Spiel gibt es nichts anzugleichen, daher bleiben Dauer und Limit bei dir. Ein manuelles Stundenziel oder der höchste Wert der Bibliothek funktioniert auch mit einem Spiel. Bei **Alle zugleich** laufen alle ausgewählten Spiele zusammen, bis zu Steams 32, egal was **Gleichzeitiges Limit** sagt, und ein Spiel, das das Ziel erreicht, fällt aus der Liste; **Nacheinander** zieht das am weitesten zurückliegende Spiel allein vor und nimmt das nächste auf, wenn es aufgeholt hat. Der Schalter ist standardmäßig an.
 
 ### Errungenschaften
 
@@ -204,11 +205,11 @@ Zwei Kategorien lassen sich nicht anfassen, und die Anwendung erkennt beide am S
 
 Manche Spiele nehmen Schreibvorgänge für Errungenschaften nur an, während das Spiel offen ist. Die Anwendung öffnet das Spiel für den Schreibvorgang und stellt danach wieder her, was vorher lief.
 
-**Massenfreischaltung und -sperre** wirken auf die gewählten Errungenschaften, oder auf alles, was der aktuelle Filter zeigt, wenn nichts gewählt ist. Sie werden immer einzeln im **Freischaltintervall** (Einstellungen > Errungenschaften) gesendet, nie als ein Schub. Bei aktivem **Sicherer Modus** schwankt jede Wartezeit zufällig um bis zu 40 % in beide Richtungen, mit **Freischaltungen zeitlich verteilen** zwischen 40 % und 160 % des Intervalls; bei ausgeschaltetem sicheren Modus gilt das Intervall exakt. Die Bestätigung zeigt Intervall und geschätzte Gesamtdauer, ein Massenlauf stoppt nach drei Fehlern in Folge, und am Ende liest die App das Spiel neu von Steam und korrigiert jede Markierung, die Steam nicht wirklich gespeichert hat. Eine einzelne Freischaltung fragt zuerst, außer du hast Nicht mehr fragen angehakt (**Bei Einzeländerungen bestätigen** in den Einstellungen schaltet es wieder ein); Massenläufe fragen immer. Die Seltenheit folgt Steams globalem Freischaltanteil in fünf Stufen: unter 1 % Legendär, unter 5 % Ultra selten, unter 10 % Selten, unter 25 % Ungewöhnlich, der Rest Häufig. Die Intervalle sind 15, 30 und 45 Sekunden, 1, 2, 5, 10 und 30 Minuten sowie 1 Stunde. Beim Kartenfarmen arbeitet **Erfolge freischalten** höchstens einmal pro Minute; kürzere Werte verhalten sich dort wie 1 Minute.
+**Massenfreischaltung und -sperre** wirken auf die gewählten Errungenschaften, oder auf alles, was der aktuelle Filter zeigt, wenn nichts gewählt ist. Sie werden immer einzeln im **Freischaltintervall** (Einstellungen > Errungenschaften) gesendet, nie als ein Schub. Bei aktivem **Sicherer Modus** schwankt jede Wartezeit zufällig um bis zu 40 % in beide Richtungen, mit **Freischaltungen zeitlich verteilen** zwischen 40 % und 160 % des Intervalls; bei ausgeschaltetem sicheren Modus gilt das Intervall exakt. Die Bestätigung zeigt Intervall und geschätzte Gesamtdauer, ein Massenlauf stoppt nach drei Fehlern in Folge, und am Ende liest die App das Spiel neu von Steam und korrigiert jede Markierung, die Steam nicht wirklich gespeichert hat. Eine einzelne Freischaltung fragt zuerst, außer du hast Nicht mehr fragen angehakt (**Bei Einzeländerungen bestätigen** in den Einstellungen schaltet es wieder ein); Massenläufe fragen immer. Die Seltenheit folgt Steams globalem Freischaltanteil in fünf Stufen: unter 1 % Legendär, unter 5 % Ultra selten, unter 10 % Selten, unter 25 % Ungewöhnlich, der Rest Häufig. Die Intervalle sind 15, 30 und 45 Sekunden, 1, 2, 5, 10 und 30 Minuten sowie 1 Stunde. Beim Kartenfarmen arbeitet **Errungenschaften freischalten** höchstens einmal pro Minute; kürzere Werte verhalten sich dort wie 1 Minute.
 
 ### Realistischer Modus
 
-Hält ein Spiel offen und schaltet seine Errungenschaften über die Sitzung verteilt frei, vom häufigsten zum seltensten. Es geht um die Spur, die das hinterlässt: Hunderte Errungenschaften innerhalb einer Minute fallen im Profil und auf Drittanbieterseiten sofort auf.
+Schaltet die Errungenschaften eines Spiels über die Sitzung verteilt frei, von der häufigsten zur seltensten. Mit **Spiele gleichzeitig spielen** (Standard) sind die Spiele der Warteschlange zusammen geöffnet, je fünf auf einmal: Jedes Spiel einer Gruppe hat die ganze Zeit seiner Gruppe, und die Gruppen folgen aufeinander. Ist es aus, laufen die Spiele nacheinander. Es geht um die Spur, die das hinterlässt: Hunderte Errungenschaften innerhalb einer Minute fallen im Profil und auf Drittanbieterseiten sofort auf.
 
 **Stunden bis 100 %** ist die Zahl, auf der die ganze Seite aufbaut: wie viele Stunden es dauert, dieses Spiel mit allen Errungenschaften abzuschließen. Trägst du sie ein, wird sie für dieses Spiel gemerkt. Lässt du sie leer, wird sie aus dem Spieltyp geschätzt, aber diese Schätzung ist deine eigene Spielzeit mal einem Faktor und fällt daher bei viel gespielten Spielen zu hoch aus.
 
@@ -254,9 +255,9 @@ Schlüssel kommen in eine Warteschlange pro Konto, die im Hintergrund läuft. Ei
 
 Nutzt das Steam-Konto die Familienansicht, liefert Steam keine Webseiten, bis die PIN eingegeben wurde; Inventar-, Markt- und Abzeichenseiten laden dann nicht. Gib die PIN unter Einstellungen > Datenschutz & Sicherheit > **PIN der Familienansicht** ein, und SteamEdge entsperrt damit jede neue Websitzung. Die PIN liegt als Klartext in der Datei des Kontos unter `settings/accounts/` und gehört nicht zu exportierten Sicherungen. Ist **Anmelde-Token verschlüsseln** an, wird sie verschlüsselt.
 
-### Zeitplan für das Kartensammeln
+### Zeitplan für Kartenfarmen
 
-Ist der **Zeitplan für Kartensammeln** an (Einstellungen > Kartenfarmen), startet das Kartensammeln auf jedem verbundenen Konto von selbst, sobald der Zeitraum beginnt, und die so gestarteten Aufträge enden mit dem Zeitraum. Der Zeitraum darf über Mitternacht reichen, zum Beispiel 22:00 - 07:00. Die Warteschlange wird wie bei einem manuellen Start aufgebaut: dein **Standard-Prioritätsmodus**, die aus der Warteschlange entfernten Spiele, **Nie gespielte Spiele überspringen** und **Zeit pro Spiel**.
+Ist der **Zeitplan für Kartenfarmen** an (Einstellungen > Karten farmen), startet das Kartenfarmen auf jedem verbundenen Konto von selbst, sobald der Zeitraum beginnt, und die so gestarteten Aufträge enden mit dem Zeitraum. Der Zeitraum darf über Mitternacht reichen, zum Beispiel 22:00 - 07:00. Die Warteschlange wird wie bei einem manuellen Start aufgebaut: dein **Standard-Prioritätsmodus**, die aus der Warteschlange entfernten Spiele, **Nie gespielte Spiele überspringen** und **Zeit pro Spiel**.
 
 Ein von Hand gestarteter Auftrag wird vom Zeitplan nie gestoppt, und ein Konto wird pro Zeitraum höchstens einmal gestartet: Stoppst du es im Zeitraum von Hand, bleibt es bis zum nächsten Zeitraum gestoppt. Nur verbundene Konten werden gestartet; der Zeitplan meldet niemanden an.
 
@@ -290,7 +291,7 @@ Der Stern an einem Spiel in der Bibliothek des Stunden-Boosters, der Spieleliste
 
 ### Chat
 
-Freundesnachrichten laufen ueber dasselbe Netzwerkprotokoll wie alles andere hier, ein Steam-Client ist nicht beteiligt. Das Oeffnen einer Unterhaltung markiert sie bei Steam als gelesen, und dein Gegenueber sieht die Schreibanzeige.
+Freundesnachrichten laufen über dasselbe Netzwerkprotokoll wie alles andere hier, ein Steam-Client ist nicht beteiligt. Das Öffnen einer Unterhaltung markiert sie bei Steam als gelesen, und dein Gegenüber sieht die Schreibanzeige.
 
 **Gruppenchats sind nicht Teil davon.** Sie sind im Protokoll ein eigenes Konzept (chat room groups) und brauchen einen eigenen Bildschirm.
 
@@ -300,7 +301,7 @@ Mehrere Konten können gleichzeitig verbunden sein. Jedes hat seine eigene Verbi
 
 ### Verbindung
 
-Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufgaben machen weiter. **Bei Verbindungsabbruch neu verbinden** (Einstellungen > Erweitert & Daten) legt das Limit fest: unbegrenzt, 10 Versuche, 3 Versuche oder aus. 10 oder 3 ist die Zahl der schnellen Versuche: danach gibt es nicht auf, sondern versucht es alle fünf Minuten weiter und sofort, wenn der Computer aufwacht. Beendet Steam die Sitzung endgültig, etwa weil sich das Konto anderswo angemeldet hat, enden die Versuche und ein Banner bietet einen Neu-verbinden-Knopf.
+Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufgaben machen weiter. **Bei Verbindungsabbruch neu verbinden** (Einstellungen > Erweitert & Daten) legt das Limit fest: unbegrenzt, 10 Versuche, 3 Versuche oder aus. 10 oder 3 ist die Zahl der schnellen Versuche: danach gibt die App nicht auf, sondern versucht es alle fünf Minuten weiter und sofort, wenn der Computer aufwacht. Beendet Steam die Sitzung endgültig, etwa weil sich das Konto anderswo angemeldet hat, enden die Versuche und ein Banner bietet einen Neu-verbinden-Knopf.
 
 ---
 
@@ -359,11 +360,11 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 
 ### Stunden-Booster
 
-| `boostMaxGames` | `32` | Gleichzeitig geöffnete Spiele. Wird beim Stundenabgleich nicht benutzt: Er öffnet selbst bis zu 32 |
+| Schlüssel | Standard | Wirkung |
 |---|---|---|
+| `boostMaxGames` | `32` | Gleichzeitig geöffnete Spiele. Wird beim Stundenabgleich nicht benutzt: Er öffnet selbst bis zu 32 |
 | `boostSync` | `true` | Die Auswahl auf eine gemeinsame Summe ziehen. Das Ziel `highest` gilt nur bei zwei oder mehr ausgewählten Spielen |
 | `boostDurationSec` | `3600` | Sitzungsdauer |
-| `boostSync` | `false` | Auswahl auf eine gemeinsame Gesamtzeit ziehen |
 | `boostSyncMode` | `highest` | Ziel: höchstes ausgewähltes, manuelle Stunden oder höchstes der Bibliothek |
 | `boostSyncStrategy` | `parallel` | `parallel` heißt alle zugleich, `staged` nacheinander |
 | `boostAutoRestart` | `false` | Warteschlange nach Sitzungsende erneut starten |
@@ -384,6 +385,7 @@ Die Einstellungen liegen in `settings/settings.json`. Die meisten der folgenden 
 | `grCatchUpShare` | `20` | Anteil der Sitzung für das Aufholen, in Prozent |
 | `grFinishedRatio` | `50` | Wie stark der Plan bei einem abgeschlossenen Spiel staucht |
 | `grKeepHours` | `true` | Nach den Freischaltungen weiter Stunden sammeln |
+| `grParallel` | `true` | Spielt die Spiele der Warteschlange gleichzeitig, je fünf auf einmal (jedes Spiel einer Gruppe hat die ganze Zeit der Gruppe, die so lange dauert wie ihr längstes Spiel); aus: nacheinander |
 | `grSkipUltraRare` | `false` | Errungenschaften unter 5% ganz überspringen |
 | `grScheduleEnabled` | `false` | Den Realistischen Modus im folgenden Zeitraum von selbst starten und den letzten Lauf des Kontos wiederholen |
 | `grScheduleFrom` | `22:00` | Beginn des Zeitraums |
@@ -469,7 +471,7 @@ Der Einstellungsordner wurde bei aktivem **Anmelde-Token verschlüsseln** auf ei
 
 ### Ein Protokoll für einen Fehlerbericht sammeln
 
-Die Protokolle liegen im Ordner `logs/` neben der ausführbaren Datei; Einstellungen > Erweitert & Daten > **Protokolldatei** > Öffnen öffnet ihn. `steamedge.log` hält Ereignisse fest, `connection.log` jeden Abbruch und jede Rückkehr der Steam-Verbindung, `crash.log` Fehler, die sonst nichts abgefangen hat. Es hält Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Es enthält **weder** dein Passwort **noch** dein Sitzungstoken, ist also sicher anzuhängen; sieh es trotzdem durch, bevor du es veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Dateien an. Jede Datei ist begrenzt: ab 2 MB (bei den anderen beiden 1 MB) wird sie als `<Name>.1` beiseitegelegt und eine neue Datei beginnt, sodass immer ein älterer Teil erhalten bleibt.
+Die Protokolle liegen im Ordner `logs/` neben der ausführbaren Datei; Einstellungen > Erweitert & Daten > **Protokolldatei** > Öffnen öffnet ihn. `steamedge.log` hält Ereignisse fest, `events.log` eine Zeile pro Änderung (Sichtbarkeit, Spiele, Aufgaben, Errungenschaften, Einstellungen), `connection.log` jeden Abbruch und jede Rückkehr der Steam-Verbindung, `crash.log` Fehler, die sonst nichts abgefangen hat. Die Protokolle halten Verbindungsereignisse, Warteschlangenentscheidungen und Fehler fest. Sie enthalten **weder** dein Passwort **noch** dein Sitzungstoken, sind also sicher anzuhängen; sieh sie trotzdem durch, bevor du sie veröffentlichst. Standardmäßig werden nur Fehler geschrieben; stelle Einstellungen > Erweitert & Daten > **Protokolldatei** auf **Ausführlich (Debug)**, reproduziere das Problem und hänge dann die Dateien an. Jede Datei ist begrenzt: ab 2 MB (bei den anderen beiden 1 MB) wird sie als `<Name>.1` beiseitegelegt und eine neue Datei beginnt, sodass immer ein älterer Teil erhalten bleibt.
 
 ---
 
@@ -478,7 +480,7 @@ Die Protokolle liegen im Ordner `logs/` neben der ausführbaren Datei; Einstellu
 <details>
 <summary><b>Braucht es den Steam-Client?</b></summary>
 
-Nein, und er wird nie gestartet.
+Nein, und die App startet ihn nie.
 
 </details>
 
@@ -506,7 +508,7 @@ Weil Steam es so schickt. Umrechnen hieße, einen Kurs zu erfinden.
 <details>
 <summary><b>Kann ich meine Installation auf einen anderen Rechner mitnehmen?</b></summary>
 
-Kopiere den Ordner, alles steckt darin. Denk daran, dass in `settings/` dein Sitzungstoken liegt, kopiere also privat. Die Sicherung unter Einstellungen > Allgemein kann Einstellungen und Kontodaten auch ohne Sitzungstoken in eine Datei exportieren. Ist **Anmelde-Token verschlüsseln** an, lassen sich die Token auf einem anderen Computer oder Windows-Benutzer nicht öffnen; melde dich dort neu an.
+Kopiere den Ordner (bei einer installierten Kopie den Installationsordner), alles steckt darin. Denk daran, dass in `settings/` dein Sitzungstoken liegt, kopiere also privat. Die Sicherung unter Einstellungen > Allgemein kann Einstellungen und Kontodaten auch ohne Sitzungstoken in eine Datei exportieren. Ist **Anmelde-Token verschlüsseln** an, lassen sich die Token auf einem anderen Computer oder Windows-Benutzer nicht öffnen; melde dich dort neu an.
 
 </details>
 
@@ -517,14 +519,14 @@ Kopiere den Ordner, alles steckt darin. Denk daran, dass in `settings/` dein Sit
 | Begriff | Bedeutung |
 |---|---|
 | **AppID** | Steams numerische Kennung für ein Spiel, etwa 1091500 für Cyberpunk 2077 |
-| **Abzeichenseite** | Die Steam-Seite, die auflistet, wie viele Kartenausgaben ein Spiel noch hat |
+| **Abzeichenseite** | Die Steam-Seite, die auflistet, wie viele Kartendrops ein Spiel noch hat |
 | **Drop** | Eine für Spielzeit vergebene Sammelkarte |
 | **market_hash_name** | Der genaue Name, unter dem der Markt einen Gegenstand führt |
 | **Orderbuch** | Die aktuelle Tabelle der Kaufaufträge und Verkaufsangebote für einen Gegenstand |
-| **Geschützter Errungenschaft** | Einer, den nur der Spielserver setzen darf, kein Client |
+| **Geschützte Errungenschaft** | Eine, die nur der Spielserver setzen darf, kein Client |
 | **Erzielter Verkauf** | Eine abgeschlossene Transaktion, im Gegensatz zu einem aktiven Angebot |
 | **Schema** | Steams Definition der Errungenschaften und Statistiken eines Spiels |
-| **Sitzungstoken** | Der Nachweis, der dich angemeldet hält. Behandle ihn wie ein Passwort |
+| **Sitzungstoken** | Der Nachweis, der dich angemeldet hält. Behandle es wie ein Passwort |
 | **Tc** | Stunden bis 100 %: Stunden, um ein Spiel mit allen Errungenschaften abzuschließen |
 
 ---

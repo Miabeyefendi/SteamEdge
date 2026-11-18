@@ -114,7 +114,9 @@
     if (CTA_TEXT[choice]) {
       const st = document.createElement('style');
       const b = PALETTE[choice]['5624b3'];
-      st.textContent = '[style*="background:#' + b + '" i],[style*="background: #' + b + '" i]{color:#' + CTA_TEXT[choice] + ' !important}';
+      // a style changed from JS is written back by the browser as rgb(...), so that form is matched too (the Start button of the overview lost its text)
+      const rgb = 'rgb(' + [0, 2, 4].map((i) => parseInt(b.slice(i, i + 2), 16)).join(', ') + ')';
+      st.textContent = '[style*="background:#' + b + '" i],[style*="background: #' + b + '" i],[style*="background: ' + rgb + '"]{color:#' + CTA_TEXT[choice] + ' !important}';
       document.head.appendChild(st);
     }
     if (document.body) tree(document.body);

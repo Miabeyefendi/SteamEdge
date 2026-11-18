@@ -157,16 +157,16 @@
       if (!block) return;
       block.style.opacity = locked ? '0.42' : '1';
       block.style.pointerEvents = locked ? 'none' : '';
-      let not = block.querySelector('[data-kilit-not]');
+      let note = block.querySelector('[data-lock-note]');
       if (locked){
-        if (!not){
-          not = document.createElement('span');
-          not.setAttribute('data-kilit-not','1');
-          not.style.cssText = 'font-size:12px;line-height:1.5;color:#B37E24';
-          block.appendChild(not);
+        if (!note){
+          note = document.createElement('span');
+          note.setAttribute('data-lock-note','1');
+          note.style.cssText = 'font-size:12px;line-height:1.5;color:#B37E24';
+          block.appendChild(note);
         }
-        not.textContent = cause;
-      } else if (not) not.remove();
+        note.textContent = cause;
+      } else if (note) note.remove();
     }
     (function bindSyncSettings(){
       const mSel = document.getElementById('hoursSyncMode');
@@ -257,7 +257,7 @@
                 + '<span style="font-family:Geist Mono,monospace;font-size:12px;font-weight:700;color:'+(on?BC.ok:BC.off)+'">'+fmtPercent(p)+'</span>'
                 // Remove a single game from the queue. There used to be only "clear the queue",
                 // so to drop one game the whole selection had to be ruined.
-                + '<button data-saatdel="'+g.appid+'" class="h-stop" title="'+esc(t('Kuyruktan Çıkar'))+'" '
+                + '<button data-hourdel="'+g.appid+'" class="h-stop" title="'+esc(t('Kuyruktan Çıkar'))+'" '
                   + 'style="width:22px;height:22px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;'
                   + 'background:#090C12;color:#8B8F9E;font-family:Geist Mono,monospace;font-size:14px;font-weight:700;'
                   + 'line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">&#8722;</button>'
@@ -272,12 +272,12 @@
     // Removing a single game from the queue. While running the queue is not touched: the engine was already
     // started with that list, deleting from the interface would separate the screen from the engine.
     document.getElementById('activeBoostBox').addEventListener('click', (e)=>{
-      const b = e.target.closest('[data-saatdel]'); if (!b) return;
+      const b = e.target.closest('[data-hourdel]'); if (!b) return;
       if (boostState && boostState.running){
         if (typeof toast === 'function') toast('Saat Yükseltici').fail('Çalışırken kuyruk değiştirilemez.');
         return;
       }
-      const id = +b.getAttribute('data-saatdel');
+      const id = +b.getAttribute('data-hourdel');
       selectedHours = selectedHours.filter(g=>g.appid!==id);
       persistBoostList();
       const row = document.querySelector('#hoursListBody [data-appid="'+id+'"]');

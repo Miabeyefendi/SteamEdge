@@ -1,4 +1,4 @@
-[← Volver al README](../../README.md)
+[← Volver al README](./README_ES.md)
 
 # ❓ Preguntas frecuentes
 
@@ -12,7 +12,7 @@ No. SteamEdge habla directamente el protocolo de red de Steam. El cliente nunca 
 <details>
 <summary><b>¿Pueden banearme la cuenta?</b></summary>
 
-Dejar juegos en marcha y desbloquear logros por el protocolo es lo que hacen muchas herramientas, y Valve nunca se ha pronunciado públicamente al respecto. Eso no significa que sea seguro. Lo ejecutas bajo tu propio riesgo. Lee el descargo de responsabilidad antes de decidir.
+Dejar juegos en marcha y desbloquear logros por el protocolo es lo que hacen muchas herramientas, y Valve nunca se ha pronunciado públicamente al respecto. Eso no significa que sea seguro. Lo ejecutas bajo tu propio riesgo. Lee el [descargo de responsabilidad](./README_ES.md#descargo-de-responsabilidad) antes de decidir.
 
 </details>
 
@@ -33,6 +33,6 @@ Algunos logros los escribe el servidor del juego, no el cliente, y Steam no perm
 <details>
 <summary><b>Dejó de funcionar tras una actualización, ¿ahora qué?</b></summary>
 
-Asegúrate de haber extraído la nueva versión en una carpeta nueva y vacía, copiando solo `settings/`; extraer encima de la carpeta antigua mezcla archivos de dos versiones. Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resolución-de-problemas) de la guía, y luego los registros de la carpeta `logs/`. Si sigue roto, abre un informe de error y adjunta esos registros.
+**Actualizar ahora** conserva `settings/`, `cache/` y `logs/` y sustituye el resto, así que no hace falta nada más. Si actualizaste a mano, asegúrate de haber extraído la nueva versión en una carpeta nueva y vacía, copiando solo `settings/`; extraer encima de la carpeta antigua mezcla archivos de dos versiones y la app lo avisa al arrancar. Mira primero la [sección de resolución de problemas](./TUTORIAL_ES.md#-resolución-de-problemas) de la guía, y luego los registros de la carpeta `logs/`. Si sigue roto, abre un informe de error y adjunta esos registros.
 
 </details>

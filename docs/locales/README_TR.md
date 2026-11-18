@@ -50,14 +50,14 @@
 ## ✨ Öne çıkanlar
 
 - **Kart düşürme** - Oyunlarını "oynanıyor" gösterir, ticari kartlar düşer.
-- **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar.
+- **Saat yükseltici** - Aynı anda 32 oyuna kadar açık tutar; istersen seçili oyunları aynı toplam süreye çeker.
 - **Başarım yöneticisi** - Kilitli ve açık durumu doğrudan Steam protokolünden okur, toplu açar ya da yeniden kilitler.
-- **Gerçekçi Mod** - Tek oyunu açık tutar ve başarımlarını en yaygından en nadire doğru, süreye yayarak açar.
-- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış.
+- **Gerçekçi Mod** - Bir oyunun başarımlarını en yaygından en nadire doğru, gerçek bir oyuncunun ihtiyaç duyacağı süreye yayarak açar; profil gerçekten oynanmış gibi görünür. Sıradaki oyunlar beşer beşer aynı anda çalışabilir.
+- **Envanter ve pazar** - Gerçek satış geçmişi, sipariş defteri, toplu ortalama fiyat ve satış, hepsi cüzdanının kendi para biriminde.
 - **Ürün anahtarları** - Anahtar listesini yapıştır; arka planda tek tek etkinleştirilir.
 - **Çoklu hesap** - Birden çok hesap aynı anda bağlı, her biri arka planda çalışır, ilerleme kaybolmadan geçiş yapılır.
 - **Steam istemcisi gerekmez** - Steam'in kendi ağ protokolüyle konuşur.
-- **Taşınabilir** - Çıkar ve çalıştır.
+- **Setup ya da taşınabilir** - Setup ile kur ya da arşivi çıkarıp çalıştır. İkisinde de verilerin exe'nin yanında durur, **Şimdi Güncelle** yeni sürümü getirir.
 
 **[Tüm özellikler →](./FEATURES_TR.md)**
 
@@ -87,15 +87,20 @@
 |---|---|
 | İşletim sistemi | Windows 10 ya da üstü, 64 bit |
 | Steam hesabı | Steam Guard kurulu, mobil ya da e-posta |
-| Disk alanı | Çıkarılmış hâlde yaklaşık 290 MB |
+| Disk alanı | Çıkarılmış ya da kurulmuş hâlde yaklaşık 300 MB |
 | Steam istemcisi | Gerekmez, kullanılmaz |
 
-### Kaynaktan kurulum
+### Kurulum
 
-1. [Yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) en son `.rar` dosyasını indir.
-2. İstediğin yere çıkar. Kendi sahip olduğun bir klasöre, `Program Files` içine değil.
-3. `SteamEdge.exe` dosyasını çalıştır. Kurulacak bir şey yok; o klasörün dışına hiçbir şey yazılmaz.
-4. Güncellemek için yeni sürümü boş ve yeni bir klasöre çıkar, eski klasördeki `settings/` klasörünü oraya kopyala. Uygulama açıkken eski klasörün üzerine çıkarmak iki sürümün dosyalarını karıştırır.
+İki yol, aynı program:
+
+**Kurulu.** [Yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) `SteamEdge-Setup-v<sürüm>.exe` dosyasını indir. Setup lisansı gösterir, nereye kurulacağını (varsayılan Program Files, her klasör olur) ve SteamEdge'in hangi dilde açılacağını sorar. Ayarların ve hesapların, taşınabilir kopyadaki gibi exe'nin yanındaki `settings` ve `cache` klasörlerinde durur; bu klasörleri kopyalayarak ikisi arasında taşıyabilirsin. Güncelleme onlara dokunmaz.
+
+**Taşınabilir.** `SteamEdge-v<sürüm>-win-x64.rar` (ya da `.zip`) dosyasını indir, istediğin yere çıkar ve `SteamEdge.exe` dosyasını çalıştır. Hiçbir şey kurulmaz, o klasörün dışına hiçbir şey yazılmaz.
+
+Güncellemek için güncelleme penceresinde **Şimdi Güncelle**'ye bas: uygulama yeni sürümü bu projenin GitHub yayınından indirir, SHA-256 değerini denetler ve kurar (kurulu kopya yeni Setup'ı çalıştırır, taşınabilir kopyanın dosyaları yerinde değişir; ayarlar korunur). 3.0.0'dan eski kopyalar kendini güncelleyemez: yeni sürümü boş ve yeni bir klasöre çıkar, eski klasördeki `settings/` klasörünü içine kopyala.
+
+Her dosyanın SHA-256 değeri [İngilizce README](../../README.md#install) dosyasında ve yayın notunda yazar. PowerShell'de `Get-FileHash .\<dosya adı>` ile denetleyebilirsin.
 
 ---
 
@@ -110,7 +115,7 @@ Girdikten sonra Genel Bakış neyin çalıştığını ve neyin hazır olduğunu
 ## 📖 Belgeler
 
 - [**Özellikler**](./FEATURES_TR.md) - uygulamanın yaptığı her şey
-- [**Kılavuz**](./TUTORIAL_TR.md) - her özellik ve her ayar, tüm ayrıntısıyla
+- [**Rehber**](./TUTORIAL_TR.md) - her özellik ve her ayar, tüm ayrıntısıyla
 - [**Ayarlar**](./SETTINGS_TR.md) - ayarların nerede durduğu ve bilinmesi gereken anahtarlar
 - [**Gizlilik ve güvenlik**](./PRIVACY_TR.md) - girişinle ne yaptığı ve ağa ne gittiği
 - [**Sık sorulanlar**](./FAQ_TR.md) - yasaklanma, fiyatlar, açılmayan başarımlar, güncellemeler

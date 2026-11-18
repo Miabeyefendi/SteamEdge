@@ -77,7 +77,7 @@
       listing.innerHTML = refined.map(a=>{
         const chosen = a.steamid === chSelected;
         const unread = chUnread.get(a.steamid) || 0;
-        return '<div class="h-s3" data-chkisi="'+a.steamid+'" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;margin-bottom:3px;'
+        return '<div class="h-s3" data-chperson="'+a.steamid+'" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;margin-bottom:3px;'
           + 'border:1px solid '+(chosen?CHC.brand:'transparent')+';background:'+(chosen?'#151C28':'transparent')+'">'
           + '<div style="position:relative;width:32px;height:32px;flex-shrink:0">'
             + '<div style="width:32px;height:32px;border-radius:12px;border:1px solid #2B3345;background:repeating-linear-gradient(135deg,#151C28 0 5px,#101621 5px 10px);overflow:hidden">'
@@ -99,8 +99,8 @@
     chEl('chRefresh').onclick = ()=>{ chLoaded = false; loadChat(); };
 
     chEl('chList').addEventListener('click', (e)=>{
-      const row = e.target.closest('[data-chkisi]'); if (!row) return;
-      chSelectPerson(row.getAttribute('data-chkisi'));
+      const row = e.target.closest('[data-chperson]'); if (!row) return;
+      chSelectPerson(row.getAttribute('data-chperson'));
     });
 
     async function chSelectPerson(steamid){

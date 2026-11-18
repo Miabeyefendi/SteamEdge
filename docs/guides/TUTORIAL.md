@@ -40,7 +40,7 @@ Two consequences follow from that, and they explain most of the app's behaviour:
 
 ### File layout
 
-Everything lives next to the executable. Nothing is written to the registry or `Program Files`; `AppData` is used only as a fallback when the folder next to the executable cannot be written to.
+Everything lives next to the executable, in the portable copy and the installed one alike (the Setup lets normal users write to these folders). `AppData` is used only as a fallback when the folder next to the executable cannot be written to.
 
 ```
 SteamEdge/
@@ -61,6 +61,7 @@ SteamEdge/
     chromium/                  image and page cache
   logs/
     steamedge.log              events at the level chosen in Settings: the log to attach to a bug report
+    events.log                 one line for each change: visibility sent and what Steam reports, games sent, jobs, achievements, settings
     connection.log             every drop, reconnect attempt and return of the Steam connection, one line each
     crash.log                  errors nothing else caught, written at any level
 ```
@@ -73,13 +74,13 @@ SteamEdge/
 
 ### Requirements
 
-Windows 10 or newer, 64 bit. A Steam account with Steam Guard enabled. About 290 MB of disk space once extracted. The Steam client is not required and is never launched.
+Windows 10 or newer, 64 bit. A Steam account with Steam Guard enabled. About 300 MB of disk space once extracted or installed. The Steam client is not required and is never launched.
 
 ### Step by step
 
-1. Download the latest `.rar` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
-2. Extract it to a folder you own. Not `Program Files`, because the app writes its settings next to itself.
-3. Run `SteamEdge.exe`.
+1. Download `SteamEdge-Setup-v<version>.exe` or the portable `.rar` (or `.zip`) from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+2. Run the Setup: it shows the license, asks where to install (Program Files by default) and which language SteamEdge opens in. For the portable copy, extract the archive to a folder you own instead.
+3. Run `SteamEdge.exe`, or open SteamEdge from the Start menu.
 4. Log in. The QR tab is the easier route: scan the code with the Steam mobile app and approve. The password tab wants your username, password and a Steam Guard code.
 
 ### Verifying the install
@@ -94,7 +95,7 @@ Files written by an older version are converted the first time they are read, so
 
 ### Uninstalling
 
-Delete the folder. That is the whole procedure.
+Portable copy: delete the folder. That is the whole procedure. Installed copy: uninstall SteamEdge from Windows Settings > Apps; at the end it asks whether to delete your settings, accounts and saved sign-in too.
 
 ---
 
@@ -208,7 +209,7 @@ Some games only accept achievement writes while the game is open. The app opens 
 
 ### Realistic Mode
 
-Holds one game open and unlocks its achievements across the session, from the most common to the rarest. The point is the trail it leaves: hundreds of achievements appearing in a minute is obvious on a profile and on third party sites.
+Unlocks a game's achievements across the session, from the most common to the rarest. With **Play the games at the same time** on (the default) the games of the queue are open together, five at a time: each game of a group has the whole time of its group, and the groups follow each other. Off, the games run one after the other. The point is the trail it leaves: hundreds of achievements appearing in a minute is obvious on a profile and on third party sites.
 
 **Hours for 100%** is the number the whole page is built on: how many hours it takes to finish this game with all its achievements. Enter it and it is remembered for that game. Leave it empty and it is estimated from the game type, but that estimate is your own playtime times a factor, so it inflates on games you have played a lot.
 
@@ -359,11 +360,11 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 
 ### Hours booster
 
-| `boostMaxGames` | `32` | Games open at once. Not used while the hour sync runs: it opens up to 32 itself |
+| Key | Default | What it does |
 |---|---|---|
+| `boostMaxGames` | `32` | Games open at once. Not used while the hour sync runs: it opens up to 32 itself |
 | `boostSync` | `true` | Pull the selection up to a common total. The `highest` target only applies when two or more games are selected |
 | `boostDurationSec` | `3600` | Session length |
-| `boostSync` | `false` | Pull the selection up to a common total |
 | `boostSyncMode` | `highest` | Target: `highest` selected, `manual` hours, or `library` highest |
 | `boostSyncStrategy` | `parallel` | `parallel` is all at once, `staged` is one by one |
 | `boostAutoRestart` | `false` | Start the queue again when the session ends |
@@ -384,7 +385,7 @@ Settings live in `settings/settings.json`. Most keys below are controls on the S
 | `grCatchUpShare` | `20` | Percentage of the session the catch-up burst gets |
 | `grFinishedRatio` | `50` | How far the schedule compresses on a finished game |
 | `grKeepHours` | `true` | Keep collecting hours after the unlocks finish |
-| `grParallel` | `true` | Play the games of the queue at the same time (each over the whole run, the duration is the longest game); off plays them one after the other |
+| `grParallel` | `true` | Play the games of the queue at the same time, five at a time (each game of a group has the whole time of the group, which lasts as long as its longest game); off plays them one after the other |
 | `grSkipUltraRare` | `false` | Skip achievements under 5% entirely |
 | `grScheduleEnabled` | `false` | Start Realistic Mode by itself inside the time range below, repeating the account's last start |
 | `grScheduleFrom` | `22:00` | Start of the range |
@@ -470,7 +471,7 @@ The settings folder was copied to another computer or Windows user while **Encry
 
 ### Collecting a log for a bug report
 
-The logs are in the `logs/` folder next to the executable; Settings > Advanced & data > **Log file** > Open opens it. `steamedge.log` holds events, `connection.log` every drop and return of the Steam connection, `crash.log` errors nothing else caught. By default only errors are written; set Settings > Advanced & data > **Log file** to **Verbose (debug)**, reproduce the problem, then attach the files. It records connection events, queue decisions and errors. It does **not** contain your password or session token, so it is safe to attach; skim it anyway before you post it. Each file is capped: past 2 MB (1 MB for the other two) it is moved aside as `<name>.1` and a new file starts, so one older part is always kept.
+The logs are in the `logs/` folder next to the executable; Settings > Advanced & data > **Log file** > Open opens it. `steamedge.log` holds events, `events.log` one line for each change (visibility, games, jobs, achievements, settings), `connection.log` every drop and return of the Steam connection, `crash.log` errors nothing else caught. By default only errors are written; set Settings > Advanced & data > **Log file** to **Verbose (debug)**, reproduce the problem, then attach the files. It records connection events, queue decisions and errors. It does **not** contain your password or session token, so it is safe to attach; skim it anyway before you post it. Each file is capped: past 2 MB (1 MB for the other two) it is moved aside as `<name>.1` and a new file starts, so one older part is always kept.
 
 ---
 
@@ -507,7 +508,7 @@ Because that is how Steam sends it. Converting would mean inventing a rate.
 <details>
 <summary><b>Can I move my setup to another machine?</b></summary>
 
-Copy the folder. Everything is in it. Remember that `settings/` includes your session token, so copy it privately. The Backup box under Settings > General can also export settings and per-account data to a single file, without the session token. With **Encrypt login tokens** on, the tokens do not open on another computer or Windows user, so sign in again there.
+Copy the folder (for an installed copy, the install folder). Everything is in it. Remember that `settings/` includes your session token, so copy it privately. The Backup box under Settings > General can also export settings and per-account data to a single file, without the session token. With **Encrypt login tokens** on, the tokens do not open on another computer or Windows user, so sign in again there.
 
 </details>
 

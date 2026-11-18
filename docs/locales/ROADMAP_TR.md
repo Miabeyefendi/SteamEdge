@@ -1,4 +1,4 @@
-[← README'ye dön](../../README.md)
+[← README'ye dön](./README_TR.md)
 
 # 🧭 Yol haritası
 
@@ -7,20 +7,25 @@
 - [x] Gerçekçi Mod şablona göre yeniden yapıldı
 - [x] Öğe bazlı pazar kuyruğu, fiyat ve ortalama birlikte çekiliyor
 - [x] Çalışma anında yazılan tüm metinler çevrildi, her dilde çoğul biçimlerle (1.3.0)
-- [x] Temalar: Koyu, Gece Moru, Beyaz (1.3.0)
+- [x] Temalar, giriş ekranı dahil (1.3.0)
 - [x] Electron 41 (1.3.2)
 - [x] Varsayılan dil İngilizce, kalan arayüz metinleri çevrildi (1.3.3)
 - [x] Tüm kod tabanı İngilizce: tanımlayıcılar, yorumlar, eleman id'leri, IPC kanalları, ayar anahtarları ve dosya adları (1.4.0)
 - [x] Küçük ekranlar için akışkan yerleşim ve yerini hatırlayan pencere (1.4.9)
 - [x] Modüller, hafif mod ve her pencereye uyan bir yerleşim (1.5.1 ve 1.5.2)
 - [x] Çalışan işler yeniden başlatmadan sonra kaldığı yerden sürer (1.5.3)
-- [x] Arayüz ölçeği, Yüksek karşıtlık teması, okunur metin ve klavye kullanımı (1.5.4)
+- [x] Arayüz ölçeği, okunur metin ve klavye kullanımı (1.5.4)
 - [x] Komut paleti, kısayollar ve ayarlarda arama kutusu (1.5.5)
 - [x] Gerçekçi Mod zorluğu gerçek oynama sürelerinden alındı (1.5.6)
 - [x] Daha az ekran kartı belleği, boştayken sürekli çizim yok ve daha küçük indirme (1.5.7)
 - [x] Zayıf bilgisayarlar için düşük bellek modu (1.5.8)
 - [x] Bitmeyen animasyonlar yerine tek bir hafif zamanlayıcı (1.5.9)
 - [x] Hesaplar ve işler (1.6.0): hesaba ilk tıklamada geçiliyor, her hesapta çalışan ya da biten iş üst çubukta ve hesap listesinde görünüyor, Başlat ve Durdur her sayfada işin durumuna uyuyor, Gerçekçi Mod başarımları en yaygından en nadire doğru açıyor, hızlı mod eşiği geçmiş oyunları diğerleri eşiğe çekilirken de çalıştırıyor
+- [x] Gerçekçi Mod sıradaki oyunları aynı anda, beşer beşer oynatır (1.7.4 ve 1.7.6)
+- [x] Bağlantı koptuktan sonra kendiliğinden geri gelir, bağlantı geçmişiyle (1.7.8 ve 1.8.0)
+- [x] Taşınabilir kopyanın yanında bir Setup ve yeni sürümü indirip denetleyip kuran Şimdi Güncelle (3.0.0 - 4.3.2)
+- [x] İki tema, VantaBlack ve VantaWhite, Vantagraph şemalarından (4.3.4)
+- [x] Steam'e ne gönderildiğini ve ne döndüğünü gösteren olay günlüğü, `logs/events.log` (4.3.3 ve 4.3.5)
 - [ ] Daha küçük indirme boyutu
 - [ ] Ekran kartı ve ekran kartı belleğinde daha da az kullanım
 - [ ] Bellekte (RAM) daha da az kullanım

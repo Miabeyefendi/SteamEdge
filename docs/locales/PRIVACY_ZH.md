@@ -1,18 +1,18 @@
-[← 返回 README](../../README.md)
+[← 返回 README](./README_ZH.md)
 
 # 🔐 安全与你的 Steam 登录
 
 > [!WARNING]
-> **SteamEdge 可以代你操作 Steam 账号：集卡、挂时长、解锁成就、在市场上架物品。下面如实说明它如何处理你的登录、把登录信息存在哪里、会向网络发送什么，方便你判断自己是否放心使用。**
+> **SteamEdge 可以代你操作 Steam 账号：挂卡、挂时长、解锁成就、在市场上架物品。下面如实说明它如何处理你的登录、把登录信息存在哪里、会向网络发送什么，方便你判断自己是否放心使用。**
 
 | 项目 | 说明 |
 |---|---|
-| **密码** | 在登录界面输入后，通过 HTTPS 直接交给 Steam 自己的登录服务，只在这次调用期间留在内存中。**绝不会写入磁盘**，也不会写入日志。 |
-| **Steam Guard 验证码** | 只向 Steam 发送一次，随后丢弃，不保存。应用不持有你的验证器密钥（旧的 maFile 功能已在 1.1.9 移除），因此无法替你批准手机确认。 |
-| **会话令牌** | 登录后 Steam 会给应用一个刷新令牌，以免再次询问。它不是你的密码。保存在 exe 旁边的 `settings/session.json` 和 `settings/accounts.json`。**默认是明文。** 开启 *設定 > 隱私與安全 > 加密登入權杖* 后，会用 Windows DPAPI 加密，只有这台电脑上你的 Windows 用户能读取。网页 Cookie 只存在内存中。 |
-| **Cookie 登录（备用方式）** | 如果用 Cookie 登录而不是正常登录，`settings/web-session.json` 会以明文保存这些 Cookie，直到你退出登录。 |
-| **日志文件** | `logs/` 记录事件（`steamedge.log`）、Steam 连接的断开与恢复（`connection.log`）以及意外错误（`crash.log`），不会记录密码、令牌或 Cookie。 |
-| **导出** | 设置导出不包含令牌、代理地址（含密码）和家长控制 PIN。 |
+| **密码** | 在登录界面输入后，通过 HTTPS 直接交给 Steam 自己的登录服务，只在这次调用期间留在内存中。**绝不会写入磁盘**，也不会写入日志。|
+| **Steam Guard 验证码** | 只向 Steam 发送一次，随后丢弃，不保存。应用不持有你的验证器密钥（旧的 maFile 功能已在 1.1.9 移除），因此无法替你批准手机确认。|
+| **会话令牌** | 登录后 Steam 会给应用一个刷新令牌，以免再次询问。它不是你的密码。保存在 exe 旁边的 `settings/session.json` 和 `settings/accounts.json`。**默认是明文。** 开启 *设置 > 隐私与安全 > 加密登入权杖* 后，会用 Windows DPAPI 加密，只有这台电脑上你的 Windows 用户能读取。网页 Cookie 只存在内存中。|
+| **Cookie 登录（备用方式）** | 如果用 Cookie 登录而不是正常登录，`settings/web-session.json` 会以明文保存这些 Cookie，直到你退出登录。|
+| **日志文件** | `logs/` 记录事件（`steamedge.log`）、每次变化各一行（例如发送的在线状态或保存的设置，`events.log`）、Steam 连接的断开与恢复（`connection.log`）以及意外错误（`crash.log`），不会记录密码、令牌或 Cookie。|
+| **导出** | 设置导出不包含令牌、代理地址（含密码）和家长控制 PIN。|
 
 **会向网络发送什么**
 

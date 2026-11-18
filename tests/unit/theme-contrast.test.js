@@ -87,4 +87,22 @@ check('no text under 11 px in the pages, styles and scripts', small.length === 0
 check('the old dim colour #656D80 (3.3 : 1) is gone from the source', oldDim.length === 0, oldDim.join(', '));
 check('red text uses #E45A86; #B32453 stays for backgrounds and borders', redText.length === 0, redText.slice(0, 3).join(', '));
 
+// The text rule of the brand buttons also matches the rgb(...) form a style takes once JS has changed it (the overview Start button of VantaWhite lost its text)
+for (const name of ['white', 'dark']) {
+  const styles = [];
+  const box = {
+    window: { matchMedia: () => ({ matches: false }) },
+    document: { readyState: 'complete', addEventListener() {}, documentElement: { getAttribute: () => null, setAttribute() {}, style: {} }, styleSheets: [], body: null,
+      createElement: () => ({}), head: { appendChild: (e) => styles.push(e.textContent || '') } },
+    localStorage: { getItem: () => name, setItem() {} },
+    MutationObserver: function () { this.observe = () => {}; },
+  };
+  box.window.localStorage = box.localStorage;
+  vm.createContext(box);
+  vm.runInContext(fs.readFileSync(path.join(root, 'src', 'main', 'js', 'theme.js'), 'utf8'), box);
+  const b = PAL[name]['5624b3'];
+  const rgb = 'rgb(' + [0, 2, 4].map((i) => parseInt(b.slice(i, i + 2), 16)).join(', ') + ')';
+  check(name + ': the brand button text rule covers #' + b + ' and ' + rgb, styles.some((s) => s.includes('#' + b) && s.includes(rgb) && s.includes('#' + CTA[name])));
+}
+
 process.exit(failures ? 1 : 0);

@@ -52,12 +52,12 @@
 - **Card farming** - Runs your games as "playing" so trading cards drop.
 - **Hours booster** - Keeps up to 32 games open at once, with optional playtime syncing that pulls a selection up to the same total.
 - **Achievement manager** - Reads the real locked and unlocked state straight from Steam's protocol, then unlocks or relocks in bulk.
-- **Realistic Mode** - Holds one game open and unlocks its achievements from the most common to the rarest, spread across the session, so the profile reads like it was actually played.
+- **Realistic Mode** - Unlocks a game's achievements from the most common to the rarest, spread across the time a real player would need, so the profile reads like it was actually played. The games of the queue can run at the same time, five at a time.
 - **Inventory and market** - Real sale history, order book, bulk average prices and selling, all in your wallet's own currency.
 - **Product keys** - Paste a list of keys and they are redeemed in the background, one at a time.
 - **Multiple accounts** - Several accounts connected at once, each farming in the background, switchable without losing progress.
 - **No Steam client** - Talks Steam's own network protocol.
-- **Portable** - Extract and run.
+- **Setup or portable** - Install it with the Setup or extract the archive and run it. Either way your data stays next to the executable, and **Update Now** brings the next version in.
 
 **[See every feature →](./docs/FEATURES.md)**
 
@@ -94,22 +94,22 @@
 
 Two ways, same program:
 
-**Installed.** Download `SteamEdge-Setup-v4.3.5.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
+**Installed.** Download `SteamEdge-Setup-v4.3.6.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
 
-**Portable.** Download `SteamEdge-v4.3.5-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
+**Portable.** Download `SteamEdge-v4.3.6-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
 
 To update, press **Update Now** in the update window: the app downloads the new version from this project's GitHub release, checks its SHA-256 and installs it (an installed copy runs the new Setup, a portable copy has its files replaced in place; settings are kept). Copies older than 3.0.0 cannot update themselves: extract the new version into an empty, new folder and copy the `settings/` folder from the old one into it.
 
 The `.rar` and the `.zip` hold the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`). The Setup is built from the same folder with Inno Setup (`build/setup.iss`). Nothing in them is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-Setup-v4.3.5.exe`:
-`f0d41e65a3769331e8740ac39a33ff93c4860465539819006404000c409a76ff`
+SHA-256 of `SteamEdge-Setup-v4.3.6.exe`:
+`14050df73a3182e498aa03600c0239419505c1e4be5778972e04e46ec7ccedab`
 
-SHA-256 of `SteamEdge-v4.3.5-win-x64.zip`:
-`14bd4c796ecb7d06e865835f6960adcbcddfb98a795bde3189720fd30ff7c57b`
+SHA-256 of `SteamEdge-v4.3.6-win-x64.zip`:
+`d54ec47d643abfd21d15b5e063ca191dac9bcf454716551aee45069c1ab8e7e1`
 
-SHA-256 of `SteamEdge-v4.3.5-win-x64.rar`:
-`2604dd4db3aaf4b93a389bfbf88d15129cd880c10c7a76ee14637d6ab45f967f`
+SHA-256 of `SteamEdge-v4.3.6-win-x64.rar`:
+`479aaa9de3d113ddb116d6928da3bad4e07094671a434fe56d4243a42d90010c`
 
 Check one in PowerShell with `Get-FileHash .\<file name>`.
 

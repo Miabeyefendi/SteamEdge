@@ -41,7 +41,7 @@
 ## 🔐 Seguridad y tu inicio de sesión de Steam
 
 > [!WARNING]
-> **SteamEdge puede actuar sobre tu cuenta de Steam: recolectar cartas, subir horas, desbloquear logros y poner objetos a la venta en el mercado. Aquí está exactamente qué hace con tu inicio de sesión, dónde lo guarda y qué envía por la red, para que decidas si te sientes cómodo usándolo.**
+> **SteamEdge puede actuar sobre tu cuenta de Steam: farmear cromos, subir horas, desbloquear logros y poner objetos a la venta en el mercado. Aquí está exactamente qué hace con tu inicio de sesión, dónde lo guarda y qué envía por la red, para que decidas si te sientes cómodo usándolo.**
 
 **En breve:** tu contraseña nunca se escribe en disco, la aplicación solo habla con Steam, sus servidores de imágenes y la lista pública de versiones de GitHub, y no hay telemetría, ni analítica, ni ningún servidor mío. Qué guarda, dónde y cómo comprobarlo tú mismo está en [Privacidad y seguridad](./PRIVACY_ES.md).
 
@@ -52,12 +52,12 @@
 - **Farmeo de cromos** - Ejecuta tus juegos como "jugando" para que caigan los cromos.
 - **Impulsor de horas** - Mantiene hasta 32 juegos abiertos a la vez, con sincronización opcional que iguala las horas totales de una selección.
 - **Gestor de logros** - Lee el estado real de bloqueo y desbloqueo directamente del protocolo de Steam, y luego desbloquea o rebloquea en lote.
-- **Modo realista** - Mantiene un juego abierto y desbloquea sus logros del más común al más raro, repartidos por la sesión, de forma que el perfil parezca jugado de verdad.
+- **Modo realista** - Desbloquea los logros de un juego del más común al más raro, repartidos en el tiempo que necesitaría un jugador de verdad, para que el perfil parezca realmente jugado. Los juegos de la cola pueden ir a la vez, de cinco en cinco.
 - **Inventario y mercado** - Historial real de ventas, libro de órdenes, precios medios en lote y venta, todo en la moneda de tu cartera.
 - **Claves de producto** - Pega una lista de claves y se canjean en segundo plano, una a una.
 - **Varias cuentas** - Varias cuentas conectadas a la vez, cada una farmeando en segundo plano, intercambiables sin perder el progreso.
 - **Sin cliente de Steam** - Habla el protocolo de red propio de Steam.
-- **Portátil** - Extraer y ejecutar.
+- **Setup o portátil** - Instálalo con el Setup o extrae el archivo y ejecútalo. En ambos casos tus datos quedan junto al ejecutable, y **Actualizar ahora** trae la versión siguiente.
 
 **[Ver todas las funciones →](./FEATURES_ES.md)**
 
@@ -87,15 +87,20 @@
 |---|---|
 | Sistema operativo | Windows 10 o superior, 64 bits |
 | Cuenta de Steam | Con Steam Guard configurado, móvil o correo |
-| Espacio en disco | Unos 290 MB extraído |
+| Espacio en disco | Unos 300 MB extraído o instalado |
 | Cliente de Steam | No hace falta, y no se usa |
 
 ### Instalar
 
-1. Descarga el último `.rar` desde la [página de versiones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
-2. Extráelo donde quieras. Una carpeta tuya, no `Program Files`.
-3. Ejecuta `SteamEdge.exe`. No hay nada que instalar y no se escribe nada fuera de esa carpeta.
-4. Para actualizar, extrae la nueva versión en una carpeta nueva y vacía y copia en ella la carpeta `settings/` de la anterior. Extraer encima de la carpeta antigua con la app abierta mezcla archivos de dos versiones.
+Dos formas, el mismo programa:
+
+**Instalado.** Descarga `SteamEdge-Setup-v<versión>.exe` desde la [página de versiones](https://github.com/Miabeyefendi/SteamEdge/releases/latest). El Setup muestra la licencia y pregunta dónde instalar (Program Files por defecto, vale cualquier carpeta) y en qué idioma se abre SteamEdge. Tus ajustes y cuentas viven en las carpetas `settings` y `cache` junto al ejecutable, igual que en la copia portátil, así que puedes pasarlos de una a otra copiando esas carpetas. Las actualizaciones nunca las tocan.
+
+**Portátil.** Descarga `SteamEdge-v<versión>-win-x64.rar` (o el `.zip`), extráelo donde quieras y ejecuta `SteamEdge.exe`. No se instala nada y no se escribe nada fuera de esa carpeta.
+
+Para actualizar, pulsa **Actualizar ahora** en la ventana de actualización: la app descarga la nueva versión de la publicación de GitHub de este proyecto, comprueba su SHA-256 y la instala (una copia instalada ejecuta el nuevo Setup, una portátil sustituye sus archivos en su sitio; los ajustes se conservan). Las copias anteriores a 3.0.0 no pueden actualizarse solas: extrae la nueva versión en una carpeta nueva y vacía y copia en ella la carpeta `settings/` de la anterior.
+
+El SHA-256 de cada archivo está en el [README en inglés](../../README.md#install) y en la nota de la versión. Compruébalo en PowerShell con `Get-FileHash .\<nombre del archivo>`.
 
 ---
 

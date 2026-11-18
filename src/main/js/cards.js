@@ -190,7 +190,7 @@
           + '<span class="cq-remain" style="font-size:12px;color:#8B8F9E;flex-shrink:0;width:64px;border-left:1px solid #1D2432;padding-left:8px">'+esc(tf('# kalan', g.remaining))+'</span>'
           + '<span class="cq-id" style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E;flex-shrink:0;width:84px;border-left:1px solid #1D2432;padding-left:8px">'+g.appid+'</span>'
           + '<div class="cq-bar" style="flex:1;min-width:60px;height:5px;border-radius:999px;background:#090C12;border:1px solid #1D2432;overflow:hidden">'
-            + '<div data-ilerleme style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
+            + '<div data-progress style="height:100%;width:'+pct+'%;border-radius:999px;background:#24AEB3"></div></div>'
           + '<div class="cq-acts" style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
             + '<span style="height:26px;display:flex;align-items:center;padding:0 10px;border-radius:12px;border:1px solid '+bd+';color:'+(on?'#C2AAEE':'#8B8F9E')+';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase">'+state+'</span>'
             + '<div style="display:flex;gap:4px;padding:3px;border-radius:12px;background:#090C12;border:1px solid #1D2432">'
@@ -400,6 +400,6 @@
       if (!cardsLoaded || !designed.card || designed.card.classList.contains('hidden')) { lastCardSignature = ''; return; }
       const signature = (data.running ? 1 : 0) + '|' + (data.activeAppids || []).join(',') + '|' + data.currentAppid;
       if (signature !== lastCardSignature){ lastCardSignature = signature; renderCards(); return; }
-      const barEl = document.querySelector('#cardQueue [data-row="' + data.currentAppid + '"] [data-ilerleme]');
+      const barEl = document.querySelector('#cardQueue [data-row="' + data.currentAppid + '"] [data-progress]');
       if (barEl && data.durationMs) barEl.style.width = Math.min(100, Math.round((data.elapsedMs / data.durationMs) * 100)) + '%';
     });

@@ -12,7 +12,7 @@ No. SteamEdge speaks Steam's own network protocol directly. The client is never 
 <details>
 <summary><b>Can this get my account banned?</b></summary>
 
-Idling games and unlocking achievements over the protocol is what a great many tools do, and Valve has never publicly committed to a position on it. That is not the same as it being safe. You run this at your own risk. Read the disclaimer below before you decide.
+Idling games and unlocking achievements over the protocol is what a great many tools do, and Valve has never publicly committed to a position on it. That is not the same as it being safe. You run this at your own risk. Read the disclaimer in the [README](../README.md#disclaimer) before you decide.
 
 </details>
 
@@ -33,6 +33,6 @@ Some achievements are written by the game server, not the client, and Steam refu
 <details>
 <summary><b>It stopped working after an update. What now?</b></summary>
 
-Make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./guides/TUTORIAL.md#-troubleshooting) of the tutorial and the logs in the `logs/` folder (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach those logs.
+**Update Now** keeps `settings/`, `cache/` and `logs/` and replaces the rest, so nothing else is needed. If you updated by hand, make sure the new version was extracted into an empty, new folder with only `settings/` copied over; extracting over the old folder leaves files from two versions mixed, and the app tells you so at startup. Then check the [troubleshooting section](./guides/TUTORIAL.md#-troubleshooting) of the tutorial and the logs in the `logs/` folder (set Settings > Advanced & data > Log file to Verbose first). If it is still broken, open a bug report and attach those logs.
 
 </details>
