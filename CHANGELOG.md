@@ -7,6 +7,24 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.3.5](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.5)
+
+Tidier code inside, and the event log now records what it was meant to.
+
+### Fixed
+
+- **`logs/events.log` missed the most useful lines.** Since 4.3.3 the log was meant to show what visibility is sent to Steam and what Steam reports back, which games are sent, the achievements Realistic Mode unlocks and which settings changed. Those parts never reached the file. They do now, so an account that stays online although it was set to Invisible can be followed line by line.
+
+### Changed
+
+- **The code is split into smaller files, one job each.** The shared script of the window is now separate files for the top bar, the update check, the profile, the Steam connection strip, the account list and the notification sounds. The inventory has its prices and its sale in files of their own, Realistic Mode its settings panel, and in the main process card farming and the connection state of each account left the file that held every per-account job. Nothing you see changes.
+- **Every name in the code is English.** A few Turkish leftovers (abbreviations such as "dk" and "sn", two attribute names, a class name) were renamed. Interface text is not code: its source stays Turkish and is translated as before.
+
+
+SHA-256 (`SteamEdge-Setup-v4.3.5.exe`): `f0d41e65a3769331e8740ac39a33ff93c4860465539819006404000c409a76ff`
+SHA-256 (`SteamEdge-v4.3.5-win-x64.zip`): `14bd4c796ecb7d06e865835f6960adcbcddfb98a795bde3189720fd30ff7c57b`
+SHA-256 (`SteamEdge-v4.3.5-win-x64.rar`): `2604dd4db3aaf4b93a389bfbf88d15129cd880c10c7a76ee14637d6ab45f967f`
+
 ## [4.3.4](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.4)
 
 Two themes, and a card farm that really stands still while you play.

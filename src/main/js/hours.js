@@ -553,8 +553,8 @@
     // ITEM 14: the sync state is now in the FIXED bottom bar; it does not push the page layout.
     // ITEM 3: in the parallel strategy there are no steps - it shows how many games finished and how many are running.
     function msShort(ms){
-      const dk = Math.max(0, Math.round(ms/60000));
-      const g = Math.floor(dk/1440), hoursVal = Math.floor((dk%1440)/60), m = dk%60;
+      const minutes = Math.max(0, Math.round(ms/60000));
+      const g = Math.floor(minutes/1440), hoursVal = Math.floor((minutes%1440)/60), m = minutes%60;
       if (g) return durationUnit(g, 'gün') + ' ' + durationUnit(hoursVal, 'sa');
       if (hoursVal) return durationUnit(hoursVal, 'sa') + ' ' + durationUnit(m, 'dk');
       return durationUnit(m, 'dk');

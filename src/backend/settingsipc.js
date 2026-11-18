@@ -177,8 +177,8 @@ module.exports = function init(ctx) {
     const mode = s.farm.mode;
     const games = s.farm.games.map((g) => ({ ...g }));
     // If "Time per game" changed the new time, if not the time selected on the Card Farming page.
-    const dk = +settingFor(steamID, 'farmMaxMinutes');
-    const duration = changed.has('farmMaxMinutes') && dk > 0 ? dk * 60000 : s.farm.durationMs;
+    const minutes = +settingFor(steamID, 'farmMaxMinutes');
+    const duration = changed.has('farmMaxMinutes') && minutes > 0 ? minutes * 60000 : s.farm.durationMs;
     s.farm.stop('setting');
     setupSettingWait(s, 'card', () => {
       const x = accounts.get(steamID);
