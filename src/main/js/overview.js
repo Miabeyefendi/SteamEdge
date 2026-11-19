@@ -325,7 +325,9 @@
     function taskRow(g){
       const percent = Math.max(0, Math.min(100, Math.round(g.percentValue || 0)));
       return '<div style="display:flex;flex-direction:column;gap:11px;padding:14px 0 4px;border-top:1px solid #101621">'
-        + '<div style="display:flex;align-items:flex-start;gap:14px">'
+        // The row wraps: on a narrow panel (a window about 900 px wide) the figures go under the title instead of squeezing it to nothing,
+        // where they were drawn over the APP_ID and the badges
+        + '<div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;row-gap:12px">'
           // Library header ratio (920x430, ~2.14:1)
           + '<div style="width:116px;height:54px;flex-shrink:0;border-radius:12px;border:1px solid #2B3345;'
             + 'background:#101621;overflow:hidden;display:flex;align-items:center;justify-content:center">'
@@ -333,7 +335,7 @@
                        : '<span style="display:flex;align-items:center;justify-content:center;transform:scale(1.7);transform-origin:center">'
                          + detailIcon(g.iconRef, g.colorValue || GC.sub) + '</span>')
           + '</div>'
-          + '<div style="display:flex;flex-direction:column;gap:5px;min-width:0;flex:1">'
+          + '<div style="display:flex;flex-direction:column;gap:5px;min-width:140px;flex:1 1 140px">'
             + '<span style="font-size:15px;font-weight:700;color:#DCE2FA;white-space:nowrap;overflow:hidden;'
               + 'text-overflow:ellipsis;line-height:1.2">' + esc(g.heading) + '</span>'
             + '<span style="font-family:Geist Mono,monospace;font-size:12px;color:#8B8F9E">'
@@ -341,7 +343,7 @@
             + '<div style="display:flex;gap:6px;margin-top:3px;flex-wrap:wrap">'
               + (g.badges || []).map(chip).join('') + '</div>'
           + '</div>'
-          + '<div style="display:flex;align-items:center;gap:22px;flex-shrink:0">'
+          + '<div style="display:flex;align-items:center;gap:22px;flex-shrink:0;flex-wrap:wrap;row-gap:10px">'
             + (g.columns || []).map(c=>statCol(c[0], c[1], c[2])).join('')
           + '</div>'
         + '</div>'

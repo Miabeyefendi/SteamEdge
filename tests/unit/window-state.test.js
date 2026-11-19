@@ -77,10 +77,15 @@ check('a window on the second monitor stays there', r && r.bounds.x === 2100 && 
 t = boot([A]);
 check('the same place is dropped once that monitor is unplugged', t.load() === null);
 
+// a first start on a 1080p screen: 910 x 1010, in the middle of the work area
+t = boot([{ x: 0, y: 0, width: 1920, height: 1040 }]);
+let d = t.def();
+check('a first start opens 910 x 1010 in the middle of a 1080p screen', d.width === 910 && d.height === 1010 && d.x === 505 && d.y === 15, JSON.stringify(d));
+
 // small screens
 t = boot([{ x: 0, y: 0, width: 1366, height: 728 }]);
-let d = t.def();
-check('the default size on a 1366x768 screen fits the work area', d.width === 1342 && d.height === 704 && d.x === 12 && d.y === 12, JSON.stringify(d));
+d = t.def();
+check('the default size on a 1366x768 screen fits the work area', d.width === 910 && d.height === 704 && d.x === 228 && d.y === 12, JSON.stringify(d));
 let m = t.minFor(t.MIN_DASH, d);
 check('the panel can shrink to 675x420 there (three quarters of the 900x560 it was drawn for)', m.w === 675 && m.h === 420, JSON.stringify(m));
 m = t.minFor(t.MIN_LOGIN, d);
@@ -141,6 +146,7 @@ check('and the panel, which needs 560, fits the same window without a zoom', fw.
 t = boot([{ x: 0, y: 0, width: 1920, height: 1080 }]);
 fw = fakeWindow(1500, 900); t.win = fw;
 t.enterPanel();
+fw.setBounds({ width: 1500, height: 900 });     // entering the panel with no saved size gave it the default (910 x 1010); the user made it bigger
 t.settings.uiScale = 125; t.fit();
 check('at 125 percent a roomy window zooms the page to 1.25', fw.zoom === 1.25, String(fw.zoom));
 t.settings.uiScale = 150; t.fit();

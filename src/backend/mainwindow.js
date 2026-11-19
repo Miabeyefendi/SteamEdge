@@ -47,8 +47,9 @@ module.exports = function init(ctx) {
   // Fixed startup size - the same for login and the panel (3:2 ratio) on a big screen; a small screen gets the work area minus a margin.
   // Every place that centres/resizes the window (logout, moving to the dashboard, deleting an account, deleting data) uses these
   // helpers so it changes from a single place.
-  const WIN_W = 1716;
-  const WIN_H = 1144;
+  // The size of a first start (no window.json yet): an upright window that fits a 1080p screen; the user resizes it as they like and that size is kept
+  const WIN_W = 910;
+  const WIN_H = 1010;
   // The smallest the window may get. The layout is fluid down to 900 x 560 (the login screen needs a little more height); a smaller window
   // zooms the page out as a whole (applyFitZoom) instead of squeezing it, so the buttons shrink with the window and nothing runs off the edge.
   const MIN_DASH = windowFit.minWindow(windowFit.DESIGN.dash);

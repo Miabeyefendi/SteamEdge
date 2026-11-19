@@ -94,7 +94,9 @@ try {
 // On Windows toast notifications are silently dropped without an AppUserModelID - the HTML5
 // `new Notification(...)` showed nothing without giving any error. That is why the id is
 // set here and notifications were moved to the Electron Notification in the main process.
-const APP_ID = 'com.miabeyefendi.steamedge';
+// A run from source (npm start, the tests) gets an id of its own. With the same id Windows tied the taskbar button and the toasts of the
+// installed app to a Start menu shortcut of the development electron.exe (Electron.lnk) and drew the Electron atom for SteamEdge.
+const APP_ID = app.isPackaged ? 'com.miabeyefendi.steamedge' : 'com.miabeyefendi.steamedge.dev';
 if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
 
 // SINGLE INSTANCE LOCK. When a second SteamEdge was opened Steam dropped the first session of the same
