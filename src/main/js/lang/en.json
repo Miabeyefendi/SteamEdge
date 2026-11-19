@@ -827,7 +827,7 @@
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).": "Steam connection lost. Retrying in # s (attempt # of #).",
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).": "Steam connection lost. Retrying in # s (attempt #).",
  "Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.": "This account was signed in from another session; SteamEdge will not reconnect.",
- "Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.": "The Steam session is no longer valid; you need to add the account again.",
+ "Steam bu hesabın kayıtlı oturumunu artık kabul etmiyor. Yeniden giriş yap.": "Steam no longer accepts the saved session of this account. Sign in again.",
  "Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.": "Could not connect to Steam after # attempts; reconnecting has stopped.",
  "Steam bağlantısı koptu; yeniden bağlanma kapalı.": "Steam connection lost; reconnecting is turned off.",
  "Steam bağlantısı geri geldi, # oyun yeniden açıldı.": "Steam connection restored, # game reopened.|Steam connection restored, # games reopened.",
@@ -1522,5 +1522,14 @@
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "This release has no update file, you can download it from the release page.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "The app folder is not writable, download from the release page.",
  "Güncelleme paketi beklenen yapıda değil.": "The update package does not have the expected structure.",
- "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge is closing, the Setup will open."
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge is closing, the Setup will open.",
+ "Oturum kapandı": "Signed out",
+ "Giriş penceresi açılamadı.": "Could not open the sign-in window.",
+ "Oturum yenilendi, hesap bağlandı.": "Signed in again, the account is connected.",
+ "Oturum kapandı, yeniden giriş yap.": "Signed out, sign in again.",
+ "Kartı kalan oyun yok.": "No game has cards left.",
+ "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "This account's Steam session has ended; sign in again.",
+ "Yeniden giriş": "Sign in again",
+ "Oturum yenilendi, hesap bağlanıyor.": "Signed in again, connecting the account.",
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "This sign-in belongs to another account. Sign in with the account that asked for it."
 }

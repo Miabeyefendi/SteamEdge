@@ -301,7 +301,7 @@ Several accounts can be connected at once. Each keeps its own engine, its own qu
 
 ### Connection
 
-When the connection drops, SteamEdge reconnects on its own and running jobs continue where they were. **Reconnect if the connection drops** (Settings > Advanced & data) sets the limit: unlimited, 10 attempts, 3 attempts or off. A limit of 10 or 3 is the number of quick attempts: after them it does not give up but keeps trying every five minutes, and at once when the computer wakes up. If Steam ends the session for good, for example because the account signed in somewhere else, retrying stops and a banner offers a Reconnect button.
+When the connection drops, SteamEdge reconnects on its own and running jobs continue where they were. **Reconnect if the connection drops** (Settings > Advanced & data) sets the limit: unlimited, 10 attempts, 3 attempts or off. A limit of 10 or 3 is the number of quick attempts: after them it does not give up but keeps trying every five minutes, and at once when the computer wakes up. If Steam ends the session for good, for example because the account signed in somewhere else, retrying stops and a banner offers a Reconnect button. If Steam no longer accepts the saved login (a password change, *sign out of all other devices*, a revoked token), SteamEdge stops trying that account and shows a **Sign in** button in the account list and on the banner. It opens a small sign-in window for that account only; afterwards the account connects with its queue, statistics and settings as they were, and the jobs it was running start again.
 
 ---
 
@@ -468,6 +468,14 @@ Steam sent a refusal reason that the app does not know by name. The common reaso
 ### An account says its session is encrypted for another Windows user
 
 The settings folder was copied to another computer or Windows user while **Encrypt login tokens** was on. Windows encryption keys do not travel, so the saved tokens cannot be opened. Sign in to the account again; the new token is stored for the current user.
+
+### An account asks you to sign in again
+
+Steam stopped accepting the saved login of that account, usually after a password change or *sign out of all other devices*. SteamEdge does not keep trying it, because that only runs into Steam's rate limit. Press **Sign in** in the account list or on the banner and scan the QR code or type the password of that same account. There is no need to remove the account and add it again; a QR code scanned with another account is refused.
+
+### A game with no cards left stays in the card farming queue
+
+When you press **Start**, SteamEdge reads the badge page again, so a game whose cards have all dropped is left out. While it farms, a game that is missing from two complete reads of the badge page in a row (about six minutes) leaves the queue, and card farming ends as finished when no game is left. A read that came back incomplete removes nothing, so a short Steam outage does not cut the queue.
 
 ### Collecting a log for a bug report
 

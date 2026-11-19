@@ -233,6 +233,7 @@
       syncFinished: ()=>['boost', 'Saat Eşitleme Tamamlandı', 'Tüm oyunlar hedefe ulaştı.'],
       connectionAbandoned: (o)=>['error', 'Steam Bağlantısı', o.permanent
         ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.'],
+      needsLogin:      ()=>['error', 'Steam Bağlantısı', 'Oturum kapandı, yeniden giriş yap.'],
       cardStopped:     (o)=>['farm',  'Kart Düşürme Durdu', o.feedEntry ? o.feedEntry.text : ''],
       cardStarted:     (o)=>['farm',  'Kart Düşürme Başladı', o.feedEntry ? o.feedEntry.text : ''],
       boostStarted:    (o)=>['boost', 'Saat Yükseltme Başladı', o.feedEntry ? o.feedEntry.text : ''],

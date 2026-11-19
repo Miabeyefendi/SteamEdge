@@ -67,6 +67,8 @@ contextBridge.exposeInMainWorld('imu', {
     on: (event, cb) => ipcRenderer.on('auth:' + event, (_e, data) => cb(data)),
   },
   goDashboard: () => ipcRenderer.send('go:dashboard'),
+  // the sign-in window of relogin.js closes itself (win.close would close the main window)
+  closeRelogin: () => ipcRenderer.send('relogin:close'),
   logout: () => ipcRenderer.send('auth:logout'),
   // Resets the session timeout counter (reports that the user interacted)
   activity: () => ipcRenderer.send('session:activity'),
@@ -88,6 +90,10 @@ contextBridge.exposeInMainWorld('imu', {
     startAdd: () => ipcRenderer.send('accounts:startAdd'),
     connectAll: () => ipcRenderer.invoke('accounts:connectAll'),
     disconnect: (steamID) => ipcRenderer.invoke('accounts:disconnect', steamID),
+    // Signing in again to an account whose saved login Steam stopped taking: a small window of its own (src/backend/relogin.js)
+    relogin: (steamID) => ipcRenderer.invoke('accounts:relogin', steamID),
+    onNeedsLogin: (cb) => ipcRenderer.on('accounts:needsLogin', (_e, d) => cb(d)),
+    onRelogged: (cb) => ipcRenderer.on('accounts:relogged', (_e, d) => cb(d)),
   },
   openExternal: (url) => ipcRenderer.send('open:external', url),
   onAccountActivity: (cb) => ipcRenderer.on('accounts:activity', (_e, d) => cb(d)),

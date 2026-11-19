@@ -3,7 +3,7 @@
 // because many other modules read them. Everything it needs arrives through `ctx`; the names it still gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { CONFIG_DIR, JSON_SIDE_FILES, NOTIF_ICON, Notification, authSlots, ct, fs, hasSession, ipcMain, loadAccounts, log, makeActiveSession, parseProxy, path, saveAccounts, sendRaw, session, setActiveProxy, startLocalProxy, steamEngineClass, windowOpened } = ctx;
+  const { CONFIG_DIR, JSON_SIDE_FILES, NOTIF_ICON, Notification, authSlots, ct, fs, hasSession, ipcMain, loadAccounts, log, logger, makeActiveSession, parseProxy, path, saveAccounts, sendRaw, session, setActiveProxy, startLocalProxy, steamEngineClass, windowOpened } = ctx;
 
   // ---- multi-account management (the top bar account switcher in place of the removed profile on the left bar) ----
   // Lists the saved accounts (the refreshToken is not leaked - only the main process uses it).
@@ -35,6 +35,7 @@ module.exports = function init(ctx) {
         jobs: ctx.accountJobKinds(s),                              // which of them
         detail: ctx.accountJobDetail(s),                           // and on which games
         finished: (s && s.finished) || null,                   // what ended while the account was in the background, until it is opened
+        needsLogin: !!(a.needsLogin || a.locked),                  // Steam does not take its saved login any more: the list offers "Sign in"
       };
     });
   });
@@ -71,7 +72,7 @@ module.exports = function init(ctx) {
     const out = [];
     for (const a of list) {
       const r = await connectAccount(a);
-      out.push({ steamID: a.steamID, accountName: a.accountName, ok: r.ok, error: r.error });
+      out.push({ steamID: a.steamID, accountName: a.accountName, ok: r.ok, error: r.error, needsLogin: !!r.needsLogin });
     }
     syncActive();
     return out;
@@ -198,7 +199,10 @@ module.exports = function init(ctx) {
   async function connectAccount(entry) {
     const s = ctx.slotOf(entry.steamID);
     s.accountName = entry.accountName;
-    if (entry.locked) return { ok: false, error: 'Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.' };
+    if (entry.locked) return { ok: false, needsLogin: true, error: 'Bu hesabın oturumu başka bir Windows kullanıcısı ya da bilgisayar için şifrelenmiş; yeniden giriş yapman gerekiyor.' };
+    // Steam refused its token before (markNeedsLogin): no attempt until the user signs in to it again. Every start, switch and page used to try it three
+    // times more, and the background loop on top; Steam answered RateLimitExceeded.
+    if (entry.needsLogin) { s.needsLogin = true; return { ok: false, needsLogin: true, error: NEEDS_LOGIN_TEXT }; }
     if (s.ready && s.engine) return { ok: true, persona: s.engine.persona, steamID: s.engine.steamID };
     // The engine of the account is reconnecting on its own (a drop, or a first logon that failed): a page that asked for the connection gets "not connected"
     // and no second engine. A second one logged on next to the first; Steam drops one of two sessions of an account (LogonSessionReplaced), and the two fought.
@@ -215,7 +219,7 @@ module.exports = function init(ctx) {
     // First logon: one attempt if reconnecting is off, three if on (2 s, 4 s apart). Drops after the logon
     // is established are caught by the engine's own loop (with the limit in Settings).
     const tries = ctx.settings.reconnectPolicy === 'off' ? 1 : 3;
-    let lastErr = null, lastEngine = null;
+    let lastErr = null, lastEngine = null, tokenDead = false;
     await windowOpened;
     const SteamEngine = steamEngineClass();
     for (let i = 0; i < tries; i++) {
@@ -264,9 +268,16 @@ module.exports = function init(ctx) {
         log('error', `[${entry.accountName}] logOn error: ${e.message}`);
         // A failed attempt's socket must not stay open in the background - the next attempt should start clean
         try { eng.user.logOff(); } catch (_) {}
+        // the token is dead: the next attempts would only be refused the same way
+        if (SteamEngine.tokenInvalid(e)) { tokenDead = true; break; }
       }
     }
     s.ready = false;
+    if (tokenDead) {
+      try { lastEngine.logOff(); } catch (_) {}
+      markNeedsLogin(entry.steamID, lastErr && lastErr.eresult);
+      return { ok: false, needsLogin: true, error: NEEDS_LOGIN_TEXT };
+    }
     // The first logon failed (no network when the app started, Steam down). Before 1.7.8 the account then stayed unconnected until the app was restarted; now the
     // last engine keeps trying in the background as after a drop, and when it logs on bindConnectionState does what is done above (status 'connected', first).
     if (lastEngine && ctx.settings.reconnectPolicy !== 'off') {
@@ -280,6 +291,38 @@ module.exports = function init(ctx) {
     finally { s.connecting = null; }
   }
 
+  // Steam no longer takes the saved token (InvalidPassword, AccessDenied, Revoked, Expired): the account was signed out on Steam's side (a password change,
+  // "sign out of all devices", a token Steam revoked). Trying again only collects refusals and in the end RateLimitExceeded, and the only way back was to
+  // remove the account and add it again. Now it is marked in accounts.json, nothing tries it again, and the page offers a sign-in for that account
+  // (relogin.js), after which it connects with its data and queue as they were. What it was running is kept for the resume after that sign-in.
+  const NEEDS_LOGIN_TEXT = 'Bu hesabın Steam oturumu kapandı; yeniden giriş yap.';
+  function markNeedsLogin(steamID, eresult) {
+    const list = loadAccounts();
+    const entry = list.find((a) => a.steamID === steamID);
+    if (!entry) return;
+    const s = accounts.get(steamID);
+    const told = !!entry.needsLogin;
+    if (!told) { entry.needsLogin = true; saveAccounts(list); }
+    if (s) {
+      s.needsLogin = true;
+      if (ctx.accountRunning(s) || s.pendingFarm) {
+        if (ctx.settings.resumeJobs !== false) { const kept = ctx.resumeJobs.describeJobs(s, Date.now()); if (kept) ctx.resumeStore.keep(steamID, kept); }
+        ctx.stopAccountJobs(s, steamID);
+      }
+      if (s.engine) { try { s.engine.logOff(); } catch (_) {} }    // its own loop ends with it
+      s.ready = false;
+    }
+    syncActive();
+    if (told) return;
+    log('warn', `[${entry.accountName}] Steam does not take the saved login any more (EResult ${eresult == null ? '?' : eresult}), signing in again is needed`);
+    if (logger) logger.connection(steamID, 'needsLogin', { eresult: eresult == null ? null : +eresult });
+    ctx.accountEvent(steamID, {
+      typeName: 'needsLogin',
+      feedEntry: { kind: 'error', title: 'Steam Bağlantısı', text: 'Oturum kapandı, yeniden giriş yap.', status: 'Hata' },
+    });
+    sendRaw('accounts:needsLogin', { steamID, accountName: entry.accountName, activeIds: steamID === ctx.activeSteamID });
+  }
+
   // Connects the active account. (Other accounts are connected with accounts:connectAll / account switching.)
   ipcMain.handle('engine:connect', async () => {
     const sess = hasSession();
@@ -291,5 +334,5 @@ module.exports = function init(ctx) {
     return r;
   });
 
-  return { accounts, applyActiveProxy, connectAccount, disconnectAll, syncActive };
+  return { accounts, applyActiveProxy, connectAccount, disconnectAll, markNeedsLogin, syncActive };
 };

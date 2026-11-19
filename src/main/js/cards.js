@@ -346,7 +346,7 @@
         + '<button class="h-brand" data-godrop="'+d.appid+'" style="height:28px;padding:0 12px;border-radius:999px;background:#090C12;border:1px solid #333D4D;color:#B9C0D6;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">Envanter</button>'
         + '</div>').join('');
       box.querySelectorAll('[data-godrop]').forEach(b=>b.addEventListener('click', ()=>{
-        document.querySelector('.nav a[data-tab=env]').click();
+        document.querySelector('.nav a[data-tab=inventory]').click();     // the tab was renamed from "env" in 1.4.0 and the button did nothing since
       }));
     }
 

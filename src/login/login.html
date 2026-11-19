@@ -54,7 +54,7 @@
     <div style="display:flex;max-width:100%;overflow-x:auto;border:1px solid var(--e-bd);border-radius:12px;background:var(--e-s1)" class="glow">
 
       <!-- LEFT BRAND PANEL -->
-      <div style="width:360px;flex-shrink:0;padding:40px 36px;display:flex;flex-direction:column;justify-content:space-between;background:var(--e-bgAlt)">
+      <div id="brandPanel" style="width:360px;flex-shrink:0;padding:40px 36px;display:flex;flex-direction:column;justify-content:space-between;background:var(--e-bgAlt)">
         <div style="display:flex;align-items:center;gap:12px">
           <img src="../assets/logo-mark.svg" alt="" style="height:48px;width:auto;display:block">
           <span style="font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--e-title)">Steam<span style="color:var(--e-brand)">Edge</span></span>
@@ -104,7 +104,22 @@
       if (el && b && b.versionStr) el.textContent = 'v' + b.versionStr;
     }).catch(()=>{});
     const A = window.imu, $id = id => document.getElementById(id);
-    $id('min').onclick=()=>A.win.minimize(); $id('max').onclick=()=>A.win.maximize(); $id('close').onclick=()=>A.win.close();
+    // Signing in again to one saved account (src/backend/relogin.js opens this page in a small window of its own with ?relogin=<steamID>&name=<account>):
+    // one box, no brand panel, no "add account"; its auth slot is 'relogin' and only that account is accepted (steamAuth expectSteamID).
+    const QS = new URLSearchParams(location.search);
+    const RELOGIN = QS.get('relogin') || null, RELOGIN_NAME = QS.get('name') || '';
+    const SID = (i) => RELOGIN ? 'relogin' : i;
+    const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const onAuth = (ev, fn) => A.auth.on(ev, (d) => fn(RELOGIN && d && d.slotId === 'relogin' ? { ...d, slotId: 0 } : d));
+    if (RELOGIN){
+      $id('brandPanel').classList.add('hide');
+      $id('multiPrompt').classList.add('hide');
+      $id('min').classList.add('hide'); $id('max').classList.add('hide');
+      $id('slotsRow').style.maxWidth = 'none';
+      $id('close').onclick = () => { A.auth.cancel('relogin'); A.closeRelogin(); };
+    } else {
+      $id('min').onclick=()=>A.win.minimize(); $id('max').onclick=()=>A.win.maximize(); $id('close').onclick=()=>A.win.close();
+    }
 
     const slotsRow = $id('slotsRow');
     const addBox = document.createElement('div');
@@ -123,6 +138,7 @@
     function colorFor(i) { return i === 0 ? '#5624B3' : SLOT_COLORS[(i - 1) % SLOT_COLORS.length]; }
 
     function resizeWindow() {
+      if (RELOGIN) return;           // the sign-in window has its own fixed size; win.setWidth would resize the main window
       const n = Math.max(1, activeSlots.size);
       const addBoxW = addBox.parentNode ? 96 : 0;
       const w = 360 + Math.min(n, 3) * 352 + addBoxW + 64;
@@ -141,7 +157,7 @@
       const c = colorFor(i);
       return '<div class="panel-account" data-slot="' + i + '" id="slotCard-' + i + '">'
         + (i > 0 ? '<div class="panel-remove" data-remove="' + i + '"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div>' : '')
-        + '<p class="panel-tag" style="color:' + c + '">' + (i === 0 ? 'Ana Hesap' : 'Ek Hesap ' + (i + 1)) + '</p>'
+        + '<p class="panel-tag" style="color:' + c + '">' + (RELOGIN ? '<span>Yeniden giriş</span> · <span style="text-transform:none;letter-spacing:.02em">' + esc(RELOGIN_NAME) + '</span>' : i === 0 ? 'Ana Hesap' : 'Ek Hesap ' + (i + 1)) + '</p>'
         + '<div id="stLogin-' + i + '" style="display:flex;flex-direction:column;gap:16px">'
           // Sign-in method picker. QR is the suggested way: no password is typed, it is approved on the phone.
           + '<div style="display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--e-bg);border:1px solid var(--e-bd)">'
@@ -176,7 +192,7 @@
         + '<div id="stSuccess-' + i + '" class="panel-success hide">'
           + '<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--e-ok)" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>'
           + '<div style="font-size:13px;font-weight:700;color:var(--e-title)" id="successName-' + i + '">Giriş başarılı</div>'
-          + '<div style="font-size:12px;color:var(--e-off)">Bu hesap eklendi.</div>'
+          + '<div style="font-size:12px;color:var(--e-off)">' + (RELOGIN ? 'Oturum yenilendi, hesap bağlanıyor.' : 'Bu hesap eklendi.') + '</div>'
         + '</div>'
       + '</div>';
     }
@@ -195,7 +211,7 @@
     }
 
     function removeSlot(i) {
-      A.auth.cancel(i);
+      A.auth.cancel(SID(i));
       const card = $id('slotCard-' + i);
       if (card) card.remove();
       activeSlots.delete(i);
@@ -229,14 +245,14 @@
       });
       setStatus(i, '');
       if (qrOn) startQR(i);
-      else A.auth.cancel(i);          // close the QR session if it was left open
+      else A.auth.cancel(SID(i));          // close the QR session if it was left open
     }
 
     function startQR(i) {
       const box = $id('qrBox-' + i);
       if (box) box.innerHTML = '<div class="spin"></div>';
       setStatus(i, 'QR kodu alınıyor...');
-      A.auth.startQR(i);
+      A.auth.startQR(SID(i));
     }
 
     function wireSlot(i) {
@@ -248,11 +264,11 @@
         if (!g('guardField').classList.contains('hide')) {
           const c = g('guard').value.trim();
           if (!c) { setStatus(i, 'Kodu gir.', 'err'); return; }
-          A.auth.submitGuard(i, c); setStatus(i, 'Kod gönderiliyor...'); return;
+          A.auth.submitGuard(SID(i), c); setStatus(i, 'Kod gönderiliyor...'); return;
         }
         const a = g('acc').value.trim(), p = g('pw').value;
         if (!a || !p) { setStatus(i, 'Kullanıcı adı ve parola gerekli.', 'err'); return; }
-        setStatus(i, 'Bağlanılıyor...'); A.auth.startCredentials(i, a, p);
+        setStatus(i, 'Bağlanılıyor...'); A.auth.startCredentials(SID(i), a, p);
       };
       g('acc').addEventListener('keydown', e => { if (e.key === 'Enter') g('pw').focus(); });
       g('pw').addEventListener('keydown', e => { if (e.key === 'Enter') g('go').click(); });
@@ -262,7 +278,7 @@
     // slot 0 = the main box: when it finishes successfully the dashboard opens. The other boxes can stay in the background,
     // they only show a "success" state on their own card - the window does not close.
     function finishSlot(i) {
-      if (String(i) === '0') { A.goDashboard(); return; }
+      if (String(i) === '0' && !RELOGIN) { A.goDashboard(); return; }
       const login = $id('stLogin-' + i), prep = $id('stPrep-' + i), ok = $id('stSuccess-' + i);
       if (login) login.classList.add('hide');
       if (prep) prep.classList.add('hide');
@@ -270,15 +286,15 @@
     }
 
     // The QR image coming from the engine (steamAuth > startQR > emit('qr'))
-    A.auth.on('qr', d => {
+    onAuth('qr', d => {
       const box = $id('qrBox-' + d.slotId);
       if (!box || !d.image) return;
       box.innerHTML = '<img src="' + d.image + '" alt="QR" style="width:100%;height:100%;object-fit:contain">';
       setStatus(d.slotId, 'Kodu Steam uygulamasıyla okut.');
     });
-    A.auth.on('status', d => setStatus(d.slotId, d.message));
-    A.auth.on('error', d => setStatus(d.slotId, d.message, 'err'));
-    A.auth.on('guard', d => {
+    onAuth('status', d => setStatus(d.slotId, d.message));
+    onAuth('error', d => setStatus(d.slotId, d.message, 'err'));
+    onAuth('guard', d => {
       const i = d.slotId;
       const gf = $id('guardField-' + i); if (!gf) return;
       gf.classList.remove('hide');
@@ -286,7 +302,7 @@
       $id('go-' + i).textContent = 'Kodu Gönder';
       setStatus(i, 'Doğrulama kodu gerekli.');
     });
-    A.auth.on('authenticated', d => {
+    onAuth('authenticated', d => {
       const i = d.slotId;
       const login = $id('stLogin-' + i), prep = $id('stPrep-' + i);
       if (!login || !prep) return;
@@ -302,6 +318,11 @@
     });
 
     addSlot(); // slot 0: always open from the start
+    if (RELOGIN){
+      // the user name of the account is known: only the password is typed
+      const acc = $id('acc-0'); if (acc) acc.value = RELOGIN_NAME;
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $id('close').click(); });
+    }
   </script>
 </body>
 </html>

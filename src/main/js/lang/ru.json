@@ -827,7 +827,7 @@
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).": "Соединение со Steam потеряно. Повтор через # с (попытка # из #).",
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).": "Соединение со Steam потеряно. Повтор через # с (попытка #).",
  "Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.": "В этот аккаунт вошли из другой сессии; SteamEdge не будет переподключаться.",
- "Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.": "Сессия Steam больше недействительна; нужно заново добавить аккаунт.",
+ "Steam bu hesabın kayıtlı oturumunu artık kabul etmiyor. Yeniden giriş yap.": "Steam больше не принимает сохранённую сессию этого аккаунта. Войдите заново.",
  "Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.": "Не удалось подключиться к Steam за # попыток; переподключение остановлено.",
  "Steam bağlantısı koptu; yeniden bağlanma kapalı.": "Соединение со Steam потеряно; переподключение выключено.",
  "Steam bağlantısı geri geldi, # oyun yeniden açıldı.": "Соединение со Steam восстановлено, снова открыто игр: #.",
@@ -1522,5 +1522,14 @@
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "В этом релизе нет файла обновления, его можно скачать на странице релиза.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "В папку приложения нельзя записывать, скачайте со страницы релиза.",
  "Güncelleme paketi beklenen yapıda değil.": "Пакет обновления имеет неожиданную структуру.",
- "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge закрывается, откроется установщик."
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge закрывается, откроется установщик.",
+ "Oturum kapandı": "Сессия закрыта",
+ "Giriş penceresi açılamadı.": "Не удалось открыть окно входа.",
+ "Oturum yenilendi, hesap bağlandı.": "Вход выполнен заново, аккаунт подключён.",
+ "Oturum kapandı, yeniden giriş yap.": "Сессия закрыта, войдите заново.",
+ "Kartı kalan oyun yok.": "Нет игр с оставшимися карточками.",
+ "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "Сессия Steam этого аккаунта закрыта; войдите заново.",
+ "Yeniden giriş": "Повторный вход",
+ "Oturum yenilendi, hesap bağlanıyor.": "Вход выполнен заново, аккаунт подключается.",
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "Этот вход принадлежит другому аккаунту. Войдите в аккаунт, который его запросил."
 }

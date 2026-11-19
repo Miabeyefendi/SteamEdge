@@ -2,7 +2,7 @@
 // gives back are returned at the end.
 
 module.exports = function init(ctx) {
-  const { logger, CACHE_DIR, SYNC_MAX_GAMES, accountBroadcast, accountData, accountEvent, accountName, accounts, activeAccountData, addFeed, boostFinish, boostStart, buildSyncSteps, delayFarm, ipcMain, log, path, readJson, resumeFarm, saveSettings, settingFor, simulateSync, slotOf, startCardFarm, startSequential, writeAccountDataDelayed, writeJson } = ctx;
+  const { logger, CACHE_DIR, SYNC_MAX_GAMES, accountBroadcast, accountData, accountEvent, accountName, accounts, activeAccountData, addFeed, boostFinish, boostStart, buildSyncSteps, delayFarm, ipcMain, log, path, readJson, resumeFarm, saveSettings, settingFor, simulateSync, slotOf, startSequential, writeAccountDataDelayed, writeJson } = ctx;
 
   // ================== REALISTIC MODE (G2) ==================
   // Purpose: to keep a single game open and over the chosen time unlock the achievements from the MOST COMMON TO THE RARE,
@@ -718,11 +718,13 @@ module.exports = function init(ctx) {
     const s = slotOf(ctx.activeSteamID);
     s.pendingFarm = null;
     ctx.cancelSettingWaits(s, 'card');
-    startCardFarm(ctx.activeSteamID, mode, games || [], durationMs);
+    // the badge page is read again before the queue is made (cardfarm.js startCardFarmFromPage)
+    ctx.startCardFarmFromPage(ctx.activeSteamID, mode, games || [], durationMs);
   });
   ipcMain.on('engine:stopFarm', () => {
     const s = accounts.get(ctx.activeSteamID);
     if (!s) return;
+    s.farmStartSeq = (s.farmStartSeq || 0) + 1;      // a start still reading the badge page does not start after this
     s.pendingFarm = null;
     ctx.cancelSettingWaits(s, 'card');
     if (s.farm && s.farm.running) s.farm.stop('user');

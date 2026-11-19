@@ -827,7 +827,7 @@
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).": "Se perdió la conexión con Steam. Nuevo intento en # s (intento # de #).",
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).": "Se perdió la conexión con Steam. Nuevo intento en # s (intento #).",
  "Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.": "Esta cuenta inició sesión desde otra sesión; SteamEdge no volverá a conectarse.",
- "Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.": "La sesión de Steam ya no es válida; tienes que volver a añadir la cuenta.",
+ "Steam bu hesabın kayıtlı oturumunu artık kabul etmiyor. Yeniden giriş yap.": "Steam ya no acepta la sesión guardada de esta cuenta. Vuelve a iniciar sesión.",
  "Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.": "No se pudo conectar con Steam tras # intentos; la reconexión se detuvo.",
  "Steam bağlantısı koptu; yeniden bağlanma kapalı.": "Se perdió la conexión con Steam; la reconexión está desactivada.",
  "Steam bağlantısı geri geldi, # oyun yeniden açıldı.": "Conexión con Steam restablecida; se reabrió # juego.|Conexión con Steam restablecida; se reabrieron # juegos.",
@@ -1522,5 +1522,14 @@
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "Esta versión no tiene archivo de actualización, puedes descargarla desde la página de versiones.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "No se puede escribir en la carpeta de la aplicación, descarga desde la página de versiones.",
  "Güncelleme paketi beklenen yapıda değil.": "El paquete de actualización no tiene la estructura esperada.",
- "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge se está cerrando, se abrirá el instalador."
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge se está cerrando, se abrirá el instalador.",
+ "Oturum kapandı": "Sesión cerrada",
+ "Giriş penceresi açılamadı.": "No se pudo abrir la ventana de inicio de sesión.",
+ "Oturum yenilendi, hesap bağlandı.": "Sesión renovada, la cuenta está conectada.",
+ "Oturum kapandı, yeniden giriş yap.": "Sesión cerrada, vuelve a iniciar sesión.",
+ "Kartı kalan oyun yok.": "Ningún juego tiene cromos pendientes.",
+ "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "La sesión de Steam de esta cuenta se cerró; vuelve a iniciar sesión.",
+ "Yeniden giriş": "Volver a iniciar sesión",
+ "Oturum yenilendi, hesap bağlanıyor.": "Sesión renovada, conectando la cuenta.",
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "Este inicio de sesión pertenece a otra cuenta. Inicia sesión con la cuenta que lo pidió."
 }

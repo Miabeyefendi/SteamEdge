@@ -301,7 +301,7 @@ Mehrere Konten können gleichzeitig verbunden sein. Jedes hat seine eigene Verbi
 
 ### Verbindung
 
-Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufgaben machen weiter. **Bei Verbindungsabbruch neu verbinden** (Einstellungen > Erweitert & Daten) legt das Limit fest: unbegrenzt, 10 Versuche, 3 Versuche oder aus. 10 oder 3 ist die Zahl der schnellen Versuche: danach gibt die App nicht auf, sondern versucht es alle fünf Minuten weiter und sofort, wenn der Computer aufwacht. Beendet Steam die Sitzung endgültig, etwa weil sich das Konto anderswo angemeldet hat, enden die Versuche und ein Banner bietet einen Neu-verbinden-Knopf.
+Bricht die Verbindung ab, verbindet sich SteamEdge selbst neu und laufende Aufgaben machen weiter. **Bei Verbindungsabbruch neu verbinden** (Einstellungen > Erweitert & Daten) legt das Limit fest: unbegrenzt, 10 Versuche, 3 Versuche oder aus. 10 oder 3 ist die Zahl der schnellen Versuche: danach gibt die App nicht auf, sondern versucht es alle fünf Minuten weiter und sofort, wenn der Computer aufwacht. Beendet Steam die Sitzung endgültig, etwa weil sich das Konto anderswo angemeldet hat, enden die Versuche und ein Banner bietet einen Neu-verbinden-Knopf. Akzeptiert Steam die gespeicherte Anmeldung nicht mehr (Passwort geändert, *von allen anderen Geräten abgemeldet*, Token widerrufen), versucht SteamEdge dieses Konto nicht weiter und zeigt in der Kontoliste und im Banner einen Knopf **Anmelden**. Er öffnet ein kleines Anmeldefenster nur für dieses Konto; danach verbindet sich das Konto mit seiner Warteschlange, seinen Statistiken und Einstellungen wie zuvor, und seine laufenden Aufgaben starten wieder.
 
 ---
 
@@ -468,6 +468,14 @@ Steam hat einen Ablehnungsgrund geschickt, den die App nicht beim Namen kennt. D
 ### Ein Konto meldet, die Sitzung sei für einen anderen Windows-Benutzer verschlüsselt
 
 Der Einstellungsordner wurde bei aktivem **Anmelde-Token verschlüsseln** auf einen anderen Computer oder Windows-Benutzer kopiert. Windows-Schlüssel wandern nicht mit, deshalb lassen sich die gespeicherten Token nicht öffnen. Melde das Konto neu an; das neue Token wird für den aktuellen Benutzer gespeichert.
+
+### Ein Konto verlangt eine erneute Anmeldung
+
+Steam akzeptiert die gespeicherte Anmeldung dieses Kontos nicht mehr, meist nach einer Passwortänderung oder nach *von allen anderen Geräten abmelden*. SteamEdge versucht es nicht weiter, denn das führt nur in die Ratenbegrenzung von Steam. Drücke **Anmelden** in der Kontoliste oder im Banner und scanne den QR-Code oder gib das Passwort genau dieses Kontos ein. Das Konto muss nicht entfernt und neu hinzugefügt werden; ein QR-Code, der mit einem anderen Konto gescannt wird, wird abgelehnt.
+
+### Ein Spiel ohne verbleibende Karten bleibt in der Warteschlange von Karten farmen
+
+Beim Drücken von **Starten** liest SteamEdge die Abzeichenseite erneut, damit ein Spiel, dessen Karten alle gefallen sind, draußen bleibt. Während des Farmens verlässt ein Spiel, das bei zwei vollständigen Lesungen der Abzeichenseite hintereinander fehlt (etwa sechs Minuten), die Warteschlange, und das Kartenfarmen endet als abgeschlossen, wenn kein Spiel übrig ist. Eine unvollständige Lesung entfernt nichts, ein kurzer Steam-Ausfall kürzt die Warteschlange also nicht.
 
 ### Ein Protokoll für einen Fehlerbericht sammeln
 

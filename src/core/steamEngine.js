@@ -329,15 +329,17 @@ class SteamEngine {
   // 2 games -> 40 rows, 5 cards -> 100 cards.
   // Now the page count is read from the pagination box, the loop is also broken if the same appid set
   // comes again, and the result is made unique by appid.
-  // If `withFinished` is given it returns { gameEntries, finishedOnes }: finishedOnes are the games whose badge row says "No card drops
-  // remaining". The card watcher only removes a game from the queue when Steam SAYS so;
-  // not appearing in the list alone does not mean "finished" (the scrape may be incomplete).
+  // If `withFinished` is given it returns { gameEntries, finishedOnes, complete }: finishedOnes are the games whose badge row says "No card drops
+  // remaining"; complete says every page was read as the owner sees it. Only a complete read may tell that a game is gone from the list: a game whose
+  // cards are all dropped does not always get the "No card drops remaining" line (it stayed in the farm for good, 4.3.6), and the card watcher takes
+  // it out after two complete reads without it (farmController.updateGames).
   async getDropGames(withFinished) {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const found = new Map();          // appid -> { appid, name, remaining }
     const finished = new Set();
     let lastSignature = null;
     let lastPage = 1;
+    let complete = true;
 
     for (let p = 1; p <= lastPage && p <= 50; p++) {
       const url = `https://steamcommunity.com/profiles/${this.steamID}/badges/?l=english&p=${p}`;
@@ -365,7 +367,10 @@ class SteamEngine {
       }
 
       const rows = html.split('class="badge_row');
-      if (rows.length <= 1) break;                 // a truly empty page
+      if (rows.length <= 1) {                      // a truly empty page; one in the middle of the pages is a page Steam did not give
+        if (p > 1 && p < lastPage) complete = false;
+        break;
+      }
 
       const thisPage = [];
       for (const row of rows.slice(1)) {
@@ -393,9 +398,10 @@ class SteamEngine {
       if (signature && signature === lastSignature) break;
       lastSignature = signature;
     }
+    if (lastPage > 50) complete = false;           // the pages past the limit were not read
     const gameList = [...found.values()];
     found.forEach((_, id) => finished.delete(id));
-    return withFinished ? { gameEntries: gameList, finishedOnes: finished } : gameList;
+    return withFinished ? { gameEntries: gameList, finishedOnes: finished, complete } : gameList;
   }
 
   // Own Steam profile: avatar, display name and account level - straight from the protocol
@@ -752,6 +758,12 @@ SteamEngine.UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (
 // Since the games are reported without 'force', reconnecting does not close that game;
 // Steam does not count idling at that time, and when the game closes the heartbeat reports the games again.
 SteamEngine.PERMANENT_DISCONNECT = new Set([5, 15, 26, 27, 34]);
+// The ones of them that mean the saved token itself is dead (InvalidPassword, AccessDenied, Revoked, Expired): only signing in again brings the account
+// back, so main marks it and stops every attempt (accounts.js markNeedsLogin). LogonSessionReplaced is not one: the token still works.
+SteamEngine.TOKEN_INVALID = new Set([5, 15, 26, 27]);
+SteamEngine.TOKEN_INVALID_NAMES = new Set(['InvalidPassword', 'AccessDenied', 'Revoked', 'Expired']);
+// Whether an error of a logon says the token is dead (steam-user puts the EResult on the error; the name is the message when it does not)
+SteamEngine.tokenInvalid = (e) => !!e && (SteamEngine.TOKEN_INVALID.has(+e.eresult) || SteamEngine.TOKEN_INVALID_NAMES.has(String(e.message || '').trim()));
 // An attempt that has not logged on by then is thrown away with its steam-user instance; the wait between attempts grows up to the second value.
 SteamEngine.ATTEMPT_TIMEOUT_MS = 60000;
 SteamEngine.RECONNECT_MAX_WAIT_MS = 60000;

@@ -20,7 +20,7 @@
       if (d.condition === 'abandoned'){
         if (d.permanent) return +d.eresult === 34
           ? t('Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.')
-          : t('Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.');
+          : t('Steam bu hesabın kayıtlı oturumunu artık kabul etmiyor. Yeniden giriş yap.');
         return d.attemptCount
           ? tf('Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.', d.attemptCount)
           : t('Steam bağlantısı koptu; yeniden bağlanma kapalı.');
@@ -52,11 +52,18 @@
       }
       const colorVal = (status === 'dropped' || status === 'abandoned') ? '#B32453' : '#B37E24';
       el.style.borderBottomColor = colorVal; el.style.color = colorVal;
+      // a login Steam does not take any more is not brought back by reconnecting: the button signs in to the account again (src/backend/relogin.js)
+      const relogin = status === 'abandoned' && (d.needsLogin || d.tokenInvalid);
       el.innerHTML = '<span' + (status === 'abandoned' ? '' : ' class="e-pulse"') + ' style="width:7px;height:7px;border-radius:12px;background:'+colorVal+';flex-shrink:0"></span><span>'+esc(message||'')+'</span>'
-        + (status === 'abandoned'
+        + (relogin
+            ? '<button data-relogin style="margin-left:auto;height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid #E45A86;color:#E45A86'
+              + ';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Giriş yap'))+'</button>'
+          : status === 'abandoned'
             ? '<button data-reconnect style="margin-left:auto;height:28px;padding:0 12px;border-radius:999px;background:transparent;border:1px solid '+colorVal+';color:'+colorVal
               + ';font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;flex-shrink:0">'+esc(t('Yeniden Bağlan'))+'</button>'
             : '');
+      const rl = el.querySelector('[data-relogin]');
+      if (rl) rl.onclick = ()=>{ if (typeof openRelogin === 'function') openRelogin(null); };
       const b = el.querySelector('[data-reconnect]');
       if (b) b.onclick = async ()=>{
         b.disabled = true;

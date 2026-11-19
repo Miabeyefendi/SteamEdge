@@ -23,6 +23,9 @@ class SteamAuth {
     // but the active session (session.json) is not changed - the user stays on the account they were
     // already using and picks the new one from the account switcher when they want it.
     this.addingAccount = false;
+    // Signing in again to an account whose saved login Steam stopped taking (relogin.js): only that account is accepted. Without the check a QR scanned
+    // with another account on the phone would have saved that one instead and left the one that waits as it was.
+    this.expectSteamID = null;
   }
 
   // ---- login: QR ----
@@ -74,6 +77,11 @@ class SteamAuth {
 
   async _onAuth() {
     const steamID = this.session.steamID ? this.session.steamID.getSteamID64() : null;
+    if (this.expectSteamID && steamID !== String(this.expectSteamID)) {
+      this.cancel();
+      this.emit('error', { message: 'Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.', wrongAccount: true });
+      return;
+    }
     let cookies = [];
     try { cookies = await this.session.getWebCookies(); } catch (_) {}
     this.result = {
@@ -109,7 +117,8 @@ class SteamAuth {
     let list = [];
     try { list = JSON.parse(fs.readFileSync(accountsPath, 'utf8')); if (!Array.isArray(list)) list = []; } catch (_) { list = []; }
     const idx = list.findIndex((a) => a.steamID === entry.steamID);
-    if (idx >= 0) list[idx] = { ...list[idx], ...entry };
+    // a fresh token: the mark of a login Steam stopped taking goes (accounts.js markNeedsLogin), and so does a token sealed for another Windows user
+    if (idx >= 0) { const { needsLogin, locked, ...kept } = list[idx]; list[idx] = { ...kept, ...entry }; }
     else list.push({ ...entry, addedAt: Date.now() });
     fs.writeFileSync(accountsPath, JSON.stringify(list, null, 2));
     if (!this.addingAccount) {

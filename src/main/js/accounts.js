@@ -51,13 +51,15 @@
       const accts = await refreshAcctState();
       if (!accts.length){ acctListSignature = ''; list.innerHTML = '<div style="padding:10px 14px;color:var(--muted2);font-size:12px">Kayıtlı hesap yok.</div>'; return; }
       // A list that has not changed is not drawn again: drawing replaces the rows, and a click that started on a row that was replaced before the button came up is lost
-      const signature = JSON.stringify(accts.map(a => [a.steamID, a.accountName, a.active, a.connected, a.running, a.jobs, a.finished && a.finished.ts]));
+      const signature = JSON.stringify(accts.map(a => [a.steamID, a.accountName, a.active, a.connected, a.running, a.jobs, a.finished && a.finished.ts, a.needsLogin]));
       if (signature === acctListSignature && list.children.length) return;
       acctListSignature = signature;
       // Badges: "Active" = shown in the interface, green dot = card/hour running in the background
       list.innerHTML = accts.map(a=>'<div class="acct-row'+(a.active?' active':'')+'" data-id="'+esc(a.steamID)+'">'
         + '<span class="nmwrap"><span class="nm">'+esc(a.accountName||a.steamID)+'</span>'
-        + (jobLine(a) ? '<span class="sub'+(a.running?' on':'')+'">'+esc(jobLine(a))+'</span>' : '') + '</span>'
+        + (a.needsLogin ? '<span class="sub bad">'+esc(t('Oturum kapandı'))+'</span>'
+            : jobLine(a) ? '<span class="sub'+(a.running?' on':'')+'">'+esc(jobLine(a))+'</span>' : '') + '</span>'
+        + (a.needsLogin?'<button type="button" class="relogin" data-relogin="'+esc(a.steamID)+'">'+esc(t('Giriş yap'))+'</button>':'')
         + (a.running?'<span class="run-dot" title="Arka planda çalışıyor"></span>':'')
         + (a.connected&&!a.running?'<span class="conn-dot" title="Bağlı"></span>':'')
         + (a.active?'<span class="tag">Aktif</span>':'')
@@ -70,6 +72,9 @@
       const row = e.target.closest('.acct-row');
       if (!row || e.target.closest('[data-x]')) return;
       e.preventDefault();
+      // an account that waits for a sign-in cannot be opened: its row (and its button) opens the sign-in for it
+      const known = acctState.get(row.getAttribute('data-id'));
+      if (e.target.closest('[data-relogin]') || (known && known.needsLogin && !known.active)){ closeAcct(); openRelogin(row.getAttribute('data-id')); return; }
       switchAccount(row.getAttribute('data-id'));
     });
     document.getElementById('acctList').addEventListener('click', (e)=>{
@@ -155,6 +160,12 @@
       const working = switchToast; switchToast = null;
       switchingTo = null;
       document.body.classList.remove('e-switching');
+      if (r && r.needsLogin){
+        working.fail(t('Hesap değiştirilemedi.'));
+        acctListSignature = ''; renderAcctList();
+        openRelogin(steamID);
+        return;
+      }
       if (!r || !r.ok){
         working.fail(t('Hesap değiştirilemedi.'));
         edgeConfirm({ tag:'Hata', danger:true, title:'Hesap değiştirilemedi.', body:(r && r.error) ? t(r.error) : '', confirmText:'Tamam', singleButton:true });
@@ -242,9 +253,31 @@
       if (typeof playNotifSound === 'function' && appSettings && appSettings.notifications
           && appSettings.notifyChat !== false && !(typeof inQuietHours === 'function' && inQuietHours())) playNotifSound();
     });
+    // Signing in again to an account whose saved login Steam stopped taking (src/backend/relogin.js opens a small window for it). Before 4.3.7 the only
+    // way back was to remove the account and add it again.
+    function openRelogin(steamID){
+      window.imu.accounts.relogin(steamID).then((r)=>{
+        if (!r || !r.ok) toast('Steam Bağlantısı').fail(t((r && r.error) || 'Giriş penceresi açılamadı.'));
+      }).catch(()=>{});
+    }
+    if (window.imu.accounts.onNeedsLogin) window.imu.accounts.onNeedsLogin(()=>{
+      acctListSignature = '';
+      refreshAcctState().then(()=>{ if (acctDropdown.classList.contains('open')) renderAcctList(); });
+      if (typeof reconcileConnection === 'function') reconcileConnection().then(armStripTimer);
+    });
+    if (window.imu.accounts.onRelogged) window.imu.accounts.onRelogged((d)=>{
+      if (!d) return;
+      acctListSignature = '';
+      refreshAcctState().then(()=>{ if (acctDropdown.classList.contains('open')) renderAcctList(); });
+      if (typeof reconcileConnection === 'function') reconcileConnection().then(armStripTimer);
+      if (d.ok) toast(d.accountName || 'Steam').done(t('Oturum yenilendi, hesap bağlandı.'));
+      else toast(d.accountName || 'Steam').fail(t(d.error || 'Bağlanılamadı.'));
+      // the page of the account on screen was empty while it waited: its lists are read again
+      if (d.ok && d.activeIds){ resetPageCaches(); imuProfile = null; imuProfileFresh = false; loadProfile(); reloadActiveTab(); }
+    });
     // At startup connect all saved accounts in the background - parallel idling is built on this
     window.imu.accounts.connectAll().then((res)=>{
-      const failed = (res||[]).filter(r=>!r.ok);
+      const failed = (res||[]).filter(r=>!r.ok && !r.needsLogin);   // one waiting for a sign-in says so in its row and in the strip
       if (failed.length && typeof pushFeed === 'function'){
         failed.forEach(f=>pushFeed('error','Hesap bağlanamadı', f.accountName+' - '+(f.error||''), 'Hata'));
       }

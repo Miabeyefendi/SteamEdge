@@ -546,6 +546,10 @@ body.e-light .toast .tspin{animation:spin .8s linear infinite!important}
 .acct-row .nmwrap .nm{flex:none}
 .acct-row .sub{font-size:12px;color:var(--e-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .acct-row .sub.on{color:var(--e-ok)}
+/* An account whose saved login Steam stopped taking: the row says so and carries its own sign-in button (accounts.js, src/backend/relogin.js) */
+.acct-row .sub.bad{color:#E45A86;white-space:normal}
+.acct-row .relogin{flex:none;height:24px;padding:0 10px;border-radius:999px;border:1px solid #E45A86;background:transparent;color:#E45A86;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.acct-row .relogin:hover,.acct-row .relogin:focus-visible{background:rgba(228,90,134,.14);outline:none}
 /* Between the click on another account and the moment it is connected the page of the old account is dimmed and cannot be used */
 body.e-switching .e-main{opacity:.5;pointer-events:none}
 body.e-switching .e-main,body.e-switching #tbProfile{cursor:progress}
