@@ -259,7 +259,7 @@ class SteamEngine {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
     const r1 = await this._requestItem('https://steamcommunity.com/market/?l=english', { attemptCount: 2 }, 'Pazar');
     if (this._readWallet(await r1.text())) return this._wallet;
-    const r2 = await this._requestItem(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
+    const r2 = await this._requestItem(`${await this._profileBase()}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
     if (this._readWallet(await r2.text())) return this._wallet;
     throw new Error(translation.t('Steam cüzdan bilgisi okunamadı'));
   }
@@ -342,7 +342,7 @@ class SteamEngine {
     let complete = true;
 
     for (let p = 1; p <= lastPage && p <= 50; p++) {
-      const url = `https://steamcommunity.com/profiles/${this.steamID}/badges/?l=english&p=${p}`;
+      const url = `${await this._profileBase()}/badges/?l=english&p=${p}`;
       const r = await this._requestItem(url, {}, 'Rozet sayfası');
       const html = await r.text();
 
@@ -359,7 +359,8 @@ class SteamEngine {
           : (/card drops? remaining/i.test(html) || !html.includes('class="badge_row'));
         if (!owner) {
           try { this.user.webLogOn(); } catch (_) {}
-          throw new Error(translation.t('Rozet sayfası oturum açılmadan geldi'));
+          this._event('badges.fail', 'not the owner view (g_steamID ' + (sessionInfo ? sessionInfo[2] === 'false' ? 'false' : 'other' : 'missing') + ')');
+          throw new Error(translation.t('Steam rozet sayfasını giriş yapılmamış gibi gönderdi; kalan kart bilgisi okunamadı.'));
         }
         // Learn the real page count: the largest p value in the pagination links.
         const pages = [...html.matchAll(/[?&]p=(\d+)/g)].map((m) => +m[1]).filter((n) => n > 0 && n < 1000);
@@ -401,6 +402,9 @@ class SteamEngine {
     if (lastPage > 50) complete = false;           // the pages past the limit were not read
     const gameList = [...found.values()];
     found.forEach((_, id) => finished.delete(id));
+    // one line in events.log when what the read found changes (every read would be one every three minutes per account)
+    const readSign = 'games=' + gameList.length + ' finished=' + finished.size + ' pages=' + lastPage + (complete ? '' : ' incomplete');
+    if (readSign !== this._badgeSign) { this._badgeSign = readSign; this._event('badges.read', readSign); }
     return withFinished ? { gameEntries: gameList, finishedOnes: finished, complete } : gameList;
   }
 
@@ -429,7 +433,6 @@ class SteamEngine {
   // interface shows its "not defined" text - nothing breaks.
   async getVanityURL() {
     if (this._vanity !== undefined) return this._vanity;
-    this._vanity = null;
     try {
       const r = await this._requestItem(
         `https://steamcommunity.com/profiles/${this.steamID}/?xml=1`,
@@ -438,9 +441,19 @@ class SteamEngine {
       );
       const xml = await r.text();
       const m = xml.match(/<customURL>(?:<!\[CDATA\[)?([^\]<]*)/i);
-      if (m && m[1] && m[1].trim()) this._vanity = m[1].trim();
-    } catch (_) { /* private profile or no network - the custom address is not shown, no problem */ }
+      this._vanity = (m && m[1] && m[1].trim()) ? m[1].trim() : null;
+    } catch (_) { return null; /* no network: not kept, the next call asks again (the badge page needs it, see _profileBase) */ }
     return this._vanity;
+  }
+
+  // The address of the account's own community pages. Steam answers /profiles/<id>/... of an account with a custom address by redirecting to /id/<name>/...
+  // (seen in November 2026), and Chromium's network stack drops the Cookie header we set by hand when it follows that redirect: the page came back as
+  // seen by a visitor (g_steamID = false, no card drop lines, no inventory games) and the badge read refused it. Asking the final address directly
+  // keeps the cookies. An account without a custom address is not redirected and keeps the /profiles/ form.
+  async _profileBase() {
+    let name = null;
+    try { name = await this.getVanityURL(); } catch (_) { name = null; }
+    return name ? 'https://steamcommunity.com/id/' + encodeURIComponent(name) : 'https://steamcommunity.com/profiles/' + this.steamID;
   }
 
   // JWT embedded in the steamLoginSecure cookie from webLogOn (same token shape ASF uses) - lets
@@ -578,7 +591,7 @@ class SteamEngine {
   // the page loads them on request, an empty one just says it is empty.
   async getInventorySources() {
     if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
-    const r = await this._requestItem(`https://steamcommunity.com/profiles/${this.steamID}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
+    const r = await this._requestItem(`${await this._profileBase()}/inventory/?l=english`, { attemptCount: 2 }, 'Envanter');
     const list = inventorySources.parseAppContexts(await r.text());
     return list ? { found: true, list } : { found: false, list: inventorySources.FALLBACK_SOURCES };
   }

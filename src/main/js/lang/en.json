@@ -1172,7 +1172,7 @@
  "Steam cüzdan bilgisi okunamadı": "Steam wallet information could not be read",
  "Steam sunucusuna giriş zaman aşımına uğradı": "Signing in to the Steam server timed out",
  "Rozet sayfası": "Badge page",
- "Rozet sayfası oturum açılmadan geldi": "The badge page loaded without being signed in",
+ "Steam rozet sayfasını giriş yapılmamış gibi gönderdi; kalan kart bilgisi okunamadı.": "Steam sent the badge page as if you were not signed in; the cards left could not be read.",
  "Steam web oturumu henüz hazır değil": "The Steam web session isn't ready yet",
  "Steam istek sınırı aşıldı (429)": "Steam request limit exceeded (429)",
  "pazar sayfası HTTP # döndürdü": "the market page returned HTTP #",

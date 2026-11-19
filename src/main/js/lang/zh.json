@@ -1172,7 +1172,7 @@
  "Steam cüzdan bilgisi okunamadı": "無法讀取 Steam 錢包資訊",
  "Steam sunucusuna giriş zaman aşımına uğradı": "登入 Steam 伺服器逾時",
  "Rozet sayfası": "徽章頁面",
- "Rozet sayfası oturum açılmadan geldi": "徽章頁面在未登入狀態下載入",
+ "Steam rozet sayfasını giriş yapılmamış gibi gönderdi; kalan kart bilgisi okunamadı.": "Steam 傳回的徽章頁面像是未登入的狀態，無法讀取剩餘卡牌。",
  "Steam web oturumu henüz hazır değil": "Steam 網頁工作階段尚未就緒",
  "Steam istek sınırı aşıldı (429)": "已超過 Steam 請求上限（429）",
  "pazar sayfası HTTP # döndürdü": "市集頁面回傳 HTTP #",

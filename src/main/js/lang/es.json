@@ -1172,7 +1172,7 @@
  "Steam cüzdan bilgisi okunamadı": "No se pudo leer la información del monedero de Steam",
  "Steam sunucusuna giriş zaman aşımına uğradı": "El inicio de sesión en el servidor de Steam agotó el tiempo",
  "Rozet sayfası": "Página de insignias",
- "Rozet sayfası oturum açılmadan geldi": "La página de insignias se cargó sin sesión iniciada",
+ "Steam rozet sayfasını giriş yapılmamış gibi gönderdi; kalan kart bilgisi okunamadı.": "Steam envió la página de insignias como si no hubieras iniciado sesión; no se pudieron leer los cromos pendientes.",
  "Steam web oturumu henüz hazır değil": "La sesión web de Steam aún no está lista",
  "Steam istek sınırı aşıldı (429)": "Se superó el límite de peticiones de Steam (429)",
  "pazar sayfası HTTP # döndürdü": "la página del mercado devolvió HTTP #",
