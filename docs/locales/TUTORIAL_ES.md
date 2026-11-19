@@ -301,7 +301,7 @@ Se pueden conectar varias cuentas a la vez. Cada una mantiene su propio motor, s
 
 ### Conexión
 
-Cuando se cae la conexión, SteamEdge se reconecta solo y las tareas en marcha continúan donde estaban. **Reconectar si se pierde la conexión** (Ajustes > Avanzado y datos) fija el límite: sin límite, 10 intentos, 3 intentos o desactivado. 10 o 3 es el número de intentos rápidos: después no se rinde, sigue intentándolo cada cinco minutos, y al momento cuando el equipo despierta. Si Steam cierra la sesión definitivamente, por ejemplo porque la cuenta inició sesión en otro lugar, los intentos se detienen y un aviso ofrece un botón para reconectar.
+Cuando se cae la conexión, SteamEdge se reconecta solo y las tareas en marcha continúan donde estaban. **Reconectar si se pierde la conexión** (Ajustes > Avanzado y datos) fija el límite: sin límite, 10 intentos, 3 intentos o desactivado. 10 o 3 es el número de intentos rápidos: después no se rinde, sigue intentándolo cada cinco minutos, y al momento cuando el equipo despierta. Si Steam cierra la sesión definitivamente, por ejemplo porque la cuenta inició sesión en otro lugar, los intentos se detienen y un aviso ofrece un botón para reconectar. Si Steam ya no acepta el inicio de sesión guardado (cambio de contraseña, *cerrar sesión en todos los demás dispositivos*, un token revocado), SteamEdge deja de intentarlo con esa cuenta y muestra un botón **Iniciar sesión** en la lista de cuentas y en el aviso. Abre una pequeña ventana de inicio de sesión solo para esa cuenta; después la cuenta se conecta con su cola, sus estadísticas y sus ajustes como estaban, y sus tareas en marcha vuelven a empezar.
 
 ---
 
@@ -468,6 +468,14 @@ Steam envió un motivo de rechazo que la aplicación no conoce por su nombre. Lo
 ### Una cuenta dice que su sesión está cifrada para otro usuario de Windows
 
 La carpeta de ajustes se copió a otro equipo o usuario de Windows con **Cifrar los tokens de inicio de sesión** activado. Las claves de cifrado de Windows no se trasladan, así que los tokens guardados no se pueden abrir. Inicia sesión de nuevo en la cuenta; el token nuevo se guarda para el usuario actual.
+
+### Una cuenta pide volver a iniciar sesión
+
+Steam dejó de aceptar el inicio de sesión guardado de esa cuenta, normalmente tras un cambio de contraseña o tras *cerrar sesión en todos los demás dispositivos*. SteamEdge no sigue intentándolo, porque solo acabaría en el límite de peticiones de Steam. Pulsa **Iniciar sesión** en la lista de cuentas o en el aviso y escanea el código QR o escribe la contraseña de esa misma cuenta. No hace falta quitar la cuenta y volver a añadirla; un código QR escaneado con otra cuenta se rechaza.
+
+### Un juego sin cromos pendientes se queda en la cola del farmeo de cromos
+
+Al pulsar **Iniciar**, SteamEdge vuelve a leer la página de insignias, así que un juego cuyos cromos ya han caído todos queda fuera. Durante el farmeo, un juego que falta en dos lecturas completas seguidas de la página de insignias (unos seis minutos) sale de la cola, y el farmeo de cromos termina como completado cuando no queda ningún juego. Una lectura incompleta no quita nada, así que un corte breve de Steam no recorta la cola.
 
 ### Recoger un registro para informar de un fallo
 

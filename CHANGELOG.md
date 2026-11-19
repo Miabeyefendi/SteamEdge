@@ -7,6 +7,30 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.3.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.7)
+
+An account whose saved login Steam stopped taking can be signed in again on its own, and a game with no cards left no longer stays in the card farming queue.
+
+### Fixed
+
+- **A game with no cards left was farmed for good.** When the badge page stopped listing a game without writing "No card drops remaining" under it, the farm kept playing it while Card Farming showed it with no cards. A game missing from two complete reads of the badge page in a row (about six minutes) now leaves the queue, and card farming ends as finished when none is left. A read that came back incomplete removes nothing.
+- **Start used the list the page last read, which could be hours old.** The badge page is read again first, so a game whose cards have all dropped is left out; with no game left nothing starts and the page says so. Stop pressed during that read wins.
+- **An account whose login Steam refused kept being tried.** Every start, account switch and page tried it three times more, and a loop in the background on top, until Steam answered with its rate limit. A refused login (InvalidPassword, AccessDenied, Revoked, Expired) is now tried once, the account is marked, and nothing tries it again until you sign in.
+- **The Inventory button under Recent drops did nothing.** It looked for a tab name from before 1.4.0.
+
+### Added
+
+- **Sign in again to one account.** The account list and the connection banner show a **Sign in** button for an account Steam no longer accepts. It opens a small window with the QR code and password sign-in for that account only; the main window and the other accounts keep working. Afterwards the account connects with its queue, statistics and settings as they were and the jobs it was running start again, so there is no need to remove it and add it again. A QR code scanned with another account is refused.
+
+### Changed
+
+- **The tutorial's troubleshooting section** has two new entries in every language: an account that asks you to sign in again, and a game with no cards left that stays in the queue.
+
+
+SHA-256 (`SteamEdge-Setup-v4.3.7.exe`): `b704c6cd0b8596d37028b1ab577f43823dd5a9d5096c0c34e38090376aa7161d`
+SHA-256 (`SteamEdge-v4.3.7-win-x64.zip`): `76e5d5af91c7d28c28c327c6b8efb833b70f1cfcb9fa8e2302af685ebe1859cb`
+SHA-256 (`SteamEdge-v4.3.7-win-x64.rar`): `e8b8ac204426d669a68a3e34d14163de9b1f711a93e191767a66552077b2068a`
+
 ## [4.3.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.6)
 
 The documents and screenshots catch up with the app, and the Start button of the overview is readable in VantaWhite again.

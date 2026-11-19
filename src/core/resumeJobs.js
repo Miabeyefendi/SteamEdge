@@ -256,6 +256,8 @@ function createStore(deps) {
     peek(id) { return pending[id] || null; },
     take(id) { const e = pending[id] || null; delete pending[id]; return e; },
     forget(id) { delete pending[id]; },
+    // An account that had to stop its jobs without the app ending (Steam refused its login): they wait here for its next connection, as after a restart
+    keep(id, entry) { if (id && entry) pending[id] = entry; },
     pendingIds() { return Object.keys(pending); },
     // live: id -> entry of the jobs that are running now. What an account wrote down earlier and has not started again yet stays in the file
     // (it may not have connected yet), unless the account is running something now. Returns true when the file was written.

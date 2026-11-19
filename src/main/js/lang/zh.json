@@ -827,7 +827,7 @@
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).": "Steam 連線中斷。# 秒後重試（第 # 次，共 # 次）。",
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).": "Steam 連線中斷。# 秒後重試（第 # 次）。",
  "Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.": "此帳號已在其他工作階段登入，SteamEdge 不會重新連線。",
- "Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.": "Steam 工作階段已失效，你需要重新新增帳號。",
+ "Steam bu hesabın kayıtlı oturumunu artık kabul etmiyor. Yeniden giriş yap.": "Steam 已不再接受此帳號儲存的工作階段，請重新登入。",
  "Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.": "嘗試 # 次仍無法連線 Steam，已停止重新連線。",
  "Steam bağlantısı koptu; yeniden bağlanma kapalı.": "Steam 連線中斷；重新連線已關閉。",
  "Steam bağlantısı geri geldi, # oyun yeniden açıldı.": "Steam 連線已恢復，重新開啟了 # 款遊戲。",
@@ -1522,5 +1522,14 @@
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "此發佈沒有更新檔，可從發佈頁面下載。",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "無法寫入應用程式資料夾，請從發佈頁面下載。",
  "Güncelleme paketi beklenen yapıda değil.": "更新套件的結構不符預期。",
- "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge 即將關閉，安裝程式將開啟。"
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge 即將關閉，安裝程式將開啟。",
+ "Oturum kapandı": "已登出",
+ "Giriş penceresi açılamadı.": "無法開啟登入視窗。",
+ "Oturum yenilendi, hesap bağlandı.": "已重新登入，帳號已連線。",
+ "Oturum kapandı, yeniden giriş yap.": "已登出，請重新登入。",
+ "Kartı kalan oyun yok.": "沒有仍有卡牌可掉落的遊戲。",
+ "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "此帳號的 Steam 工作階段已結束，請重新登入。",
+ "Yeniden giriş": "重新登入",
+ "Oturum yenilendi, hesap bağlanıyor.": "已重新登入，正在連線帳號。",
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "此登入屬於另一個帳號。請用要求重新登入的帳號登入。"
 }

@@ -301,7 +301,7 @@ Aynı anda birden çok hesap bağlanabilir. Her biri kendi motorunu, kendi kuyru
 
 ### Bağlantı
 
-Bağlantı koptuğunda SteamEdge kendiliğinden yeniden bağlanır, çalışan işler kaldığı yerden sürer. **Bağlantı koparsa yeniden bağlan** (Ayarlar > Gelişmiş & Veri) sınırı belirler: sınırsız, 10 deneme, 3 deneme ya da kapalı. 10 ya da 3 deneme hızlı denemelerin sayısıdır: onlardan sonra vazgeçmez, 5 dakikada bir denemeye devam eder; bilgisayar uyanınca hemen dener. Steam oturumu kalıcı olarak kapatırsa (ör. hesap başka yerde açıldıysa) deneme durur ve şerit bir Yeniden bağlan düğmesi sunar.
+Bağlantı koptuğunda SteamEdge kendiliğinden yeniden bağlanır, çalışan işler kaldığı yerden sürer. **Bağlantı koparsa yeniden bağlan** (Ayarlar > Gelişmiş & Veri) sınırı belirler: sınırsız, 10 deneme, 3 deneme ya da kapalı. 10 ya da 3 deneme hızlı denemelerin sayısıdır: onlardan sonra vazgeçmez, 5 dakikada bir denemeye devam eder; bilgisayar uyanınca hemen dener. Steam oturumu kalıcı olarak kapatırsa (ör. hesap başka yerde açıldıysa) deneme durur ve şerit bir Yeniden bağlan düğmesi sunar. Steam kayıtlı girişi artık kabul etmiyorsa (parola değişti, *diğer tüm cihazlardan çıkış* yapıldı ya da anahtar iptal edildi), SteamEdge o hesabı denemeyi bırakır ve hesap listesinde ve şeritte bir **Giriş yap** düğmesi gösterir. Düğme yalnızca o hesap için küçük bir giriş penceresi açar; girişten sonra hesap kuyruğu, istatistikleri ve ayarlarıyla bağlanır, çalışan işleri yeniden başlar.
 
 ---
 
@@ -468,6 +468,14 @@ Steam, uygulamanın adıyla tanımadığı bir ret sebebi gönderdi. Yaygın seb
 ### Bir hesap, oturumunun başka bir Windows kullanıcısı için şifrelendiğini söylüyor
 
 Ayar klasörü **Giriş anahtarlarını şifrele** açıkken başka bir bilgisayara ya da Windows kullanıcısına kopyalanmış. Windows şifreleme anahtarları taşınmaz, bu yüzden kayıtlı anahtarlar açılamaz. Hesaba yeniden giriş yap; yeni anahtar mevcut kullanıcı için saklanır.
+
+### Bir hesap yeniden giriş istiyor
+
+Steam o hesabın kayıtlı girişini artık kabul etmiyor; genellikle parola değişince ya da *diğer tüm cihazlardan çıkış* yapılınca olur. SteamEdge hesabı denemeye devam etmez, çünkü bu yalnızca Steam'in hız sınırına takılır. Hesap listesinde ya da şeritte **Giriş yap** düğmesine bas, aynı hesapla QR kodunu okut ya da parolasını yaz. Hesabı silip yeniden eklemen gerekmez; başka bir hesapla okutulan QR kodu reddedilir.
+
+### Kartları biten oyun kart düşürme kuyruğunda kalıyor
+
+**Başlat** düğmesine bastığında SteamEdge rozet sayfasını yeniden okur, böylece kartları bitmiş oyun kuyruğa girmez. Kart düşürürken, rozet sayfasının art arda iki eksiksiz okumasında (yaklaşık altı dakika) görünmeyen oyun kuyruktan çıkar; hiç oyun kalmayınca kart düşürme bitti diye durur. Eksik gelen bir okuma hiçbir oyunu çıkarmaz, yani Steam'deki kısa bir aksaklık kuyruğu kesmez.
 
 ### Hata bildirimi için kayıt toplama
 

@@ -827,7 +827,7 @@
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme # / #).": "Steam-Verbindung unterbrochen. Neuer Versuch in # s (Versuch # von #).",
  "Steam bağlantısı koptu. # sn sonra yeniden denenecek (deneme #).": "Steam-Verbindung unterbrochen. Neuer Versuch in # s (Versuch #).",
  "Bu hesap başka bir oturumda açıldı; SteamEdge yeniden bağlanmıyor.": "Dieses Konto wurde in einer anderen Sitzung angemeldet; SteamEdge verbindet sich nicht neu.",
- "Steam oturumu artık geçersiz; hesabı yeniden eklemen gerekiyor.": "Die Steam-Sitzung ist nicht mehr gültig; du musst das Konto erneut hinzufügen.",
+ "Steam bu hesabın kayıtlı oturumunu artık kabul etmiyor. Yeniden giriş yap.": "Steam akzeptiert die gespeicherte Sitzung dieses Kontos nicht mehr. Melde dich erneut an.",
  "Steam bağlantısı # denemede kurulamadı; yeniden bağlanma durdu.": "Nach # Versuchen keine Verbindung zu Steam; die Neuverbindung wurde beendet.",
  "Steam bağlantısı koptu; yeniden bağlanma kapalı.": "Steam-Verbindung unterbrochen; Neuverbinden ist ausgeschaltet.",
  "Steam bağlantısı geri geldi, # oyun yeniden açıldı.": "Steam-Verbindung wiederhergestellt, # Spiel erneut geöffnet.|Steam-Verbindung wiederhergestellt, # Spiele erneut geöffnet.",
@@ -1522,5 +1522,14 @@
  "Bu yayında güncelleme dosyası yok, yayın sayfasından indirebilirsin.": "Diese Veröffentlichung hat keine Update-Datei, du kannst sie von der Release-Seite laden.",
  "Uygulama klasörüne yazılamıyor, yayın sayfasından indir.": "In den App-Ordner kann nicht geschrieben werden, lade von der Release-Seite.",
  "Güncelleme paketi beklenen yapıda değil.": "Das Update-Paket hat nicht die erwartete Struktur.",
- "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge wird beendet, das Setup öffnet sich."
+ "SteamEdge kapanıyor, Setup açılacak.": "SteamEdge wird beendet, das Setup öffnet sich.",
+ "Oturum kapandı": "Abgemeldet",
+ "Giriş penceresi açılamadı.": "Das Anmeldefenster konnte nicht geöffnet werden.",
+ "Oturum yenilendi, hesap bağlandı.": "Erneut angemeldet, das Konto ist verbunden.",
+ "Oturum kapandı, yeniden giriş yap.": "Abgemeldet, melde dich erneut an.",
+ "Kartı kalan oyun yok.": "Kein Spiel hat noch Karten übrig.",
+ "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "Die Steam-Sitzung dieses Kontos ist beendet; melde dich erneut an.",
+ "Yeniden giriş": "Erneut anmelden",
+ "Oturum yenilendi, hesap bağlanıyor.": "Erneut angemeldet, das Konto wird verbunden.",
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "Diese Anmeldung gehört zu einem anderen Konto. Melde dich mit dem Konto an, das sie verlangt."
 }

@@ -27,7 +27,7 @@ module.exports = function engine_connection({ SteamUser, SteamEngine }) {
         if (SteamEngine.PERMANENT_DISCONNECT.has(+eresult)) {
           this.gaveUp = true; this.permanentDisconnect = true;
           this._stopProbe();
-          this._reportStatus('abandoned', { permanent: true, eresult: +eresult, cause: String(cause || '') });
+          this._reportStatus('abandoned', { permanent: true, eresult: +eresult, cause: String(cause || ''), tokenInvalid: SteamEngine.TOKEN_INVALID.has(+eresult) });
           return;
         }
         // A drop of a working connection is told once; an attempt that failed while the connection is down only moves on to the next one (it used to say

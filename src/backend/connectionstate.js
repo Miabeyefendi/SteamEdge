@@ -78,7 +78,9 @@ module.exports = function init(ctx) {
       const s2 = accounts.get(steamID);
       if (s2) s2.connectionStatus = { condition: status, ts: Date.now(), ...extra };
       sendRaw('engine:status', { steamID, condition: status, messageText: message, activeIds: steamID === ctx.activeSteamID, limitValue: eng.reconnectLimit, ...extra });
-      if (status === 'abandoned') {
+      // a dead token is not "reconnecting stopped": the account is marked and the page offers a sign-in for it (accounts.js markNeedsLogin)
+      if (status === 'abandoned' && extra.tokenInvalid) ctx.markNeedsLogin(steamID, extra.eresult);
+      else if (status === 'abandoned') {
         accountEvent(steamID, {
           typeName: 'connectionAbandoned', permanent: !!extra.permanent, attemptCount: extra.attemptCount || 0, cause: extra.cause || '',
           feedEntry: { kind: 'error', title: 'Steam Bağlantısı', text: extra.permanent ? 'Steam oturumu kapandı, yeniden bağlanılmıyor.' : 'Yeniden bağlanma denemeleri bitti.', status: 'Hata' },
@@ -88,6 +90,7 @@ module.exports = function init(ctx) {
   }
   // The "Reconnect" button in the interface: restarts the attempts of an engine that gave up.
   ipcMain.handle('engine:reconnect', () => {
+    if (needsLogin(ctx.activeSteamID)) return { ok: false, needsLogin: true, error: 'Bu hesabın Steam oturumu kapandı; yeniden giriş yap.' };
     const s = accounts.get(ctx.activeSteamID);
     if (!s || !s.engine) return { ok: false, error: 'Bağlı değil.' };
     if (s.ready) return { ok: true, alreadyConnected: true };
@@ -96,11 +99,20 @@ module.exports = function init(ctx) {
   });
   // The connection of the account on screen (Settings > Account status). Not a guess, the last thing the engine reported.
   ipcMain.handle('engine:connectionStatus', () => {
+    if (ctx.activeSteamID && needsLogin(ctx.activeSteamID)) return { condition: 'abandoned', permanent: true, tokenInvalid: true, needsLogin: true };
     const s = ctx.activeSteamID ? accounts.get(ctx.activeSteamID) : null;
     if (!s || !s.engine) return { condition: 'none' };
     if (s.ready) return { condition: 'connected', ts: s.lastConnection || null, playingBlocked: !!s.engine.playingBlocked };
     return s.connectionStatus || { condition: 'connecting' };
   });
+
+  // The account waits for a sign-in (its slot knows it once it was tried; after a restart only accounts.json does)
+  function needsLogin(steamID) {
+    const s = accounts.get(steamID);
+    if (s && s.needsLogin) return true;
+    const entry = ctx.loadAccounts().find((a) => a.steamID === steamID);
+    return !!(entry && (entry.needsLogin || entry.locked));
+  }
 
   return { bindConnectionState };
 };

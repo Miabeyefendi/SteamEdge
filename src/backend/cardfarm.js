@@ -99,6 +99,46 @@ module.exports = function init(ctx) {
     if (s.farm.running) startCardWatcher(steamID, games || []);
     return true;
   }
+  // Playtime is not on the badge page; it is carried over from the last known list and the queue (fast mode needs it).
+  function withPlaytimes(steamID, gameList, queue) {
+    const playtimes = new Map();
+    const v = ctx.accountData(steamID);
+    ((v.lists && v.lists.drop) || []).forEach((g) => playtimes.set(g.appid, g.playtimeMin || 0));
+    (queue || []).forEach((g) => playtimes.set(g.appid, g.playtimeMin || playtimes.get(g.appid) || 0));
+    return gameList.map((g) => ({ ...g, playtimeMin: playtimes.get(g.appid) || 0 }));
+  }
+  // Start on the Card Farming page or the overview. The page sends the list it last read, which can be hours old: a game whose cards had all dropped
+  // in the meantime went into the queue and was played for nothing (4.3.6). The badge page is read again first; a game it no longer lists (a complete
+  // read) or marks as done stays out, and with no game left nothing starts. When the read fails the page's list is used, as before.
+  // seq: a Stop pressed while the page is read wins (startSeq goes up).
+  async function startCardFarmFromPage(steamID, mode, games, durationMs) {
+    const s = slotOf(steamID);
+    const seq = s.farmStartSeq = (s.farmStartSeq || 0) + 1;
+    let queue = (games || []).slice();
+    if (queue.length && s.engine && s.ready) {
+      try {
+        const { gameEntries, finishedOnes, complete } = await s.engine.getDropGames(true);
+        const fresh = new Map(gameEntries.map((g) => [g.appid, g]));
+        const before = queue.length;
+        queue = queue.filter((g) => fresh.has(g.appid) || (!complete && !finishedOnes.has(g.appid)))
+          .map((g) => (fresh.has(g.appid) ? { ...g, remaining: fresh.get(g.appid).remaining, name: fresh.get(g.appid).name || g.name } : g));
+        if (queue.length < before) log('info', '[' + accountName(steamID) + '] farm start: ' + (before - queue.length) + ' game(s) without cards left out');
+        const current = withPlaytimes(steamID, gameEntries, games);
+        if (complete) storeLists('drop', current, steamID);
+        if (steamID === ctx.activeSteamID) sendRaw('farm:list', { steamID, games: current, sessionDropped: 0, droppedItems: 0 });
+      } catch (e) {
+        log('warn', '[' + accountName(steamID) + '] farm start: the badge page could not be read, the list of the page is used: ' + (e && e.message));
+      }
+    }
+    if (s.farmStartSeq !== seq) return false;            // stopped, or started again, while the page was read
+    if (!queue.length) {
+      log('info', '[' + accountName(steamID) + '] farm start: no game with cards left');
+      accountBroadcast(steamID)('farm:tick', { running: false, cause: 'noCards', wasRunning: false });
+      accountEvent(steamID, { typeName: 'cardStopped', feedEntry: { kind: 'card', title: 'Kart Düşürme', text: 'Kartı kalan oyun yok.', status: 'Uyarı' } });
+      return false;
+    }
+    return startCardFarm(steamID, mode, queue, durationMs);
+  }
   function startCardWatcher(steamID, gameList) {
     const s = accounts.get(steamID);
     if (!s) return;
@@ -133,14 +173,9 @@ module.exports = function init(ctx) {
     if (trace.occupiedFlag) return;
     trace.occupiedFlag = true;
     try {
-      const { gameEntries: gameList, finishedOnes: finished } = await s.engine.getDropGames(true);
+      const { gameEntries: gameList, finishedOnes: finished, complete } = await s.engine.getDropGames(true);
       trace.failure = 0;
-      // Playtime is not on the badge page; it is carried over from the last known list (fast mode needs it).
-      const playtimes = new Map();
-      const v = ctx.accountData(steamID);
-      ((v.lists && v.lists.drop) || []).forEach((g) => playtimes.set(g.appid, g.playtimeMin || 0));
-      (s.farm.games || []).forEach((g) => playtimes.set(g.appid, g.playtimeMin || playtimes.get(g.appid) || 0));
-      const current = gameList.map((g) => ({ ...g, playtimeMin: playtimes.get(g.appid) || 0 }));
+      const current = withPlaytimes(steamID, gameList, s.farm.games);
       const newItem = new Map(current.map((g) => [g.appid, g]));
       let droppedNow = 0;
       trace.leftover.forEach((earlier, appid) => {
@@ -164,7 +199,7 @@ module.exports = function init(ctx) {
       }
       storeLists('drop', current, steamID);
       if (steamID === ctx.activeSteamID) sendRaw('farm:list', { steamID, games: current, sessionDropped: trace.sessionDropped, droppedItems: droppedNow });
-      s.farm.updateGames(current, finished);
+      s.farm.updateGames(current, finished, { complete });
     } catch (e) {
       trace.failure++;
       log('warn', '[' + accountName(steamID) + '] badge watcher: ' + (e && e.message));
@@ -244,5 +279,5 @@ module.exports = function init(ctx) {
     });
   }
 
-  return { delayFarm, resumeFarm, startCardFarm, stopCardWatcher };
+  return { delayFarm, resumeFarm, startCardFarm, startCardFarmFromPage, stopCardWatcher };
 };

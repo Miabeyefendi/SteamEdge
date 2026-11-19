@@ -47,6 +47,7 @@ class FarmController {
     this.timerEnd = 0;
     this.generation = 0;                // every start() is a new generation: an old loop must not interfere with the restart
     this._singleSent = null;            // the appid of the one game that is open and was already sent (see _fastRotate and _runRoundRobin)
+    this._missing = new Map();          // appid -> complete badge reads in a row without the game (updateGames)
   }
 
   // opts.loop === false → runs a single round and stops by itself when the queue ends (Hour Booster with "Repeat
@@ -67,6 +68,7 @@ class FarmController {
     this._cleanup();
     this.running = false;
     this._singleSent = null;
+    this._missing = new Map();
     this.generation++;
     this.mode = mode;
     this.opts = { ...(opts || {}) };
@@ -159,19 +161,30 @@ class FarmController {
   }
 
   // The current list from the badge watcher. `finished`: games for which Steam CONFIRMS no cards are left
-  // ("No card drops remaining" on the badge row). A game that is missing from the list but not marked
-  // as finished is not removed: the scrape may have been incomplete.
-  updateGames(current, finished) {
+  // ("No card drops remaining" on the badge row). A game that is missing from the list is taken out only when the read was complete (opts.complete:
+  // every page, as the owner sees it) and it was missing from MISSING_READS such reads in a row. Before 4.3.7 it was never taken out: a game whose
+  // cards had all dropped, with no "No card drops remaining" line, was played for good while the page said it had no cards. One read is not
+  // enough, as a page can come back short now and then.
+  updateGames(current, finished, opts) {
     if (!this.running) return { leftover: 0, removedOne: [] };
     const remainders = new Map((current || []).map((g) => [g.appid, g]));
     const isDone = finished instanceof Set ? finished : new Set(finished || []);
+    const complete = !!(opts && opts.complete);
     const removed = [];
     const oldActive = this.currentActiveAppid;
     const oldIndex = this.index;
     const newItem = [];
     this.games.forEach((g, i) => {
       const k = remainders.get(g.appid);
-      const hasFinished = isDone.has(g.appid) || (k && k.remaining <= 0);
+      let gone = false;
+      if (k || isDone.has(g.appid)) this._missing.delete(g.appid);
+      else if (complete) {
+        const n = (this._missing.get(g.appid) || 0) + 1;
+        this._missing.set(g.appid, n);
+        gone = n >= FarmController.MISSING_READS;
+        if (gone) this._ev('farm.gone', 'app=' + g.appid + ' reads=' + n);
+      }
+      const hasFinished = gone || isDone.has(g.appid) || (k && k.remaining <= 0);
       if (hasFinished) { removed.push({ ...g, orderPos: i }); return; }
       if (k) { g.remaining = k.remaining; if (k.name) g.name = k.name; }
       newItem.push(g);
@@ -363,5 +376,8 @@ class FarmController {
     return a;
   }
 }
+
+// Complete badge reads in a row that must miss a queued game before it counts as finished (updateGames); at 3 minutes a read, six minutes
+FarmController.MISSING_READS = 2;
 
 module.exports = FarmController;
