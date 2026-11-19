@@ -106,10 +106,10 @@ To update, press **Update Now** in the update window: the app downloads the new 
 The `.rar` and the `.zip` hold the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`). The Setup is built from the same folder with Inno Setup (`build/setup.iss`). Nothing in them is minified beyond what Electron itself ships.
 
 SHA-256 of `SteamEdge-Setup-v4.4.0.exe`:
-`334fb6da89a07b60ae89bc41f0a5d5df55812b81e35c3fc4a7609f83f6e3a429`
+`1519dbc9d822ff05823b50027e943274251658d49db3485e717021f47d94bf25`
 
 SHA-256 of `SteamEdge-v4.4.0-win-x64.zip`:
-`939e232eafa8969d974778e7b1ac6a7d5ed113f5ea20544b923671846523256c`
+`fd60c7adcd61e37fc1c86bbecb4c48bcf79f1a9b8d8e075e3d8476c80650ca67`
 
 SHA-256 of `SteamEdge-v4.4.0-win-x64.rar`:
 `385f2cccbd0c5dc996cbaac2e54957d47dda710cee898470ac030ca25c5ebe28`

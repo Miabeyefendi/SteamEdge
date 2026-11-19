@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const { fitLicense } = require('./licenseFit');
 
 const ROOT = path.join(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
@@ -51,8 +52,9 @@ function makeSetup() {
   // The license page shows the author notice (NOTICE) first, then the license text (LICENSE)
   const licenseText = path.join(OUT, 'setup-license.txt');
   const bar = '='.repeat(72) + '\r\n';
-  const read = (f) => fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/\r?\n/g, '\r\n');
-  fs.writeFileSync(licenseText, read('NOTICE') + '\r\n' + bar + 'LICENSE\r\n' + bar + '\r\n' + read('LICENSE'));
+  // fitted to the box of the page (build/licenseFit.js): the files are written in 80 columns and the box is narrower
+  const read = (f) => fitLicense(fs.readFileSync(path.join(ROOT, f), 'utf8'));
+  fs.writeFileSync(licenseText, read('NOTICE') + '\r\n' + fitLicense(bar) + '\r\nLICENSE\r\n' + fitLicense(bar) + '\r\n\r\n' + read('LICENSE'));
   try {
     execFileSync(iscc, ['/Q', '/DAppVersion=' + pkg.version, '/DSourceDir=' + SOURCE, '/DOutDir=' + OUT, '/DLicenseText=' + licenseText, path.join(__dirname, 'setup.iss')], { stdio: 'inherit' });
   } finally { fs.rmSync(licenseText, { force: true }); }
