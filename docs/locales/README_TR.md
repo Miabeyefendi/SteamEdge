@@ -90,6 +90,9 @@
 | Disk alanı | Çıkarılmış ya da kurulmuş hâlde yaklaşık 300 MB |
 | Steam istemcisi | Gerekmez, kullanılmaz |
 
+> [!WARNING]
+> **4.4.0 öncesi sürümlerin desteği sona erdi.** Artık bakımı yapılmıyor ve düzeltme gelmiyor. 1.9.4'ten beri özel Steam profil adresi olan hesaplarda kart listesi okunamıyordu (Steam bu hesapların sayfalarını artık yönlendiriyor), bu yüzden kart düşürme kuyruğunu güncelleyemiyordu. 4.4.0 ya da daha yenisine geç: uygulamada **Şimdi Güncelle**'ye bas ya da [yayınlar sayfasından](https://github.com/Miabeyefendi/SteamEdge/releases/latest) indir.
+
 ### Kurulum
 
 İki yol, aynı program:

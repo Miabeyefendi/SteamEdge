@@ -90,6 +90,9 @@
 | Espacio en disco | Unos 300 MB extraído o instalado |
 | Cliente de Steam | No hace falta, y no se usa |
 
+> [!WARNING]
+> **Las versiones anteriores a la 4.4.0 están descontinuadas.** Ya no se mantienen ni se corrigen. Desde la 1.9.4 no se podía leer la lista de cromos de las cuentas con dirección de perfil de Steam personalizada (Steam ahora redirige sus páginas), así que el farmeo de cromos dejaba de actualizar su cola. Actualiza a la 4.4.0 o posterior: pulsa **Actualizar ahora** en la aplicación o descárgala desde la [página de versiones](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+
 ### Instalar
 
 Dos formas, el mismo programa:
