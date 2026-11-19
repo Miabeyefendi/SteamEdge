@@ -36,12 +36,14 @@ module.exports = function engine_store({ SteamEngine }) {
       if (!this.cookies) throw new Error(translation.t('web oturumu yok'));
       const sidCookie = this.cookies.find((c) => c.startsWith('sessionid='));
       if (!sidCookie) throw new Error(translation.t('Steam web oturumu henüz hazır değil'));
-      const r = await this._fetch(`https://steamcommunity.com/profiles/${this.steamID}/ajaxunpackbooster/`, {
+      // the account's own address (see _profileBase): a POST sent to /profiles/<id>/ is redirected for an account with a custom address and loses its cookies
+      const base = await this._profileBase();
+      const r = await this._fetch(`${base}/ajaxunpackbooster/`, {
         method: 'POST',
         headers: {
           Cookie: this.cookieHeader(),
           'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-          Referer: `https://steamcommunity.com/profiles/${this.steamID}/inventory`,
+          Referer: `${base}/inventory`,
           Origin: 'https://steamcommunity.com',
           'User-Agent': SteamEngine.UA,
         },

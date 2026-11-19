@@ -90,26 +90,29 @@
 | Disk space | About 300 MB extracted |
 | Steam client | Not required, and not used |
 
+> [!WARNING]
+> **Versions before 4.4.0 are discontinued.** They are no longer maintained or fixed. Since 1.9.4 the card list could not be read for accounts that have a custom Steam profile address (Steam now redirects their pages), so card farming stopped updating its queue. Update to 4.4.0 or newer: press **Update Now** in the app, or download it from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest).
+
 ### Install
 
 Two ways, same program:
 
-**Installed.** Download `SteamEdge-Setup-v4.3.7.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
+**Installed.** Download `SteamEdge-Setup-v4.4.0.exe` from the [releases page](https://github.com/Miabeyefendi/SteamEdge/releases/latest). The Setup shows the license, asks where to install (Program Files by default, any folder works) and which language SteamEdge opens in. Your settings and accounts live in the `settings` and `cache` folders next to the exe, exactly like the portable copy, so you can move them between the two by copying those folders. Updating never touches them.
 
-**Portable.** Download `SteamEdge-v4.3.7-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
+**Portable.** Download `SteamEdge-v4.4.0-win-x64.rar` (or the `.zip`), extract it anywhere you like and run `SteamEdge.exe`. Nothing is installed and nothing is written outside that folder.
 
 To update, press **Update Now** in the update window: the app downloads the new version from this project's GitHub release, checks its SHA-256 and installs it (an installed copy runs the new Setup, a portable copy has its files replaced in place; settings are kept). Copies older than 3.0.0 cannot update themselves: extract the new version into an empty, new folder and copy the `settings/` folder from the old one into it.
 
 The `.rar` and the `.zip` hold the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`). The Setup is built from the same folder with Inno Setup (`build/setup.iss`). Nothing in them is minified beyond what Electron itself ships.
 
-SHA-256 of `SteamEdge-Setup-v4.3.7.exe`:
-`7b47a52ad7f677d6ce8ef688fbe14002333366195fc39b6771df65f74b0203fe`
+SHA-256 of `SteamEdge-Setup-v4.4.0.exe`:
+`334fb6da89a07b60ae89bc41f0a5d5df55812b81e35c3fc4a7609f83f6e3a429`
 
-SHA-256 of `SteamEdge-v4.3.7-win-x64.zip`:
-`4ac7b2edcae33df1b9b0762a3fcc9c6659250f49d72e8f0068f35a78a01a12f5`
+SHA-256 of `SteamEdge-v4.4.0-win-x64.zip`:
+`939e232eafa8969d974778e7b1ac6a7d5ed113f5ea20544b923671846523256c`
 
-SHA-256 of `SteamEdge-v4.3.7-win-x64.rar`:
-`2bbfd37fe1966015fc6fd24d7838d7f40729c1ca7e4bff9229ee15c795acfa69`
+SHA-256 of `SteamEdge-v4.4.0-win-x64.rar`:
+`385f2cccbd0c5dc996cbaac2e54957d47dda710cee898470ac030ca25c5ebe28`
 
 Check one in PowerShell with `Get-FileHash .\<file name>`.
 

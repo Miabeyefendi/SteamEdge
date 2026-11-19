@@ -1172,7 +1172,7 @@
  "Steam cüzdan bilgisi okunamadı": "Steam-Wallet-Informationen konnten nicht gelesen werden",
  "Steam sunucusuna giriş zaman aşımına uğradı": "Anmeldung am Steam-Server hat zu lange gedauert",
  "Rozet sayfası": "Abzeichenseite",
- "Rozet sayfası oturum açılmadan geldi": "Die Abzeichenseite wurde ohne Anmeldung geladen",
+ "Steam rozet sayfasını giriş yapılmamış gibi gönderdi; kalan kart bilgisi okunamadı.": "Steam hat die Abzeichenseite so gesendet, als wärst du nicht angemeldet; die verbleibenden Karten konnten nicht gelesen werden.",
  "Steam web oturumu henüz hazır değil": "Die Steam-Websitzung ist noch nicht bereit",
  "Steam istek sınırı aşıldı (429)": "Steam-Anfragelimit überschritten (429)",
  "pazar sayfası HTTP # döndürdü": "die Marktseite hat HTTP # zurückgegeben",

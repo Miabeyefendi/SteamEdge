@@ -7,6 +7,30 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.4.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.0)
+
+Card farming reads the card list again for accounts with a custom Steam profile address, and versions before 4.4.0 are discontinued.
+
+### Fixed
+
+- **Card farming could not read the card list.** Steam now redirects the pages of an account with a custom profile address (`/profiles/<id>/...` to `/id/<name>/...`), and the network layer the app has used since 1.9.4 drops the sign-in cookie when it follows that redirect. The badge page came back as if nobody was signed in, the read was refused ("Rozet sayfası oturum açılmadan geldi" in the old message), the queue never updated, a game whose cards had all dropped was farmed for good and Card Farming kept showing dropped cards. The pages of the account are now asked for at its own address, so there is no redirect. An account without a custom address is unchanged.
+- **The custom address was remembered even when it could not be read.** One failed read (no network) hid it for the whole session. It is asked for again now.
+- **Opening a booster pack posted to the redirected address too.** It uses the account's own address as well. (Not tried on a real pack; the address is the one Steam's own page uses.)
+- **The refusal message made no sense.** It says what happened now: Steam sent the badge page as if you were not signed in and the cards left could not be read.
+
+### Added
+
+- **`events.log` records the badge read.** One line when the result changes (games with cards left, finished games, pages, whether it was complete) and one when Steam refuses the page.
+
+### Changed
+
+- **Versions before 4.4.0 are discontinued.** They are no longer maintained or fixed. Since 1.9.4 the card list could not be read for accounts with a custom profile address; update with **Update Now** or from the releases page.
+
+
+SHA-256 (`SteamEdge-Setup-v4.4.0.exe`): `334fb6da89a07b60ae89bc41f0a5d5df55812b81e35c3fc4a7609f83f6e3a429`
+SHA-256 (`SteamEdge-v4.4.0-win-x64.zip`): `939e232eafa8969d974778e7b1ac6a7d5ed113f5ea20544b923671846523256c`
+SHA-256 (`SteamEdge-v4.4.0-win-x64.rar`): `385f2cccbd0c5dc996cbaac2e54957d47dda710cee898470ac030ca25c5ebe28`
+
 ## [4.3.7](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.7)
 
 An account whose saved login Steam stopped taking can be signed in again on its own, and a game with no cards left no longer stays in the card farming queue.

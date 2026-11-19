@@ -1172,7 +1172,7 @@
  "Steam cüzdan bilgisi okunamadı": "Не удалось прочитать данные кошелька Steam",
  "Steam sunucusuna giriş zaman aşımına uğradı": "Время входа на сервер Steam истекло",
  "Rozet sayfası": "Страница значков",
- "Rozet sayfası oturum açılmadan geldi": "Страница значков загрузилась без входа в аккаунт",
+ "Steam rozet sayfasını giriş yapılmamış gibi gönderdi; kalan kart bilgisi okunamadı.": "Steam отправил страницу значков так, будто вы не вошли в аккаунт; оставшиеся карточки прочитать не удалось.",
  "Steam web oturumu henüz hazır değil": "Веб-сессия Steam ещё не готова",
  "Steam istek sınırı aşıldı (429)": "Превышен лимит запросов Steam (429)",
  "pazar sayfası HTTP # döndürdü": "страница площадки вернула HTTP #",
