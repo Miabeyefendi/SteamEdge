@@ -103,13 +103,13 @@ To update, press **Update Now** in the update window: the app downloads the new 
 The `.rar` and the `.zip` hold the portable Windows x64 build of this repository's source, produced by `npm run build` (`@electron/packager`, app code in `resources/app.asar`). The Setup is built from the same folder with Inno Setup (`build/setup.iss`). Nothing in them is minified beyond what Electron itself ships.
 
 SHA-256 of `SteamEdge-Setup-v4.3.7.exe`:
-`b704c6cd0b8596d37028b1ab577f43823dd5a9d5096c0c34e38090376aa7161d`
+`7b47a52ad7f677d6ce8ef688fbe14002333366195fc39b6771df65f74b0203fe`
 
 SHA-256 of `SteamEdge-v4.3.7-win-x64.zip`:
-`76e5d5af91c7d28c28c327c6b8efb833b70f1cfcb9fa8e2302af685ebe1859cb`
+`4ac7b2edcae33df1b9b0762a3fcc9c6659250f49d72e8f0068f35a78a01a12f5`
 
 SHA-256 of `SteamEdge-v4.3.7-win-x64.rar`:
-`e8b8ac204426d669a68a3e34d14163de9b1f711a93e191767a66552077b2068a`
+`2bbfd37fe1966015fc6fd24d7838d7f40729c1ca7e4bff9229ee15c795acfa69`
 
 Check one in PowerShell with `Get-FileHash .\<file name>`.
 

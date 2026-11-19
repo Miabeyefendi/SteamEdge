@@ -142,8 +142,8 @@
       const n = Math.max(1, activeSlots.size);
       const addBoxW = addBox.parentNode ? 96 : 0;
       const w = 360 + Math.min(n, 3) * 352 + addBoxW + 64;
-      // The window opens at the default width of 1716 - it only grows beyond that when many accounts are added.
-      A.win.setWidth(Math.max(1716, w));
+      // The window keeps the default width of 910 - it only grows beyond that when more account boxes are added.
+      A.win.setWidth(Math.max(910, w));
     }
 
     function revealMultiAccount() {

@@ -355,6 +355,9 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
     width:100%!important;max-height:none!important;flex:0 0 auto!important;overflow-y:visible!important;
   }
   .e-header > div{min-width:0}
+  /* ...but the left group (logo, version, visibility) keeps its size: the search gives way first. With both shrinking the visibility button
+     slid under the search box at the default 910 px */
+  .e-header > div:first-child{flex-shrink:0}
 }
 /* The top bar never wraps (the search is what gives way): below these widths the version badge, then the search itself, make room */
 @media (max-width: 760px){ #tbVersion{display:none} }

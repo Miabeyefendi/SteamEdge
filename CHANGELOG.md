@@ -17,6 +17,8 @@ An account whose saved login Steam stopped taking can be signed in again on its 
 - **Start used the list the page last read, which could be hours old.** The badge page is read again first, so a game whose cards have all dropped is left out; with no game left nothing starts and the page says so. Stop pressed during that read wins.
 - **An account whose login Steam refused kept being tried.** Every start, account switch and page tried it three times more, and a loop in the background on top, until Steam answered with its rate limit. A refused login (InvalidPassword, AccessDenied, Revoked, Expired) is now tried once, the account is marked, and nothing tries it again until you sign in.
 - **The Inventory button under Recent drops did nothing.** It looked for a tab name from before 1.4.0.
+- **The taskbar and the notifications could show the Electron logo.** A run from source used the same app id as the installed app, and Windows tied that id to the shortcut of the development Electron. A run from source now has an id of its own.
+- **At a width of about 900 px** the visibility button slid under the search box, and the figures of the Active task panel were drawn over the game's title. The search box gives way first now, and the figures move under the title when they do not fit.
 
 ### Added
 
@@ -24,12 +26,13 @@ An account whose saved login Steam stopped taking can be signed in again on its 
 
 ### Changed
 
+- **A first start opens a 910 x 1010 window** (it was 1716 x 1144), centred and smaller on a smaller screen. Resize it as you like: the size you leave is kept, as before.
 - **The tutorial's troubleshooting section** has two new entries in every language: an account that asks you to sign in again, and a game with no cards left that stays in the queue.
 
 
-SHA-256 (`SteamEdge-Setup-v4.3.7.exe`): `b704c6cd0b8596d37028b1ab577f43823dd5a9d5096c0c34e38090376aa7161d`
-SHA-256 (`SteamEdge-v4.3.7-win-x64.zip`): `76e5d5af91c7d28c28c327c6b8efb833b70f1cfcb9fa8e2302af685ebe1859cb`
-SHA-256 (`SteamEdge-v4.3.7-win-x64.rar`): `e8b8ac204426d669a68a3e34d14163de9b1f711a93e191767a66552077b2068a`
+SHA-256 (`SteamEdge-Setup-v4.3.7.exe`): `7b47a52ad7f677d6ce8ef688fbe14002333366195fc39b6771df65f74b0203fe`
+SHA-256 (`SteamEdge-v4.3.7-win-x64.zip`): `4ac7b2edcae33df1b9b0762a3fcc9c6659250f49d72e8f0068f35a78a01a12f5`
+SHA-256 (`SteamEdge-v4.3.7-win-x64.rar`): `2bbfd37fe1966015fc6fd24d7838d7f40729c1ca7e4bff9229ee15c795acfa69`
 
 ## [4.3.6](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.3.6)
 
