@@ -46,6 +46,14 @@ const { createFakeSteam, loadEngine } = require('./fake-steam-user.js');
   await eng.getDropGames(true);
   check('the name is escaped in the address', eng.urls.some((u) => u.startsWith('https://steamcommunity.com/id/a%20b%2Fc/badges/')), JSON.stringify(eng.urls));
 
+  // opening a booster pack posts to the account's own address too
+  eng = make('<profile><customURL>my_name</customURL></profile>');
+  const posted = [];
+  eng.cookies = ['steamLoginSecure=x', 'sessionid=abc'];
+  eng._fetch = async (url, o) => { posted.push([url, o.headers.Referer]); return { ok: true, json: async () => ({ success: 1, rgItems: [] }) }; };
+  await eng.unpackBooster('1', 440);
+  check('a booster pack is opened at /id/<name>/ajaxunpackbooster/', posted[0] && posted[0][0] === 'https://steamcommunity.com/id/my_name/ajaxunpackbooster/' && posted[0][1] === 'https://steamcommunity.com/id/my_name/inventory', JSON.stringify(posted));
+
   // the message of the refused page says what happened
   eng = make('<profile></profile>');
   eng._requestItem = async () => ({ text: async () => 'g_steamID = false; <div class="badge_row"></div>' });
