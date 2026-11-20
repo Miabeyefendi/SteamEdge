@@ -50,6 +50,9 @@
 .e-nav-item{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:var(--e-radius);cursor:pointer;font-size:13px;font-weight:600;background:transparent;color:var(--e-muted);border:1px solid transparent}
 .e-nav-item:hover{background:var(--e-s2)}
 .e-nav-item.active{background:var(--e-s3);color:var(--e-title);border-color:var(--e-bdActive)}
+/* VantaBlack: the active item of the side menu carries the purple of the SteamEdge mark (the neutral grey border of the scheme is not used here; these two hex values are not in the theme map, so they stay) */
+html[data-theme="dark"] #sideNav .nav a.e-nav-item.active{border-color:#6709E9;box-shadow:inset 3px 0 0 #6709E9}
+html[data-theme="dark"] #sideNav .nav a.e-nav-item.active svg{color:#A98CF5;stroke:#A98CF5}
 .e-nav-item svg{flex-shrink:0}
 
 .e-nav-item .e-lbl{white-space:normal;line-height:1.15;display:inline-block;width:128px}

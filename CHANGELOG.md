@@ -7,6 +7,20 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.4.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.1)
+
+Fixes unreadable text in VantaWhite and gives the side menu of VantaBlack the purple of the SteamEdge mark. Also carries the 4.4.0 Setup license page fix.
+
+### Fixed
+
+- **VantaWhite: the Stop button had dark text on crimson.** The label used the title colour, which is dark in this theme (contrast 2.3:1). Every crimson button keeps white text now.
+- **VantaWhite: your own chat bubbles were dark text on dark purple.** The bubble turns light purple in this theme (contrast 1.1:1 before).
+- **Checked the rest of the window.** Every page and every Settings section was scanned in VantaWhite for text with a contrast below 3:1; nothing else is left.
+
+### Changed
+
+- **VantaBlack: the active item of the side menu is the SteamEdge purple.** It was a neutral grey outline; the border, the left edge and the icon carry the purple of the mark now.
+
 ## [4.4.0](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.0)
 
 Card farming reads the card list again for accounts with a custom Steam profile address, and versions before 4.4.0 are discontinued.

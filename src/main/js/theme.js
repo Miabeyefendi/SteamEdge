@@ -35,6 +35,10 @@
       'e8eaf2': '1a1a1a', 'cdd9e5': '3a3a3a', 'a9cdff': '1b4a94', '4f8ef7': '1b57b8', '7fb0ff': '1b4a94', '93c5fd': '1b4a94', '8fb4d8': '1b4a94',
       '22c55e': '17703a', '8ee39d': '17652c', '7fd48c': '17652c', '57c66a': '17652c', 'f59e0b': '7d5208', 'e8bd6f': '7d5208', 'e8a33d': '7d5208',
       'e2703a': '9a3f12', 'ef4444': 'b01c1c', 'd5c4ff': '1a1a1a', 'bda6ff': '1a1a1a', 'a78bfa': '1a1a1a',
+      // the own bubble of the chat is a dark purple with the title colour as text: on the light surfaces it becomes a light purple
+      '2a1b47': 'e6def5',
+      // the light purple of the active menu icon in VantaBlack (edge.css); only listed so that the contrast test sees a dark colour here
+      'a98cf5': '1a1a1a',
     },
   };
   // text on the brand buttons: white everywhere except where the brand colour is light (amber, green)
@@ -107,6 +111,9 @@
     if (choice === 'white') {
       const st = document.createElement('style');
       st.textContent = '.e-toggle.on .e-knob{background:#fff !important}'
+        // the red buttons keep white text: their label is the title colour, which is dark here (Stop of the task bar was dark on crimson)
+        // (only the ones that really are crimson: the small round "remove" buttons use the same class on a light surface)
+        + '[style*="background:#a01f4a" i],[style*="background: #a01f4a" i],[style*="background: rgb(160, 31, 74)"],.e-modal-ft .ok.danger{color:#fff !important}'
         // the inline knobs of the other switches are the title colour, which is dark in this theme: an ON knob stays light on the purple
         + 'div[style*="width:16px"][style*="margin-left:16px"],div[style*="width: 16px"][style*="margin-left: 16px"]{background:#fff !important}';
       document.head.appendChild(st);
