@@ -25,6 +25,7 @@ check('the handler is in main.js', a > 0 && b > a);
     sendRaw: (channel, d) => sent.push(channel + ' ' + JSON.stringify(d)),
     sendJobStatus: (id) => sent.push('jobs ' + id),
     statsView: () => ({}),
+    resetMarketQueue: () => sent.push('market reset'),
     accountRunning: () => false,
     accountJobKinds: () => [],
     accounts: new Map([['b', { finished: { jobs: ['card'], ts: 1 } }], ['c', {}]]),
@@ -41,6 +42,7 @@ check('the handler is in main.js', a > 0 && b > a);
   let r = await first;
   check('when it is connected it becomes the account on screen', r.ok && ctx.shownNow() === 'b' && sent.includes('sync b'));
   check('the job state of the new account is sent right away', sent.includes('jobs b'));
+  check('the price queue of the old account is dropped when the new one takes over', sent.includes('market reset'));
   check('what ended on it is cleared, and the interface is told', ctx.accounts.get('b').finished === null && sent.some((s) => /^accounts:activity .*"finished":null/.test(s)));
 
   // a failed connection leaves the old account on screen

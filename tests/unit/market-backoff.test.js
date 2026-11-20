@@ -21,7 +21,7 @@ const code = src.slice(src.indexOf('let marketQueue = [];'), src.indexOf('// cac
     priceCache: cache, historyCache: new Map(),
     cachedPrice: (h) => (cache.has(h) ? cache.get(h).price : undefined), cachedHistory: () => undefined,
     savePriceCache: () => {}, saveHistoryCache: () => {}, currentPriceCurrency: () => 'USD',
-    marketGate: (fn) => fn(), log: () => {}, sendRaw: (name, data) => events.push([name, data]),
+    marketGate: (fn) => fn(), withTimeout: (promise) => promise, log: () => {}, sendRaw: (name, data) => events.push([name, data]),
     engine: { getPrice: () => { calls.push(clock); return Promise.resolve(answers.shift()); } },
   };
   vm.createContext(ctx);

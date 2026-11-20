@@ -116,6 +116,8 @@
       if (typeof inventoryLoaded !== 'undefined'){ inventoryLoaded = false; invMerged = null; invItems = null; detailKey = null; }
       if (typeof resetInventorySources === 'function') resetInventorySources();
       if (typeof priceMap !== 'undefined') priceMap.clear();
+      // the price fetch of the old account is over (the main side dropped its queue): the button and the first-visit question start fresh
+      if (typeof resetPriceFetchState === 'function') resetPriceFetchState();
       if (typeof selected !== 'undefined') selected.clear();
       if (typeof acLoaded !== 'undefined'){ acLoaded = false; acData = null; acAppid = null; }
       if (typeof grLoaded !== 'undefined'){ grLoaded = false; grGames = []; grAppid = null; grPlan = null; grCompleted = new Set(); grChecked.clear(); }

@@ -7,6 +7,15 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.4.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.2)
+
+Fixes the price fetch that never finished after switching to another account.
+
+### Fixed
+
+- **Fetch prices stayed "running" for hours on the second account.** The price queue is one queue for the whole app and a request that never got an answer held it forever, so the account you switched to waited behind it until the app was restarted. Switching accounts now drops the old account's queue, its waiting time and its request line, and unlocks the Fetch prices buttons.
+- **A price request that gets no answer is given up after 25 seconds.** It is asked again (up to 3 tries) instead of being saved as "no price".
+
 ## [4.4.1](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.1)
 
 Fixes unreadable text in VantaWhite and gives the side menu of VantaBlack the purple of the SteamEdge mark. Also carries the 4.4.0 Setup license page fix.
