@@ -151,6 +151,10 @@
       if (!res || !res.queued){ priceFetching = false; fetchAvgForView(); }
       renderInventory(); paintFetchBtn();
     }
+    // Account switch: nothing of the old account's fetch is running any more
+    function resetPriceFetchState(){
+      priceFetching = false; avgFetching = false; fetchedSig = null; priceAsked = false;
+    }
     // First entering the page: ask the user. But ONLY if there are items that are not in the cache.
     let priceAsked = false;
     async function askFetchPrices(){

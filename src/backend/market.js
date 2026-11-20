@@ -64,6 +64,10 @@ module.exports = function init(ctx) {
   // Steam answered 429: every request until this time would only make the wait longer (it was sent 3 times a second, so the limit never cleared and no price came).
   let marketBlockedUntil = 0;
   let marketStrikes = 0;
+  // Every run of the queue belongs to one generation. A reset (account switch) starts a new one: the old run, which may be stuck in a request that never
+  // answers, is dropped without touching the state the new run uses (before this one stuck request kept the single queue "running" until the app was restarted).
+  let marketGen = 0;
+  const REQUEST_TIMEOUT_MS = 25000;
   async function marketSleep(ms) {
     const end = Date.now() + ms;
     while (Date.now() < end && !marketCancel) await new Promise((r) => setTimeout(r, Math.min(1000, Math.max(1, end - Date.now()))));
@@ -84,7 +88,10 @@ module.exports = function init(ctx) {
     const n = (priceTries.get(h) || 0) + 1;
     priceTries.set(h, n);
     let p = null;
-    try { p = await marketGate(() => ctx.engine.getPrice(h)); } catch (_) { p = null; }
+    let timedOut = false;
+    try { p = await marketGate(() => withTimeout(ctx.engine.getPrice(h), REQUEST_TIMEOUT_MS, 'timeout')); } catch (e) { p = null; timedOut = !!(e && e.message === 'timeout'); }
+    // A request that never answered says nothing about the item: it is asked again (a few times) instead of being cached as "no price"
+    if (timedOut && n < MAX_PRICE_TRIES) { log('warn', 'market: price request timed out, asking again: ' + h); return { repeatFlag: true, limit: false }; }
     // The request limit is not the item's fault: it does not count as a try and nothing is written to the cache, the queue waits and asks again
     if (p && p.rateLimited) { priceTries.set(h, n - 1); return { repeatFlag: true, limit: true }; }
     if (p && p.noCurrency && n < MAX_PRICE_TRIES) {
@@ -106,7 +113,9 @@ module.exports = function init(ctx) {
     const n = (historyTries.get(h) || 0) + 1;
     historyTries.set(h, n);
     let hist = null;
-    try { hist = await marketGate(() => ctx.engine.getPriceHistory(h)); } catch (_) { hist = null; }
+    let timedOut = false;
+    try { hist = await marketGate(() => withTimeout(ctx.engine.getPriceHistory(h), REQUEST_TIMEOUT_MS, 'timeout')); } catch (e) { hist = null; timedOut = !!(e && e.message === 'timeout'); }
+    if (timedOut && n < MAX_PRICE_TRIES) { log('warn', 'market: history request timed out, asking again: ' + h); return { repeatFlag: true, limit: false }; }
     if (hist && hist.rateLimited) { historyTries.set(h, n - 1); return { repeatFlag: true, limit: true }; }
     historyTries.delete(h);
     historyCache.set(h, { hist, ts: Date.now(), cur: currentPriceCurrency(), v: HISTORY_CACHE_VERSION });
@@ -118,12 +127,14 @@ module.exports = function init(ctx) {
     if (marketRunning) return;
     marketRunning = true;
     marketCancel = false;
+    const gen = marketGen;
     const sumTotal = marketQueue.length;
     let doneItems = 0;
     // The quota is measured in REQUESTS, not items: an item can spend two requests.
     let requestCounter = 0;
     try {
       while (marketQueue.length) {
+        if (gen !== marketGen) return;
         if (marketCancel) { marketQueue.length = 0; break; }
         const is = marketQueue.shift();
         const h = is.h;
@@ -144,6 +155,7 @@ module.exports = function init(ctx) {
           repeat = r.repeatFlag;
         }
 
+        if (gen !== marketGen) return;           // the account changed while the request was out: nothing of this run belongs to the new one
         if (repeat) { marketQueue.push(is); }
         else doneItems++;
 
@@ -173,6 +185,7 @@ module.exports = function init(ctx) {
         }
       }
     } finally {
+      if (gen !== marketGen) return;
       marketRunning = false;
       marketBlockedUntil = 0; marketStrikes = 0;
       priceTries.clear();
@@ -304,8 +317,21 @@ module.exports = function init(ctx) {
     catch (e) { return { ok: false, error: e.message }; }
   });
 
+  // The account on screen changed: the queue, the waiting and the request line belong to the old one. The old run is dropped (see marketGen), the line of
+  // requests starts empty, and the screen is told that nothing is being fetched so its "Fetching" button opens again.
+  function resetMarketQueue() {
+    marketGen++;
+    marketQueue.length = 0;
+    marketRunning = false; marketCancel = false;
+    marketBlockedUntil = 0; marketStrikes = 0;
+    priceTries.clear(); historyTries.clear();
+    marketChain = Promise.resolve(); lastMarketAt = 0;
+    sendRaw('price:progress', { remaining: 0, cooldown: false });
+    sendRaw('history:progress', { totalSum: 0, doneOnes: 0, leftover: 0, isFinished: true, abandon: true });
+  }
+
   // Empties both caches in memory (the files are removed by the caller).
   function resetMarketCaches() { priceCache = new Map(); historyCache = new Map(); }
 
-  return { HISTORY_FILE, PRICE_FILE, currentPriceCurrency, loadHistoryCache, loadPriceCache, marketGate, resetMarketCaches, withTimeout };
+  return { HISTORY_FILE, PRICE_FILE, currentPriceCurrency, loadHistoryCache, loadPriceCache, marketGate, resetMarketCaches, resetMarketQueue, withTimeout };
 };

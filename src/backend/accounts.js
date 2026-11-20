@@ -54,6 +54,8 @@ module.exports = function init(ctx) {
     if (mine !== switchSeq) return { ok: true, superseded: true, steamID };     // a newer click won
     if (!r.ok) return r;
     ctx.activeSteamID = steamID;
+    // The price queue, its waiting and its request line were the old account's (a stuck request there kept Fetch prices "running" for the new one)
+    ctx.resetMarketQueue();
     // session.json always reflects the account "open in the interface" (that one opens on restart)
     makeActiveSession(entry);
     syncActive();

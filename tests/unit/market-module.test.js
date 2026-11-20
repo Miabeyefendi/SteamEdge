@@ -36,7 +36,7 @@ const m = require('../../src/backend/market')(ctx);
 
 (async () => {
   check('the module gives back what main.js, settingsipc, backup and schedule use',
-    ['HISTORY_FILE', 'PRICE_FILE', 'currentPriceCurrency', 'loadHistoryCache', 'loadPriceCache', 'marketGate', 'resetMarketCaches', 'withTimeout'].every((k) => m[k] !== undefined));
+    ['HISTORY_FILE', 'PRICE_FILE', 'currentPriceCurrency', 'loadHistoryCache', 'loadPriceCache', 'marketGate', 'resetMarketCaches', 'resetMarketQueue', 'withTimeout'].every((k) => m[k] !== undefined));
   check('it registers the five market channels',
     ['engine:historyFor', 'engine:pricesFor', 'engine:priceHistory', 'engine:itemOrders'].every((c) => handlers.has(c)) && listeners.has('engine:historyCancel'));
   check('the currency comes from the engine', m.currentPriceCurrency() === 'USD');
@@ -76,6 +76,23 @@ const m = require('../../src/backend/market')(ctx);
   // an order book asked while the queue waits out a 429 does not go out (blocked flag is internal; here only the open path)
   const orders = await handlers.get('engine:itemOrders')({}, 'ITEM A');
   check('the order book is served when nothing blocks it', orders.ok === true);
+
+  // Account switch: a request of the old account that never answers must not keep the price queue stuck for the new one (it did until the app was restarted)
+  const goodPrice = state.engine.getPrice;
+  state.engine.getPrice = () => new Promise(() => {});
+  await handlers.get('engine:pricesFor')({}, ['HANGING ITEM']);
+  await new Promise((r) => setTimeout(r, 80));
+  state.engine.getPrice = goodPrice;
+  const stuck = await handlers.get('engine:pricesFor')({}, ['ITEM C']);
+  await new Promise((r) => setTimeout(r, 200));
+  check('before the reset the stuck request holds the queue (ITEM C is not answered)', !sent.some((x) => x[0] === 'price:one' && x[1].hashName === 'ITEM C'), JSON.stringify(stuck));
+  const sentBefore = sent.length;
+  m.resetMarketQueue();
+  check('the reset tells the window that no fetch is running', sent.slice(sentBefore).some((x) => x[0] === 'price:progress' && x[1].remaining === 0));
+  await handlers.get('engine:pricesFor')({}, ['ITEM C']);
+  for (let i = 0; i < 100 && !sent.some((x) => x[0] === 'price:one' && x[1].hashName === 'ITEM C'); i++) await new Promise((r) => setTimeout(r, 20));
+  check('after the reset the fetch of the new account goes through', sent.some((x) => x[0] === 'price:one' && x[1].hashName === 'ITEM C'));
+  check('the dropped run left nothing behind (HANGING ITEM was never cached)', !sent.some((x) => x[0] === 'price:one' && x[1].hashName === 'HANGING ITEM'));
 
   process.exit(failures ? 1 : 0);
 })();
