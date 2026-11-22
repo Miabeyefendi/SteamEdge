@@ -1531,5 +1531,21 @@
  "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "此帳號的 Steam 工作階段已結束，請重新登入。",
  "Yeniden giriş": "重新登入",
  "Oturum yenilendi, hesap bağlanıyor.": "已重新登入，正在連線帳號。",
- "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "此登入屬於另一個帳號。請用要求重新登入的帳號登入。"
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "此登入屬於另一個帳號。請用要求重新登入的帳號登入。",
+ "Üyelik tarihi": "加入日期",
+ "Ülke": "國家",
+ "Gerçek ad": "真實姓名",
+ "Konum": "位置",
+ "Herkese açık": "公開",
+ "Yalnızca arkadaşlar": "僅限好友",
+ "Gizli": "私人",
+ "Yetkili cihaz": "已授權電腦",
+ "Hesap türü": "帳號類型",
+ "Sınırlı hesap": "受限帳號",
+ "Tam hesap": "完整帳號",
+ "Arkadaş sayısı": "好友數",
+ "Grup sayısı": "群組數",
+ "Son 2 hafta": "最近兩週",
+ "SteamID64": "SteamID64",
+ "Profil ayrıntıları": "個人檔案詳情"
 }

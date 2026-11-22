@@ -434,16 +434,54 @@ class SteamEngine {
   async getVanityURL() {
     if (this._vanity !== undefined) return this._vanity;
     try {
-      const r = await this._requestItem(
-        `https://steamcommunity.com/profiles/${this.steamID}/?xml=1`,
-        { attemptCount: 1, timeoutLimitMs: 8000 },
-        'Steam profili',
-      );
-      const xml = await r.text();
+      const xml = await this._profileXml();
       const m = xml.match(/<customURL>(?:<!\[CDATA\[)?([^\]<]*)/i);
       this._vanity = (m && m[1] && m[1].trim()) ? m[1].trim() : null;
     } catch (_) { return null; /* no network: not kept, the next call asks again (the badge page needs it, see _profileBase) */ }
     return this._vanity;
+  }
+
+  // The XML form of the account's own profile page, kept for the session: the custom address and the profile details both read it.
+  async _profileXml() {
+    if (this._profileXmlText) return this._profileXmlText;
+    const r = await this._requestItem(
+      `https://steamcommunity.com/profiles/${this.steamID}/?xml=1`,
+      { attemptCount: 1, timeoutLimitMs: 8000 },
+      'Steam profili',
+    );
+    this._profileXmlText = await r.text();
+    return this._profileXmlText;
+  }
+
+  // Everything Steam tells about the account itself, for the account card in Settings. Two sources, and a part that fails is left out (never made up):
+  //  - the protocol, already held by steam-user after the logon (no request): country, authorised computers, limited or full account, friends and groups counts;
+  //  - the profile page in XML form: member since, real name, location, privacy, hours in the last two weeks.
+  // Bans, Steam Guard and the e-mail address are left out on purpose: not wanted on the card.
+  async getAccountDetails() {
+    const u = this.user;
+    if (!u || !this.steamID) throw new Error(translation.t('Steam oturumu yok'));
+    const out = {};
+    const ai = u.accountInfo || {};
+    if (ai.country) out.country = String(ai.country);
+    if (typeof ai.authedMachines === 'number') out.authedMachines = ai.authedMachines;
+    const lim = u.limitations;
+    if (lim) out.limited = !!lim.limited;
+    if (u.myFriends) out.friends = Object.keys(u.myFriends).filter((id) => u.myFriends[id] === 3).length;
+    if (u.myGroups) out.groups = Object.keys(u.myGroups).filter((id) => u.myGroups[id] === 3).length;
+    try {
+      const xml = await this._profileXml();
+      const tag = (name) => {
+        const m = xml.match(new RegExp('<' + name + '>(?:<!\\[CDATA\\[)?([^\\]<]*)', 'i'));
+        return (m && m[1] && m[1].trim()) ? m[1].trim() : null;
+      };
+      const pick = { memberSince: 'memberSince', realName: 'realname', location: 'location', privacy: 'privacyState' };
+      for (const k in pick) { const v = tag(pick[k]); if (v) out[k] = v; }
+      const hrs = tag('hoursPlayed2Wk');
+      if (hrs && !isNaN(parseFloat(hrs))) out.hours2Weeks = parseFloat(hrs);
+      const lm = tag('isLimitedAccount');
+      if (lm !== null && out.limited === undefined) out.limited = lm === '1';
+    } catch (_) { /* the page did not answer: only the protocol part is returned */ }
+    return out;
   }
 
   // The address of the account's own community pages. Steam answers /profiles/<id>/... of an account with a custom address by redirecting to /id/<name>/...

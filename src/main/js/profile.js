@@ -28,6 +28,10 @@
           imuProfileFresh = true;
           applyProfile();
         }
+        // The account details come with their own request (a web page), after the name and avatar are on screen
+        E.accountDetails().then(d=>{
+          if (d && d.ok && d.details && imuProfile){ imuProfile.details = d.details; paintDetails(); }
+        }).catch(()=>{});
       }
       // The custom address is read from the profile page; a separate request so it does not hold up the name and avatar.
       if (imuProfile && !imuProfile.vanity){
@@ -55,6 +59,7 @@
       const setLevelRow = document.getElementById('setLevel'); if (setLevelRow) setLevelRow.textContent = imuProfile.level!=null ? imuProfile.level : '-';
       // The identity rows also show the custom address that comes from the profile; so it refreshes when the account changes.
       if (typeof paintIds === 'function') paintIds();
+      if (typeof paintDetails === 'function') paintDetails();
     }
 
     // ---- lifetime statistics (main.js stats.json) ----
@@ -149,6 +154,49 @@
       const profileData = document.getElementById('idOpenProfile');
       if (everything) everything.disabled = !identities;
       if (profileData) profileData.disabled = !identities;
+    }
+
+    // ---- ACCOUNT DETAILS (Settings > Account card, under the identity rows) ----
+    // What Steam answers about the account (SteamEngine.getAccountDetails). A row whose value Steam did not give is not drawn: nothing is made up.
+    const PRIVACY_TEXT = { public: 'Herkese açık', friendsonly: 'Yalnızca arkadaşlar', private: 'Gizli' };
+    function detailRows(d){
+      const rows = [];
+      const add = (label, value, copyValue) => { if (value !== null && value !== undefined && value !== '') rows.push([label, String(value), copyValue === undefined ? String(value) : copyValue]); };
+      if (d.memberSince){
+        const when = new Date(d.memberSince);
+        add('Üyelik tarihi', isNaN(when) ? d.memberSince : when.toLocaleDateString(localCode()));
+      }
+      if (d.country){
+        let name = d.country;
+        try { name = new Intl.DisplayNames([localCode()], { type: 'region' }).of(d.country) || d.country; } catch (_) {}
+        add('Ülke', name);
+      }
+      add('Gerçek ad', d.realName);
+      add('Konum', d.location);
+      if (d.privacy) add('Gizlilik', PRIVACY_TEXT[d.privacy] ? t(PRIVACY_TEXT[d.privacy]) : d.privacy);
+      if (d.authedMachines !== undefined) add('Yetkili cihaz', d.authedMachines);
+      if (d.limited !== undefined) add('Hesap türü', d.limited ? t('Sınırlı hesap') : t('Tam hesap'));
+      if (d.friends !== undefined) add('Arkadaş sayısı', d.friends);
+      if (d.groups !== undefined) add('Grup sayısı', d.groups);
+      if (d.hours2Weeks !== undefined) add('Son 2 hafta', fmtHrs(d.hours2Weeks * 3600000));
+      return rows;
+    }
+    function paintDetails(){
+      const box = document.getElementById('detailBox');
+      if (!box) return;
+      const d = imuProfile && imuProfile.details;
+      box.textContent = '';
+      if (!d) return;
+      detailRows(d).forEach(([label, value, copyValue])=>{
+        const row = document.createElement('div');
+        row.className = 'e-identity-row';
+        row.title = t('Kopyalamak için tıkla');
+        const k = document.createElement('span'); k.className = 'k'; k.textContent = t(label);
+        const v = document.createElement('span'); v.className = 'v'; v.textContent = value;
+        row.append(k, v);
+        row.onclick = (e)=>{ e.stopPropagation(); copyId(copyValue, label); };
+        box.appendChild(row);
+      });
     }
 
     function copyId(text, labelText){

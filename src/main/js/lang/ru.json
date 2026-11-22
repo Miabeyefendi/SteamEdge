@@ -1531,5 +1531,21 @@
  "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "Сессия Steam этого аккаунта закрыта; войдите заново.",
  "Yeniden giriş": "Повторный вход",
  "Oturum yenilendi, hesap bağlanıyor.": "Вход выполнен заново, аккаунт подключается.",
- "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "Этот вход принадлежит другому аккаунту. Войдите в аккаунт, который его запросил."
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "Этот вход принадлежит другому аккаунту. Войдите в аккаунт, который его запросил.",
+ "Üyelik tarihi": "Участник с",
+ "Ülke": "Страна",
+ "Gerçek ad": "Настоящее имя",
+ "Konum": "Местоположение",
+ "Herkese açık": "Публичный",
+ "Yalnızca arkadaşlar": "Только друзья",
+ "Gizli": "Скрытый",
+ "Yetkili cihaz": "Авторизованные компьютеры",
+ "Hesap türü": "Тип аккаунта",
+ "Sınırlı hesap": "Ограниченный аккаунт",
+ "Tam hesap": "Полный аккаунт",
+ "Arkadaş sayısı": "Друзья",
+ "Grup sayısı": "Группы",
+ "Son 2 hafta": "Последние 2 недели",
+ "SteamID64": "SteamID64",
+ "Profil ayrıntıları": "Сведения о профиле"
 }

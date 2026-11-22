@@ -1531,5 +1531,21 @@
  "Bu hesabın Steam oturumu kapandı; yeniden giriş yap.": "This account's Steam session has ended; sign in again.",
  "Yeniden giriş": "Sign in again",
  "Oturum yenilendi, hesap bağlanıyor.": "Signed in again, connecting the account.",
- "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "This sign-in belongs to another account. Sign in with the account that asked for it."
+ "Bu giriş başka bir hesaba ait. Yeniden giriş isteyen hesapla giriş yap.": "This sign-in belongs to another account. Sign in with the account that asked for it.",
+ "Üyelik tarihi": "Member since",
+ "Ülke": "Country",
+ "Gerçek ad": "Real name",
+ "Konum": "Location",
+ "Herkese açık": "Public",
+ "Yalnızca arkadaşlar": "Friends only",
+ "Gizli": "Private",
+ "Yetkili cihaz": "Authorised computers",
+ "Hesap türü": "Account type",
+ "Sınırlı hesap": "Limited account",
+ "Tam hesap": "Full account",
+ "Arkadaş sayısı": "Friends",
+ "Grup sayısı": "Groups",
+ "Son 2 hafta": "Last 2 weeks",
+ "SteamID64": "SteamID64",
+ "Profil ayrıntıları": "Profile details"
 }

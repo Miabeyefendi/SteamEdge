@@ -211,6 +211,8 @@ contextBridge.exposeInMainWorld('imu', {
     profile: () => ipcRenderer.invoke('engine:profile'),
     // The custom profile address is separate: it needs a web request, so name/avatar must not wait for it.
     vanity: () => ipcRenderer.invoke('engine:vanity'),
+    // What Steam tells about the account itself (country, bans, Steam Guard, member since...), for the account card in Settings
+    accountDetails: () => ipcRenderer.invoke('engine:accountDetails'),
     // With isFresh=true the 5 minute schema cache is skipped; used after a bulk operation
     // to verify what Steam actually saved.
     // steamID (optional): the account a running bulk operation belongs to, so a switch to another account in the middle does not send the rest there

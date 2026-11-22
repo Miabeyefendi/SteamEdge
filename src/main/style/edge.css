@@ -404,7 +404,7 @@ body.e-compact .inv-bulk{min-height:56px!important;padding-top:6px!important;pad
 .set-page{container:set / inline-size}
 @container set (max-width: 1000px){
   .set-grid{grid-template-columns:176px minmax(0,1fr)!important}
-  .set-acct{grid-column:2;position:static!important}
+  .set-acct{grid-column:2;position:static!important;max-height:none!important;overflow:visible!important}
 }
 @container set (max-width: 700px){
   .set-grid{grid-template-columns:minmax(0,1fr)!important}
