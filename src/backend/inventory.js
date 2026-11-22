@@ -141,7 +141,19 @@ module.exports = function init(ctx) {
     } catch (e) { return { ok: false, error: e.message }; }
   });
 
-  ipcMain.handle('engine:setAchievements', async (_e, { appid, changes, steamID }) => {
+  // The account card's details (see SteamEngine.getAccountDetails). Kept in the account's own file next to the profile, so the card is full at once on the next start.
+  ipcMain.handle('engine:accountDetails', async () => {
+    if (!ctx.engineReady || !ctx.engine) return { ok: false, error: 'Bağlı değil.' };
+    try {
+      const details = await ctx.engine.getAccountDetails();
+      const v = ctx.activeAccountData();
+      v.profileInfo = { ...(v.profileInfo || {}), details: { ...details, ts: Date.now() } };
+      ctx.writeAccountData(ctx.activeSteamID);
+      return { ok: true, details: v.profileInfo.details };
+    } catch (e) { return { ok: false, error: e.message }; }
+  });
+
+  ipcMain.handle('engine:setAchievements',async (_e, { appid, changes, steamID }) => {
     const eng = engineFor(steamID);
     // notConnected / refused: a bulk run waits for the connection and sends a write again that got no answer, but not one that Steam refused
     if (!eng) return { ok: false, error: 'Bağlı değil.', notConnected: true };

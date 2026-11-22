@@ -7,6 +7,19 @@ published with that build; the archives live on the
 Versions 1.0.0 to 1.0.4 were withdrawn over Electron 33 vulnerabilities and their
 archives deleted on purpose. Their notes are not reproduced here.
 
+## [4.4.3](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.3)
+
+The account card in Settings shows what Steam tells about the account: SteamID64 is named as such, and a new Profile details card lists member since, country, friends and more.
+
+### Added
+
+- **Account details in Settings > Account.** A new Profile details card under the Account card, separate from the ID rows: member since, country, real name, location, profile privacy, authorised computers, account type (limited or full), number of friends and groups, and hours played in the last two weeks. A row appears only when Steam answered it, nothing is guessed. Click a row to copy it. The values are kept in the account's own file, so the card is full at once on the next start.
+
+### Changed
+
+- **The "SteamID" row is named "SteamID64".** It always held the 17-digit number; the name was easy to miss next to SteamID2 and SteamID3.
+- **The account card scrolls inside itself** when it is taller than the window, so Sign out stays reachable.
+
 ## [4.4.2](https://github.com/Miabeyefendi/SteamEdge/releases/tag/4.4.2)
 
 Fixes the price fetch that never finished after switching to another account.
